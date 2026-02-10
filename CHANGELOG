@@ -6,3 +6,5 @@
 - Added `.ui-home/` git ignore coverage and untracked `.ui-home/app.db` from the repository index.
 - Updated installation validation runtime home defaults to avoid repo-tracked UI runtime state when `DATA_EXTRACT_UI_HOME` is unset.
 - Verified Python-side gates and contract tests still pass; UI gate remains environment-blocked due unavailable npm registry and Playwright assets in this workspace.
+- Serialized retry lifecycle persistence so queued state/event commit before retry worker enqueue, eliminating retry-path write races in SQLite.
+- Removed temporary lifecycle e2e retry mitigations (`ui` test loop + Playwright CLI retries) and added router regression coverage to the refactor tests gate.
