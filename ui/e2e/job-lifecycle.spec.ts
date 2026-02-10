@@ -167,18 +167,10 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(retryButton).toBeEnabled();
     await retryButton.click();
 
-    let retryTerminal = await waitForTerminalState(request, jobId, 20_000, {
+    const retryTerminal = await waitForTerminalState(request, jobId, 20_000, {
       minEventCount: processTerminal.payload.events.length + 1,
       requireStatusChangeFrom: processTerminal.payload.status,
     });
-    for (let retryAttempt = 0; retryAttempt < 3 && retryTerminal.payload.status !== "completed"; retryAttempt += 1) {
-      await expect(retryButton).toBeEnabled();
-      await retryButton.click();
-      retryTerminal = await waitForTerminalState(request, jobId, 20_000, {
-        minEventCount: retryTerminal.payload.events.length + 1,
-        requireStatusChangeFrom: retryTerminal.payload.status,
-      });
-    }
     const retryTerminalMs = performance.now() - retryStart;
 
     expect(retryTerminal.payload.status).toBe("completed");

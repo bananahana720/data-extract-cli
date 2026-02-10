@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "e2e:gui": "playwright test --config=playwright.config.ts --repeat-each=3 --workers=1 --retries=2 e2e/job-lifecycle.spec.ts",
+    "e2e:gui": "playwright test --config=playwright.config.ts --repeat-each=3 --workers=1 e2e/job-lifecycle.spec.ts",
     "e2e:gui:slo": "node ./e2e/assert-slo-budget.mjs"
   },
   "dependencies": {
