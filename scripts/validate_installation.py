@@ -19,8 +19,18 @@ RESET = "\033[0m"
 
 TestFn = Callable[[], bool]
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_UI_HOME = PROJECT_ROOT / ".ui-home"
+DATA_EXTRACT_UI_HOME_ENV = "DATA_EXTRACT_UI_HOME"
 DEFAULT_PYTHON = PROJECT_ROOT / ".venv" / "bin" / "python"
+
+
+def _resolve_ui_home() -> Path:
+    configured = os.environ.get(DATA_EXTRACT_UI_HOME_ENV)
+    if configured:
+        return Path(configured).expanduser()
+    return Path(tempfile.gettempdir()) / "data-extract-ui-validation"
+
+
+DEFAULT_UI_HOME = _resolve_ui_home()
 
 
 def _resolve_python() -> str:
@@ -49,6 +59,7 @@ def fail(message: str) -> None:
 def run(cmd: list[str], expect_success: bool = True) -> tuple[bool, str, str]:
     env = dict(os.environ)
     env.setdefault("DATA_EXTRACT_UI_HOME", str(DEFAULT_UI_HOME))
+    Path(env["DATA_EXTRACT_UI_HOME"]).mkdir(parents=True, exist_ok=True)
     env["PYTHONPATH"] = str(PROJECT_ROOT / "src") + os.pathsep + env.get("PYTHONPATH", "")
     try:
         completed = subprocess.run(

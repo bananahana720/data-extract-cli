@@ -65,11 +65,17 @@ Starts the local FastAPI backend and serves the React UI.
 ## UI Workflow
 
 1. Open `data-extract ui`
-2. Create a run from:
-   - Drag/drop or file/folder upload
-   - Or a local input path
+2. Create a run with explicit source mode selection:
+   - `Local Path` (default): requires a non-empty path
+   - `Upload Files/Folder`: requires at least one selected file
+   - Both sections remain visible, but only the selected source is submitted
+   - Inline validation enforces source requirements and `chunk_size >= 32`
 3. Track job progress on `/jobs`
-4. Inspect job details on `/jobs/:job_id`
+4. Inspect job details on `/jobs/:job_id`:
+   - Summary card with status and file counts
+   - Next-action guidance
+   - Lifecycle timeline (`queued`, `running`, `finished`, `cleanup`, `error`)
+   - Structured failure details with remediation hints
 5. Retry failed files with one click
 6. Use `Cleanup Artifacts` on a job when you want to remove persisted job files
 7. Review sessions on `/sessions`
@@ -85,6 +91,10 @@ UI runtime data:
 
 CLI session state:
 - `<work_dir>/.data-extract-session/`
+
+Repository hygiene notes:
+- `.ui-home/` is ignored by git for local runtime/testing state.
+- `app.db` is no longer tracked in repository history moving forward.
 
 ## Migration Notes (CLI-only to CLI+UI)
 

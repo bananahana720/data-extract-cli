@@ -29,6 +29,10 @@ export DATA_EXTRACT_UI_HOME="$(pwd)/.ui-home"
 data-extract ui --check
 ```
 
+`scripts/validate_installation.py` now defaults to a temporary runtime home when
+`DATA_EXTRACT_UI_HOME` is unset, so validation does not depend on repo-tracked state.
+`.ui-home/` is ignored by git for local runtime hygiene.
+
 Checks include:
 - Required backend dependencies (`fastapi`, `uvicorn`, `sqlalchemy`)
 - Writable app directory
@@ -63,6 +67,15 @@ npm run dev
 ```
 
 The Vite dev server proxies `/api/*` requests to `http://127.0.0.1:8765`.
+New Run UI behavior:
+- Explicit source mode (`Local Path` or `Upload Files/Folder`)
+- Both source sections visible; selected mode determines submitted payload
+- Inline validation for required source and minimum chunk size (`>= 32`)
+
+Job Detail UI behavior:
+- Action-first summary with next-action guidance
+- Lifecycle timeline sourced from job events
+- Structured failure diagnostics and clipboard status feedback
 
 Build for backend serving:
 

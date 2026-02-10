@@ -86,10 +86,36 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
 
   try {
     await page.goto("/");
-    await page.getByLabel("Input Path (optional when uploading files)").fill(sourceDir);
+    const sourcePathMode = page.getByTestId("new-run-source-path");
+    const sourceUploadMode = page.getByTestId("new-run-source-upload");
+    const pathInput = page.getByTestId("new-run-input-path");
+    const chunkSizeInput = page.getByTestId("new-run-chunk-size");
+    const submitButton = page.getByTestId("new-run-submit");
+
+    await expect(sourcePathMode).toBeChecked();
+    await expect(sourceUploadMode).not.toBeChecked();
+    await expect(page.getByTestId("new-run-source-panel-path")).toBeVisible();
+    await expect(page.getByTestId("new-run-source-panel-upload")).toBeVisible();
+
+    await pathInput.fill("   ");
+    await submitButton.click();
+    await expect(page.locator("#new-run-input-path-error")).toBeVisible();
+
+    await pathInput.fill(sourceDir);
+    await chunkSizeInput.fill("12");
+    await submitButton.click();
+    await expect(page.locator("#new-run-chunk-size-error")).toBeVisible();
+
+    await sourceUploadMode.check();
+    await submitButton.click();
+    await expect(page.locator("#new-run-upload-error")).toBeVisible();
+
+    await sourcePathMode.check();
+    await pathInput.fill(sourceDir);
+    await chunkSizeInput.fill("512");
 
     const processStart = performance.now();
-    await page.getByRole("button", { name: "Start Run" }).click();
+    await submitButton.click();
     await page.waitForURL(/\/jobs\/[^/]+$/);
 
     const match = page.url().match(/\/jobs\/([^/?#]+)/);
@@ -104,7 +130,12 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     expect(["partial", "failed"]).toContain(processTerminal.payload.status);
     expect(processTerminal.observedEvents).toContain("queued");
     expect(processTerminal.observedEvents).toContain("running");
-    await expect(page.locator(".status")).toHaveText(processTerminal.payload.status);
+    await expect(page.getByTestId("job-status-chip")).toHaveText(processTerminal.payload.status);
+    await expect(page.getByTestId("job-next-action")).toBeVisible();
+    await expect(page.getByTestId("job-lifecycle-timeline")).toBeVisible();
+    await expect
+      .poll(async () => page.locator("[data-testid^='job-timeline-item-']").count())
+      .toBeGreaterThanOrEqual(2);
 
     await fs.chmod(badFile, 0o644);
 
@@ -119,7 +150,8 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     expect(retryTerminal.payload.status).toBe("completed");
     expect(retryTerminal.observedEvents).toContain("queued");
     expect(retryTerminal.observedEvents).toContain("running");
-    await expect(page.locator(".status")).toHaveText("completed");
+    await expect(page.getByTestId("job-status-chip")).toHaveText("completed");
+    await expect(page.getByTestId("job-next-action")).toContainText("Next Action:");
 
     const cleanupStart = performance.now();
     await page.getByRole("button", { name: "Cleanup Artifacts" }).click();
@@ -136,6 +168,7 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
       })
       .toBe(false);
     const cleanupMs = performance.now() - cleanupStart;
+    await expect(page.getByTestId("job-next-action")).toContainText("Artifacts are already cleaned");
 
     await fs.mkdir(ARTIFACTS_DIR, { recursive: true });
     await fs.writeFile(

@@ -45,6 +45,7 @@ Thumbs.db
 test-extraction-outputs/
 test-files-assesses-extraction-tool/
 output/
+.ui-home/
 .env
 .env.local
 

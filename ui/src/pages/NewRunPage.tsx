@@ -1,18 +1,30 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, KeyboardEvent, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createProcessJob, createProcessJobWithFiles } from "../api/client";
 
+type SourceMode = "path" | "upload";
+type FieldErrors = {
+  path?: string;
+  upload?: string;
+  chunkSize?: string;
+};
+
 export function NewRunPage() {
   const navigate = useNavigate();
+  const filesInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const [sourceMode, setSourceMode] = useState<SourceMode>("path");
   const [inputPath, setInputPath] = useState("");
-  const [chunkSize, setChunkSize] = useState(512);
+  const [chunkSizeInput, setChunkSizeInput] = useState("512");
   const [outputFormat, setOutputFormat] = useState("json");
   const [recursive, setRecursive] = useState(true);
   const [incremental, setIncremental] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [submitFeedback, setSubmitFeedback] = useState("");
 
   const fileNames = useMemo(() => selectedFiles.map((file) => file.name), [selectedFiles]);
 
@@ -33,22 +45,57 @@ export function NewRunPage() {
       }
       return merged;
     });
+    setFieldErrors((current) => ({ ...current, upload: undefined }));
+    setSourceMode("upload");
+  }
+
+  function validateForm(): { chunkSize: number } | null {
+    const nextErrors: FieldErrors = {};
+    const parsedChunkSize = Number(chunkSizeInput);
+    if (!Number.isFinite(parsedChunkSize) || parsedChunkSize < 32) {
+      nextErrors.chunkSize = "Chunk size must be a numeric value greater than or equal to 32.";
+    }
+
+    if (sourceMode === "path" && !inputPath.trim()) {
+      nextErrors.path = "Path mode requires a non-empty local input path.";
+    }
+
+    if (sourceMode === "upload" && selectedFiles.length === 0) {
+      nextErrors.upload = "Upload mode requires at least one selected file.";
+    }
+
+    setFieldErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      setSubmitFeedback("Fix validation errors before starting the run.");
+      return null;
+    }
+
+    return { chunkSize: parsedChunkSize };
+  }
+
+  function onDropzoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      filesInputRef.current?.click();
+    }
   }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-
-    if (selectedFiles.length === 0 && !inputPath.trim()) {
-      setError("Provide an input path or upload files.");
+    const validated = validateForm();
+    if (!validated) {
       return;
     }
+    const trimmedPath = inputPath.trim();
+    setSubmitFeedback("Starting run...");
 
     setIsSubmitting(true);
     try {
       let jobId: string;
 
-      if (selectedFiles.length > 0) {
+      if (sourceMode === "upload") {
         const formData = new FormData();
         for (const file of selectedFiles) {
           const relativePath =
@@ -56,15 +103,15 @@ export function NewRunPage() {
           formData.append("files", file, relativePath);
         }
         formData.append("output_format", outputFormat);
-        formData.append("chunk_size", String(chunkSize));
+        formData.append("chunk_size", String(validated.chunkSize));
         formData.append("recursive", String(recursive));
         formData.append("incremental", String(incremental));
         jobId = await createProcessJobWithFiles(formData);
       } else {
         jobId = await createProcessJob({
-          input_path: inputPath,
+          input_path: trimmedPath,
           output_format: outputFormat,
-          chunk_size: chunkSize,
+          chunk_size: validated.chunkSize,
           recursive,
           incremental,
           non_interactive: true
@@ -75,6 +122,7 @@ export function NewRunPage() {
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Job submission failed";
       setError(message);
+      setSubmitFeedback(`Submission failed: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -84,110 +132,246 @@ export function NewRunPage() {
     <section className="panel">
       <h2>Create A New Processing Run</h2>
       <p className="muted">
-        Drag files for quick intake, or provide a local path for large directory processing.
+        Choose your submission source, then tune advanced settings as needed.
       </p>
 
-      <form onSubmit={onSubmit} className="form-grid">
-        <label>
-          <span>Input Path (optional when uploading files)</span>
+      <form onSubmit={onSubmit} className="form-grid" noValidate data-testid="new-run-form">
+        <fieldset className="field-group">
+          <legend>Input Source</legend>
+          <p className="help-text" id="source-mode-help">
+            Both sections remain visible below. Only the selected source is submitted.
+          </p>
+          <div className="source-toggle" role="radiogroup" aria-describedby="source-mode-help">
+            <label className={`source-choice ${sourceMode === "path" ? "is-selected" : ""}`}>
+              <input
+                type="radio"
+                name="source-mode"
+                value="path"
+                checked={sourceMode === "path"}
+                onChange={() => setSourceMode("path")}
+                data-testid="new-run-source-path"
+              />
+              <span>Local Path</span>
+            </label>
+            <label className={`source-choice ${sourceMode === "upload" ? "is-selected" : ""}`}>
+              <input
+                type="radio"
+                name="source-mode"
+                value="upload"
+                checked={sourceMode === "upload"}
+                onChange={() => setSourceMode("upload")}
+                data-testid="new-run-source-upload"
+              />
+              <span>Upload Files/Folder</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <section
+          className={`source-panel ${sourceMode === "path" ? "is-active" : "is-inactive"}`}
+          data-testid="new-run-source-panel-path"
+          aria-label="Local path source"
+        >
+          <div className="row-between">
+            <h3>Local Path</h3>
+            <span className={`status-chip ${sourceMode === "path" ? "active" : "inactive"}`}>
+              {sourceMode === "path" ? "Selected Source" : "Not Selected"}
+            </span>
+          </div>
+          <label htmlFor="new-run-input-path">
+            <span>Input Path</span>
+          </label>
           <input
+            id="new-run-input-path"
+            data-testid="new-run-input-path"
             value={inputPath}
             onChange={(event) => setInputPath(event.target.value)}
             placeholder="/path/to/documents"
+            aria-describedby="new-run-input-path-help new-run-input-path-error"
+            aria-invalid={Boolean(fieldErrors.path)}
+            required={sourceMode === "path"}
           />
-        </label>
+          <p className="help-text" id="new-run-input-path-help">
+            Required when Local Path is selected. The value is trimmed before submit.
+          </p>
+          {fieldErrors.path ? (
+            <p className="field-error" id="new-run-input-path-error" role="alert">
+              {fieldErrors.path}
+            </p>
+          ) : null}
+        </section>
 
         <div
-          className="dropzone"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            addFiles(event.dataTransfer.files);
-          }}
+          className={`source-panel ${sourceMode === "upload" ? "is-active" : "is-inactive"}`}
+          data-testid="new-run-source-panel-upload"
+          aria-label="Upload source"
         >
-          <p>Drop files here</p>
-          <small>or select files/folder</small>
-          <div className="actions-inline">
-            <label className="button-like">
-              Choose Files
-              <input
-                type="file"
-                multiple
-                hidden
-                onChange={(event) => addFiles(event.target.files)}
-              />
-            </label>
-            <label className="button-like secondary">
-              Choose Folder
-              <input
-                type="file"
-                // @ts-expect-error webkitdirectory is non-standard but widely supported.
-                webkitdirectory=""
-                hidden
-                onChange={(event) => addFiles(event.target.files)}
-              />
-            </label>
+          <div className="row-between">
+            <h3>Upload Files/Folder</h3>
+            <span className={`status-chip ${sourceMode === "upload" ? "active" : "inactive"}`}>
+              {sourceMode === "upload" ? "Selected Source" : "Not Selected"}
+            </span>
           </div>
+          <p className="help-text" id="new-run-upload-help">
+            Required when Upload Files/Folder is selected. You can drop files or use file picker
+            controls.
+          </p>
+          <div
+            className="dropzone"
+            role="button"
+            tabIndex={0}
+            data-testid="new-run-upload-dropzone"
+            aria-label="Upload dropzone"
+            aria-describedby="new-run-upload-help new-run-upload-error"
+            aria-invalid={Boolean(fieldErrors.upload)}
+            onKeyDown={onDropzoneKeyDown}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                filesInputRef.current?.click();
+              }
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              addFiles(event.dataTransfer.files);
+            }}
+          >
+            <p>Drop files here</p>
+            <small>Press Enter/Space to choose files</small>
+            <div className="actions-inline">
+              <button
+                type="button"
+                className="button-like"
+                onClick={() => filesInputRef.current?.click()}
+                data-testid="new-run-upload-choose-files"
+              >
+                Choose Files
+              </button>
+              <button
+                type="button"
+                className="button-like secondary"
+                onClick={() => folderInputRef.current?.click()}
+                data-testid="new-run-upload-choose-folder"
+              >
+                Choose Folder
+              </button>
+            </div>
+            <input
+              ref={filesInputRef}
+              type="file"
+              multiple
+              hidden
+              onChange={(event) => addFiles(event.target.files)}
+            />
+            <input
+              ref={folderInputRef}
+              type="file"
+              hidden
+              // @ts-expect-error webkitdirectory is non-standard but widely supported.
+              webkitdirectory=""
+              onChange={(event) => addFiles(event.target.files)}
+            />
+          </div>
+          {fieldErrors.upload ? (
+            <p className="field-error" id="new-run-upload-error" role="alert">
+              {fieldErrors.upload}
+            </p>
+          ) : null}
+
+          {fileNames.length > 0 ? (
+            <div className="file-list" data-testid="new-run-upload-file-list">
+              <strong data-testid="new-run-upload-file-count">{fileNames.length} file(s) ready</strong>
+              <ul>
+                {fileNames.slice(0, 8).map((name) => (
+                  <li key={name}>{name}</li>
+                ))}
+              </ul>
+              {fileNames.length > 8 ? <small>and {fileNames.length - 8} more</small> : null}
+              <button type="button" className="link" onClick={() => setSelectedFiles([])}>
+                Clear uploads
+              </button>
+            </div>
+          ) : null}
         </div>
 
-        {fileNames.length > 0 ? (
-          <div className="file-list">
-            <strong>{fileNames.length} file(s) ready</strong>
-            <ul>
-              {fileNames.slice(0, 8).map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-            {fileNames.length > 8 ? <small>and {fileNames.length - 8} more</small> : null}
-            <button type="button" className="link" onClick={() => setSelectedFiles([])}>
-              Clear uploads
-            </button>
-          </div>
-        ) : null}
-
-        <details>
-          <summary>Advanced Settings</summary>
-          <label>
+        <fieldset className="field-group">
+          <legend>Advanced Settings</legend>
+          <label htmlFor="new-run-output-format">
             <span>Output Format</span>
-            <select value={outputFormat} onChange={(event) => setOutputFormat(event.target.value)}>
-              <option value="json">JSON</option>
-              <option value="csv">CSV</option>
-              <option value="txt">TXT</option>
-            </select>
           </label>
+          <select
+            id="new-run-output-format"
+            value={outputFormat}
+            onChange={(event) => setOutputFormat(event.target.value)}
+            aria-describedby="new-run-output-format-help"
+          >
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="txt">TXT</option>
+          </select>
+          <p className="help-text" id="new-run-output-format-help">
+            Default is JSON.
+          </p>
 
-          <label>
+          <label htmlFor="new-run-chunk-size">
             <span>Chunk Size</span>
-            <input
-              type="number"
-              min={32}
-              value={chunkSize}
-              onChange={(event) => setChunkSize(Number(event.target.value))}
-            />
           </label>
+          <input
+            id="new-run-chunk-size"
+            data-testid="new-run-chunk-size"
+            type="number"
+            min={32}
+            inputMode="numeric"
+            value={chunkSizeInput}
+            onChange={(event) => setChunkSizeInput(event.target.value)}
+            aria-describedby="new-run-chunk-size-help new-run-chunk-size-error"
+            aria-invalid={Boolean(fieldErrors.chunkSize)}
+          />
+          <p className="help-text" id="new-run-chunk-size-help">
+            Must be numeric and at least 32. Default is 512.
+          </p>
+          {fieldErrors.chunkSize ? (
+            <p className="field-error" id="new-run-chunk-size-error" role="alert">
+              {fieldErrors.chunkSize}
+            </p>
+          ) : null}
 
-          <label className="check-row">
+          <div className="check-row">
             <input
+              id="new-run-recursive"
               type="checkbox"
               checked={recursive}
               onChange={(event) => setRecursive(event.target.checked)}
             />
-            <span>Recursive file discovery</span>
-          </label>
+            <label htmlFor="new-run-recursive">
+              <span>Recursive file discovery</span>
+            </label>
+          </div>
 
-          <label className="check-row">
+          <div className="check-row">
             <input
+              id="new-run-incremental"
               type="checkbox"
               checked={incremental}
               onChange={(event) => setIncremental(event.target.checked)}
             />
-            <span>Incremental mode (new/changed only)</span>
-          </label>
-        </details>
+            <label htmlFor="new-run-incremental">
+              <span>Incremental mode (new/changed only)</span>
+            </label>
+          </div>
+        </fieldset>
 
-        {error ? <p className="error">{error}</p> : null}
+        <p className="help-text submit-feedback" aria-live="polite" data-testid="new-run-submit-feedback">
+          {isSubmitting ? "Submitting job..." : submitFeedback}
+        </p>
 
-        <button className="primary" type="submit" disabled={isSubmitting}>
+        {error ? (
+          <p className="error" role="alert" aria-live="assertive">
+            {error}
+          </p>
+        ) : null}
+
+        <button className="primary" type="submit" disabled={isSubmitting} data-testid="new-run-submit">
           {isSubmitting ? "Starting..." : "Start Run"}
         </button>
       </form>

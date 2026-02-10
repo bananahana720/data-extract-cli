@@ -1,0 +1,8 @@
+2026-02-10
+- Refactored GUI New Run and Job Detail lifecycle UX with explicit source-mode selection, inline validation, action-first layout, and lifecycle timeline.
+- Added stable UI test hooks and expanded lifecycle e2e assertions for source-mode clarity, validation, next-action guidance, and timeline presence.
+- Introduced tokenized and reusable UI style primitives with focus-visible accessibility and responsive hardening while preserving existing shared panel/status/table patterns.
+- Updated user/runtime/quickstart docs to describe the new UX behavior and runtime hygiene expectations.
+- Added `.ui-home/` git ignore coverage and untracked `.ui-home/app.db` from the repository index.
+- Updated installation validation runtime home defaults to avoid repo-tracked UI runtime state when `DATA_EXTRACT_UI_HOME` is unset.
+- Verified Python-side gates and contract tests still pass; UI gate remains environment-blocked due unavailable npm registry and Playwright assets in this workspace.
