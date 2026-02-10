@@ -42,6 +42,9 @@ python -m spacy download en_core_web_md
 # Process a single document
 data-extract process input.pdf
 
+# Process with deterministic idempotency key
+data-extract process input.pdf --idempotency-key daily-audit-run
+
 # Process directory with semantic analysis
 data-extract process docs/ --semantic --format json
 
@@ -142,6 +145,9 @@ mypy src/data_extract/
 
 # Run all quality gates
 scripts/run_quality_gates.py
+
+# Run scoped refactor milestone gates (4 required checks)
+scripts/run_refactor_gates.py
 ```
 
 ### Pre-commit Hooks

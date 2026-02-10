@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from data_extract.api.database import Base
@@ -23,6 +23,10 @@ class Job(Base):
     chunk_size: Mapped[int] = mapped_column(Integer, default=512)
     request_payload: Mapped[str] = mapped_column(Text, default="{}")
     result_payload: Mapped[str] = mapped_column(Text, default="{}")
+    request_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
     session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -44,10 +48,16 @@ class JobFile(Base):
     output_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(16), index=True)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    normalized_source_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
     error_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     job: Mapped[Job] = relationship(back_populates="files")
+
+    __table_args__ = (
+        UniqueConstraint("job_id", "normalized_source_path", name="uq_job_files_job_norm_path"),
+    )
 
 
 class JobEvent(Base):
@@ -76,6 +86,9 @@ class SessionRecord(Base):
     total_files: Mapped[int] = mapped_column(Integer, default=0)
     processed_count: Mapped[int] = mapped_column(Integer, default=0)
     failed_count: Mapped[int] = mapped_column(Integer, default=0)
+    artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_archived: Mapped[int] = mapped_column(Integer, default=0)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -100,3 +113,12 @@ class AppSetting(Base):
     key: Mapped[str] = mapped_column(String(128), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+Index(
+    "ix_jobs_idempotency_hash",
+    Job.idempotency_key,
+    Job.request_hash,
+    unique=True,
+    sqlite_where=Job.idempotency_key.is_not(None),
+)

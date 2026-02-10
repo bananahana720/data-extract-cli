@@ -25,6 +25,8 @@ class FileFailure(BaseModel):
     path: str
     error_type: str
     error_message: str
+    retry_count: int = 0
+    source_key: Optional[str] = None
 
 
 class ProcessedFileOutcome(BaseModel):
@@ -34,6 +36,7 @@ class ProcessedFileOutcome(BaseModel):
     output_path: str
     chunk_count: int = 0
     stage_timings_ms: Dict[str, float] = Field(default_factory=dict)
+    source_key: Optional[str] = None
 
 
 class ProcessJobRequest(BaseModel):
@@ -53,6 +56,7 @@ class ProcessJobRequest(BaseModel):
     include_semantic: bool = False
     continue_on_error: bool = True
     source_files: List[str] = Field(default_factory=list)
+    idempotency_key: Optional[str] = None
 
 
 class ProcessJobResult(BaseModel):
@@ -71,6 +75,8 @@ class ProcessJobResult(BaseModel):
     stage_totals_ms: Dict[str, float] = Field(default_factory=dict)
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     finished_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    artifact_dir: Optional[str] = None
+    request_hash: Optional[str] = None
     exit_code: int = 0
 
 

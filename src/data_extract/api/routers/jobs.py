@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Body, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import select
 
@@ -98,6 +98,7 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             resume=_to_bool(form.get("resume")),
             resume_session=_optional_str(form.get("resume_session")),
             preset=_optional_str(form.get("preset")),
+            idempotency_key=_optional_str(form.get("idempotency_key")),
             non_interactive=True,
         )
     except ValueError as exc:
@@ -105,19 +106,27 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
 
 
 @router.post("/process", response_model=EnqueueJobResponse)
-async def enqueue_process_job(request: Request) -> EnqueueJobResponse:
+async def enqueue_process_job(
+    request: Request,
+    process_request: ProcessJobRequest | None = Body(default=None),
+) -> EnqueueJobResponse:
     """Queue a new processing job from JSON payload or multipart upload."""
     content_type = request.headers.get("content-type", "")
     job_id = str(uuid.uuid4())[:12]
+    if not isinstance(process_request, ProcessJobRequest):
+        process_request = None
 
     if "multipart/form-data" in content_type:
         process_request = await _build_process_request_from_form(request, job_id)
     else:
-        try:
-            payload = await request.json()
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {exc}") from exc
-        process_request = ProcessJobRequest(**payload)
+        if process_request is None:
+            try:
+                payload = await request.json()
+            except Exception as exc:
+                raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {exc}") from exc
+            process_request = ProcessJobRequest(**payload)
+    if process_request is None:
+        raise HTTPException(status_code=400, detail="Missing process request payload")
 
     queued_job_id = runtime.enqueue_process(process_request, job_id=job_id)
     return EnqueueJobResponse(job_id=queued_job_id, status="queued")
@@ -166,6 +175,8 @@ def get_job(job_id: str) -> dict[str, Any]:
         "output_dir": job.output_dir,
         "requested_format": job.requested_format,
         "chunk_size": job.chunk_size,
+        "request_hash": job.request_hash,
+        "artifact_dir": job.artifact_dir,
         "created_at": job.created_at,
         "started_at": job.started_at,
         "finished_at": job.finished_at,
@@ -179,6 +190,7 @@ def get_job(job_id: str) -> dict[str, Any]:
                 "output_path": file.output_path,
                 "status": file.status,
                 "chunk_count": file.chunk_count,
+                "retry_count": file.retry_count,
                 "error_type": file.error_type,
                 "error_message": file.error_message,
             }

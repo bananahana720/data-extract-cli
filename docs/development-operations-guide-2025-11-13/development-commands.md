@@ -19,6 +19,9 @@ pytest -m "not performance" --timeout=30
 
 # OR run all pre-commit hooks at once
 pre-commit run --all-files
+
+# Refactor milestone gates (py_compile + targeted tests + install validation + UI build)
+scripts/run_refactor_gates.py
 ```
 
 **Quality Bar:** All checks must pass (0 violations required).

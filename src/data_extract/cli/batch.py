@@ -22,6 +22,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from data_extract.services.pipeline_service import PipelineService
+
 # ==============================================================================
 # Enums and Type Definitions
 # ==============================================================================
@@ -450,6 +452,9 @@ class IncrementalProcessor:
         source_dir: Path,
         output_dir: Path,
         config_hash: str | None = None,
+        output_format: str = "json",
+        chunk_size: int = 512,
+        include_semantic: bool = False,
     ) -> None:
         """Initialize incremental processor.
 
@@ -461,10 +466,14 @@ class IncrementalProcessor:
         self.source_dir = source_dir.resolve()
         self.output_dir = output_dir.resolve()
         self.config_hash = config_hash
+        self.output_format = output_format
+        self.chunk_size = chunk_size
+        self.include_semantic = include_semantic
 
         # Initialize components
         self.state_file = StateFile(self.source_dir.parent)
         self.hasher = FileHasher()
+        self.pipeline = PipelineService()
 
         # Load existing state
         self._state = self.state_file.load()
@@ -515,16 +524,23 @@ class IncrementalProcessor:
             to_process = changes.new_files + changes.modified_files
             skipped = changes.unchanged_count
 
-        # Placeholder for actual processing
-        # In real implementation, this would call the pipeline
-        successful = len(to_process)
-        failed = 0
+        run = self.pipeline.process_files(
+            files=to_process,
+            output_dir=self.output_dir,
+            output_format=self.output_format,
+            chunk_size=self.chunk_size,
+            include_semantic=self.include_semantic,
+            continue_on_error=True,
+            source_root=self.source_dir,
+        )
+        successful = len(run.processed)
+        failed = len(run.failed)
 
-        # Update state (simplified - real implementation would track actual results)
-        self._update_state(to_process)
+        # Update state using successfully processed files only.
+        self._update_state([item.source_path for item in run.processed])
 
-        # Calculate time savings (placeholder)
-        avg_time_per_file = 5.0  # seconds (placeholder)
+        total_runtime_s = sum(run.stage_totals_ms.values()) / 1000.0
+        avg_time_per_file = (total_runtime_s / successful) if successful else 0.0
         time_saved = skipped * avg_time_per_file
 
         return ProcessingResult(
@@ -623,8 +639,11 @@ class IncrementalProcessor:
                 file_hash = self.hasher.compute_hash(file_path)
                 file_size = file_path.stat().st_size
 
-                # Determine output path (placeholder - real implementation would use actual output)
-                output_path = self.output_dir / f"{file_path.stem}.json"
+                try:
+                    relative = file_path.relative_to(self.source_dir)
+                except ValueError:
+                    relative = Path(file_path.name)
+                output_path = self.output_dir / relative.with_suffix(f".{self.output_format}")
 
                 files_dict[str(file_path)] = {
                     "hash": file_hash,

@@ -22,6 +22,13 @@ data-extract ui
 data-extract ui --check
 ```
 
+If the default app home is not writable in your environment, set:
+
+```bash
+export DATA_EXTRACT_UI_HOME="$(pwd)/.ui-home"
+data-extract ui --check
+```
+
 Checks include:
 - Required backend dependencies (`fastapi`, `uvicorn`, `sqlalchemy`)
 - Writable app directory

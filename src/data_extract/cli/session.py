@@ -421,6 +421,7 @@ class SessionManager:
         file_path: Path,
         output_path: Path,
         file_hash: str,
+        source_key: Optional[str] = None,
     ) -> None:
         """Record a successfully processed file.
 
@@ -435,6 +436,8 @@ class SessionManager:
         self._current_session.processed_files.append(
             {
                 "path": str(file_path.name if isinstance(file_path, Path) else file_path),
+                "source_path": str(file_path if isinstance(file_path, Path) else file_path),
+                "source_key": source_key,
                 "hash": file_hash,
                 "output": str(output_path),
             }
@@ -450,6 +453,8 @@ class SessionManager:
         category: Optional[ErrorCategory] = None,
         suggestion: Optional[str] = None,
         stack_trace: Optional[str] = None,
+        retry_count: int = 0,
+        source_key: Optional[str] = None,
     ) -> None:
         """Record a failed file.
 
@@ -469,8 +474,11 @@ class SessionManager:
             "error_type": error_type,
             "error_message": error_message,
             "timestamp": datetime.now().isoformat(),
-            "retry_count": 0,
+            "retry_count": retry_count,
         }
+
+        if source_key:
+            failed_info["source_key"] = source_key
 
         if category:
             failed_info["category"] = category.value
@@ -646,9 +654,22 @@ class SessionManager:
             self._archive_session()
 
     def _cleanup_session_directory(self) -> None:
-        """Remove the session directory on 100% success."""
-        if self.session_dir.exists():
-            shutil.rmtree(self.session_dir)
+        """Remove only active session files while preserving archive history."""
+        if self._current_session is None:
+            return
+
+        session_file = self.session_dir / f"session-{self._current_session.session_id}.json"
+        if session_file.exists():
+            session_file.unlink()
+
+        self.cleanup_temp_files()
+
+        archive_dir = self.session_dir / "archive"
+        if archive_dir.exists() and not any(archive_dir.glob("session-*.json")):
+            archive_dir.rmdir()
+
+        if self.session_dir.exists() and not any(self.session_dir.iterdir()):
+            self.session_dir.rmdir()
 
     def _archive_session(self) -> None:
         """Move session to archive directory."""

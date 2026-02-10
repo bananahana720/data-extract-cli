@@ -17,11 +17,15 @@ export interface JobDetail extends JobSummary {
   updated_at: string;
   request_payload: Record<string, unknown>;
   result_payload: Record<string, unknown>;
+  request_hash?: string | null;
+  artifact_dir?: string | null;
   files: Array<{
     source_path: string;
     output_path: string | null;
     status: string;
     chunk_count: number;
+    retry_count?: number;
+    source_key?: string | null;
     error_type: string | null;
     error_message: string | null;
   }>;

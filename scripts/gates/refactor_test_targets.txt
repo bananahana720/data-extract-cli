@@ -1,0 +1,6 @@
+# Refactor scope unit/API contract tests
+tests/unit/data_extract/contracts/test_models.py
+tests/unit/data_extract/api/test_openapi_contract.py
+tests/unit/data_extract/services/test_job_service.py
+tests/unit/data_extract/services/test_retry_service.py
+tests/unit/test_scripts/test_migrate_legacy_sessions.py

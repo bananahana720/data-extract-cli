@@ -1,0 +1,16 @@
+# Refactor scope py_compile targets
+src/data_extract/contracts/models.py
+src/data_extract/api/models.py
+src/data_extract/api/state.py
+src/data_extract/api/routers/jobs.py
+src/data_extract/services/pathing.py
+src/data_extract/services/persistence_repository.py
+src/data_extract/services/pipeline_service.py
+src/data_extract/services/job_service.py
+src/data_extract/services/retry_service.py
+src/data_extract/cli/session.py
+src/data_extract/cli/batch.py
+src/data_extract/cli/base.py
+scripts/validate_installation.py
+scripts/migrate_legacy_sessions.py
+scripts/run_refactor_gates.py

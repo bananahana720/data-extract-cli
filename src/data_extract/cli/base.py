@@ -308,6 +308,13 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Apply named configuration preset (quality, speed, balanced, or custom).",
             ),
         ] = None,
+        idempotency_key: Annotated[
+            Optional[str],
+            typer.Option(
+                "--idempotency-key",
+                help="Optional dedupe key to reuse existing terminal/running results.",
+            ),
+        ] = None,
         export_summary: Annotated[
             bool,
             typer.Option(
@@ -370,6 +377,7 @@ def _register_process_command(app: typer.Typer) -> None:
             resume=resume,
             resume_session=resume_session,
             preset=preset,
+            idempotency_key=idempotency_key,
             non_interactive=non_interactive and not interactive,
             include_semantic=False,
             continue_on_error=True,

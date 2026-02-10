@@ -10,6 +10,11 @@ Usage:
     python scripts/run_quality_gates.py --pre-commit       # Quick pre-commit checks
     python scripts/run_quality_gates.py --ci-mode          # Full CI pipeline checks
     python scripts/run_quality_gates.py --changed-only     # Test only changed files
+
+Note:
+    scripts/run_refactor_gates.py is the scoped milestone gate runner for the
+    deterministic refactor rollout. This script remains the broader project-wide
+    quality gate runner.
 """
 
 import argparse

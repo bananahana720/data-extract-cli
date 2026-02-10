@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,18 @@ RESET = "\033[0m"
 
 
 TestFn = Callable[[], bool]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_UI_HOME = PROJECT_ROOT / ".ui-home"
+DEFAULT_PYTHON = PROJECT_ROOT / ".venv" / "bin" / "python"
+
+
+def _resolve_python() -> str:
+    if DEFAULT_PYTHON.exists():
+        return str(DEFAULT_PYTHON)
+    return sys.executable
+
+
+PYTHON_EXE = _resolve_python()
 
 
 def print_header(message: str) -> None:
@@ -34,12 +47,17 @@ def fail(message: str) -> None:
 
 
 def run(cmd: list[str], expect_success: bool = True) -> tuple[bool, str, str]:
+    env = dict(os.environ)
+    env.setdefault("DATA_EXTRACT_UI_HOME", str(DEFAULT_UI_HOME))
+    env["PYTHONPATH"] = str(PROJECT_ROOT / "src") + os.pathsep + env.get("PYTHONPATH", "")
     try:
         completed = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=60,
+            cwd=PROJECT_ROOT,
+            env=env,
         )
     except Exception as exc:
         return False, "", str(exc)
@@ -52,8 +70,12 @@ def assert_contains(output: str, expected: str) -> bool:
     return expected.lower() in output.lower()
 
 
+def cli_cmd(*args: str) -> list[str]:
+    return [PYTHON_EXE, "-m", "data_extract", *args]
+
+
 def test_help() -> bool:
-    success, stdout, stderr = run(["data-extract", "--help"])
+    success, stdout, stderr = run(cli_cmd("--help"))
     if success and all(assert_contains(stdout, token) for token in ["process", "status", "retry"]):
         ok("data-extract --help")
         return True
@@ -62,7 +84,7 @@ def test_help() -> bool:
 
 
 def test_version() -> bool:
-    success, stdout, stderr = run(["data-extract", "--version"])
+    success, stdout, stderr = run(cli_cmd("--version"))
     if success and assert_contains(stdout, "Data Extraction Tool"):
         ok("data-extract --version")
         return True
@@ -71,7 +93,7 @@ def test_version() -> bool:
 
 
 def test_command_help(command: str) -> bool:
-    success, _, stderr = run(["data-extract", command, "--help"])
+    success, _, stderr = run(cli_cmd(command, "--help"))
     if success:
         ok(f"data-extract {command} --help")
         return True
@@ -88,14 +110,15 @@ def test_process_and_status() -> bool:
         (source / "sample.txt").write_text("alpha beta gamma", encoding="utf-8")
 
         process_cmd = [
-            "data-extract",
-            "process",
-            str(source),
-            "--output",
-            str(output),
-            "--format",
-            "json",
-            "--non-interactive",
+            *cli_cmd(
+                "process",
+                str(source),
+                "--output",
+                str(output),
+                "--format",
+                "json",
+                "--non-interactive",
+            ),
         ]
         success, _, stderr = run(process_cmd)
         if not success:
@@ -108,12 +131,13 @@ def test_process_and_status() -> bool:
             return False
 
         status_cmd = [
-            "data-extract",
-            "status",
-            str(source),
-            "--output",
-            str(output),
-            "--json",
+            *cli_cmd(
+                "status",
+                str(source),
+                "--output",
+                str(output),
+                "--json",
+            ),
         ]
         success, stdout, stderr = run(status_cmd)
         if not success:
@@ -133,7 +157,7 @@ def test_process_and_status() -> bool:
 
 
 def test_ui_check() -> bool:
-    success, _, stderr = run(["data-extract", "ui", "--check"])
+    success, _, stderr = run(cli_cmd("ui", "--check"))
     if success:
         ok("data-extract ui --check")
         return True

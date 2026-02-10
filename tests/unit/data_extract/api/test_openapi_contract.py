@@ -29,3 +29,20 @@ def test_openapi_exposes_v1_contract_paths() -> None:
         assert methods.issubset(actual_methods), (
             f"Path {path} is missing methods {methods - actual_methods}"
         )
+
+
+def test_openapi_process_request_schema_includes_idempotency_key() -> None:
+    schema = app.openapi()
+    components = schema.get("components", {}).get("schemas", {})
+
+    process_schemas = [
+        value
+        for value in components.values()
+        if isinstance(value, dict) and "properties" in value and "input_path" in value["properties"]
+    ]
+    assert process_schemas, "Expected a process request schema with input_path"
+
+    has_idempotency = any(
+        "idempotency_key" in schema_item.get("properties", {}) for schema_item in process_schemas
+    )
+    assert has_idempotency, "Expected idempotency_key in process request schema"

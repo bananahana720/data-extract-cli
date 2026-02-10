@@ -13,6 +13,10 @@ from data_extract.api.models import Job, JobEvent, JobFile, RetryRun, SessionRec
 from data_extract.contracts import JobStatus, ProcessJobRequest, RetryRequest
 from data_extract.runtime import LocalJobQueue
 from data_extract.services import JobService, RetryService
+from data_extract.services.pathing import normalized_path_text
+from data_extract.services.persistence_repository import RUNNING_STATUSES, TERMINAL_STATUSES
+from data_extract.services.persistence_repository import PersistenceRepository
+from sqlalchemy import delete
 
 
 class ApiRuntime:
@@ -21,6 +25,7 @@ class ApiRuntime:
     def __init__(self) -> None:
         self.job_service = JobService()
         self.retry_service = RetryService(job_service=self.job_service)
+        self.persistence = PersistenceRepository()
         self.queue = LocalJobQueue(self._handle_job)
 
     def start(self) -> None:
@@ -41,6 +46,16 @@ class ApiRuntime:
                 "output_path": str(job_dirs["outputs"]),
             }
         )
+        request_hash = self._compute_request_hash(normalized_request)
+        if normalized_request.idempotency_key and request_hash:
+            existing = self.persistence.find_idempotent_job(
+                normalized_request.idempotency_key,
+                request_hash,
+            )
+            if existing:
+                existing_job_id, status, _payload = existing
+                if status in TERMINAL_STATUSES or status in RUNNING_STATUSES:
+                    return existing_job_id
 
         with SessionLocal() as db:
             job = Job(
@@ -51,6 +66,10 @@ class ApiRuntime:
                 requested_format=normalized_request.output_format,
                 chunk_size=normalized_request.chunk_size,
                 request_payload=json.dumps(normalized_request.model_dump(), default=str),
+                request_hash=request_hash,
+                idempotency_key=normalized_request.idempotency_key,
+                attempt=1,
+                artifact_dir=str(job_dirs["root"]),
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
@@ -81,11 +100,13 @@ class ApiRuntime:
         """Worker callback for process/retry execution."""
         kind = payload.get("kind", "process")
         request_payload = payload.get("request", {})
+        input_path = ""
 
         with SessionLocal() as db:
             job = db.get(Job, job_id)
             if not job:
                 return
+            input_path = job.input_path
 
             job.status = JobStatus.RUNNING.value
             job.started_at = datetime.utcnow()
@@ -104,11 +125,15 @@ class ApiRuntime:
 
         try:
             if kind == "retry":
-                result = self.retry_service.run_retry(RetryRequest(**request_payload))
+                result = self.retry_service.run_retry(
+                    RetryRequest(**request_payload),
+                    work_dir=self._resolve_work_dir(input_path),
+                )
             else:
                 result = self.job_service.run_process(
                     ProcessJobRequest(**request_payload),
                     job_id=job_id,
+                    work_dir=self._resolve_work_dir(input_path),
                 )
 
             self._persist_result(job_id, result.model_dump())
@@ -127,17 +152,21 @@ class ApiRuntime:
             job.status = status
             job.result_payload = json.dumps(result, default=str)
             job.output_dir = result.get("output_dir", job.output_dir)
+            job.request_hash = result.get("request_hash", job.request_hash)
+            job.artifact_dir = result.get("artifact_dir", job.artifact_dir)
             job.session_id = result.get("session_id")
             job.finished_at = datetime.utcnow()
             job.updated_at = datetime.utcnow()
 
-            db.execute(JobFile.__table__.delete().where(JobFile.job_id == job_id))
+            db.execute(delete(JobFile).where(JobFile.job_id == job_id))
 
             for processed in result.get("processed_files", []):
+                source_path = str(processed.get("path", ""))
                 db.add(
                     JobFile(
                         job_id=job_id,
-                        source_path=processed.get("path", ""),
+                        source_path=source_path,
+                        normalized_source_path=normalized_path_text(source_path) if source_path else None,
                         output_path=processed.get("output_path"),
                         status="processed",
                         chunk_count=processed.get("chunk_count", 0),
@@ -145,19 +174,52 @@ class ApiRuntime:
                 )
 
             for failed in result.get("failed_files", []):
+                source_path = str(failed.get("path", ""))
                 db.add(
                     JobFile(
                         job_id=job_id,
-                        source_path=failed.get("path", ""),
+                        source_path=source_path,
+                        normalized_source_path=normalized_path_text(source_path) if source_path else None,
                         output_path=None,
                         status="failed",
                         chunk_count=0,
+                        retry_count=int(failed.get("retry_count", 0)),
                         error_type=failed.get("error_type"),
                         error_message=failed.get("error_message"),
                     )
                 )
 
             if job.session_id:
+                source_path = Path(job.input_path).resolve()
+                source_dir = source_path if source_path.is_dir() else source_path.parent
+                self.persistence.upsert_session_record(
+                    {
+                        "session_id": job.session_id,
+                        "status": status,
+                        "source_directory": str(source_dir),
+                        "total_files": result.get("total_files", 0),
+                        "processed_files": result.get("processed_files", []),
+                        "failed_files": result.get("failed_files", []),
+                        "started_at": str(result.get("started_at", job.created_at.isoformat())),
+                        "updated_at": str(result.get("finished_at", job.updated_at.isoformat())),
+                        "configuration": {
+                            "output_path": result.get("output_dir", job.output_dir),
+                            "format": job.requested_format,
+                            "chunk_size": job.chunk_size,
+                        },
+                        "statistics": {
+                            "total_files": int(result.get("total_files", 0)),
+                            "processed_count": int(result.get("processed_count", 0)),
+                            "failed_count": int(result.get("failed_count", 0)),
+                            "skipped_count": int(result.get("skipped_count", 0)),
+                        },
+                    },
+                    artifact_dir=job.artifact_dir,
+                    is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
+                    archived_at=datetime.utcnow()
+                    if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
+                    else None,
+                )
                 self._upsert_session(db, job.session_id, job.input_path)
 
             if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}:
@@ -181,6 +243,7 @@ class ApiRuntime:
             )
 
             db.commit()
+        self._write_job_artifact(job_id, result)
         self._write_job_log(job_id, f"Job finished with status={status}")
 
     def _persist_exception(self, job_id: str, exc: Exception) -> None:
@@ -263,12 +326,32 @@ class ApiRuntime:
             path.mkdir(parents=True, exist_ok=True)
         return {"root": root, "inputs": inputs, "outputs": outputs, "logs": logs}
 
+    def _write_job_artifact(self, job_id: str, payload: dict[str, Any]) -> None:
+        """Persist canonical per-job artifact payload."""
+        job_dirs = self._job_dirs(job_id)
+        artifact_path = job_dirs["root"] / "result.json"
+        artifact_path.write_text(json.dumps(payload, default=str, indent=2), encoding="utf-8")
+
     def _write_job_log(self, job_id: str, message: str) -> None:
         job_dirs = self._job_dirs(job_id)
         log_path = job_dirs["logs"] / "events.log"
         timestamp = datetime.utcnow().isoformat()
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(f"{timestamp} {message}\n")
+
+    def _compute_request_hash(self, request: ProcessJobRequest) -> str | None:
+        """Compute request hash for idempotency checks."""
+        try:
+            files, _source_dir = self.job_service._resolve_files(request)
+        except Exception:
+            return None
+        return self.job_service._compute_request_hash(request, files)
+
+    @staticmethod
+    def _resolve_work_dir(input_path: str) -> Path:
+        """Resolve session work dir from an input path."""
+        resolved = Path(input_path).resolve()
+        return resolved if resolved.is_dir() else resolved.parent
 
 
 runtime = ApiRuntime()

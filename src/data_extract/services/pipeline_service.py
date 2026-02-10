@@ -11,6 +11,7 @@ from typing import Dict, Iterable, List
 from data_extract.core.models import Chunk, Document
 from data_extract.extract import get_extractor
 from data_extract.output import OutputWriter
+from data_extract.services.pathing import normalize_path
 
 
 @dataclass
@@ -56,6 +57,7 @@ class PipelineService:
         chunk_size: int,
         include_semantic: bool = False,
         continue_on_error: bool = True,
+        source_root: Path | None = None,
     ) -> PipelineRunResult:
         """Process files and return per-file and aggregate details."""
         result = PipelineRunResult()
@@ -69,6 +71,7 @@ class PipelineService:
                     output_format=output_format,
                     chunk_size=chunk_size,
                     include_semantic=include_semantic,
+                    source_root=source_root,
                 )
                 result.processed.append(file_result)
                 for stage, value in file_result.stage_timings_ms.items():
@@ -93,6 +96,7 @@ class PipelineService:
         output_format: str,
         chunk_size: int,
         include_semantic: bool = False,
+        source_root: Path | None = None,
     ) -> PipelineFileResult:
         """Run the full pipeline for a single file."""
         stage_timings_ms: Dict[str, float] = {}
@@ -114,7 +118,12 @@ class PipelineService:
         stage_timings_ms["semantic"] = (time.perf_counter() - start) * 1000
 
         start = time.perf_counter()
-        output_path = output_dir / f"{file_path.stem}.{output_format}"
+        output_path = self._resolve_output_path(
+            file_path=file_path,
+            output_dir=output_dir,
+            output_format=output_format,
+            source_root=source_root,
+        )
         self.writer.write(semantic_chunks, output_path=output_path, format_type=output_format)
         stage_timings_ms["output"] = (time.perf_counter() - start) * 1000
 
@@ -195,3 +204,25 @@ class PipelineService:
         V1 keeps semantic enrichment lightweight and deterministic.
         """
         return chunks
+
+    @staticmethod
+    def _resolve_output_path(
+        file_path: Path,
+        output_dir: Path,
+        output_format: str,
+        source_root: Path | None,
+    ) -> Path:
+        """Map source path to stable output path while avoiding stem collisions."""
+        if source_root is None:
+            relative = Path(file_path.name)
+        else:
+            normalized_root = normalize_path(source_root)
+            normalized_source = normalize_path(file_path)
+            try:
+                relative = normalized_source.relative_to(normalized_root)
+            except ValueError:
+                relative = Path(file_path.name)
+
+        output_path = output_dir / relative.with_suffix(f".{output_format}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        return output_path
