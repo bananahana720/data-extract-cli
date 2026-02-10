@@ -219,29 +219,26 @@ def retry_job_failures(job_id: str) -> EnqueueJobResponse:
         result_payload = json.loads(job.result_payload or "{}")
         session_id = result_payload.get("session_id") or job.session_id
 
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Job has no session context for retry")
+        if not session_id:
+            raise HTTPException(status_code=400, detail="Job has no session context for retry")
+
+        job.status = "queued"
+        job.started_at = None
+        job.finished_at = None
+        job.updated_at = datetime.utcnow()
+        db.add(
+            JobEvent(
+                job_id=job_id,
+                event_type="queued",
+                message="Retry queued",
+                payload="{}",
+                event_time=datetime.utcnow(),
+            )
+        )
+        db.commit()
 
     retry_request = RetryRequest(session=session_id, last=False, non_interactive=True)
     runtime.enqueue_retry(job_id=job_id, request=retry_request)
-
-    with SessionLocal() as db:
-        job = db.get(Job, job_id)
-        if job:
-            job.status = "queued"
-            job.started_at = None
-            job.finished_at = None
-            job.updated_at = datetime.utcnow()
-            db.add(
-                JobEvent(
-                    job_id=job_id,
-                    event_type="queued",
-                    message="Retry queued",
-                    payload="{}",
-                    event_time=datetime.utcnow(),
-                )
-            )
-            db.commit()
 
     return EnqueueJobResponse(job_id=job_id, status="queued")
 
