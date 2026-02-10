@@ -10,6 +10,22 @@ type FieldErrors = {
   chunkSize?: string;
 };
 
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 B";
+  }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
 export function NewRunPage() {
   const navigate = useNavigate();
   const filesInputRef = useRef<HTMLInputElement>(null);
@@ -27,6 +43,28 @@ export function NewRunPage() {
   const [submitFeedback, setSubmitFeedback] = useState("");
 
   const fileNames = useMemo(() => selectedFiles.map((file) => file.name), [selectedFiles]);
+  const totalUploadBytes = useMemo(
+    () => selectedFiles.reduce((total, file) => total + file.size, 0),
+    [selectedFiles]
+  );
+
+  function resetUploads() {
+    setSelectedFiles([]);
+    if (filesInputRef.current) {
+      filesInputRef.current.value = "";
+    }
+    if (folderInputRef.current) {
+      folderInputRef.current.value = "";
+    }
+    setFieldErrors((current) => ({ ...current, upload: undefined }));
+  }
+
+  function switchSourceMode(nextMode: SourceMode) {
+    setSourceMode(nextMode);
+    setError(null);
+    setSubmitFeedback("");
+    setFieldErrors((current) => ({ ...current, path: undefined, upload: undefined }));
+  }
 
   function addFiles(nextList: FileList | null) {
     if (!nextList || nextList.length === 0) {
@@ -46,7 +84,7 @@ export function NewRunPage() {
       return merged;
     });
     setFieldErrors((current) => ({ ...current, upload: undefined }));
-    setSourceMode("upload");
+    switchSourceMode("upload");
   }
 
   function validateForm(): { chunkSize: number } | null {
@@ -148,7 +186,7 @@ export function NewRunPage() {
                 name="source-mode"
                 value="path"
                 checked={sourceMode === "path"}
-                onChange={() => setSourceMode("path")}
+                onChange={() => switchSourceMode("path")}
                 data-testid="new-run-source-path"
               />
               <span>Local Path</span>
@@ -159,7 +197,7 @@ export function NewRunPage() {
                 name="source-mode"
                 value="upload"
                 checked={sourceMode === "upload"}
-                onChange={() => setSourceMode("upload")}
+                onChange={() => switchSourceMode("upload")}
                 data-testid="new-run-source-upload"
               />
               <span>Upload Files/Folder</span>
@@ -185,7 +223,10 @@ export function NewRunPage() {
             id="new-run-input-path"
             data-testid="new-run-input-path"
             value={inputPath}
-            onChange={(event) => setInputPath(event.target.value)}
+            onChange={(event) => {
+              setInputPath(event.target.value);
+              setFieldErrors((current) => ({ ...current, path: undefined }));
+            }}
             placeholder="/path/to/documents"
             aria-describedby="new-run-input-path-help new-run-input-path-error"
             aria-invalid={Boolean(fieldErrors.path)}
@@ -281,13 +322,37 @@ export function NewRunPage() {
           {fileNames.length > 0 ? (
             <div className="file-list" data-testid="new-run-upload-file-list">
               <strong data-testid="new-run-upload-file-count">{fileNames.length} file(s) ready</strong>
+              <small>{formatBytes(totalUploadBytes)} total</small>
               <ul>
-                {fileNames.slice(0, 8).map((name) => (
-                  <li key={name}>{name}</li>
+                {selectedFiles.slice(0, 8).map((file, index) => (
+                  <li key={`${file.name}-${file.size}`}>
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      className="link"
+                      onClick={() => {
+                        setSelectedFiles((prev) =>
+                          prev.filter(
+                            (candidate) =>
+                              !(candidate.name === file.name && candidate.size === file.size)
+                          )
+                        );
+                        setFieldErrors((current) => ({ ...current, upload: undefined }));
+                      }}
+                      data-testid={`new-run-upload-remove-${index}`}
+                    >
+                      Remove
+                    </button>
+                  </li>
                 ))}
               </ul>
               {fileNames.length > 8 ? <small>and {fileNames.length - 8} more</small> : null}
-              <button type="button" className="link" onClick={() => setSelectedFiles([])}>
+              <button
+                type="button"
+                className="link"
+                onClick={resetUploads}
+                data-testid="new-run-upload-clear"
+              >
                 Clear uploads
               </button>
             </div>
@@ -323,7 +388,10 @@ export function NewRunPage() {
             min={32}
             inputMode="numeric"
             value={chunkSizeInput}
-            onChange={(event) => setChunkSizeInput(event.target.value)}
+            onChange={(event) => {
+              setChunkSizeInput(event.target.value);
+              setFieldErrors((current) => ({ ...current, chunkSize: undefined }));
+            }}
             aria-describedby="new-run-chunk-size-help new-run-chunk-size-error"
             aria-invalid={Boolean(fieldErrors.chunkSize)}
           />
@@ -360,6 +428,28 @@ export function NewRunPage() {
             </label>
           </div>
         </fieldset>
+
+        <article className="summary-card" data-testid="new-run-summary-card">
+          <h3>Submission Summary</h3>
+          <dl className="key-value-list">
+            <dt>Source Mode</dt>
+            <dd>{sourceMode === "path" ? "Local Path" : "Upload Files/Folder"}</dd>
+            <dt>Source Value</dt>
+            <dd>
+              {sourceMode === "path"
+                ? inputPath.trim() || "Not set"
+                : `${selectedFiles.length} file(s), ${formatBytes(totalUploadBytes)}`}
+            </dd>
+            <dt>Output Format</dt>
+            <dd>{outputFormat.toUpperCase()}</dd>
+            <dt>Chunk Size</dt>
+            <dd>{chunkSizeInput || "Not set"}</dd>
+            <dt>Discovery</dt>
+            <dd>{recursive ? "Recursive" : "Top-level only"}</dd>
+            <dt>Incremental</dt>
+            <dd>{incremental ? "Enabled" : "Disabled"}</dd>
+          </dl>
+        </article>
 
         <p className="help-text submit-feedback" aria-live="polite" data-testid="new-run-submit-feedback">
           {isSubmitting ? "Submitting job..." : submitFeedback}

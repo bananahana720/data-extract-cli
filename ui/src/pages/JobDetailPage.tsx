@@ -23,6 +23,30 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function formatDuration(durationMs: number): string {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return "0s";
+  }
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+  return `${seconds}s`;
+}
+
+function formatDateTime(value: string | null): string {
+  if (!value) {
+    return "Not available";
+  }
+  return new Date(value).toLocaleString();
+}
+
 function remediationHint(file: JobDetail["files"][number]): string {
   const errorType = (file.error_type || "").toLowerCase();
   const message = (file.error_message || "").toLowerCase();
@@ -157,12 +181,22 @@ export function JobDetailPage() {
     totalFiles - failedFiles.length,
     toNumber(job.result_payload?.processed_count, totalFiles - failedFiles.length)
   );
+  const completedPercent = totalFiles > 0 ? Math.round((processedFiles / totalFiles) * 100) : 0;
+  const boundedPercent = Math.min(Math.max(completedPercent, 0), 100);
   const skippedFiles = toNumber(job.result_payload?.skipped_count);
   const hasCleanupEvent = lifecycleEvents.some((event) => event.event_type === "cleanup");
+  const isActive = job.status === "queued" || job.status === "running";
+  const startedAtMs = job.started_at ? Date.parse(job.started_at) : NaN;
+  const finishedAtMs = job.finished_at ? Date.parse(job.finished_at) : NaN;
+  const elapsedDuration = Number.isFinite(startedAtMs)
+    ? Number.isFinite(finishedAtMs)
+      ? formatDuration(finishedAtMs - startedAtMs)
+      : `${formatDuration(Date.now() - startedAtMs)} elapsed`
+    : "Not started";
   const nextAction =
-    job.status === "queued"
+    isActive && job.status === "queued"
       ? "Wait for the worker to start processing."
-      : job.status === "running"
+      : isActive && job.status === "running"
         ? "Monitor progress. Retry and cleanup actions become available after terminal status."
         : failedFiles.length > 0
           ? "Use Retry Failed to reprocess only failed files."
@@ -201,6 +235,31 @@ export function JobDetailPage() {
             <strong>{skippedFiles}</strong>
           </article>
         </div>
+        <article className="progress-card" data-testid="job-progress-card">
+          <div className="row-between">
+            <span>Processing Progress</span>
+            <strong data-testid="job-progress-text">
+              {processedFiles}/{totalFiles} ({boundedPercent}%)
+            </strong>
+          </div>
+          <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={boundedPercent}>
+            <div className="progress-fill" style={{ width: `${boundedPercent}%` }} />
+          </div>
+        </article>
+        <dl className="key-value-list" data-testid="job-runtime-metadata">
+          <dt>Created</dt>
+          <dd>{formatDateTime(job.created_at)}</dd>
+          <dt>Started</dt>
+          <dd>{formatDateTime(job.started_at)}</dd>
+          <dt>Finished</dt>
+          <dd>{formatDateTime(job.finished_at)}</dd>
+          <dt>Elapsed</dt>
+          <dd>{elapsedDuration}</dd>
+          <dt>Format</dt>
+          <dd>{job.requested_format.toUpperCase()}</dd>
+          <dt>Chunk Size</dt>
+          <dd>{job.chunk_size}</dd>
+        </dl>
         <p className="next-action" data-testid="job-next-action">
           <strong>Next Action:</strong> {nextAction}
         </p>
@@ -211,14 +270,14 @@ export function JobDetailPage() {
         <div className="actions-inline">
           <button
             onClick={runRetry}
-            disabled={retrying || failedFiles.length === 0}
+            disabled={retrying || failedFiles.length === 0 || isActive}
             data-testid="job-action-retry"
           >
             {retrying ? "Retrying..." : `Retry Failed (${failedFiles.length})`}
           </button>
           <button
             onClick={runCleanup}
-            disabled={cleaning}
+            disabled={cleaning || isActive || hasCleanupEvent}
             className="secondary"
             type="button"
             data-testid="job-action-cleanup"
@@ -234,6 +293,13 @@ export function JobDetailPage() {
             Copy Output Path
           </button>
         </div>
+        <p className="help-text" data-testid="job-actions-hint">
+          {isActive
+            ? "Retry and cleanup stay disabled while the job is queued/running."
+            : hasCleanupEvent
+              ? "Artifacts are already cleaned."
+              : "Use Retry Failed for failures or Cleanup Artifacts once review is complete."}
+        </p>
         {copyStatus ? (
           <p
             className={`inline-alert ${copyStatus.kind === "error" ? "is-error" : "is-success"}`}
@@ -263,7 +329,7 @@ export function JobDetailPage() {
                 <div className="row-between timeline-header">
                   <strong>{LIFECYCLE_LABELS[event.event_type] || event.event_type}</strong>
                   <time dateTime={event.event_time}>
-                    {new Date(event.event_time).toLocaleTimeString()}
+                    {new Date(event.event_time).toLocaleString()}
                   </time>
                 </div>
                 <p>{event.message || "Lifecycle event recorded."}</p>
