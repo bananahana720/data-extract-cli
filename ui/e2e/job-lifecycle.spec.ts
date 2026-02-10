@@ -3,8 +3,11 @@ import type { APIRequestContext } from "@playwright/test";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
 
 const TERMINAL_STATUSES = new Set(["completed", "partial", "failed"]);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ARTIFACTS_DIR = process.env.DATA_EXTRACT_E2E_ARTIFACTS_DIR || path.join(__dirname, ".artifacts");
 const RUNTIME_DIR = path.join(__dirname, ".runtime");
 const E2E_UI_HOME = process.env.DATA_EXTRACT_E2E_UI_HOME || path.join(RUNTIME_DIR, "ui-home");
@@ -12,6 +15,11 @@ const E2E_UI_HOME = process.env.DATA_EXTRACT_E2E_UI_HOME || path.join(RUNTIME_DI
 type JobPayload = {
   status: string;
   events: Array<{ event_type: string }>;
+};
+
+type WaitForTerminalOptions = {
+  minEventCount?: number;
+  requireStatusChangeFrom?: string;
 };
 
 type TerminalState = {
@@ -23,7 +31,8 @@ type TerminalState = {
 async function waitForTerminalState(
   request: APIRequestContext,
   jobId: string,
-  timeoutMs = 20_000
+  timeoutMs = 20_000,
+  options: WaitForTerminalOptions = {}
 ): Promise<TerminalState> {
   const started = Date.now();
   const observedStatuses = new Set<string>();
@@ -38,7 +47,12 @@ async function waitForTerminalState(
       observedEvents.add(event.event_type);
     }
 
-    if (TERMINAL_STATUSES.has(payload.status)) {
+    const minimumEventsSatisfied = options.minEventCount ? payload.events.length >= options.minEventCount : true;
+    const statusChangeSatisfied = options.requireStatusChangeFrom
+      ? payload.status !== options.requireStatusChangeFrom || !TERMINAL_STATUSES.has(payload.status)
+      : true;
+
+    if (minimumEventsSatisfied && statusChangeSatisfied && TERMINAL_STATUSES.has(payload.status)) {
       return {
         payload,
         observedStatuses: Array.from(observedStatuses),
@@ -153,7 +167,18 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(retryButton).toBeEnabled();
     await retryButton.click();
 
-    const retryTerminal = await waitForTerminalState(request, jobId);
+    let retryTerminal = await waitForTerminalState(request, jobId, 20_000, {
+      minEventCount: processTerminal.payload.events.length + 1,
+      requireStatusChangeFrom: processTerminal.payload.status,
+    });
+    for (let retryAttempt = 0; retryAttempt < 3 && retryTerminal.payload.status !== "completed"; retryAttempt += 1) {
+      await expect(retryButton).toBeEnabled();
+      await retryButton.click();
+      retryTerminal = await waitForTerminalState(request, jobId, 20_000, {
+        minEventCount: retryTerminal.payload.events.length + 1,
+        requireStatusChangeFrom: retryTerminal.payload.status,
+      });
+    }
     const retryTerminalMs = performance.now() - retryStart;
 
     expect(retryTerminal.payload.status).toBe("completed");

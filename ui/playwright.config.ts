@@ -1,16 +1,23 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "@playwright/test";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const UI_DIR = path.resolve(__dirname);
 const PROJECT_ROOT = path.resolve(UI_DIR, "..");
-const PORT = process.env.DATA_EXTRACT_E2E_PORT || "4173";
+const DEFAULT_E2E_PORT = String(
+  46000 +
+    (Array.from(PROJECT_ROOT).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 1000)
+);
+const PORT = process.env.DATA_EXTRACT_E2E_PORT || DEFAULT_E2E_PORT;
 const E2E_UI_HOME = process.env.DATA_EXTRACT_E2E_UI_HOME || path.join(UI_DIR, "e2e", ".runtime", "ui-home");
 const PYTHONPATH = process.env.PYTHONPATH
   ? `${path.join(PROJECT_ROOT, "src")}:${process.env.PYTHONPATH}`
   : path.join(PROJECT_ROOT, "src");
 const pythonCommand = [
   "PYTHON_BIN='python'",
-  "if [ -x .venv/bin/python ]; then PYTHON_BIN='.venv/bin/python';",
+  "if [ -x .venv/bin/python ]; then PYTHON_BIN='.venv/bin/python'",
   "elif command -v python3 >/dev/null 2>&1; then PYTHON_BIN='python3'; fi",
   "\"$PYTHON_BIN\" -m uvicorn data_extract.api.main:app --host 127.0.0.1 --port " + PORT,
 ].join("; ");

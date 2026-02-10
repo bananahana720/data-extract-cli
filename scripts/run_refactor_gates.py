@@ -89,10 +89,12 @@ def gate_ui_build() -> bool:
     ui_dir = PROJECT_ROOT / "ui"
     with tempfile.TemporaryDirectory(prefix="refactor-ui-gate-") as tmp:
         temp_root = Path(tmp)
+        e2e_port = 47000 + (sum(ord(char) for char in temp_root.name) % 1000)
         env = dict(os.environ)
         env["DATA_EXTRACT_UI_HOME"] = str(temp_root / "ui-home")
         env["DATA_EXTRACT_E2E_UI_HOME"] = str(temp_root / "e2e-ui-home")
         env["DATA_EXTRACT_E2E_ARTIFACTS_DIR"] = str(temp_root / "e2e-artifacts")
+        env["DATA_EXTRACT_E2E_PORT"] = str(e2e_port)
 
         build_ok = _run(["npm", "run", "build"], cwd=ui_dir, env=env)
         e2e_ok = _run(["npm", "run", "e2e:gui"], cwd=ui_dir, env=env)
