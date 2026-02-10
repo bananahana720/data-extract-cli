@@ -18,6 +18,33 @@ type CopyStatus =
   | { kind: "error"; message: string }
   | null;
 
+function isDatabaseLockedMessage(message: string): boolean {
+  return /database is locked/i.test(message);
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+async function runWithDatabaseLockRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      if (!isDatabaseLockedMessage(message) || attempt === attempts - 1) {
+        throw error;
+      }
+      await wait(200 * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -69,6 +96,7 @@ export function JobDetailPage() {
   const { jobId = "" } = useParams();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pollVersion, setPollVersion] = useState(0);
   const [retrying, setRetrying] = useState(false);
   const [cleaning, setCleaning] = useState(false);
   const [copyStatus, setCopyStatus] = useState<CopyStatus>(null);
@@ -91,6 +119,9 @@ export function JobDetailPage() {
         }
       } catch (requestError) {
         const message = requestError instanceof Error ? requestError.message : "Unable to load job";
+        if (isDatabaseLockedMessage(message) && job) {
+          return;
+        }
         setError(message);
       }
     }
@@ -101,7 +132,7 @@ export function JobDetailPage() {
         window.clearTimeout(timer);
       }
     };
-  }, [jobId]);
+  }, [jobId, pollVersion]);
 
   const stageTotals = useMemo(() => {
     const stageMap = (job?.result_payload?.stage_totals_ms as Record<string, number>) || {};
@@ -124,10 +155,15 @@ export function JobDetailPage() {
     if (!jobId) {
       return;
     }
+    setError(null);
     setRetrying(true);
     try {
-      await retryJobFailures(jobId);
-      setJob(await getJob(jobId));
+      await runWithDatabaseLockRetry(() => retryJobFailures(jobId));
+      const detail = await runWithDatabaseLockRetry(() => getJob(jobId));
+      setJob(detail);
+      if (detail.status === "queued" || detail.status === "running") {
+        setPollVersion((current) => current + 1);
+      }
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Retry failed";
       setError(message);
@@ -140,10 +176,15 @@ export function JobDetailPage() {
     if (!jobId) {
       return;
     }
+    setError(null);
     setCleaning(true);
     try {
-      await cleanupJobArtifacts(jobId);
-      setJob(await getJob(jobId));
+      await runWithDatabaseLockRetry(() => cleanupJobArtifacts(jobId));
+      const detail = await runWithDatabaseLockRetry(() => getJob(jobId));
+      setJob(detail);
+      if (detail.status === "queued" || detail.status === "running") {
+        setPollVersion((current) => current + 1);
+      }
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Cleanup failed";
       setError(message);
@@ -167,7 +208,7 @@ export function JobDetailPage() {
     }
   }
 
-  if (error) {
+  if (error && !job) {
     return <p className="error">{error}</p>;
   }
 
@@ -307,6 +348,11 @@ export function JobDetailPage() {
             data-testid="job-copy-status"
           >
             {copyStatus.message}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="inline-alert is-error" role="alert" data-testid="job-action-error">
+            {error}
           </p>
         ) : null}
       </article>
