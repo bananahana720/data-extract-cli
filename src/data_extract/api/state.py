@@ -190,37 +190,16 @@ class ApiRuntime:
                 )
 
             if job.session_id:
-                source_path = Path(job.input_path).resolve()
-                source_dir = source_path if source_path.is_dir() else source_path.parent
-                self.persistence.upsert_session_record(
-                    {
-                        "session_id": job.session_id,
-                        "status": status,
-                        "source_directory": str(source_dir),
-                        "total_files": result.get("total_files", 0),
-                        "processed_files": result.get("processed_files", []),
-                        "failed_files": result.get("failed_files", []),
-                        "started_at": str(result.get("started_at", job.created_at.isoformat())),
-                        "updated_at": str(result.get("finished_at", job.updated_at.isoformat())),
-                        "configuration": {
-                            "output_path": result.get("output_dir", job.output_dir),
-                            "format": job.requested_format,
-                            "chunk_size": job.chunk_size,
-                        },
-                        "statistics": {
-                            "total_files": int(result.get("total_files", 0)),
-                            "processed_count": int(result.get("processed_count", 0)),
-                            "failed_count": int(result.get("failed_count", 0)),
-                            "skipped_count": int(result.get("skipped_count", 0)),
-                        },
-                    },
+                self._upsert_session(
+                    db,
+                    job.session_id,
+                    job.input_path,
                     artifact_dir=job.artifact_dir,
                     is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
                     archived_at=datetime.utcnow()
                     if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
                     else None,
                 )
-                self._upsert_session(db, job.session_id, job.input_path)
 
             if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}:
                 db.add(
@@ -270,7 +249,14 @@ class ApiRuntime:
         self._write_job_log(job_id, f"Job failed: {exc}")
 
     @staticmethod
-    def _upsert_session(db: Any, session_id: str, input_path: str) -> None:
+    def _upsert_session(
+        db: Any,
+        session_id: str,
+        input_path: str,
+        artifact_dir: str | None = None,
+        is_archived: bool = False,
+        archived_at: datetime | None = None,
+    ) -> None:
         """Project session state into SQL table for fast UI listing."""
         from data_extract.services.session_service import load_session_details
 
@@ -305,6 +291,9 @@ class ApiRuntime:
                 total_files=stats.get("total_files", details.get("total_files", 0)),
                 processed_count=stats.get("processed_count", 0),
                 failed_count=stats.get("failed_count", 0),
+                artifact_dir=artifact_dir,
+                is_archived=1 if is_archived else 0,
+                archived_at=archived_at,
                 updated_at=updated_at,
             )
             db.add(record)
@@ -314,6 +303,9 @@ class ApiRuntime:
             record.total_files = stats.get("total_files", details.get("total_files", 0))
             record.processed_count = stats.get("processed_count", 0)
             record.failed_count = stats.get("failed_count", 0)
+            record.artifact_dir = artifact_dir
+            record.is_archived = 1 if is_archived else 0
+            record.archived_at = archived_at
             record.updated_at = updated_at
 
     @staticmethod
