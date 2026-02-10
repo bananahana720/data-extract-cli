@@ -52,6 +52,9 @@ data-extract ui
 The command starts a local server (default `http://127.0.0.1:8765`) and opens the browser.
 New Run defaults to `Local Path` mode. Switch to `Upload Files/Folder` when needed; only the selected source is submitted.
 Inline validation enforces source requirements and chunk size minimum (`>= 32`).
+Use the submission summary card to confirm source/format/chunk settings before starting.
+Use `/jobs` search/status filters and refresh controls to focus active or failed jobs.
+Job details now include progress/runtime metadata and disable retry/cleanup while the job is active.
 From job details, use `Retry Failed`, `Cleanup Artifacts`, and `Copy Output Path` from the action panel.
 
 Run startup checks only:

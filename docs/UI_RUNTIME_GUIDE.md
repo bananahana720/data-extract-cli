@@ -71,11 +71,20 @@ New Run UI behavior:
 - Explicit source mode (`Local Path` or `Upload Files/Folder`)
 - Both source sections visible; selected mode determines submitted payload
 - Inline validation for required source and minimum chunk size (`>= 32`)
+- Submission summary card (source, format, chunk size, discovery/incremental flags)
+- Upload list controls include per-file remove and clear-all actions
 
 Job Detail UI behavior:
 - Action-first summary with next-action guidance
+- Progress bar + runtime metadata (created/started/finished/elapsed)
 - Lifecycle timeline sourced from job events
 - Structured failure diagnostics and clipboard status feedback
+- Retry/Cleanup actions stay disabled while job is queued/running
+
+Jobs UI behavior:
+- Live status summary cards (`Total`, `Running`, `Needs Attention`, `Completed`)
+- Search + status filters with empty-state reset actions
+- Manual refresh control and last-updated indicator
 
 Build for backend serving:
 

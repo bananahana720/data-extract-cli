@@ -70,12 +70,18 @@ Starts the local FastAPI backend and serves the React UI.
    - `Upload Files/Folder`: requires at least one selected file
    - Both sections remain visible, but only the selected source is submitted
    - Inline validation enforces source requirements and `chunk_size >= 32`
+   - Submission summary card reflects the exact payload before submit
+   - Upload mode includes per-file remove and clear-all controls
 3. Track job progress on `/jobs`
+   - Live status summary cards and last-updated indicator
+   - Search by job id/path/status and filter by lifecycle status
 4. Inspect job details on `/jobs/:job_id`:
    - Summary card with status and file counts
+   - Progress bar and runtime metadata (created/started/finished/elapsed)
    - Next-action guidance
    - Lifecycle timeline (`queued`, `running`, `finished`, `cleanup`, `error`)
    - Structured failure details with remediation hints
+   - Retry/Cleanup actions disabled while job is active
 5. Retry failed files with one click
 6. Use `Cleanup Artifacts` on a job when you want to remove persisted job files
 7. Review sessions on `/sessions`

@@ -91,11 +91,15 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     const pathInput = page.getByTestId("new-run-input-path");
     const chunkSizeInput = page.getByTestId("new-run-chunk-size");
     const submitButton = page.getByTestId("new-run-submit");
+    const summaryCard = page.getByTestId("new-run-summary-card");
 
     await expect(sourcePathMode).toBeChecked();
     await expect(sourceUploadMode).not.toBeChecked();
     await expect(page.getByTestId("new-run-source-panel-path")).toBeVisible();
     await expect(page.getByTestId("new-run-source-panel-upload")).toBeVisible();
+    await expect(summaryCard).toBeVisible();
+    await expect(summaryCard).toContainText("Source Mode");
+    await expect(summaryCard).toContainText("Not set");
 
     await pathInput.fill("   ");
     await submitButton.click();
@@ -113,6 +117,8 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await sourcePathMode.check();
     await pathInput.fill(sourceDir);
     await chunkSizeInput.fill("512");
+    await expect(summaryCard).toContainText(sourceDir);
+    await expect(summaryCard).toContainText("Chunk Size");
 
     const processStart = performance.now();
     await submitButton.click();
@@ -133,6 +139,9 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(page.getByTestId("job-status-chip")).toHaveText(processTerminal.payload.status);
     await expect(page.getByTestId("job-next-action")).toBeVisible();
     await expect(page.getByTestId("job-lifecycle-timeline")).toBeVisible();
+    await expect(page.getByTestId("job-progress-card")).toBeVisible();
+    await expect(page.getByTestId("job-runtime-metadata")).toBeVisible();
+    await expect(page.getByTestId("job-actions-hint")).toBeVisible();
     await expect
       .poll(async () => page.locator("[data-testid^='job-timeline-item-']").count())
       .toBeGreaterThanOrEqual(2);
@@ -169,6 +178,20 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
       .toBe(false);
     const cleanupMs = performance.now() - cleanupStart;
     await expect(page.getByTestId("job-next-action")).toContainText("Artifacts are already cleaned");
+    await expect(page.getByTestId("job-actions-hint")).toContainText("Artifacts are already cleaned");
+
+    await page.getByRole("link", { name: "Jobs" }).click();
+    await expect(page).toHaveURL(/\/jobs$/);
+    await expect(page.getByTestId("jobs-page")).toBeVisible();
+    await expect(page.getByTestId("jobs-summary-total")).not.toHaveText("0");
+    await page.getByTestId("jobs-filter-search").fill(jobId);
+    await expect(page.getByRole("link", { name: jobId })).toBeVisible();
+    await page.getByTestId("jobs-filter-status").selectOption("completed");
+    await expect(page.getByRole("link", { name: jobId })).toBeVisible();
+    await page.getByTestId("jobs-filter-search").fill("not-a-real-job-id");
+    await expect(page.getByTestId("jobs-filter-empty-state")).toBeVisible();
+    await page.getByRole("button", { name: "Clear filters" }).click();
+    await page.getByTestId("jobs-refresh-button").click();
 
     await fs.mkdir(ARTIFACTS_DIR, { recursive: true });
     await fs.writeFile(
