@@ -1,16 +1,26 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
 
 os.environ.setdefault("DATA_EXTRACT_UI_HOME", "/tmp/data-extract-ui-tests")
 
+from data_extract.api.database import Base
+from data_extract.api.models import Job, JobEvent
 from data_extract.api.routers import jobs as jobs_router_module
-from data_extract.api.routers.jobs import _build_process_request_from_form, enqueue_process_job
+from data_extract.api.routers.jobs import (
+    _build_process_request_from_form,
+    enqueue_process_job,
+    retry_job_failures,
+)
 from data_extract.contracts import ProcessJobRequest
 
 
@@ -101,3 +111,72 @@ def test_enqueue_process_job_multipart_upload(
     assert isinstance(process_request, ProcessJobRequest)
     assert process_request.input_path.startswith(str(tmp_path))
     assert any(tmp_path.rglob("upload.txt"))
+
+
+@pytest.mark.unit
+def test_retry_job_failures_persists_queued_state_before_enqueue(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    job_id = "retry-job-001"
+    session_id = "sess-001"
+    with test_session_local() as db:
+        db.add(
+            Job(
+                id=job_id,
+                status="partial",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload=json.dumps({"session_id": session_id}),
+                session_id=session_id,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
+        )
+        db.commit()
+
+    observed: dict[str, Any] = {}
+
+    def fake_enqueue_retry(*, job_id: str, request: Any) -> None:
+        with test_session_local() as db:
+            job = db.get(Job, job_id)
+            events = list(
+                db.scalars(
+                    select(JobEvent)
+                    .where(JobEvent.job_id == job_id)
+                    .order_by(JobEvent.event_time.asc())
+                )
+            )
+        observed["job_id"] = job_id
+        observed["request"] = request
+        observed["status"] = job.status if job else None
+        observed["started_at"] = job.started_at if job else "missing"
+        observed["finished_at"] = job.finished_at if job else "missing"
+        observed["queued_events"] = [event.event_type for event in events if event.event_type == "queued"]
+        observed["queued_messages"] = [event.message for event in events if event.event_type == "queued"]
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+    monkeypatch.setattr(jobs_router_module.runtime, "enqueue_retry", fake_enqueue_retry)
+
+    response = retry_job_failures(job_id)
+
+    assert response.job_id == job_id
+    assert response.status == "queued"
+    assert observed["job_id"] == job_id
+    assert observed["request"].session == session_id
+    assert observed["status"] == "queued"
+    assert observed["started_at"] is None
+    assert observed["finished_at"] is None
+    assert observed["queued_events"] == ["queued"]
+    assert observed["queued_messages"] == ["Retry queued"]
