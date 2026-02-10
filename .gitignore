@@ -1,0 +1,102 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+
+# Logs
+*.log
+logs/*.log
+logs/nul
+
+# Virtual Environments
+venv/
+my_venv/
+env/
+ENV/
+test_install_env/
+test_env/
+test_final/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+test-extraction-outputs/
+test-files-assesses-extraction-tool/
+output/
+.env
+.env.local
+
+# Semantic model cache (Epic 3.5 - ADR-012)
+.data-extract-cache/
+
+# Automation script caches and reports (Epic 3.5)
+.cache/
+docs/reports/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+node_modules/
+ui/node_modules/
+ui/dist/
+*.tsbuildinfo
+
+# Temporary files
+.tmp/
+tmp/
+*.tmp
+.venv/
+
+# Virtual environments (housekeeping 2025-11-03)
+venv_py311/
+venv*/
+
+# Smoke test outputs (archived to docs/)
+smoke_test_output/
+
+# Test output files
+error.txt
+output.txt
+test_correct_path.txt
+test_multi.txt
+test_output.txt
+nul
+
+# Package lock files (project uses pip/poetry)
+uv.lock
+
+# NPL Framework (2025-11-06)
+.npl/personas/*/journal/
+.npl/personas/*/tasks/
+.npl/personas/*/kb/
+.npl/personas/*/session-*.md
+.npl/.cache/
+tests/outputs/
+
+# Epic 4 Prep Sprint - Test Migration (2025-11-18)
+TRASH/
+.claude*.flag
+.data-extract.yaml

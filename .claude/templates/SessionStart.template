@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+# Claude Code SessionStart Hook Template
+# Copy to .claude/hooks/SessionStart and customize
+
+import subprocess
+from pathlib import Path
+
+def main():
+    project_root = Path(__file__).parent.parent.parent
+
+    # Run initialization script
+    init_script = project_root / "scripts" / "init_claude_session.py"
+    if init_script.exists():
+        subprocess.run(["python3", str(init_script), "--quick"])
+    else:
+        print("Session initializer not found")
+
+if __name__ == "__main__":
+    main()

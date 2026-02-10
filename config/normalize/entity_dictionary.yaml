@@ -1,0 +1,498 @@
+# Entity Dictionary - Audit Domain Abbreviations
+# ================================================
+# This file defines abbreviation expansions for audit and compliance terminology.
+# Used by EntityNormalizer class in src/data_extract/normalize/entities.py
+#
+# Schema Version: 1.0
+# Story: 2.2 - Entity Normalization for Audit Domain
+# AC: 2.2.3 (abbreviation expansion), 2.2.7 (configurable dictionary)
+
+# Dictionary Structure:
+# ---------------------
+# Each abbreviation includes:
+# - full_form: Complete expansion of the abbreviation
+# - aliases: Alternative abbreviations for the same term
+# - context_required: Whether context checking is needed (prevents false positives)
+# - context_keywords: Keywords that must appear nearby for expansion (if context_required: true)
+# - case_sensitive: Whether abbreviation matching is case-sensitive
+# - category: Classification for organization (framework, regulation, standard, general)
+
+# Governance, Risk, and Compliance (GRC) Frameworks
+# --------------------------------------------------
+grc:
+  full_form: "Governance, Risk, and Compliance"
+  aliases: ["G.R.C.", "G-R-C"]
+  context_required: false
+  case_sensitive: false
+  category: "framework"
+  description: "Integrated framework for managing governance, risk, and compliance"
+
+coso:
+  full_form: "Committee of Sponsoring Organizations of the Treadway Commission"
+  aliases: ["COSO Framework"]
+  context_required: false
+  case_sensitive: false
+  category: "framework"
+  description: "Internal control and enterprise risk management framework"
+
+cobit:
+  full_form: "Control Objectives for Information and Related Technologies"
+  aliases: ["COBIT Framework"]
+  context_required: false
+  case_sensitive: false
+  category: "framework"
+  description: "IT governance and management framework"
+
+# Regulatory Compliance Standards (AC-2.2.3)
+# -------------------------------------------
+sox:
+  full_form: "Sarbanes-Oxley Act"
+  aliases: ["SOX Act", "Sarbanes-Oxley", "SOX 404"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US federal law for financial reporting and internal controls"
+
+gdpr:
+  full_form: "General Data Protection Regulation"
+  aliases: ["EU GDPR"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "EU data privacy and protection regulation"
+
+hipaa:
+  full_form: "Health Insurance Portability and Accountability Act"
+  aliases: ["HIPAA Privacy Rule", "HIPAA Security Rule"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US healthcare data privacy and security law"
+
+pci-dss:
+  full_form: "Payment Card Industry Data Security Standard"
+  aliases: ["PCI DSS", "PCI-DSS", "PCI/DSS"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Security standard for payment card processing"
+
+glba:
+  full_form: "Gramm-Leach-Bliley Act"
+  aliases: ["GLBA", "Financial Modernization Act"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US financial services data privacy law"
+
+ferpa:
+  full_form: "Family Educational Rights and Privacy Act"
+  aliases: ["FERPA"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US student education records privacy law"
+
+ccpa:
+  full_form: "California Consumer Privacy Act"
+  aliases: ["CCPA"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "California consumer data privacy law"
+
+# Cybersecurity Frameworks and Standards
+# ---------------------------------------
+nist-csf:
+  full_form: "NIST Cybersecurity Framework"
+  aliases: ["NIST CSF", "NIST Framework", "Cybersecurity Framework"]
+  context_required: false
+  case_sensitive: false
+  category: "framework"
+  description: "NIST framework for managing cybersecurity risk"
+
+nist-800-53:
+  full_form: "NIST Special Publication 800-53"
+  aliases: ["NIST 800-53", "SP 800-53"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Security and privacy controls for information systems"
+
+nist-800-171:
+  full_form: "NIST Special Publication 800-171"
+  aliases: ["NIST 800-171", "SP 800-171"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Protecting Controlled Unclassified Information (CUI)"
+
+cis:
+  full_form: "Center for Internet Security"
+  aliases: ["CIS Controls", "CIS Benchmarks"]
+  context_required: true
+  context_keywords: ["control", "benchmark", "security", "framework", "standard"]
+  case_sensitive: false
+  category: "standard"
+  description: "Cybersecurity best practices and benchmarks"
+
+iso-27001:
+  full_form: "ISO/IEC 27001 Information Security Management"
+  aliases: ["ISO 27001", "ISO/IEC 27001"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "International standard for information security management systems"
+
+iso-27002:
+  full_form: "ISO/IEC 27002 Information Security Controls"
+  aliases: ["ISO 27002", "ISO/IEC 27002"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Code of practice for information security controls"
+
+iso-31000:
+  full_form: "ISO 31000 Risk Management"
+  aliases: ["ISO 31000"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "International standard for risk management guidelines"
+
+iso-22301:
+  full_form: "ISO 22301 Business Continuity Management"
+  aliases: ["ISO 22301"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Business continuity management systems standard"
+
+# Industry-Specific Compliance
+# -----------------------------
+fisma:
+  full_form: "Federal Information Security Management Act"
+  aliases: ["FISMA"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US federal information security law"
+
+ferc:
+  full_form: "Federal Energy Regulatory Commission"
+  aliases: ["FERC"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US energy sector regulator"
+
+nerc-cip:
+  full_form: "North American Electric Reliability Corporation Critical Infrastructure Protection"
+  aliases: ["NERC CIP", "NERC-CIP"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "Electric grid cybersecurity standards"
+
+ffiec:
+  full_form: "Federal Financial Institutions Examination Council"
+  aliases: ["FFIEC"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US financial institutions regulatory body"
+
+# Audit and Control Methodologies
+# --------------------------------
+itgc:
+  full_form: "IT General Controls"
+  aliases: ["ITGC", "Information Technology General Controls"]
+  context_required: true
+  context_keywords: ["audit", "control", "test", "review", "assessment"]
+  case_sensitive: false
+  category: "general"
+  description: "Controls over IT infrastructure and systems"
+
+itac:
+  full_form: "IT Application Controls"
+  aliases: ["ITAC", "Application Controls"]
+  context_required: true
+  context_keywords: ["audit", "control", "test", "application", "system"]
+  case_sensitive: false
+  category: "general"
+  description: "Controls within specific applications"
+
+euc:
+  full_form: "End User Computing"
+  aliases: ["EUC", "End-User Computing"]
+  context_required: true
+  context_keywords: ["control", "spreadsheet", "excel", "user", "application"]
+  case_sensitive: false
+  category: "general"
+  description: "User-developed applications and spreadsheets"
+
+kri:
+  full_form: "Key Risk Indicator"
+  aliases: ["KRI", "Key Risk Indicators"]
+  context_required: true
+  context_keywords: ["risk", "metric", "measure", "threshold", "monitor"]
+  case_sensitive: false
+  category: "general"
+  description: "Metrics for monitoring risk levels"
+
+kpi:
+  full_form: "Key Performance Indicator"
+  aliases: ["KPI", "Key Performance Indicators"]
+  context_required: true
+  context_keywords: ["performance", "metric", "measure", "goal", "target"]
+  case_sensitive: false
+  category: "general"
+  description: "Metrics for measuring performance"
+
+kci:
+  full_form: "Key Control Indicator"
+  aliases: ["KCI", "Key Control Indicators"]
+  context_required: true
+  context_keywords: ["control", "effectiveness", "metric", "measure", "monitor"]
+  case_sensitive: false
+  category: "general"
+  description: "Metrics for monitoring control effectiveness"
+
+# Risk Management Terms
+# ---------------------
+erm:
+  full_form: "Enterprise Risk Management"
+  aliases: ["ERM"]
+  context_required: false
+  case_sensitive: false
+  category: "framework"
+  description: "Organization-wide risk management approach"
+
+orm:
+  full_form: "Operational Risk Management"
+  aliases: ["ORM"]
+  context_required: true
+  context_keywords: ["risk", "operational", "process", "manage", "framework"]
+  case_sensitive: false
+  category: "framework"
+  description: "Management of operational risks"
+
+bcp:
+  full_form: "Business Continuity Planning"
+  aliases: ["BCP", "Business Continuity Plan"]
+  context_required: false
+  case_sensitive: false
+  category: "general"
+  description: "Planning for business operations continuity"
+
+drp:
+  full_form: "Disaster Recovery Planning"
+  aliases: ["DRP", "Disaster Recovery Plan"]
+  context_required: false
+  case_sensitive: false
+  category: "general"
+  description: "Planning for IT disaster recovery"
+
+rca:
+  full_form: "Root Cause Analysis"
+  aliases: ["RCA"]
+  context_required: true
+  context_keywords: ["issue", "problem", "finding", "deficiency", "investigation"]
+  case_sensitive: false
+  category: "general"
+  description: "Analysis methodology for identifying root causes"
+
+# Audit Process Terms
+# -------------------
+rcm:
+  full_form: "Risk and Control Matrix"
+  aliases: ["RCM", "Risk Control Matrix"]
+  context_required: true
+  context_keywords: ["risk", "control", "matrix", "document", "mapping"]
+  case_sensitive: false
+  category: "general"
+  description: "Document mapping risks to controls"
+
+pcaob:
+  full_form: "Public Company Accounting Oversight Board"
+  aliases: ["PCAOB"]
+  context_required: false
+  case_sensitive: false
+  category: "regulation"
+  description: "US audit regulator for public companies"
+
+gaas:
+  full_form: "Generally Accepted Auditing Standards"
+  aliases: ["GAAS"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "US auditing standards framework"
+
+gaap:
+  full_form: "Generally Accepted Accounting Principles"
+  aliases: ["GAAP", "US GAAP"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "US accounting standards framework"
+
+ifrs:
+  full_form: "International Financial Reporting Standards"
+  aliases: ["IFRS"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "International accounting standards"
+
+# Security and Privacy Terms
+# ---------------------------
+pii:
+  full_form: "Personally Identifiable Information"
+  aliases: ["PII"]
+  context_required: false
+  case_sensitive: false
+  category: "general"
+  description: "Data that identifies an individual"
+
+phi:
+  full_form: "Protected Health Information"
+  aliases: ["PHI"]
+  context_required: false
+  case_sensitive: false
+  category: "general"
+  description: "Health information protected under HIPAA"
+
+cui:
+  full_form: "Controlled Unclassified Information"
+  aliases: ["CUI"]
+  context_required: true
+  context_keywords: ["data", "information", "classify", "protect", "security"]
+  case_sensitive: false
+  category: "general"
+  description: "Sensitive but unclassified government information"
+
+iam:
+  full_form: "Identity and Access Management"
+  aliases: ["IAM", "Identity Access Management"]
+  context_required: true
+  context_keywords: ["access", "identity", "authentication", "authorization", "user"]
+  case_sensitive: false
+  category: "general"
+  description: "System for managing digital identities and access"
+
+siem:
+  full_form: "Security Information and Event Management"
+  aliases: ["SIEM"]
+  context_required: true
+  context_keywords: ["security", "monitoring", "log", "event", "incident"]
+  case_sensitive: false
+  category: "general"
+  description: "Security monitoring and incident management system"
+
+soc:
+  full_form: "System and Organization Controls"
+  aliases: ["SOC 1", "SOC 2", "SOC 3", "SOC Report"]
+  context_required: true
+  context_keywords: ["audit", "report", "control", "assurance", "service"]
+  case_sensitive: false
+  category: "standard"
+  description: "Service organization control reports (AICPA)"
+
+aicpa:
+  full_form: "American Institute of Certified Public Accountants"
+  aliases: ["AICPA"]
+  context_required: false
+  case_sensitive: false
+  category: "standard"
+  description: "US professional accounting organization"
+
+csa:
+  full_form: "Cloud Security Alliance"
+  aliases: ["CSA"]
+  context_required: true
+  context_keywords: ["cloud", "security", "certification", "framework", "standard"]
+  case_sensitive: false
+  category: "framework"
+  description: "Cloud security best practices organization"
+
+cmmi:
+  full_form: "Capability Maturity Model Integration"
+  aliases: ["CMMI", "Capability Maturity Model"]
+  context_required: true
+  context_keywords: ["process", "maturity", "improvement", "capability", "assessment"]
+  case_sensitive: false
+  category: "framework"
+  description: "Process improvement maturity model"
+
+itil:
+  full_form: "Information Technology Infrastructure Library"
+  aliases: ["ITIL", "ITILv3", "ITILv4"]
+  context_required: true
+  context_keywords: ["service", "management", "process", "IT", "framework"]
+  case_sensitive: false
+  category: "framework"
+  description: "IT service management framework"
+
+ssae:
+  full_form: "Statement on Standards for Attestation Engagements"
+  aliases: ["SSAE", "SSAE 18", "SSAE-18"]
+  context_required: true
+  context_keywords: ["audit", "attestation", "SOC", "report", "assurance"]
+  case_sensitive: false
+  category: "standard"
+  description: "Auditing standards for attestation engagements"
+
+scf:
+  full_form: "Secure Controls Framework"
+  aliases: ["SCF"]
+  context_required: true
+  context_keywords: ["security", "control", "framework", "compliance", "cyber"]
+  case_sensitive: false
+  category: "framework"
+  description: "Unified cybersecurity and privacy control framework"
+
+# Dictionary Configuration Settings (AC-2.2.7)
+# ---------------------------------------------
+expansion_settings:
+  # Enable/disable abbreviation expansion globally
+  enable_expansion: true
+
+  # Case-insensitive matching by default (unless case_sensitive: true in entry)
+  default_case_insensitive: true
+
+  # Minimum confidence for context-based expansions
+  min_confidence: 0.75
+
+  # Context window size (words before and after abbreviation)
+  context_window: 5
+
+  # Log all expansions for audit trail (AC-2.2.3)
+  enable_audit_log: true
+
+  # Allow user to override default dictionary with custom terms
+  allow_custom_overrides: true
+  custom_dictionary_path: null  # Set to path for organization-specific terms
+
+# Override Mechanism (AC-2.2.3, AC-2.2.7)
+# ----------------------------------------
+# Organizations can provide custom dictionary files that override defaults.
+# Custom dictionaries follow the same structure and take precedence.
+# Example:
+#   custom_dictionary_path: "/path/to/organization_dictionary.yaml"
+#
+# Custom entries with matching keys override default entries.
+# New entries are added to the dictionary.
+
+# Expansion Priority Rules
+# -------------------------
+# 1. Exact match with context (if context_required: true)
+# 2. Exact match without context (if context_required: false)
+# 3. Case-insensitive match (if case_sensitive: false)
+# 4. Alias match following same priority
+
+# False Positive Prevention
+# -------------------------
+# Context keywords prevent expansion when abbreviation is used in different context.
+# Example: "CIS" expands to "Center for Internet Security" only near security terms,
+#          not in sentences like "CIS countries" (Commonwealth of Independent States).

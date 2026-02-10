@@ -1,0 +1,136 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>6</storyId>
+    <title>Metadata Enrichment Framework</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-6-metadata-enrichment-framework.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an audit professional</asA>
+    <iWant>comprehensive metadata attached to all processed documents</iWant>
+    <soThat>I have full audit trail compliance, reproducibility, and can trace any chunk back to its source</soThat>
+    <tasks>
+      <task id="1" acs="2.6.1,2.6.3,2.6.4,2.6.5,2.6.6">Extend Metadata model for enrichment (file_hash, processing_timestamp, tool_version, config_snapshot, entity_tags, entity_counts, validation_report)</task>
+      <task id="2" acs="2.6.1,2.6.8">Implement SHA-256 file hashing with chunked reading for memory efficiency</task>
+      <task id="3" acs="2.6.4">Implement entity aggregation (extract entity type and ID, count by EntityType)</task>
+      <task id="4" acs="2.6.5">Implement quality score aggregation (ocr_confidence, completeness_ratio, readability, quality_flags)</task>
+      <task id="5" acs="2.6.6">Implement configuration snapshot serialization using Pydantic model_dump()</task>
+      <task id="6" acs="all">Implement MetadataEnricher class with enrich_metadata() entry point</task>
+      <task id="7" acs="2.6.7">Implement JSON serialization with roundtrip testing</task>
+      <task id="8" acs="all">Integrate MetadataEnricher as Step 8 into Normalizer pipeline after validation</task>
+      <task id="9" acs="all">Comprehensive testing and quality gates (45+ tests, 85% coverage, Black/Ruff/Mypy)</task>
+      <task id="10" acs="all">Documentation and completion verification</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="2.6.1">Source file path and SHA-256 hash are included in metadata</ac>
+    <ac id="2.6.2">Document type classification is added (DocumentType enum from Story 2.3)</ac>
+    <ac id="2.6.3">Processing timestamp (ISO 8601) and tool version are recorded</ac>
+    <ac id="2.6.4">Entity tags list all identified entities in content (by type and ID)</ac>
+    <ac id="2.6.5">Quality scores aggregated (OCR confidence, readability, completeness ratio)</ac>
+    <ac id="2.6.6">Configuration snapshot used for processing is embedded (reproducibility)</ac>
+    <ac id="2.6.7">Metadata is serializable to JSON for persistence</ac>
+    <ac id="2.6.8">Metadata supports full audit trail (chunk → source document traceability)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.md" title="Technical Specification - Epic 2" section="Story 2.6: Metadata Enrichment Framework">
+        Comprehensive metadata structure (source path/hash, document type, timestamps, tool version), entity tags with types and locations, quality scores aggregation (OCR confidence, readability, completeness), processing configuration snapshot for reproducibility, JSON-serializable metadata for persistence.
+      </doc>
+      <doc path="docs/tech-spec-epic-2.md" title="Technical Specification - Epic 2" section="Design Pattern Compliance">
+        ADR-002 (Pydantic v2): All data models use Pydantic with runtime validation. Entity, Metadata, Document models enforce schema compliance. NFR-R1 (Deterministic Processing): Same input + config → identical output. Audit trail requirement: processing decisions logged with before/after snapshots.
+      </doc>
+      <doc path="docs/tech-spec-epic-2.md" title="Technical Specification - Epic 2" section="Component Breakdown">
+        normalize/metadata.py: Metadata enrichment; aggregates quality scores, entity tags, configuration snapshots. Target coverage >85%.
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="Data Models">
+        Pydantic v2 for all data models with runtime validation. Core models: Document, Chunk, Metadata with type-safe validation and JSON schema generation.
+      </doc>
+      <doc path="docs/PRD/index.md" title="Product Requirements Document" section="Audit Trail Requirements">
+        Processing must be deterministic (same input → same output, every time). Ability to reproduce results for audit validation. Comprehensive logging for audit trail.
+      </doc>
+      <doc path="docs/PRD/index.md" title="Product Requirements Document" section="Metadata Enrichment">
+        Each chunk includes quality metadata (readability scores, entity tags, section context). Entity normalization and quality validation with metadata enrichment (document type, source file, extraction confidence).
+      </doc>
+    </docs>
+    <code>
+      <artifact path="src/data_extract/core/models.py" kind="model" symbol="Metadata" lines="all" reason="Core Metadata model to be extended with enrichment fields (file_hash, processing_timestamp, tool_version, entity_tags, config_snapshot)" />
+      <artifact path="src/data_extract/core/models.py" kind="model" symbol="Entity" lines="all" reason="Entity model with EntityType enum - used for entity aggregation and tag generation" />
+      <artifact path="src/data_extract/core/models.py" kind="model" symbol="ValidationReport" lines="all" reason="ValidationReport from Story 2.5 - contains quality_flags, ocr_confidence, completeness data to aggregate" />
+      <artifact path="src/data_extract/core/models.py" kind="enum" symbol="EntityType" lines="all" reason="Six audit entity types (PROCESS, RISK, CONTROL, REGULATION, POLICY, ISSUE) for entity counting" />
+      <artifact path="src/data_extract/core/models.py" kind="enum" symbol="QualityFlag" lines="all" reason="Quality flags (LOW_OCR_CONFIDENCE, INCOMPLETE_EXTRACTION, MISSING_IMAGES, COMPLEX_OBJECTS) to aggregate" />
+      <artifact path="src/data_extract/normalize/validation.py" kind="service" symbol="QualityValidator" lines="all" reason="Story 2.5 validator - source of ValidationReport, ocr_confidence, completeness_ratio for metadata enrichment" />
+      <artifact path="src/data_extract/normalize/config.py" kind="config" symbol="NormalizationConfig" lines="all" reason="Configuration model to extend with tool_version field and serialize for config_snapshot" />
+      <artifact path="src/data_extract/normalize/normalizer.py" kind="service" symbol="Normalizer.process" lines="all" reason="Main pipeline orchestrator - will add Step 8 (Metadata Enrichment) after Step 7 (QualityValidator)" />
+      <artifact path="src/data_extract/core/pipeline.py" kind="interface" symbol="PipelineStage" lines="all" reason="Protocol interface that MetadataEnricher should implement for pipeline integration" />
+      <artifact path="src/data_extract/core/exceptions.py" kind="exception" symbol="ProcessingError" lines="all" reason="Recoverable error type to raise for enrichment failures (continue-on-error pattern)" />
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version=">=2.0.0,<3.0" reason="Data models with runtime validation, JSON serialization via model_dump_json()" />
+        <package name="PyYAML" version=">=6.0.0,<7.0" reason="Configuration file parsing for NormalizationConfig" />
+        <package name="structlog" version=">=24.0.0,<25.0" reason="Structured JSON logging for audit trail (file_hash, timestamps, metrics)" />
+        <package name="hashlib" version="stdlib" reason="SHA-256 file hashing for integrity verification" />
+        <package name="datetime" version="stdlib" reason="ISO 8601 timestamp generation" />
+        <package name="textstat" version=">=0.7.0,<1.0" reason="Optional readability metrics (Flesch-Kincaid, Coleman-Liau)" />
+      </python>
+      <dev>
+        <package name="pytest" version=">=8.0.0,<9.0" reason="Testing framework - 45+ tests required" />
+        <package name="pytest-cov" version=">=5.0.0,<6.0" reason="Coverage reporting - target >85%" />
+        <package name="pytest-mock" version=">=3.11.0" reason="Mocking for file I/O and external dependencies" />
+        <package name="black" version=">=24.0.0,<25.0" reason="Code formatting - 100 char lines" />
+        <package name="ruff" version=">=0.6.0,<0.7" reason="Linting - 0 errors required" />
+        <package name="mypy" version=">=1.11.0,<2.0" reason="Type checking - strict mode for new code" />
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>PipelineStage Pattern: MetadataEnricher must implement PipelineStage protocol and integrate as Step 8 in Normalizer pipeline after QualityValidator (Step 7)</constraint>
+    <constraint>Data Model Immutability: Use model_copy() when enriching Metadata (Pydantic frozen models). Never mutate in-place</constraint>
+    <constraint>Error Handling (ADR-006): Raise ProcessingError for enrichment failures (e.g., file hash calculation fails), not CriticalError. Continue batch processing on single document failures</constraint>
+    <constraint>Configuration Cascade: CLI flags > Environment variables (DATA_EXTRACT_TOOL_VERSION) > YAML config > NormalizationConfig defaults</constraint>
+    <constraint>Graceful Degradation: If metadata enrichment fails partially (e.g., readability calculation error), log warning and continue with partial metadata. Never silently drop documents</constraint>
+    <constraint>Logging Pattern: Use structlog with structured JSON fields for audit trail. Include: file_hash, processing_timestamp, tool_version, config_snapshot hash, entity counts</constraint>
+    <constraint>Testing Standards: Always run Black/Ruff/Mypy BEFORE marking tasks complete. Target >85% coverage initially, aim for 100%</constraint>
+    <constraint>JSON Serialization: Pydantic v2 handles datetime, Path, Enum serialization automatically via .model_dump_json(). Test roundtrip to ensure no data loss</constraint>
+    <constraint>SHA-256 Hashing: Use hashlib with chunked file reading (8KB chunks) for memory efficiency. Deterministic hashing ensures audit trail integrity</constraint>
+    <constraint>Backward Compatibility: Only add new fields to existing models (don't modify existing). Use default_factory for mutable defaults (List, Dict)</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="PipelineStage[Document, Document]" kind="protocol" signature="def process(self, input: Document) -> Document" path="src/data_extract/core/pipeline.py" />
+    <interface name="MetadataEnricher.enrich_metadata" kind="method" signature="def enrich_metadata(document: Document, entities: List[Entity], validation_report: ValidationReport, config: NormalizationConfig) -> Metadata" path="src/data_extract/normalize/metadata.py (new)" />
+    <interface name="calculate_file_hash" kind="function" signature="def calculate_file_hash(file_path: Path) -> str" path="src/data_extract/normalize/metadata.py (new)" />
+    <interface name="Metadata.model_dump_json" kind="method" signature="def model_dump_json(*, indent: int | None = None) -> str" path="Pydantic BaseModel" />
+    <interface name="ValidationReport from Story 2.5" kind="model" signature="quality_flags: List[QualityFlag], ocr_confidence: float, completeness_ratio: float, extraction_gaps: List[str]" path="src/data_extract/core/models.py" />
+    <interface name="Entity.type and Entity.entity_id" kind="fields" signature="type: EntityType, entity_id: str" path="src/data_extract/core/models.py" />
+  </interfaces>
+  <tests>
+    <standards>
+      Testing framework: pytest with markers (unit, integration). Tests mirror src/ structure exactly. Story 2.6 requires 45+ total tests with >85% coverage for metadata.py (aim for 100%). Test organization by AC: TestMetadataModelExtensions (15+ tests), TestFileHashing (4+ tests), TestEntityAggregation (5+ tests), TestQualityScoreAggregation (6+ tests), TestConfigSnapshot (3+ tests), TestMetadataEnricher (8+ tests), TestJSONSerialization (4+ tests), TestPipelineIntegration (2+ tests). Quality gates: Black (100 char lines), Ruff (0 errors), Mypy strict mode (0 errors), all tests passing, no brownfield regressions. Use pytest fixtures for test data, mock external dependencies for deterministic results.
+    </standards>
+    <locations>
+      <location>tests/unit/core/test_models.py - Add 15+ tests for Metadata enrichment fields</location>
+      <location>tests/unit/test_normalize/test_metadata_enrichment.py - NEW FILE with 30+ tests for MetadataEnricher class</location>
+      <location>tests/integration/ - Optional end-to-end metadata enrichment tests (low priority)</location>
+    </locations>
+    <ideas>
+      <idea ac="2.6.1">Test SHA-256 hash generation for normal file, large file (8KB chunks), missing file (error), permission error. Verify determinism (same file → same hash)</idea>
+      <idea ac="2.6.2">Test document type classification is preserved in metadata (uses DocumentType from Story 2.3)</idea>
+      <idea ac="2.6.3">Test ISO 8601 timestamp format, timezone handling, tool version string format</idea>
+      <idea ac="2.6.4">Test entity tag generation format ("EntityType-ID"), entity counting by type (PROCESS, RISK, CONTROL, etc.), empty entities, mixed types, duplicate handling</idea>
+      <idea ac="2.6.5">Test quality score aggregation with all scores present, partial scores, missing scores. Aggregate ocr_confidence, completeness_ratio, readability metrics, quality_flags list</idea>
+      <idea ac="2.6.6">Test config snapshot serialization using Pydantic model_dump(), full config, partial config, serialization roundtrip</idea>
+      <idea ac="2.6.7">Test JSON serialization roundtrip (object → JSON → object), special types (Path, datetime, Enum), large metadata</idea>
+      <idea ac="2.6.8">Test full pipeline integration (Extract → Normalize → Validate → Enrich), verify metadata includes all enrichment fields, audit trail completeness</idea>
+      <idea ac="all">Test graceful degradation: partial enrichment failures (log warning, continue with partial metadata), file hash calculation error (ProcessingError), missing validation report (use defaults)</idea>
+      <idea ac="all">Test backward compatibility: old metadata without enrichment fields still deserializes, new fields use default_factory for mutable types</idea>
+    </ideas>
+  </tests>
+</story-context>

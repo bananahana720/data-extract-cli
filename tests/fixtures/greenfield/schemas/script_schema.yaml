@@ -1,0 +1,232 @@
+# BMAD-Approved Script Structure Schema
+# Version: 1.0.0
+# Purpose: Validate script structure for deterministic quality
+
+script_structure:
+  metadata:
+    description: "Script metadata requirements"
+    required_fields:
+      - shebang: "#!/usr/bin/env python3"
+      - docstring: "Module-level docstring required"
+      - author: "Optional author attribution"
+      - version: "Optional version string"
+
+  required_sections:
+    - imports:
+        order:
+          - standard_library
+          - third_party
+          - local_imports
+        required:
+          - pathlib.Path
+          - argparse
+          - sys
+        recommended:
+          - structlog
+          - typing
+
+    - constants:
+        naming: "UPPER_SNAKE_CASE"
+        location: "After imports, before classes"
+
+    - main_logic:
+        components:
+          - classes: "Optional, PascalCase naming"
+          - functions: "Required, snake_case naming"
+          - argument_parser: "Required for CLI scripts"
+
+    - error_handling:
+        patterns:
+          - try_except: "Required around main operations"
+          - logging: "Log errors before raising"
+          - graceful_degradation: "Continue on non-fatal errors"
+
+    - entry_point:
+        pattern: 'if __name__ == "__main__":'
+        requirements:
+          - sys_exit: "Use sys.exit(main())"
+          - return_codes: "0 for success, 1 for error"
+
+naming_conventions:
+  functions: "snake_case"
+  classes: "PascalCase"
+  constants: "UPPER_SNAKE_CASE"
+  modules: "snake_case"
+  private: "_prefix_for_private"
+  dunder: "__double_underscore_for_special__"
+
+quality_requirements:
+  type_hints:
+    required: true
+    style: "PEP 484/526"
+    coverage: "100% of public functions"
+
+  docstrings:
+    required: true
+    style: "google"
+    sections:
+      - description
+      - args
+      - returns
+      - raises
+      - examples  # Optional
+
+  error_handling:
+    required: true
+    patterns:
+      - specific_exceptions: "Catch specific exceptions first"
+      - generic_exception: "Only with re-raise or logging"
+      - finally_blocks: "For cleanup operations"
+
+  logging:
+    framework: "structlog"
+    format: "json"
+    levels:
+      - debug: "Detailed diagnostic info"
+      - info: "Normal operations"
+      - warning: "Recoverable issues"
+      - error: "Errors that need attention"
+      - critical: "Fatal errors"
+
+imports_structure:
+  standard_library:
+    common:
+      - argparse
+      - sys
+      - os
+      - json
+      - pathlib
+      - datetime
+      - typing
+      - dataclasses
+      - enum
+      - functools
+      - itertools
+
+  third_party:
+    testing:
+      - pytest
+      - unittest.mock
+    logging:
+      - structlog
+    validation:
+      - pydantic
+    data:
+      - pandas
+      - numpy
+
+  local:
+    pattern: "from package.module import Component"
+    relative: "Avoid relative imports in scripts"
+
+file_organization:
+  max_lines: 500
+  max_line_length: 100
+  sections_order:
+    1: "Shebang and module docstring"
+    2: "Imports"
+    3: "Constants"
+    4: "Classes"
+    5: "Functions"
+    6: "Main function"
+    7: "Entry point"
+
+validation_rules:
+  pre_commit:
+    - black:
+        line_length: 100
+        target_version: "py312"
+    - ruff:
+        select: ["E", "F", "I"]
+        ignore: []
+    - mypy:
+        strict: true
+        ignore_missing_imports: false
+
+  coverage:
+    minimum: 90
+    exclude:
+      - "if __name__ == '__main__':"
+      - abstract_methods
+      - pass_statements
+
+performance_guidelines:
+  startup_time:
+    target: "< 100ms"
+    optimize:
+      - lazy_imports: "Import heavy modules only when needed"
+      - cached_properties: "Cache expensive computations"
+
+  memory:
+    limit: "500MB"
+    patterns:
+      - generators: "Use for large data processing"
+      - context_managers: "Ensure resource cleanup"
+      - weak_references: "For cache implementations"
+
+  io_operations:
+    batch_size: 1000
+    async_when_possible: true
+    connection_pooling: true
+
+anti_patterns:
+  avoid:
+    - global_variables: "Use class attributes or config objects"
+    - mutable_defaults: "Use None and create in function"
+    - bare_except: "Always specify exception type"
+    - print_statements: "Use logging instead"
+    - hardcoded_paths: "Use config or arguments"
+    - synchronous_blocking: "Use async for I/O operations"
+    - deep_nesting: "Max 3 levels of indentation"
+    - god_functions: "Split functions > 50 lines"
+
+testing_requirements:
+  structure:
+    location: "tests/unit/test_scripts/"
+    naming: "test_{script_name}.py"
+    organization:
+      - "One test file per script"
+      - "Mirror script structure"
+      - "Group tests by functionality"
+
+  coverage:
+    lines: 90
+    branches: 85
+    functions: 95
+
+  test_cases:
+    required:
+      - happy_path: "Normal operation"
+      - error_cases: "Each exception type"
+      - edge_cases: "Boundary conditions"
+      - integration: "With real dependencies"
+      - performance: "Speed and memory"
+
+documentation:
+  required_files:
+    - readme: "Usage and examples"
+    - changelog: "Version history"
+    - contributing: "Development guide"
+
+  inline_comments:
+    when: "Complex algorithms or business logic"
+    style: "Explain WHY, not WHAT"
+    todo_format: "TODO(owner): Description [TICKET-123]"
+
+security:
+  input_validation:
+    required: true
+    patterns:
+      - sanitize_paths: "Prevent directory traversal"
+      - validate_types: "Type check all inputs"
+      - limit_sizes: "Prevent DoS attacks"
+
+  secrets:
+    never_hardcode: true
+    use_env_vars: true
+    rotate_regularly: true
+
+  dependencies:
+    scan_vulnerabilities: true
+    pin_versions: true
+    review_licenses: true

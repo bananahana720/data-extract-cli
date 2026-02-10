@@ -1,0 +1,180 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2.5</epicId>
+    <storyId>3</storyId>
+    <title>Large Document Fixtures & Testing Infrastructure</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2.5-3-quality-gate-automation-and-documentation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a QA Engineer / Developer</asA>
+    <iWant>to create large document test fixtures and integration tests with memory monitoring</iWant>
+    <soThat>the Extract & Normalize pipeline can be systematically validated against production-scale documents before Epic 3</soThat>
+    <tasks>
+      <task id="1" name="Create Large Document Test Fixtures" acs="1,2,3">
+        <subtask id="1.1">Generate or source 50+ page PDF with audit document structure</subtask>
+        <subtask id="1.2">Sanitize PDF content (remove PII, preserve headings/tables/images)</subtask>
+        <subtask id="1.3">Save sanitized PDF to tests/fixtures/pdfs/large/audit-report-large.pdf</subtask>
+        <subtask id="1.4">Generate 10K+ row Excel file with audit data columns (risks, controls, policies)</subtask>
+        <subtask id="1.5">Sanitize Excel content (synthetic data, realistic structure)</subtask>
+        <subtask id="1.6">Save Excel to tests/fixtures/xlsx/large/audit-data-10k-rows.xlsx</subtask>
+        <subtask id="1.7">Source or create scanned/image-based PDF requiring OCR</subtask>
+        <subtask id="1.8">Save scanned PDF to tests/fixtures/pdfs/scanned/audit-scan.pdf</subtask>
+      </task>
+      <task id="2" name="Document Fixture Creation Process" acs="4">
+        <subtask id="2.1">Create tests/fixtures/README.md with fixture inventory</subtask>
+        <subtask id="2.2">Document large PDF creation steps and sanitization tools used</subtask>
+        <subtask id="2.3">Document large Excel generation process and data structure</subtask>
+        <subtask id="2.4">Document scanned PDF sourcing and OCR test expectations</subtask>
+        <subtask id="2.5">Include guidance for future contributors to add more fixtures</subtask>
+      </task>
+      <task id="3" name="Create Integration Tests for Large Files" acs="5,6">
+        <subtask id="3.1">Create tests/integration/test_large_files.py</subtask>
+        <subtask id="3.2">Implement test_large_pdf_memory_usage() with psutil monitoring</subtask>
+        <subtask id="3.3">Assert peak memory &lt;2GB during large PDF processing</subtask>
+        <subtask id="3.4">Implement test_large_excel_processing() with timeout validation</subtask>
+        <subtask id="3.5">Implement test_scanned_pdf_ocr_completion() for end-to-end OCR</subtask>
+        <subtask id="3.6">Reuse memory monitoring pattern from scripts/profile_pipeline.py:151-167</subtask>
+        <subtask id="3.7">Add @pytest.mark.integration marker to all tests</subtask>
+        <subtask id="3.8">Run integration tests and validate all pass</subtask>
+      </task>
+      <task id="4" name="Update CLAUDE.md with Epic 2 Lessons" acs="8">
+        <subtask id="4.1">Add "## Lessons from Epic 2" section to CLAUDE.md</subtask>
+        <subtask id="4.2">Document quality gate best practices (Black/Ruff/Mypy first approach)</subtask>
+        <subtask id="4.3">Document PipelineStage protocol scaling lessons</subtask>
+        <subtask id="4.4">Document anti-patterns to avoid (e.g., deferred validation fixes)</subtask>
+        <subtask id="4.5">Reference spaCy setup process documented in Story 2.5.2</subtask>
+      </task>
+      <task id="5" name="Resolve Code Review Blockers" acs="9">
+        <subtask id="5.1">Fix src/data_extract/normalize/validation.py:694 - add document_average_confidence=None</subtask>
+        <subtask id="5.2">Fix src/data_extract/normalize/validation.py:719 - add scanned_pdf_detected=None</subtask>
+        <subtask id="5.3">Fix src/data_extract/normalize/validation.py:736 - add missing optional fields</subtask>
+        <subtask id="5.4">Fix src/data_extract/normalize/validation.py:697 - remove unused ocr_validation_performed variable</subtask>
+        <subtask id="5.5">Run black src/ tests/ and verify 0 violations</subtask>
+        <subtask id="5.6">Run ruff check src/ tests/ and verify 0 violations</subtask>
+        <subtask id="5.7">Run mypy src/data_extract/ and verify 0 violations</subtask>
+        <subtask id="5.8">Document proof of 0 violations in completion notes</subtask>
+      </task>
+      <task id="6" name="Testing and Validation" acs="all">
+        <subtask id="6.1">Run full test suite pytest and verify no new failures</subtask>
+        <subtask id="6.2">Run integration tests pytest -m integration and verify all pass</subtask>
+        <subtask id="6.3">Validate test coverage pytest --cov=src --cov-report=term for new code</subtask>
+        <subtask id="6.4">Run pre-commit hooks pre-commit run --all-files and verify pass</subtask>
+        <subtask id="6.5">Verify large fixtures total size &lt;100MB for repository health</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-2.5.3.1">Large PDF fixture created (50+ pages) in tests/fixtures/pdfs/large/ - content sanitized, structure preserved</criterion>
+    <criterion id="AC-2.5.3.2">Large Excel fixture created (10K+ rows) in tests/fixtures/xlsx/large/ - simulates audit data structure, synthetic content</criterion>
+    <criterion id="AC-2.5.3.3">Scanned PDF fixture created in tests/fixtures/pdfs/scanned/ - tests OCR pipeline end-to-end</criterion>
+    <criterion id="AC-2.5.3.4">Fixture creation process documented in tests/fixtures/README.md - includes sanitization steps and tools</criterion>
+    <criterion id="AC-2.5.3.5">Integration tests for large files passing in tests/integration/test_large_files.py</criterion>
+    <criterion id="AC-2.5.3.6">Memory monitoring validates NFR-P2 (&lt;2GB) for individual large files using psutil</criterion>
+    <criterion id="AC-2.5.3.8">CLAUDE.md updated with "Lessons from Epic 2" section documenting quality gates and patterns</criterion>
+    <criterion id="AC-2.5.3.9">Code review blockers resolved - validation.py:694,719,736,697 fixed, quality gates pass with 0 violations</criterion>
+    <criterion id="AC-2.5.3.7" deferred="true">UAT workflow structure designed for bmad:bmm:workflows:create-test-cases with story markdown input (Deferred to Sub-Story 2.5.3.1)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.5.md" title="Epic 2.5 Technical Specification" section="Story 2.5.3">
+        Complete story specification with detailed design for large document fixtures, integration tests, memory monitoring, and code review blocker resolution.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Documentation" section="ADR-005, ADR-006">
+        ADR-005: Streaming Pipeline Architecture with &lt;2GB memory target per file. ADR-006: Continue-On-Error pattern for graceful degradation in batch processing.
+      </doc>
+      <doc path="CLAUDE.md" title="Project Guide" section="Testing Strategy">
+        Test organization patterns, pytest markers (unit, integration, performance), coverage requirements (>80% for Epic 2), and quality gate commands (black, ruff, mypy).
+      </doc>
+      <doc path="docs/TESTING-README.md" title="Testing Standards" section="Test Organization">
+        Testing framework standards, fixture patterns, integration test guidelines, and coverage requirements.
+      </doc>
+      <doc path="docs/stories/2.5-2.1-pipeline-throughput-optimization.md" title="Story 2.5.2.1" section="Dev Agent Record">
+        Memory monitoring pattern implementation (scripts/profile_pipeline.py:151-167). get_total_memory() function aggregates main + worker process memory using psutil.
+      </doc>
+      <doc path="docs/performance-baselines-story-2.5.1.md" title="Performance Baselines" section="NFR Validation">
+        Baseline performance metrics established. NFR-P2 validation approach for memory monitoring during large file processing.
+      </doc>
+    </docs>
+    <code>
+      <artifact path="scripts/profile_pipeline.py" kind="script" symbol="get_total_memory" lines="151-167" reason="REUSE this memory monitoring pattern for integration tests. Aggregates main process + worker memory using psutil with 9.6ms overhead." />
+      <artifact path="tests/performance/test_throughput.py" kind="test" symbol="test_batch_processing_throughput" lines="all" reason="Reference pattern for performance testing structure, parallel processing validation, and memory assertions." />
+      <artifact path="tests/integration/test_spacy_integration.py" kind="test" symbol="all" lines="all" reason="Example integration test structure from Story 2.5.2 - follow @pytest.mark.integration marker pattern." />
+      <artifact path="src/data_extract/normalize/validation.py" kind="module" symbol="ValidationReport" lines="694,719,736,697" reason="CODE REVIEW BLOCKERS - Missing optional fields (document_average_confidence, scanned_pdf_detected) and unused variable (ocr_validation_performed)." />
+      <artifact path="tests/integration/conftest.py" kind="fixture" symbol="all" lines="all" reason="Shared integration test fixtures - may need fixture patterns for large file setup." />
+      <artifact path="tests/performance/conftest.py" kind="fixture" symbol="all" lines="all" reason="Performance test fixtures - may contain memory monitoring utilities." />
+    </code>
+    <dependencies>
+      <python>
+        <package name="pytest" version=">=8.0.0,&lt;9.0" usage="Testing framework" />
+        <package name="pytest-cov" version=">=5.0.0,&lt;6.0" usage="Coverage reporting" />
+        <package name="pytest-xdist" version=">=3.6.0,&lt;4.0" usage="Parallel test execution" />
+        <package name="pytest-mock" version=">=3.11.0" usage="Mocking utilities" />
+        <package name="psutil" version=">=5.9.0,&lt;6.0" usage="Memory monitoring for NFR-P2 validation" />
+        <package name="reportlab" version=">=3.5.0,&lt;5.0" usage="PDF fixture generation" />
+        <package name="openpyxl" version=">=3.0.10" usage="Excel fixture generation and processing" />
+        <package name="pytesseract" version=">=0.3.10" optional="true" usage="OCR for scanned PDF fixtures" />
+        <package name="black" version=">=24.0.0,&lt;25.0" usage="Code formatting - quality gate" />
+        <package name="ruff" version=">=0.6.0,&lt;0.7" usage="Linting - quality gate" />
+        <package name="mypy" version=">=1.11.0,&lt;2.0" usage="Type checking - quality gate" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="memory">NFR-P2: Individual large files must stay &lt;2GB peak memory during processing (validated with psutil)</constraint>
+    <constraint type="architecture">ADR-006: Continue-on-error pattern - integration tests must validate graceful degradation when large files fail</constraint>
+    <constraint type="testing">All integration tests must use @pytest.mark.integration marker for selective execution</constraint>
+    <constraint type="testing">Test fixtures total size must be &lt;100MB for repository health</constraint>
+    <constraint type="quality">Code review blockers (validation.py:694,719,736,697) MUST be fixed before story completion</constraint>
+    <constraint type="quality">Quality gates MUST pass with 0 violations: black, ruff, mypy before marking story done</constraint>
+    <constraint type="documentation">Fixture creation process must be documented in tests/fixtures/README.md for maintainability</constraint>
+    <constraint type="data">All fixtures must use sanitized/synthetic data - no PII or sensitive content</constraint>
+    <constraint type="pattern">REUSE existing memory monitoring from scripts/profile_pipeline.py:151-167 - DO NOT recreate</constraint>
+    <constraint type="coverage">Epic 2 standard: &gt;80% test coverage for new code</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="get_total_memory" kind="function" signature="def get_total_memory() -&gt; int" path="scripts/profile_pipeline.py:151-167">
+      Returns total memory usage in bytes across main process and all worker processes. Uses psutil to aggregate memory_info().rss values. 9.6ms overhead validated in Story 2.5.2.1.
+    </interface>
+    <interface name="ValidationReport" kind="dataclass" signature="@dataclass(frozen=True)" path="src/data_extract/normalize/validation.py">
+      Immutable validation report requiring optional fields: document_average_confidence (Optional[float]), scanned_pdf_detected (Optional[bool]). Mypy violations at lines 694, 719, 736 need these fields added.
+    </interface>
+    <interface name="pytest.mark.integration" kind="decorator" signature="@pytest.mark.integration">
+      Test marker for integration tests. Enables selective execution with: pytest -m integration
+    </interface>
+    <interface name="psutil.Process.memory_info" kind="method" signature="memory_info() -&gt; pmem">
+      Returns memory information including rss (Resident Set Size) for process memory tracking. Used in NFR-P2 validation.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Follow pytest framework with markers (unit, integration, performance). Use @pytest.mark.integration for all new tests. Structure tests to mirror src/ layout exactly. Integration tests validate multi-component workflows and NFR compliance. Coverage target &gt;80% for Epic 2. Quality gates (black, ruff, mypy) must pass with 0 violations before story completion. Reuse existing patterns from tests/performance/test_throughput.py and tests/integration/test_spacy_integration.py.
+    </standards>
+    <locations>
+      <location>tests/integration/test_large_files.py - NEW integration tests for large file memory/timeout validation</location>
+      <location>tests/fixtures/pdfs/large/ - NEW 50+ page PDF fixtures</location>
+      <location>tests/fixtures/xlsx/large/ - NEW 10K+ row Excel fixtures</location>
+      <location>tests/fixtures/pdfs/scanned/ - NEW scanned PDF fixtures for OCR testing</location>
+      <location>tests/fixtures/README.md - NEW fixture creation documentation</location>
+      <location>tests/performance/test_throughput.py - REFERENCE for performance test patterns</location>
+      <location>tests/integration/test_spacy_integration.py - REFERENCE for integration test patterns</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-2.5.3.5, AC-2.5.3.6">test_large_pdf_memory_usage: Process 50+ page PDF fixture, monitor memory with get_total_memory(), assert peak &lt;2GB (2147483648 bytes), validate extraction completes successfully</idea>
+      <idea ac="AC-2.5.3.5">test_large_excel_processing: Process 10K+ row Excel fixture, validate timeout handling (e.g., 60s max), assert successful completion with expected row count</idea>
+      <idea ac="AC-2.5.3.5">test_scanned_pdf_ocr_completion: Process scanned PDF fixture through OCR pipeline, validate OCR text extraction, assert confidence scores present, verify end-to-end completion</idea>
+      <idea ac="AC-2.5.3.6">test_memory_monitoring_accuracy: Validate get_total_memory() captures main + worker memory correctly, compare against baseline expectations</idea>
+      <idea ac="AC-2.5.3.1, AC-2.5.3.2, AC-2.5.3.3">Fixture creation: Use reportlab for PDF generation, openpyxl for Excel generation, ensure realistic audit document structure (headings, tables, risk columns)</idea>
+      <idea ac="AC-2.5.3.4">Fixture documentation: Document sanitization tools/process, provide contributor guidance, maintain fixture inventory with size/purpose</idea>
+      <idea ac="AC-2.5.3.9">Code quality validation: After fixing validation.py, run black/ruff/mypy and capture output proving 0 violations for completion notes</idea>
+    </ideas>
+  </tests>
+</story-context>

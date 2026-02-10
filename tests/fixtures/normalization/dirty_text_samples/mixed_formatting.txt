@@ -1,0 +1,18 @@
+Document with Formatting
+
+This document contains **bold text** and *italic text*.
+
+Lists should be preserved:
+- Item 1
+- Item 2
+* Item 3
+1. Numbered item
+2. Another numbered
+
+Code blocks should remain:
+    def function():
+        return True
+
+Paragraph breaks should be preserved.
+
+Like this one.

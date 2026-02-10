@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Extraction Tool - Design Direction Showcase</title>
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-terminal: #0d1117;
+            --text-primary: #e6edf3;
+            --text-muted: #7d8590;
+            --success: #3fb950;
+            --error: #f85149;
+            --warning: #d29922;
+            --info: #58a6ff;
+            --accent: #39c5cf;
+            --learning: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--accent), var(--info));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        .direction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 2rem;
+        }
+
+        @media (max-width: 700px) {
+            .direction-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .direction-card {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            border: 1px solid #333;
+        }
+
+        .direction-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px rgba(57, 197, 207, 0.3);
+        }
+
+        .direction-header {
+            padding: 1.5rem;
+            background: #21262d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .direction-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .direction-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-chosen { background: var(--success); color: #000; }
+        .badge-alternative { background: #333; color: var(--text-muted); }
+        .badge-future { background: var(--info); color: #000; }
+
+        .direction-body {
+            padding: 1.5rem;
+        }
+
+        .direction-description {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .terminal {
+            background: var(--bg-terminal);
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .terminal-header {
+            background: #21262d;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 1rem;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.25rem;
+        }
+
+        .prompt { color: var(--success); }
+        .command { color: var(--text-primary); }
+        .success { color: var(--success); }
+        .error { color: var(--error); }
+        .warning { color: var(--warning); }
+        .info { color: var(--info); }
+        .accent { color: var(--accent); }
+        .muted { color: var(--text-muted); }
+        .learning { color: var(--learning); }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pros, .cons {
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .pros {
+            background: rgba(63, 185, 80, 0.1);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .cons {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+        }
+
+        .pros-title, .cons-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .pros-title { color: var(--success); }
+        .cons-title { color: var(--error); }
+
+        .list {
+            list-style: none;
+            padding-left: 0.5rem;
+        }
+
+        .list li {
+            margin-bottom: 0.25rem;
+        }
+
+        .list li::before {
+            content: "• ";
+            color: var(--text-muted);
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, rgba(57, 197, 207, 0.1), rgba(88, 166, 255, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .recommendation h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Design Direction Showcase</h1>
+        <p class="subtitle">Data Extraction Tool - CLI Interaction Pattern Exploration</p>
+
+        <div class="recommendation">
+            <h3>Chosen Direction: Git-Style Subcommands + Rich Feedback</h3>
+            <p>Based on the brainstorming session analysis, we've selected a <strong>Git-style subcommand structure</strong> combined with <strong>Rich terminal output</strong>. This approach provides familiar patterns for developers while enabling the rich visual feedback and learning features that differentiate this tool.</p>
+        </div>
+
+        <h2 class="section-title">Explored Design Directions</h2>
+
+        <div class="direction-grid">
+            <!-- Direction 1: Git-Style (CHOSEN) -->
+            <div class="direction-card selected">
+                <div class="direction-header">
+                    <span class="direction-title">1. Git-Style Subcommands</span>
+                    <span class="direction-badge badge-chosen">Chosen</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        Familiar pattern used by git, docker, npm. Main command with subcommands for different operations.
+                        Most developers already know this pattern instinctively.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract process ./docs/ --output ./clean/</span></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract analyze ./corpus/ --report</span></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract validate ./input/</span></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract config set output.format json</span></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract cache clear</span></div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Universally familiar pattern</li>
+                                <li>Easy to extend with new commands</li>
+                                <li>Clear separation of concerns</li>
+                                <li>Great tab completion support</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Requires learning command names</li>
+                                <li>Can be verbose for simple tasks</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction 2: Interactive/Guided -->
+            <div class="direction-card">
+                <div class="direction-header">
+                    <span class="direction-title">2. Interactive Guided Mode</span>
+                    <span class="direction-badge badge-chosen">Integrated</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        When no arguments provided, the tool asks questions to guide the user.
+                        Perfect for novices and complex configurations. Integrated as fallback mode.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract</span></div>
+                            <div class="terminal-line muted">Welcome to Data Extraction Tool!</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="info">?</span> What would you like to do?</div>
+                            <div class="terminal-line">  <span class="accent">&#9654;</span> Process documents</div>
+                            <div class="terminal-line">    Analyze corpus</div>
+                            <div class="terminal-line">    Configure settings</div>
+                            <div class="terminal-line">    View help & tutorials</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="info">?</span> Select files to process:</div>
+                            <div class="terminal-line">    <span class="success">&#9745;</span> quarterly-report.pdf</div>
+                            <div class="terminal-line">    <span class="success">&#9745;</span> audit-findings.docx</div>
+                            <div class="terminal-line">    &#9744; old-draft.pdf</div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Zero memorization required</li>
+                                <li>Discoverability built-in</li>
+                                <li>Self-teaching through use</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Slower for power users</li>
+                                <li>Not scriptable</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction 3: Config-Driven -->
+            <div class="direction-card">
+                <div class="direction-header">
+                    <span class="direction-title">3. Config-Driven Pipeline</span>
+                    <span class="direction-badge badge-alternative">Supported</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        Define pipelines in YAML/JSON configuration files. Execute by referencing config.
+                        Great for repeatable workflows and CI/CD integration.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line muted"># pipeline.yaml</div>
+                            <div class="terminal-line"><span class="accent">input:</span> ./documents/*.pdf</div>
+                            <div class="terminal-line"><span class="accent">output:</span> ./clean/</div>
+                            <div class="terminal-line"><span class="accent">stages:</span></div>
+                            <div class="terminal-line">  - <span class="info">extract</span></div>
+                            <div class="terminal-line">  - <span class="info">normalize</span></div>
+                            <div class="terminal-line">  - <span class="info">chunk</span>:</div>
+                            <div class="terminal-line">      size: 500</div>
+                            <div class="terminal-line">  - <span class="info">semantic</span></div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract run --config pipeline.yaml</span></div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Fully reproducible</li>
+                                <li>Version controllable</li>
+                                <li>CI/CD friendly</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Setup overhead for one-offs</li>
+                                <li>YAML learning curve</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction 4: Unix Pipes -->
+            <div class="direction-card">
+                <div class="direction-header">
+                    <span class="direction-title">4. Unix Pipeline Style</span>
+                    <span class="direction-badge badge-alternative">Alternative</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        Compose operations using Unix pipes. Each stage is a separate command.
+                        Maximum flexibility but requires understanding data flow.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">cat report.pdf | data-extract extract | data-extract normalize</span></div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">find . -name "*.pdf" | \</span></div>
+                            <div class="terminal-line">    <span class="command">data-extract extract --batch | \</span></div>
+                            <div class="terminal-line">    <span class="command">data-extract analyze --json | \</span></div>
+                            <div class="terminal-line">    <span class="command">jq '.duplicates'</span></div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Unix philosophy</li>
+                                <li>Composable with other tools</li>
+                                <li>Stream processing</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Complex for beginners</li>
+                                <li>Error handling tricky</li>
+                                <li>No rich output in pipes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction 5: Make-Style -->
+            <div class="direction-card">
+                <div class="direction-header">
+                    <span class="direction-title">5. Make-Style Targets</span>
+                    <span class="direction-badge badge-future">Future</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        Define targets that represent outcomes. Tool figures out what needs to run.
+                        Dependency-aware, only runs what's needed.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract all</span></div>
+                            <div class="terminal-line muted">Running: extract -> normalize -> chunk -> semantic -> output</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract clean</span></div>
+                            <div class="terminal-line muted">Removing cached models and intermediate files...</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line"><span class="prompt">$</span> <span class="command">data-extract semantic</span></div>
+                            <div class="terminal-line muted">extract, normalize, chunk up-to-date</div>
+                            <div class="terminal-line muted">Running: semantic</div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Dependency tracking</li>
+                                <li>Incremental processing</li>
+                                <li>Simple common cases</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Hidden complexity</li>
+                                <li>Less explicit control</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction 6: TUI Dashboard -->
+            <div class="direction-card">
+                <div class="direction-header">
+                    <span class="direction-title">6. TUI Dashboard Mode</span>
+                    <span class="direction-badge badge-future">Roadmap</span>
+                </div>
+                <div class="direction-body">
+                    <p class="direction-description">
+                        Full terminal UI application using Textual. Multiple panes, real-time updates,
+                        keyboard navigation. The "Hobbyist mode" visualization platform.
+                    </p>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                        </div>
+                        <div class="terminal-body" style="font-size: 11px;">
+                            <div class="terminal-line">&#9484;&#9472; <span class="accent">Files</span> &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472; <span class="accent">Pipeline</span> &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472; <span class="accent">Quality</span> &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</div>
+                            <div class="terminal-line">&#9474; <span class="success">&#9745;</span> report.pdf   &#9474; &#9474; <span class="success">&#9632;</span> Extract     &#9474; &#9474; Score: <span class="success">87/100</span>   &#9474;</div>
+                            <div class="terminal-line">&#9474; <span class="success">&#9745;</span> audit.docx   &#9474; &#9474; <span class="success">&#9632;</span> Normalize   &#9474; &#9474;                 &#9474;</div>
+                            <div class="terminal-line">&#9474; &#9744; draft.pdf    &#9474; &#9474; <span class="warning">&#9654;</span> Chunk       &#9474; &#9474; <span class="success">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span><span class="warning">&#9608;&#9608;</span><span class="error">&#9608;</span> &#9474;</div>
+                            <div class="terminal-line">&#9474; &#9744; data.xlsx    &#9474; &#9474; &#9633; Semantic    &#9474; &#9474; 34 / 7 / 3       &#9474;</div>
+                            <div class="terminal-line">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-line muted">[Tab] Switch pane  [Enter] Select  [Space] Toggle  [Q] Quit</div>
+                        </div>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">Strengths</div>
+                            <ul class="list">
+                                <li>Visual, interactive</li>
+                                <li>Real-time updates</li>
+                                <li>No context switching</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">Considerations</div>
+                            <ul class="list">
+                                <li>Complex to build</li>
+                                <li>Not scriptable</li>
+                                <li>Terminal compatibility</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Final Decision Matrix</h2>
+
+        <div class="terminal" style="margin-top: 1rem;">
+            <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+            </div>
+            <div class="terminal-body">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr style="border-bottom: 1px solid #333;">
+                        <th style="text-align: left; padding: 0.5rem;">Direction</th>
+                        <th style="text-align: center; padding: 0.5rem;">Learnability</th>
+                        <th style="text-align: center; padding: 0.5rem;">Power</th>
+                        <th style="text-align: center; padding: 0.5rem;">Scriptable</th>
+                        <th style="text-align: center; padding: 0.5rem;">Status</th>
+                    </tr>
+                    <tr style="background: rgba(57, 197, 207, 0.1);">
+                        <td style="padding: 0.5rem;"><span class="accent">Git-Style</span></td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;"><span class="success">PRIMARY</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">Interactive</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;</td>
+                        <td style="text-align: center;"><span class="info">FALLBACK</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">Config-Driven</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;"><span class="info">SUPPORTED</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">Unix Pipes</td>
+                        <td style="text-align: center;">&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;"><span class="muted">AVAILABLE</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">Make-Style</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;"><span class="warning">FUTURE</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">TUI Dashboard</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;&#11088;&#11088;&#11088;</td>
+                        <td style="text-align: center;">&#11088;</td>
+                        <td style="text-align: center;"><span class="learning">HOBBYIST</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>Data Extraction Tool - UX Design Specification</p>
+            <p>Generated 2025-11-25 | BMad Method</p>
+        </footer>
+    </div>
+</body>
+</html>

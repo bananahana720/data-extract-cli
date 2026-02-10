@@ -1,0 +1,838 @@
+{
+  "metadata": {
+    "generated_date": "2025-11-18",
+    "story": "3.5-6-semantic-qa-fixtures",
+    "num_documents": 45,
+    "annotation_types": [
+      "tfidf",
+      "lsa",
+      "entities",
+      "readability"
+    ],
+    "tfidf_config": {
+      "max_features": 1000,
+      "min_df": 2,
+      "max_df": 0.95,
+      "ngram_range": [
+        1,
+        2
+      ]
+    },
+    "lsa_config": {
+      "n_components": 10,
+      "random_state": 42
+    }
+  },
+  "annotations": {
+    "audit-report-0001": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 4,
+          "weight": 0.1219
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0465
+        }
+      ],
+      "topic_diversity": 0.3072
+    },
+    "audit-report-0002": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.08
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0055
+        }
+      ],
+      "topic_diversity": 0.3121
+    },
+    "audit-report-0003": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.1034
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.0411
+        }
+      ],
+      "topic_diversity": 0.3094
+    },
+    "audit-report-0004": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.095
+        },
+        {
+          "topic_id": 6,
+          "weight": 0.0864
+        }
+      ],
+      "topic_diversity": 0.3049
+    },
+    "audit-report-0005": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.0131
+        },
+        {
+          "topic_id": 4,
+          "weight": 0.0104
+        }
+      ],
+      "topic_diversity": 0.3139
+    },
+    "audit-report-0006": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 6,
+          "weight": 0.0938
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.039
+        }
+      ],
+      "topic_diversity": 0.3101
+    },
+    "audit-report-0007": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9423
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.1082
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.0326
+        }
+      ],
+      "topic_diversity": 0.3098
+    },
+    "audit-report-0008": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3089
+    },
+    "audit-report-0009": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3064
+    },
+    "audit-report-0010": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3063
+    },
+    "audit-report-0011": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3062
+    },
+    "audit-report-0012": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.1218
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3059
+    },
+    "audit-report-0013": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3061
+    },
+    "audit-report-0014": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3062
+    },
+    "audit-report-0015": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0238
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3057
+    },
+    "audit-report-0016": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0114
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3059
+    },
+    "audit-report-0017": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0265
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3057
+    },
+    "audit-report-0018": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9405
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.3079
+    },
+    "audit-report-0019": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9521
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 9,
+          "weight": -0.0
+        }
+      ],
+      "topic_diversity": 0.3101
+    },
+    "audit-report-0020": {
+      "primary_topic": 0,
+      "top_topics": [
+        {
+          "topic_id": 0,
+          "weight": 0.9521
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        },
+        {
+          "topic_id": 9,
+          "weight": -0.0
+        }
+      ],
+      "topic_diversity": 0.3101
+    },
+    "risk-matrix-0001": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 4,
+          "weight": 0.1201
+        }
+      ],
+      "topic_diversity": 0.2847
+    },
+    "risk-matrix-0002": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0789
+        }
+      ],
+      "topic_diversity": 0.2953
+    },
+    "risk-matrix-0003": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.1019
+        }
+      ],
+      "topic_diversity": 0.2893
+    },
+    "risk-matrix-0004": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.0936
+        }
+      ],
+      "topic_diversity": 0.2803
+    },
+    "risk-matrix-0005": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.013
+        }
+      ],
+      "topic_diversity": 0.2999
+    },
+    "risk-matrix-0006": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 6,
+          "weight": 0.0924
+        }
+      ],
+      "topic_diversity": 0.2906
+    },
+    "risk-matrix-0007": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.9307
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3334
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.1067
+        }
+      ],
+      "topic_diversity": 0.2901
+    },
+    "risk-matrix-0008": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2913
+    },
+    "risk-matrix-0009": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2873
+    },
+    "risk-matrix-0010": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2869
+    },
+    "risk-matrix-0011": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2868
+    },
+    "risk-matrix-0012": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.12
+        }
+      ],
+      "topic_diversity": 0.2836
+    },
+    "risk-matrix-0013": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2866
+    },
+    "risk-matrix-0014": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2867
+    },
+    "risk-matrix-0015": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0234
+        }
+      ],
+      "topic_diversity": 0.2856
+    },
+    "risk-matrix-0016": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0112
+        }
+      ],
+      "topic_diversity": 0.2861
+    },
+    "risk-matrix-0017": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 9,
+          "weight": 0.0261
+        }
+      ],
+      "topic_diversity": 0.2855
+    },
+    "risk-matrix-0018": {
+      "primary_topic": 1,
+      "top_topics": [
+        {
+          "topic_id": 1,
+          "weight": 0.929
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.3329
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0
+        }
+      ],
+      "topic_diversity": 0.2899
+    },
+    "compliance-doc-0001": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 4,
+          "weight": 0.084
+        }
+      ],
+      "topic_diversity": 0.2917
+    },
+    "compliance-doc-0002": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 8,
+          "weight": 0.0552
+        }
+      ],
+      "topic_diversity": 0.2983
+    },
+    "compliance-doc-0003": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 3,
+          "weight": 0.0713
+        }
+      ],
+      "topic_diversity": 0.2945
+    },
+    "compliance-doc-0004": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 7,
+          "weight": 0.0655
+        }
+      ],
+      "topic_diversity": 0.289
+    },
+    "compliance-doc-0005": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 1,
+          "weight": 0.0229
+        }
+      ],
+      "topic_diversity": 0.3013
+    },
+    "compliance-doc-0006": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 6,
+          "weight": 0.0646
+        }
+      ],
+      "topic_diversity": 0.2954
+    },
+    "compliance-doc-0007": {
+      "primary_topic": 2,
+      "top_topics": [
+        {
+          "topic_id": 2,
+          "weight": 0.9872
+        },
+        {
+          "topic_id": 0,
+          "weight": 0.1234
+        },
+        {
+          "topic_id": 5,
+          "weight": 0.0746
+        }
+      ],
+      "topic_diversity": 0.295
+    }
+  }
+}

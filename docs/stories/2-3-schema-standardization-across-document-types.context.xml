@@ -1,0 +1,374 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Schema Standardization Across Document Types</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-3-schema-standardization-across-document-types.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>to apply consistent schemas across different document source types</iWant>
+    <soThat>Word reports, Excel matrices, PDF documents, and Archer exports have uniform structure for downstream RAG processing</soThat>
+    <tasks>
+- Task 1: Implement DocumentType enum and auto-detection (AC: 2.3.1)
+  - Define DocumentType enum (REPORT, MATRIX, EXPORT, IMAGE) in core/models.py
+  - Implement detect_document_type() method analyzing ContentBlock structure
+  - Achieve >95% detection accuracy on test corpus
+  - Add document_type field to Metadata model
+  - Write 8+ unit tests for each document type detection
+
+- Task 2: Create type-specific schema transformation models (AC: 2.3.2)
+  - Create SchemaStandardizer class in normalize/schema.py
+  - Implement REPORT transformation (sections, headings, narrative flow)
+  - Implement MATRIX transformation (table structure preservation)
+  - Implement EXPORT transformation (Archer field parsing)
+  - Implement IMAGE transformation (OCR metadata validation)
+  - Write 10+ unit tests for type-specific transformations
+
+- Task 3: Standardize field names across source systems (AC: 2.3.3)
+  - Create config/normalize/schema_templates.yaml for field mappings
+  - Implement field name standardization (e.g., Archer "Risk Description" → "description")
+  - Maintain source→output field mapping for traceability
+  - Write 6+ unit tests for field standardization
+
+- Task 4: Preserve semantic relationships (AC: 2.3.4)
+  - Implement relationship preservation through entity links
+  - Maintain risk→control mappings through pipeline
+  - Use entity_tags from Story 2.2 for relationship tracking
+  - Write integration test validating risk→control matrix mapping
+
+- Task 5: Ensure consistent metadata structure (AC: 2.3.5)
+  - Verify all document types produce same Metadata schema
+  - Add document_subtype field for Archer module variations
+  - Ensure Pydantic validation for all document types
+  - Write 4+ unit tests for metadata consistency
+
+- Task 6: Handle Archer-specific fields and hyperlinks (AC: 2.3.6)
+  - Implement parse_archer_export() method using BeautifulSoup4
+  - Extract Archer hyperlinks representing entity relationships
+  - Support Archer module variations (Risk Management, Compliance, Issues)
+  - Write 5+ unit tests with Archer HTML/XML samples
+
+- Task 7: Preserve Excel table structure (AC: 2.3.7)
+  - Implement preserve_excel_structure() method
+  - Extract rows, columns, and headers from ContentBlocks
+  - Handle control matrices and risk registers
+  - Write 4+ unit tests with Excel matrix samples
+
+- Task 8: Integrate with Normalizer orchestrator
+  - Add schema standardization as Step 5 in normalize/normalizer.py workflow
+  - Ensure graceful degradation if schema detection fails
+  - Add enable_schema_standardization config flag
+  - Write integration test: text cleaning → entity norm → schema → metadata
+
+- Task 9: Testing and validation
+  - Achieve >80% test coverage for normalize/schema.py
+  - Create test fixtures: Word report, Excel matrix, Archer export, scanned image
+  - Run Black, Ruff, Mypy (strict mode) - must all pass
+  - Verify deterministic processing (same input → same schema)
+  - Integration test: Word + Excel + Archer → verify consistent fields
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **AC-2.3.1**: Document type is auto-detected (report, matrix, export, image) with >95% accuracy
+2. **AC-2.3.2**: Type-specific schema transformations are applied (Pydantic models per type)
+3. **AC-2.3.3**: Field names are standardized across source systems (Word, Excel, PDF, Archer)
+4. **AC-2.3.4**: Semantic relationships are preserved (risk → control mappings, entity links)
+5. **AC-2.3.5**: Metadata structure is consistent across all document types
+6. **AC-2.3.6**: Archer-specific field schemas and hyperlinks are handled correctly
+7. **AC-2.3.7**: Tables are converted to structured format with preserved rows/columns/headers
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Story 2.3 Specification</section>
+        <snippet>Defines DocumentType enum (REPORT, MATRIX, EXPORT, IMAGE), SchemaStandardizer class with detect_document_type() and type-specific transformation methods. Auto-detection must achieve >95% accuracy with Pydantic validation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Data Models</section>
+        <snippet>DocumentType enum and Metadata model extension with document_type and document_subtype fields. Pydantic validation ensures type safety.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Workflows &amp; Sequencing</section>
+        <snippet>Schema standardization executes at Step 5 in normalization pipeline. Type-specific transformations: REPORT (sections/headings), MATRIX (table structure), EXPORT (Archer parsing), IMAGE (OCR validation).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>data-extraction-tool - Epic Breakdown</title>
+        <section>Epic 2 - Story 2.3</section>
+        <snippet>Story 2.3 applies consistent schemas across Word reports, Excel matrices, and Archer exports. Includes field standardization, semantic relationship preservation, and Archer-specific hyperlink handling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Pipeline Stage Pattern</section>
+        <snippet>All stages implement PipelineStage[Input, Output] protocol. Normalizer takes Document with raw text, applies transformations, returns Document with cleaned text and enriched metadata.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>ADR-002: Use Pydantic v2</section>
+        <snippet>Pydantic provides runtime validation for all data models. Schema standardization leverages Pydantic for document type detection and validation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>data-extraction-tool - Product Requirements Document</title>
+        <section>FR-2.3: Schema Standardization</section>
+        <snippet>Detect document type, apply type-specific transformations, standardize field names across systems. Handle Archer-specific field schemas and hyperlink relationships for GRC domain.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>data-extraction-tool - Product Requirements Document</title>
+        <section>Domain Requirements</section>
+        <snippet>Archer field schemas vary by module (Risk, Compliance, Issues). Control matrices and risk registers have specific structural patterns. Cross-references must be preserved.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>class</kind>
+        <symbol>Document</symbol>
+        <lines>120-144</lines>
+        <reason>Main data structure for Story 2.3. Input/output type for SchemaStandardizer. Contains text, entities, metadata, and structure fields that must be preserved and enriched.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>class</kind>
+        <symbol>Metadata</symbol>
+        <lines>75-118</lines>
+        <reason>MUST extend with document_subtype field for Archer module variations. Already has document_type field (line 103). Contains entity_tags and entity_counts from Story 2.2 for relationship preservation (AC-2.3.4).</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>class</kind>
+        <symbol>Entity, EntityType</symbol>
+        <lines>21-72</lines>
+        <reason>Entity graph tracks risk→control mappings. EntityType enum includes PROCESS, RISK, CONTROL, REGULATION, POLICY, ISSUE for semantic relationship preservation.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>class</kind>
+        <symbol>ProcessingContext</symbol>
+        <lines>187-210</lines>
+        <reason>Configuration cascade and metrics accumulation. SchemaStandardizer.process() must accept and propagate context.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/normalizer.py</path>
+        <kind>class</kind>
+        <symbol>Normalizer</symbol>
+        <lines>22-196</lines>
+        <reason>CRITICAL: Story 2.3 adds Step 5 at line 181 (after EntityNormalizer). Must instantiate SchemaStandardizer at line 49 if config.enable_schema_standardization is True.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/entities.py</path>
+        <kind>class</kind>
+        <symbol>EntityNormalizer</symbol>
+        <lines>44-491</lines>
+        <reason>Provides entity_tags and entity_counts in document.metadata. Story 2.3 uses entity graph for semantic relationship preservation (AC-2.3.4). DO NOT recreate - reuse output.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage[Input, Output]</symbol>
+        <lines>20-59</lines>
+        <reason>SchemaStandardizer MUST implement this protocol with signature: process(document: Document, context: ProcessingContext) -> Document</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>class</kind>
+        <symbol>NormalizationConfig</symbol>
+        <lines>23-116</lines>
+        <reason>MUST extend with enable_schema_standardization: bool and schema_templates_file: Optional[Path] fields. Follow field_validator pattern for path validation.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>function</kind>
+        <symbol>load_config</symbol>
+        <lines>191-276</lines>
+        <reason>Configuration cascade pattern (CLI > env > YAML > defaults). Story 2.3 must follow identical pattern for schema_templates.yaml loading.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/exceptions.py</path>
+        <kind>class</kind>
+        <symbol>ProcessingError, CriticalError</symbol>
+        <lines>35, 60</lines>
+        <reason>Use ProcessingError for recoverable schema detection failures (graceful degradation). Use CriticalError for invalid config.</reason>
+      </artifact>
+      <artifact>
+        <path>config/normalize/entity_patterns.yaml</path>
+        <kind>config</kind>
+        <symbol>entity_patterns</symbol>
+        <lines>all</lines>
+        <reason>Pattern reference for creating schema_templates.yaml with type-specific transformation rules.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version=">=2.0.0,&lt;3.0" purpose="Data validation and schema standardization models (AC-2.3.2, AC-2.3.5)" />
+        <package name="structlog" version=">=24.0.0,&lt;25.0" purpose="Structured logging for audit trails during normalization" />
+        <package name="PyYAML" version=">=6.0.0,&lt;7.0" purpose="Load schema_templates.yaml configuration (AC-2.3.3)" />
+        <package name="pytest" version=">=8.0.0,&lt;9.0" purpose="Unit testing framework (dev)" />
+        <package name="pytest-cov" version=">=5.0.0,&lt;6.0" purpose="Code coverage reporting - target >80% (dev)" />
+        <package name="pytest-mock" version=">=3.11.0" purpose="Mock objects for parser testing (dev)" />
+        <missing name="beautifulsoup4" version=">=4.12.0,&lt;5.0" purpose="REQUIRED for AC-2.3.6 - Parse Archer HTML/XML exports. MUST ADD to pyproject.toml." />
+        <missing name="lxml" version=">=5.0.0,&lt;6.0" purpose="REQUIRED for AC-2.3.6 - Fast XML parser backend for BeautifulSoup. MUST ADD to pyproject.toml." />
+        <missing name="spacy" version=">=3.7.0,&lt;4.0" purpose="RECOMMENDED for AC-2.3.1 - Classical NLP for document structure analysis. MUST ADD to pyproject.toml if needed for detection." />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>MUST implement PipelineStage[Document, Document] protocol with signature: process(document: Document, context: ProcessingContext) -> Document</constraint>
+    <constraint>MUST achieve >95% document type detection accuracy (AC-2.3.1)</constraint>
+    <constraint>MUST preserve all existing Document fields and metadata from Story 2.1 and 2.2 (entity_tags, entity_counts, quality_scores)</constraint>
+    <constraint>MUST use Pydantic v2 for all data models per ADR-002</constraint>
+    <constraint>MUST use classical NLP only (spaCy) - no transformer models per ADR-004</constraint>
+    <constraint>MUST ensure deterministic processing (same input + config → identical schema transformation) per NFR-R1</constraint>
+    <constraint>MUST use graceful degradation pattern - log ProcessingError for recoverable failures, continue pipeline (don't fail batch on single doc)</constraint>
+    <constraint>MUST use configuration cascade: CLI > env vars (DATA_EXTRACT_NORMALIZE_*) > YAML > defaults</constraint>
+    <constraint>MUST use structlog for audit trail logging with JSON output</constraint>
+    <constraint>MUST run Black (100 char lines), Ruff, and Mypy (strict mode) - all must pass before marking tasks complete</constraint>
+    <constraint>MUST achieve >80% test coverage for normalize/schema.py module</constraint>
+    <constraint>MUST use relative imports within normalize module (e.g., .config, .schema)</constraint>
+    <constraint>MUST integrate at Step 5 in Normalizer.process() after EntityNormalizer (line 181 of normalizer.py)</constraint>
+    <constraint>MUST extend Metadata model with document_subtype field for Archer module variations</constraint>
+    <constraint>MUST add DocumentType enum to core/models.py with values: REPORT, MATRIX, EXPORT, IMAGE</constraint>
+    <constraint>MUST create config/normalize/schema_templates.yaml for field name mappings</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>SchemaStandardizer.process</name>
+      <kind>PipelineStage method</kind>
+      <signature>def process(self, document: Document, context: ProcessingContext) -> Document</signature>
+      <path>src/data_extract/normalize/schema.py</path>
+    </interface>
+    <interface>
+      <name>SchemaStandardizer.detect_document_type</name>
+      <kind>method</kind>
+      <signature>def detect_document_type(self, document: Document) -> Tuple[DocumentType, float]</signature>
+      <path>src/data_extract/normalize/schema.py</path>
+    </interface>
+    <interface>
+      <name>SchemaStandardizer.standardize_schema</name>
+      <kind>method</kind>
+      <signature>def standardize_schema(self, document: Document, doc_type: DocumentType) -> Document</signature>
+      <path>src/data_extract/normalize/schema.py</path>
+    </interface>
+    <interface>
+      <name>SchemaStandardizer.parse_archer_export</name>
+      <kind>method</kind>
+      <signature>def parse_archer_export(self, document: Document) -> Dict[str, Any]</signature>
+      <path>src/data_extract/normalize/schema.py</path>
+    </interface>
+    <interface>
+      <name>SchemaStandardizer.preserve_excel_structure</name>
+      <kind>method</kind>
+      <signature>def preserve_excel_structure(self, document: Document) -> Document</signature>
+      <path>src/data_extract/normalize/schema.py</path>
+    </interface>
+    <interface>
+      <name>DocumentType enum</name>
+      <kind>Enum</kind>
+      <signature>class DocumentType(str, Enum): REPORT = "report"; MATRIX = "matrix"; EXPORT = "export"; IMAGE = "image"</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+    <interface>
+      <name>Metadata.document_subtype field</name>
+      <kind>Pydantic field</kind>
+      <signature>document_subtype: Optional[str] = None  # Archer module variations (e.g., "Risk Management", "Compliance")</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+    <interface>
+      <name>NormalizationConfig extensions</name>
+      <kind>Pydantic fields</kind>
+      <signature>enable_schema_standardization: bool = True; schema_templates_file: Optional[Path] = None</signature>
+      <path>src/data_extract/normalize/config.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Testing follows pytest framework with markers for selective execution (unit, integration, extraction, processing). Coverage target: >80% for normalize/schema.py (Story 2.2 achieved 92%). All tests must pass Black (100 char lines), Ruff, and Mypy strict mode BEFORE marking tasks complete. Test organization mirrors src/ structure exactly. Use pytest fixtures for test data (see tests/conftest.py). Integration tests validate end-to-end workflow. Determinism validation: same input run 10 times must produce identical output. Edge cases: empty strings, None values, boundary conditions.</standards>
+    <locations>
+      <location>tests/unit/test_normalize/test_schema.py - Unit tests for SchemaStandardizer (NEW - 30+ tests)</location>
+      <location>tests/integration/test_normalization_pipeline.py - Integration tests for full pipeline with schema standardization</location>
+      <location>tests/fixtures/normalization/schema_test_docs/ - Test document fixtures (NEW)</location>
+      <location>tests/fixtures/normalization/schema_test_docs/word_report_sample.docx - Word narrative report (NEW)</location>
+      <location>tests/fixtures/normalization/schema_test_docs/excel_matrix_sample.xlsx - Excel control matrix (NEW)</location>
+      <location>tests/fixtures/normalization/schema_test_docs/archer_export_sample.html - Archer HTML export (NEW)</location>
+      <location>tests/fixtures/normalization/schema_test_docs/scanned_image_sample.pdf - Scanned image with OCR (NEW)</location>
+    </locations>
+    <ideas>
+      <test_idea ac="AC-2.3.1" description="Test document type detection with >95% accuracy">
+        <test>test_detect_document_type_report - Word narrative with sections/headings detected as REPORT</test>
+        <test>test_detect_document_type_matrix - Excel with tables/rows/cols detected as MATRIX</test>
+        <test>test_detect_document_type_export - Archer HTML with module fields detected as EXPORT</test>
+        <test>test_detect_document_type_image - PDF with OCR metadata detected as IMAGE</test>
+        <test>test_detect_document_type_confidence_scores - Verify confidence >0.95 for clear types</test>
+        <test>test_detect_document_type_ambiguous - Handle ambiguous cases (e.g., PDF report vs scanned image)</test>
+        <test>test_detect_document_type_empty - Graceful handling of empty/malformed documents</test>
+        <test>test_detect_document_type_accuracy_corpus - Run on test corpus, verify >95% accuracy</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.2" description="Test type-specific schema transformations">
+        <test>test_standardize_schema_report - Extract sections, headings, narrative flow from REPORT</test>
+        <test>test_standardize_schema_matrix - Preserve table structure (rows/cols/headers) for MATRIX</test>
+        <test>test_standardize_schema_export - Parse Archer fields and hyperlinks for EXPORT</test>
+        <test>test_standardize_schema_image - Validate OCR metadata presence for IMAGE</test>
+        <test>test_standardize_schema_pydantic_validation - Verify Pydantic models validate output</test>
+        <test>test_standardize_schema_invalid_type - Handle unknown document types gracefully</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.3" description="Test field name standardization across source systems">
+        <test>test_field_standardization_archer_to_standard - Archer "Risk Description" → "description"</test>
+        <test>test_field_standardization_excel_to_standard - Excel column names → standard fields</test>
+        <test>test_field_standardization_word_to_standard - Word field labels → standard fields</test>
+        <test>test_field_standardization_traceability - Verify source→output field mapping preserved</test>
+        <test>test_field_standardization_missing_source - Handle missing source fields gracefully</test>
+        <test>test_field_standardization_schema_templates_yaml - Verify YAML config loaded correctly</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.4" description="Test semantic relationship preservation">
+        <test>test_preserve_entity_relationships - Verify entity_tags from Story 2.2 maintained</test>
+        <test>test_preserve_risk_control_mapping - Risk→control relationships intact through schema transformation</test>
+        <test>test_preserve_entity_graph_integrity - Entity graph structure not corrupted</test>
+        <test>test_integration_entity_norm_to_schema - Full pipeline: entity norm → schema standardization</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.5" description="Test metadata structure consistency">
+        <test>test_metadata_consistency_all_types - All 4 doc types produce same Metadata schema</test>
+        <test>test_metadata_document_subtype_field - document_subtype populated for Archer variations</test>
+        <test>test_metadata_pydantic_validation - Pydantic validates metadata for all types</test>
+        <test>test_metadata_preserves_existing_fields - entity_tags, entity_counts, quality_scores preserved</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.6" description="Test Archer-specific handling">
+        <test>test_parse_archer_export_html - Parse Archer HTML with BeautifulSoup4</test>
+        <test>test_parse_archer_export_xml - Parse Archer XML exports</test>
+        <test>test_parse_archer_hyperlinks - Extract hyperlinks representing entity relationships</test>
+        <test>test_parse_archer_module_variations - Handle Risk Management, Compliance, Issues modules</test>
+        <test>test_parse_archer_custom_fields - Parse Archer-specific field schemas</test>
+      </test_idea>
+      <test_idea ac="AC-2.3.7" description="Test table structure preservation">
+        <test>test_preserve_excel_rows_cols_headers - Excel matrix structure preserved</test>
+        <test>test_preserve_control_matrix_structure - Control matrix rows/cols intact</test>
+        <test>test_preserve_risk_register_structure - Risk register structure maintained</test>
+        <test>test_preserve_multi_sheet_excel - Handle multiple Excel sheets</test>
+      </test_idea>
+      <test_idea ac="General" description="Integration and quality tests">
+        <test>test_integration_text_clean_entity_schema - Full pipeline: cleaning → entity → schema</test>
+        <test>test_integration_word_excel_archer_consistency - Verify consistent fields across all 3 source types</test>
+        <test>test_determinism_same_input_10_runs - Same input produces identical output 10 times</test>
+        <test>test_graceful_degradation_invalid_input - ProcessingError logged, pipeline continues</test>
+        <test>test_configuration_cascade - CLI > env > YAML > defaults precedence</test>
+        <test>test_structlog_audit_trail - Verify JSON logging for schema transformations</test>
+        <test>test_code_quality_black_ruff_mypy - All code passes Black, Ruff, Mypy strict</test>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

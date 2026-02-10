@@ -1,0 +1,262 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.9</storyId>
+    <title>Refactor Large Test Files for DoD Compliance</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-17</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/follow-up-3.9-refactor-large-test-files.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>test maintainer</asA>
+    <iWant>all test files to comply with &lt;300 line DoD requirement</iWant>
+    <soThat>tests are easy to navigate, review, and maintain over time</soThat>
+    <tasks>
+      <!-- AC-3.9-1: test_txt_formatter.py Split into 3 Files -->
+      - Refactor test_txt_formatter.py (677 lines) into:
+        - test_txt_formatter_basic.py (~200 lines) - Creation, delimiters, sequential numbering
+        - test_txt_formatter_cleaning.py (~250 lines) - Text cleaning, artifact removal
+        - test_txt_formatter_metadata.py (~200 lines) - Metadata headers, encoding, output contract
+
+      <!-- AC-3.9-2: test_json_formatter.py Split into 2-3 Files -->
+      - Refactor test_json_formatter.py (561 lines) into:
+        - test_json_formatter_structure.py - JSON structure, root metadata
+        - test_json_formatter_serialization.py - Metadata serialization, ISO 8601, Path stringification
+        - test_json_formatter_validation.py (optional) - Pretty-printing, field ordering
+
+      <!-- AC-3.9-3: test_json_output_pipeline.py Split into 2-3 Files -->
+      - Refactor test_json_output_pipeline.py (463 lines) into:
+        - test_json_pipeline_basic.py - End-to-end pipeline, metadata accuracy
+        - test_json_pipeline_compatibility.py - Cross-library compatibility
+        - test_json_pipeline_queryability.py - Queryability tests
+
+      <!-- AC-3.9-4: test_entity_preserver.py Split into 2-3 Files -->
+      - Refactor test_entity_preserver.py (446 lines) into:
+        - test_entity_preserver_analysis.py - Entity sorting, context snippets, boundary detection
+        - test_entity_preserver_gaps.py - Gap finding between entities
+        - test_entity_preserver_relationships.py - Relationship detection patterns
+
+      <!-- AC-3.9-5: test_engine.py Minor Cleanup -->
+      - Minor refactor of test_engine.py (309 lines) to get under 300 lines
+        - Extract 1-2 helper functions OR split one test class
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.9-1" priority="P1">
+      test_txt_formatter.py (677 lines) split into 3 files: test_txt_formatter_basic.py (~200 lines), test_txt_formatter_cleaning.py (~250 lines), test_txt_formatter_metadata.py (~200 lines). All tests must pass and each file must be &lt;300 lines.
+    </criterion>
+    <criterion id="AC-3.9-2" priority="P1">
+      test_json_formatter.py (561 lines) split into 2-3 files focusing on structure, serialization, and validation. All tests must pass and each file must be &lt;300 lines.
+    </criterion>
+    <criterion id="AC-3.9-3" priority="P1">
+      test_json_output_pipeline.py (463 lines) split into 2-3 files covering basic pipeline, compatibility, and queryability. All tests must pass and each file must be &lt;300 lines.
+    </criterion>
+    <criterion id="AC-3.9-4" priority="P1">
+      test_entity_preserver.py (446 lines) split into 2-3 files for analysis, gaps, and relationships. All tests must pass and each file must be &lt;300 lines.
+    </criterion>
+    <criterion id="AC-3.9-5" priority="P2">
+      test_engine.py (309 lines) reduced to &lt;300 lines through minor refactoring. All tests must pass.
+    </criterion>
+    <criterion id="AC-3.9-DoD-1">
+      All 5 files refactored with 100% DoD compliance. 348 tests still passing with no coverage regression (maintain 94% coverage).
+    </criterion>
+    <criterion id="AC-3.9-DoD-2">
+      Pre-commit checks pass (black, ruff, mypy) and CI/CD pipeline passes.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/traceability-matrix-epic-3.md</path>
+        <title>Epic 3 Traceability Matrix</title>
+        <section>Test Quality Assessment</section>
+        <snippet>Test Quality: GOOD (5 files exceed 300-line limit, require refactoring). Overall Coverage: 94% (48/51 FULL, 3 PARTIAL)</snippet>
+      </doc>
+      <doc>
+        <path>docs/TESTING-README.md</path>
+        <title>Testing Strategy and Standards</title>
+        <section>Test Organization</section>
+        <snippet>Unit tests in tests/unit/, Integration tests in tests/integration/. Overall coverage 88% with 923/1047 tests passing</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/testarch/knowledge/test-quality.md</path>
+        <title>TEA Knowledge Base</title>
+        <section>DoD Test File Requirements</section>
+        <snippet>Test files must be &lt;300 lines for maintainability. Large files impact navigation, review quality, and IDE performance</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>tests/unit/test_output/test_txt_formatter.py</path>
+        <kind>test</kind>
+        <symbol>TestTxtFormatterCreation, TestTextCleaning, TestDelimiterRendering, TestMetadataHeaders, TestEncodingAndNewlines, TestArtifactRemoval, TestFormatResultContract, TestDeterministicOutput</symbol>
+        <lines>1-677</lines>
+        <reason>Target file for AC-3.9-1 refactoring. 677 lines, 8 test classes covering TxtFormatter functionality</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_output/test_json_formatter.py</path>
+        <kind>test</kind>
+        <symbol>JsonFormatter tests (25+ test methods)</symbol>
+        <lines>1-561</lines>
+        <reason>Target file for AC-3.9-2 refactoring. 561 lines covering JSON structure, serialization, validation</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/test_output/test_json_output_pipeline.py</path>
+        <kind>test</kind>
+        <symbol>TestEndToEndPipeline, TestCrossLibraryCompatibility, TestDeterminism</symbol>
+        <lines>1-463</lines>
+        <reason>Target file for AC-3.9-3 refactoring. 463 lines covering pipeline, compatibility (json, pandas, jq, Node), queryability</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_chunk/test_entity_preserver.py</path>
+        <kind>test</kind>
+        <symbol>TestEntityPreserverAnalysis, TestEntityPreserverGaps, TestEntityPreserverRelationships, TestEntityReferenceModel</symbol>
+        <lines>1-446</lines>
+        <reason>Target file for AC-3.9-4 refactoring. 446 lines covering entity analysis, gap detection, relationship extraction</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_chunk/test_engine.py</path>
+        <kind>test</kind>
+        <symbol>TestChunkingEngineInitialization, TestChunkingEngineBasicOperation</symbol>
+        <lines>1-309</lines>
+        <reason>Target file for AC-3.9-5 minor cleanup. 309 lines (only 9 over limit)</reason>
+      </artifact>
+      <artifact>
+        <path>tests/conftest.py</path>
+        <kind>test</kind>
+        <symbol>Global test fixtures</symbol>
+        <lines>1-11949</lines>
+        <reason>Contains shared fixtures accessible by all test files. Important for refactoring - fixtures remain accessible after split</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/output/formatters/txt_formatter.py</path>
+        <kind>formatter</kind>
+        <symbol>TxtFormatter</symbol>
+        <lines>all</lines>
+        <reason>Production code being tested by test_txt_formatter.py. Understanding implementation helps guide test organization</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/output/formatters/json_formatter.py</path>
+        <kind>formatter</kind>
+        <symbol>JsonFormatter</symbol>
+        <lines>all</lines>
+        <reason>Production code being tested by test_json_formatter.py. Understanding implementation helps guide test organization</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/chunk/entity_preserver.py</path>
+        <kind>module</kind>
+        <symbol>EntityPreserver</symbol>
+        <lines>all</lines>
+        <reason>Production code being tested by test_entity_preserver.py. Understanding implementation helps guide test organization</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/chunk/engine.py</path>
+        <kind>module</kind>
+        <symbol>ChunkingEngine</symbol>
+        <lines>all</lines>
+        <reason>Production code being tested by test_engine.py. Understanding implementation helps guide test organization</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>pytest - Test framework (already installed)</package>
+        <package>pytest-cov - Coverage plugin (already installed)</package>
+        <package>black - Code formatter (pre-commit hook)</package>
+        <package>ruff - Linter (pre-commit hook)</package>
+        <package>mypy - Type checker (pre-commit hook)</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <source>TEA DoD</source>
+      <requirement>Test files must be &lt;300 lines for maintainability and performance</requirement>
+    </constraint>
+    <constraint>
+      <source>Pre-commit hooks</source>
+      <requirement>All refactored files must pass black, ruff, and mypy checks</requirement>
+    </constraint>
+    <constraint>
+      <source>Test Coverage</source>
+      <requirement>Maintain 94% coverage for Epic 3 code - no regression allowed</requirement>
+    </constraint>
+    <constraint>
+      <source>Test Count</source>
+      <requirement>All 348 Epic 3 tests must continue passing after refactoring</requirement>
+    </constraint>
+    <constraint>
+      <source>Fixture Access</source>
+      <requirement>Shared fixtures in conftest.py must remain accessible to split test files</requirement>
+    </constraint>
+    <constraint>
+      <source>File Naming</source>
+      <requirement>New test files must follow pattern: test_{module}_{aspect}.py (e.g., test_txt_formatter_basic.py)</requirement>
+    </constraint>
+    <constraint>
+      <source>Import Compatibility</source>
+      <requirement>Any test classes imported by other test files must have imports updated</requirement>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>pytest fixture system</name>
+      <kind>Test infrastructure</kind>
+      <signature>@pytest.fixture in conftest.py files</signature>
+      <path>tests/conftest.py</path>
+    </interface>
+    <interface>
+      <name>pytest markers</name>
+      <kind>Test categorization</kind>
+      <signature>@pytest.mark.unit, @pytest.mark.integration</signature>
+      <path>pyproject.toml</path>
+    </interface>
+    <interface>
+      <name>Test class pattern</name>
+      <kind>Test organization</kind>
+      <signature>class Test{Feature}: with test_{scenario} methods</signature>
+      <path>tests/**/*.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test files organized by: tests/unit/ for unit tests, tests/integration/ for integration tests.
+      Test classes named Test{Feature}, methods named test_{scenario}.
+      Shared fixtures in conftest.py, file-specific fixtures can be duplicated if needed.
+      Use pytest markers for categorization (@pytest.mark.unit, @pytest.mark.integration).
+      Pre-commit hooks enforce black formatting (100 char lines), ruff linting, mypy type checking.
+    </standards>
+    <locations>
+      tests/unit/test_output/ - Output formatter tests
+      tests/unit/test_chunk/ - Chunking engine tests
+      tests/integration/test_output/ - End-to-end output tests
+      tests/conftest.py - Global fixtures
+    </locations>
+    <ideas>
+      <idea ac="AC-3.9-1">
+        Run pytest tests/unit/test_output/test_txt_formatter_*.py after split to verify all tests pass
+      </idea>
+      <idea ac="AC-3.9-2">
+        Use git diff to track which test classes move to which new files for documentation
+      </idea>
+      <idea ac="AC-3.9-3">
+        Check for imports of test classes in other files using grep before deletion
+      </idea>
+      <idea ac="AC-3.9-4">
+        Create mapping document showing old file → new files for future reference
+      </idea>
+      <idea ac="AC-3.9-5">
+        For test_engine.py, consider extracting helper methods to a test_utils.py module
+      </idea>
+      <idea ac="AC-3.9-DoD">
+        Run coverage report before and after to ensure no regression: pytest --cov=src/data_extract --cov-report=html
+      </idea>
+    </ideas>
+  </tests>
+</story-context>

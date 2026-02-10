@@ -1,0 +1,245 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-3</storyId>
+    <title>Real-Time Progress Indicators and Feedback</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-3-real-time-progress-indicators-and-feedback.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user processing batch documents</asA>
+    <iWant>real-time progress bars, quality dashboards, and pre-flight validation panels</iWant>
+    <soThat>I know what's happening during long operations and can estimate completion time</soThat>
+    <tasks>
+      <task id="1" title="Rich Progress Components Library" acs="1,2,3,4">
+        <subtask>Create src/data_extract/cli/components/__init__.py</subtask>
+        <subtask>Create src/data_extract/cli/components/progress.py with PipelineProgress and FileProgress</subtask>
+        <subtask>Create src/data_extract/cli/components/panels.py with PreflightPanel and QualityDashboard</subtask>
+        <subtask>Create src/data_extract/cli/components/feedback.py with VerbosityController and ErrorCollector</subtask>
+        <subtask>Add ETA calculation and elapsed time display</subtask>
+      </task>
+      <task id="2" title="Integrate Progress in process Command" acs="1,4,7">
+        <subtask>Add PipelineProgress for 5 stages: extract->normalize->chunk->semantic->output</subtask>
+        <subtask>Show file count (X/Y), current file, percentage</subtask>
+        <subtask>Display elapsed time and ETA</subtask>
+      </task>
+      <task id="3" title="Pre-flight Validation Panel" acs="3">
+        <subtask>Add PreflightPanel.analyze() to scan input files</subtask>
+        <subtask>Detect file types (PDF, DOCX, XLSX counts)</subtask>
+        <subtask>Estimate processing time based on file sizes</subtask>
+        <subtask>Flag potential issues (large files, OCR needed, empty files)</subtask>
+        <subtask>Show confirmation prompt: [Continue] [Preview First] [Cancel]</subtask>
+      </task>
+      <task id="4" title="Quality Dashboard" acs="2">
+        <subtask>Add QualityDashboard.render() after processing</subtask>
+        <subtask>Show quality distribution with visual bars (Excellent/Good/Needs Review)</subtask>
+        <subtask>Include suggestions based on results</subtask>
+        <subtask>Add learning tip with expandable explanation</subtask>
+      </task>
+      <task id="5" title="NO_COLOR Support" acs="5">
+        <subtask>Detect NO_COLOR environment variable</subtask>
+        <subtask>Disable colors when NO_COLOR is set</subtask>
+        <subtask>Use ASCII fallbacks for Unicode symbols</subtask>
+        <subtask>Add tests validating NO_COLOR behavior</subtask>
+      </task>
+      <task id="6" title="Verbosity and Quiet Modes" acs="8">
+        <subtask>Implement -q/--quiet flag suppressing all but errors</subtask>
+        <subtask>Implement -v (verbose), -vv (detailed), -vvv (debug) levels</subtask>
+        <subtask>Create VerbosityController to manage output levels</subtask>
+        <subtask>Integrate with existing commands</subtask>
+      </task>
+      <task id="7" title="Continue-on-Error Progress" acs="9">
+        <subtask>Implement ErrorCollector for error aggregation</subtask>
+        <subtask>Update progress bar to show errors inline but continue</subtask>
+        <subtask>Show error summary after completion</subtask>
+      </task>
+      <task id="8" title="Performance Validation" acs="6">
+        <subtask>Create tests/unit/test_cli/test_progress_memory.py</subtask>
+        <subtask>Test progress components under 50MB memory</subtask>
+        <subtask>Profile with tracemalloc</subtask>
+      </task>
+      <task id="9" title="Quality Gates" acs="10">
+        <subtask>Run Black formatting</subtask>
+        <subtask>Run Ruff linting</subtask>
+        <subtask>Run Mypy type checking</subtask>
+        <subtask>Add docstrings to all public functions</subtask>
+      </task>
+      <task id="10" title="Integration Tests">
+        <subtask>Create tests/integration/test_cli_progress.py</subtask>
+        <subtask>Test end-to-end progress rendering</subtask>
+        <subtask>Test NO_COLOR output mode</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.3-1">Progress bars display in ALL commands with long-running operations (process, extract, analyze, deduplicate, cluster, topics, cache warm)</criterion>
+    <criterion id="AC-5.3-2">Quality dashboard (Rich Panel) shows metrics with visual distribution bars after processing</criterion>
+    <criterion id="AC-5.3-3">Pre-flight validation panel displays before batch operations (file count, issues, estimated time)</criterion>
+    <criterion id="AC-5.3-4">Per-stage progress tracking visible across full pipeline (extract -> normalize -> chunk -> semantic -> output)</criterion>
+    <criterion id="AC-5.3-5">NO_COLOR environment variable support disables ANSI colors and progress styling</criterion>
+    <criterion id="AC-5.3-6">Progress infrastructure adds less than 50MB memory overhead (validated via performance tests)</criterion>
+    <criterion id="AC-5.3-7">Progress updates show: percentage, file count (13/20), current file, elapsed time, ETA</criterion>
+    <criterion id="AC-5.3-8">Quiet mode (-q) suppresses all but errors; verbose levels (-v, -vv, -vvv) control detail</criterion>
+    <criterion id="AC-5.3-9">Errors during processing shown but don't halt progress bar (continue-on-error pattern)</criterion>
+    <criterion id="AC-5.3-10">All implementations pass quality gates (Black/Ruff/Mypy 0 violations)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Section 3.3 - Progress Tracking Architecture</section>
+        <snippet>Progress bars with ETA, multi-stage pipeline tracking. Memory overhead under 50MB. Update frequency ~10/second max.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Pattern 1: Pre-flight Validation, Pattern 2: Quality-Driven Suggestions</section>
+        <snippet>Pre-flight panel: Files, estimated time, warnings. Quality dashboard: distribution bars, suggestions, learning tips.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Section 8.1 - Accessibility (NO_COLOR)</section>
+        <snippet>Respect NO_COLOR environment variable. Use ASCII fallbacks for Unicode symbols when colors disabled.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Section 4.1 - Verbosity Levels</section>
+        <snippet>Quiet (-q): exit code only. Normal: summary. Verbose (-v): per-file. Debug (-vv): timing. Trace (-vvv): max detail.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/cli/progress_display.py</path>
+        <kind>progress_components</kind>
+        <symbol>SingleFileProgress, BatchProgress, create_progress_display</symbol>
+        <lines>1-484</lines>
+        <reason>Brownfield progress components - production-ready, can migrate to greenfield. Thread-safe with RLock.</reason>
+      </file>
+      <file>
+        <path>src/infrastructure/progress_tracker.py</path>
+        <kind>infrastructure</kind>
+        <symbol>ProgressTracker</symbol>
+        <lines>1-382</lines>
+        <reason>Core progress tracking with ETA calculation and callback support. Reference implementation.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/semantic_commands.py</path>
+        <kind>commands</kind>
+        <symbol>Progress patterns</symbol>
+        <lines>168-224</lines>
+        <reason>Existing Rich Progress usage with SpinnerColumn and 4 stages. Pattern to standardize.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/cache_commands.py</path>
+        <kind>commands</kind>
+        <symbol>Progress patterns</symbol>
+        <lines>168-244</lines>
+        <reason>Existing Rich Progress for cache operations. Pattern to standardize.</reason>
+      </file>
+      <file>
+        <path>tests/fixtures/cli_fixtures.py</path>
+        <kind>test_fixtures</kind>
+        <symbol>MockConsole, mock_console, no_color_console</symbol>
+        <lines>416-533</lines>
+        <reason>Test fixtures for Rich console output capture and NO_COLOR testing.</reason>
+      </file>
+      <file>
+        <path>tests/uat/framework/ux_assertions.py</path>
+        <kind>uat_assertions</kind>
+        <symbol>assert_progress_bar_shown, assert_panel_displayed, assert_quality_distribution</symbol>
+        <lines>1-576</lines>
+        <reason>UAT assertions for validating Rich progress bars and panels.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <python>
+        <package name="rich" version=">=13.0.0">Progress bars, panels, tables, console formatting</package>
+        <package name="typer" version=">=0.9.0">CLI framework (depends on Story 5-1)</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="tech-spec">Memory overhead must be under 50MB for CLI infrastructure</constraint>
+    <constraint source="tech-spec">Progress update frequency ~10 updates/second max</constraint>
+    <constraint source="tech-spec">CLI startup time under 2 seconds</constraint>
+    <constraint source="tech-spec">Command response under 100ms (excluding processing)</constraint>
+    <constraint source="ux-spec">Respect NO_COLOR environment variable</constraint>
+    <constraint source="ux-spec">ASCII fallbacks required for Unicode symbols</constraint>
+    <constraint source="CLAUDE.md">Quality gates: Black/Ruff/Mypy must pass with 0 violations</constraint>
+    <constraint source="CLAUDE.md">Continue-on-error pattern - one file failure doesn't block batch</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PipelineProgress</name>
+      <kind>class</kind>
+      <signature>class PipelineProgress: def __init__(self, stages: List[str]); def update(self, stage: str, completed: int, total: int); def finish(self)</signature>
+      <path>src/data_extract/cli/components/progress.py (to create)</path>
+    </interface>
+    <interface>
+      <name>PreflightPanel</name>
+      <kind>class</kind>
+      <signature>class PreflightPanel: def analyze(self, input_path: Path) -> PreflightResult; def render(self, result: PreflightResult) -> Panel</signature>
+      <path>src/data_extract/cli/components/panels.py (to create)</path>
+    </interface>
+    <interface>
+      <name>QualityDashboard</name>
+      <kind>class</kind>
+      <signature>class QualityDashboard: def render(self, results: ProcessingResults) -> Panel</signature>
+      <path>src/data_extract/cli/components/panels.py (to create)</path>
+    </interface>
+    <interface>
+      <name>VerbosityController</name>
+      <kind>class</kind>
+      <signature>class VerbosityController: def __init__(self, level: VerbosityLevel); def should_print(self, level: VerbosityLevel) -> bool</signature>
+      <path>src/data_extract/cli/components/feedback.py (to create)</path>
+    </interface>
+    <interface>
+      <name>ErrorCollector</name>
+      <kind>class</kind>
+      <signature>class ErrorCollector: def add(self, file: Path, error: Exception); def get_summary(self) -> ErrorSummary; def render(self) -> Panel</signature>
+      <path>src/data_extract/cli/components/feedback.py (to create)</path>
+    </interface>
+    <interface>
+      <name>Rich Progress Pattern</name>
+      <kind>code_pattern</kind>
+      <signature>Progress(SpinnerColumn(), TextColumn(), BarColumn(), TextColumn(), TimeElapsedColumn(), TimeRemainingColumn())</signature>
+      <path>src/data_extract/cli/components/progress.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest for unit and integration tests. Use tracemalloc for memory profiling to validate 50MB constraint. Use fixtures from tests/fixtures/cli_fixtures.py including MockConsole and no_color_console. UAT tests validate progress bars and panels via tmux-cli framework assertions.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/test_progress_components.py</location>
+      <location>tests/unit/test_cli/test_story_5_3/</location>
+      <location>tests/unit/test_cli/test_progress_memory.py</location>
+      <location>tests/integration/test_cli_progress.py</location>
+      <location>tests/uat/journeys/test_journey_2_batch_processing.py</location>
+      <location>tests/uat/journeys/test_journey_3_semantic_analysis.py</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.3-1">Test progress bars appear in process, semantic analyze, cache warm commands</idea>
+      <idea ac="AC-5.3-2">Test QualityDashboard renders distribution bars with correct colors</idea>
+      <idea ac="AC-5.3-3">Test PreflightPanel shows file counts, estimated time, warnings</idea>
+      <idea ac="AC-5.3-4">Test 5-stage pipeline progress: extract->normalize->chunk->semantic->output</idea>
+      <idea ac="AC-5.3-5">Test NO_COLOR=1 disables ANSI codes, uses ASCII symbols</idea>
+      <idea ac="AC-5.3-6">Memory test: tracemalloc peak under 50MB during progress operations</idea>
+      <idea ac="AC-5.3-7">Test progress shows percentage, count, filename, elapsed, ETA</idea>
+      <idea ac="AC-5.3-8">Test -q shows only errors, -v shows per-file, -vvv shows max detail</idea>
+      <idea ac="AC-5.3-9">Test errors logged but progress continues, summary at end</idea>
+      <idea ac="AC-5.3-10">Quality gate: Black/Ruff/Mypy pass with 0 violations</idea>
+    </ideas>
+  </tests>
+</story-context>

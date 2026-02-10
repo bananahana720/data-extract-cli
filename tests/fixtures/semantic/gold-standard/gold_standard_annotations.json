@@ -1,0 +1,5096 @@
+{
+  "metadata": {
+    "generated_date": "2025-11-18",
+    "story": "3.5-6-semantic-qa-fixtures",
+    "num_documents": 45,
+    "annotation_types": [
+      "tfidf",
+      "lsa",
+      "entities",
+      "readability"
+    ],
+    "tfidf_config": {
+      "max_features": 1000,
+      "min_df": 2,
+      "max_df": 0.95,
+      "ngram_range": [
+        1,
+        2
+      ]
+    },
+    "lsa_config": {
+      "n_components": 10,
+      "random_state": 42
+    }
+  },
+  "documents": {
+    "audit-report-0001": {
+      "document_id": "audit-report-0001",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0001.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "001",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          },
+          {
+            "term": "varying",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 4,
+            "weight": 0.1219
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0465
+          }
+        ],
+        "topic_diversity": 0.3072
+      },
+      "entities": {
+        "entities": [
+          "RISK-001-01",
+          "RISK-001-04",
+          "RISK-001-08",
+          "RISK-001-11",
+          "RISK-001-14",
+          "RISK-001-18",
+          "RISK-001-21",
+          "RISK-001-24",
+          "RISK-001-28",
+          "RISK-001-31",
+          "RISK-001-34",
+          "CTRL-001-01",
+          "CTRL-001-04",
+          "CTRL-001-05",
+          "CTRL-001-07",
+          "CTRL-001-08",
+          "CTRL-001-10",
+          "CTRL-001-11",
+          "CTRL-001-14",
+          "CTRL-001-15",
+          "CTRL-001-17",
+          "CTRL-001-18",
+          "CTRL-001-20",
+          "CTRL-001-21",
+          "CTRL-001-24",
+          "CTRL-001-25",
+          "CTRL-001-27",
+          "CTRL-001-28",
+          "CTRL-001-30",
+          "CTRL-001-31",
+          "CTRL-001-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0002": {
+      "document_id": "audit-report-0002",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0002.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "002",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "varying",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.08
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0055
+          }
+        ],
+        "topic_diversity": 0.3121
+      },
+      "entities": {
+        "entities": [
+          "RISK-002-01",
+          "RISK-002-04",
+          "RISK-002-08",
+          "RISK-002-11",
+          "RISK-002-14",
+          "RISK-002-18",
+          "RISK-002-21",
+          "RISK-002-24",
+          "RISK-002-28",
+          "RISK-002-31",
+          "RISK-002-34",
+          "CTRL-002-01",
+          "CTRL-002-04",
+          "CTRL-002-05",
+          "CTRL-002-07",
+          "CTRL-002-08",
+          "CTRL-002-10",
+          "CTRL-002-11",
+          "CTRL-002-14",
+          "CTRL-002-15",
+          "CTRL-002-17",
+          "CTRL-002-18",
+          "CTRL-002-20",
+          "CTRL-002-21",
+          "CTRL-002-24",
+          "CTRL-002-25",
+          "CTRL-002-27",
+          "CTRL-002-28",
+          "CTRL-002-30",
+          "CTRL-002-31",
+          "CTRL-002-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0003": {
+      "document_id": "audit-report-0003",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0003.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "003",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.1034
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.0411
+          }
+        ],
+        "topic_diversity": 0.3094
+      },
+      "entities": {
+        "entities": [
+          "RISK-003-01",
+          "RISK-003-04",
+          "RISK-003-08",
+          "RISK-003-11",
+          "RISK-003-14",
+          "RISK-003-18",
+          "RISK-003-21",
+          "RISK-003-24",
+          "RISK-003-28",
+          "RISK-003-31",
+          "RISK-003-34",
+          "CTRL-003-01",
+          "CTRL-003-04",
+          "CTRL-003-05",
+          "CTRL-003-07",
+          "CTRL-003-08",
+          "CTRL-003-10",
+          "CTRL-003-11",
+          "CTRL-003-14",
+          "CTRL-003-15",
+          "CTRL-003-17",
+          "CTRL-003-18",
+          "CTRL-003-20",
+          "CTRL-003-21",
+          "CTRL-003-24",
+          "CTRL-003-25",
+          "CTRL-003-27",
+          "CTRL-003-28",
+          "CTRL-003-30",
+          "CTRL-003-31",
+          "CTRL-003-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0004": {
+      "document_id": "audit-report-0004",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0004.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "004",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.095
+          },
+          {
+            "topic_id": 6,
+            "weight": 0.0864
+          }
+        ],
+        "topic_diversity": 0.3049
+      },
+      "entities": {
+        "entities": [
+          "RISK-004-01",
+          "RISK-004-04",
+          "RISK-004-08",
+          "RISK-004-11",
+          "RISK-004-14",
+          "RISK-004-18",
+          "RISK-004-21",
+          "RISK-004-24",
+          "RISK-004-28",
+          "RISK-004-31",
+          "RISK-004-34",
+          "CTRL-004-01",
+          "CTRL-004-04",
+          "CTRL-004-05",
+          "CTRL-004-07",
+          "CTRL-004-08",
+          "CTRL-004-10",
+          "CTRL-004-11",
+          "CTRL-004-14",
+          "CTRL-004-15",
+          "CTRL-004-17",
+          "CTRL-004-18",
+          "CTRL-004-20",
+          "CTRL-004-21",
+          "CTRL-004-24",
+          "CTRL-004-25",
+          "CTRL-004-27",
+          "CTRL-004-28",
+          "CTRL-004-30",
+          "CTRL-004-31",
+          "CTRL-004-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0005": {
+      "document_id": "audit-report-0005",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0005.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "005",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.0131
+          },
+          {
+            "topic_id": 4,
+            "weight": 0.0104
+          }
+        ],
+        "topic_diversity": 0.3139
+      },
+      "entities": {
+        "entities": [
+          "RISK-005-01",
+          "RISK-005-04",
+          "RISK-005-08",
+          "RISK-005-11",
+          "RISK-005-14",
+          "RISK-005-18",
+          "RISK-005-21",
+          "RISK-005-24",
+          "RISK-005-28",
+          "RISK-005-31",
+          "RISK-005-34",
+          "CTRL-005-01",
+          "CTRL-005-04",
+          "CTRL-005-05",
+          "CTRL-005-07",
+          "CTRL-005-08",
+          "CTRL-005-10",
+          "CTRL-005-11",
+          "CTRL-005-14",
+          "CTRL-005-15",
+          "CTRL-005-17",
+          "CTRL-005-18",
+          "CTRL-005-20",
+          "CTRL-005-21",
+          "CTRL-005-24",
+          "CTRL-005-25",
+          "CTRL-005-27",
+          "CTRL-005-28",
+          "CTRL-005-30",
+          "CTRL-005-31",
+          "CTRL-005-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0006": {
+      "document_id": "audit-report-0006",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0006.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "006",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 6,
+            "weight": 0.0938
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.039
+          }
+        ],
+        "topic_diversity": 0.3101
+      },
+      "entities": {
+        "entities": [
+          "RISK-006-01",
+          "RISK-006-04",
+          "RISK-006-08",
+          "RISK-006-11",
+          "RISK-006-14",
+          "RISK-006-18",
+          "RISK-006-21",
+          "RISK-006-24",
+          "RISK-006-28",
+          "RISK-006-31",
+          "RISK-006-34",
+          "CTRL-006-01",
+          "CTRL-006-04",
+          "CTRL-006-05",
+          "CTRL-006-07",
+          "CTRL-006-08",
+          "CTRL-006-10",
+          "CTRL-006-11",
+          "CTRL-006-14",
+          "CTRL-006-15",
+          "CTRL-006-17",
+          "CTRL-006-18",
+          "CTRL-006-20",
+          "CTRL-006-21",
+          "CTRL-006-24",
+          "CTRL-006-25",
+          "CTRL-006-27",
+          "CTRL-006-28",
+          "CTRL-006-30",
+          "CTRL-006-31",
+          "CTRL-006-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0007": {
+      "document_id": "audit-report-0007",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0007.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "007",
+            "score": 0.1548
+          },
+          {
+            "term": "audit",
+            "score": 0.0635
+          },
+          {
+            "term": "areas",
+            "score": 0.0632
+          },
+          {
+            "term": "insights",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0608
+          },
+          {
+            "term": "pace",
+            "score": 0.0608
+          },
+          {
+            "term": "showed",
+            "score": 0.0608
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0608
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0608
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0608
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1548
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9423
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.1082
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.0326
+          }
+        ],
+        "topic_diversity": 0.3098
+      },
+      "entities": {
+        "entities": [
+          "RISK-007-01",
+          "RISK-007-04",
+          "RISK-007-08",
+          "RISK-007-11",
+          "RISK-007-14",
+          "RISK-007-18",
+          "RISK-007-21",
+          "RISK-007-24",
+          "RISK-007-28",
+          "RISK-007-31",
+          "RISK-007-34",
+          "CTRL-007-01",
+          "CTRL-007-04",
+          "CTRL-007-05",
+          "CTRL-007-07",
+          "CTRL-007-08",
+          "CTRL-007-10",
+          "CTRL-007-11",
+          "CTRL-007-14",
+          "CTRL-007-15",
+          "CTRL-007-17",
+          "CTRL-007-18",
+          "CTRL-007-20",
+          "CTRL-007-21",
+          "CTRL-007-24",
+          "CTRL-007-25",
+          "CTRL-007-27",
+          "CTRL-007-28",
+          "CTRL-007-30",
+          "CTRL-007-31",
+          "CTRL-007-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0008": {
+      "document_id": "audit-report-0008",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0008.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "008",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3089
+      },
+      "entities": {
+        "entities": [
+          "RISK-008-01",
+          "RISK-008-04",
+          "RISK-008-08",
+          "RISK-008-11",
+          "RISK-008-14",
+          "RISK-008-18",
+          "RISK-008-21",
+          "RISK-008-24",
+          "RISK-008-28",
+          "RISK-008-31",
+          "RISK-008-34",
+          "CTRL-008-01",
+          "CTRL-008-04",
+          "CTRL-008-05",
+          "CTRL-008-07",
+          "CTRL-008-08",
+          "CTRL-008-10",
+          "CTRL-008-11",
+          "CTRL-008-14",
+          "CTRL-008-15",
+          "CTRL-008-17",
+          "CTRL-008-18",
+          "CTRL-008-20",
+          "CTRL-008-21",
+          "CTRL-008-24",
+          "CTRL-008-25",
+          "CTRL-008-27",
+          "CTRL-008-28",
+          "CTRL-008-30",
+          "CTRL-008-31",
+          "CTRL-008-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0009": {
+      "document_id": "audit-report-0009",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0009.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "009",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3064
+      },
+      "entities": {
+        "entities": [
+          "RISK-009-01",
+          "RISK-009-04",
+          "RISK-009-08",
+          "RISK-009-11",
+          "RISK-009-14",
+          "RISK-009-18",
+          "RISK-009-21",
+          "RISK-009-24",
+          "RISK-009-28",
+          "RISK-009-31",
+          "RISK-009-34",
+          "CTRL-009-01",
+          "CTRL-009-04",
+          "CTRL-009-05",
+          "CTRL-009-07",
+          "CTRL-009-08",
+          "CTRL-009-10",
+          "CTRL-009-11",
+          "CTRL-009-14",
+          "CTRL-009-15",
+          "CTRL-009-17",
+          "CTRL-009-18",
+          "CTRL-009-20",
+          "CTRL-009-21",
+          "CTRL-009-24",
+          "CTRL-009-25",
+          "CTRL-009-27",
+          "CTRL-009-28",
+          "CTRL-009-30",
+          "CTRL-009-31",
+          "CTRL-009-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0010": {
+      "document_id": "audit-report-0010",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0010.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "010",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3063
+      },
+      "entities": {
+        "entities": [
+          "RISK-010-01",
+          "RISK-010-04",
+          "RISK-010-08",
+          "RISK-010-11",
+          "RISK-010-14",
+          "RISK-010-18",
+          "RISK-010-21",
+          "RISK-010-24",
+          "RISK-010-28",
+          "RISK-010-31",
+          "RISK-010-34",
+          "CTRL-010-01",
+          "CTRL-010-04",
+          "CTRL-010-05",
+          "CTRL-010-07",
+          "CTRL-010-08",
+          "CTRL-010-10",
+          "CTRL-010-11",
+          "CTRL-010-14",
+          "CTRL-010-15",
+          "CTRL-010-17",
+          "CTRL-010-18",
+          "CTRL-010-20",
+          "CTRL-010-21",
+          "CTRL-010-24",
+          "CTRL-010-25",
+          "CTRL-010-27",
+          "CTRL-010-28",
+          "CTRL-010-30",
+          "CTRL-010-31",
+          "CTRL-010-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0011": {
+      "document_id": "audit-report-0011",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0011.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "011",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3062
+      },
+      "entities": {
+        "entities": [
+          "RISK-011-01",
+          "RISK-011-04",
+          "RISK-011-08",
+          "RISK-011-11",
+          "RISK-011-14",
+          "RISK-011-18",
+          "RISK-011-21",
+          "RISK-011-24",
+          "RISK-011-28",
+          "RISK-011-31",
+          "RISK-011-34",
+          "CTRL-011-01",
+          "CTRL-011-04",
+          "CTRL-011-05",
+          "CTRL-011-07",
+          "CTRL-011-08",
+          "CTRL-011-10",
+          "CTRL-011-11",
+          "CTRL-011-14",
+          "CTRL-011-15",
+          "CTRL-011-17",
+          "CTRL-011-18",
+          "CTRL-011-20",
+          "CTRL-011-21",
+          "CTRL-011-24",
+          "CTRL-011-25",
+          "CTRL-011-27",
+          "CTRL-011-28",
+          "CTRL-011-30",
+          "CTRL-011-31",
+          "CTRL-011-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0012": {
+      "document_id": "audit-report-0012",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0012.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "012",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.1218
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3059
+      },
+      "entities": {
+        "entities": [
+          "RISK-012-01",
+          "RISK-012-04",
+          "RISK-012-08",
+          "RISK-012-11",
+          "RISK-012-14",
+          "RISK-012-18",
+          "RISK-012-21",
+          "RISK-012-24",
+          "RISK-012-28",
+          "RISK-012-31",
+          "RISK-012-34",
+          "CTRL-012-01",
+          "CTRL-012-04",
+          "CTRL-012-05",
+          "CTRL-012-07",
+          "CTRL-012-08",
+          "CTRL-012-10",
+          "CTRL-012-11",
+          "CTRL-012-14",
+          "CTRL-012-15",
+          "CTRL-012-17",
+          "CTRL-012-18",
+          "CTRL-012-20",
+          "CTRL-012-21",
+          "CTRL-012-24",
+          "CTRL-012-25",
+          "CTRL-012-27",
+          "CTRL-012-28",
+          "CTRL-012-30",
+          "CTRL-012-31",
+          "CTRL-012-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0013": {
+      "document_id": "audit-report-0013",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0013.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "013",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3061
+      },
+      "entities": {
+        "entities": [
+          "RISK-013-01",
+          "RISK-013-04",
+          "RISK-013-08",
+          "RISK-013-11",
+          "RISK-013-14",
+          "RISK-013-18",
+          "RISK-013-21",
+          "RISK-013-24",
+          "RISK-013-28",
+          "RISK-013-31",
+          "RISK-013-34",
+          "CTRL-013-01",
+          "CTRL-013-04",
+          "CTRL-013-05",
+          "CTRL-013-07",
+          "CTRL-013-08",
+          "CTRL-013-10",
+          "CTRL-013-11",
+          "CTRL-013-14",
+          "CTRL-013-15",
+          "CTRL-013-17",
+          "CTRL-013-18",
+          "CTRL-013-20",
+          "CTRL-013-21",
+          "CTRL-013-24",
+          "CTRL-013-25",
+          "CTRL-013-27",
+          "CTRL-013-28",
+          "CTRL-013-30",
+          "CTRL-013-31",
+          "CTRL-013-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0014": {
+      "document_id": "audit-report-0014",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0014.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "014",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3062
+      },
+      "entities": {
+        "entities": [
+          "RISK-014-01",
+          "RISK-014-04",
+          "RISK-014-08",
+          "RISK-014-11",
+          "RISK-014-14",
+          "RISK-014-18",
+          "RISK-014-21",
+          "RISK-014-24",
+          "RISK-014-28",
+          "RISK-014-31",
+          "RISK-014-34",
+          "CTRL-014-01",
+          "CTRL-014-04",
+          "CTRL-014-05",
+          "CTRL-014-07",
+          "CTRL-014-08",
+          "CTRL-014-10",
+          "CTRL-014-11",
+          "CTRL-014-14",
+          "CTRL-014-15",
+          "CTRL-014-17",
+          "CTRL-014-18",
+          "CTRL-014-20",
+          "CTRL-014-21",
+          "CTRL-014-24",
+          "CTRL-014-25",
+          "CTRL-014-27",
+          "CTRL-014-28",
+          "CTRL-014-30",
+          "CTRL-014-31",
+          "CTRL-014-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0015": {
+      "document_id": "audit-report-0015",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0015.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "015",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0238
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3057
+      },
+      "entities": {
+        "entities": [
+          "RISK-015-01",
+          "RISK-015-04",
+          "RISK-015-08",
+          "RISK-015-11",
+          "RISK-015-14",
+          "RISK-015-18",
+          "RISK-015-21",
+          "RISK-015-24",
+          "RISK-015-28",
+          "RISK-015-31",
+          "RISK-015-34",
+          "CTRL-015-01",
+          "CTRL-015-04",
+          "CTRL-015-05",
+          "CTRL-015-07",
+          "CTRL-015-08",
+          "CTRL-015-10",
+          "CTRL-015-11",
+          "CTRL-015-14",
+          "CTRL-015-15",
+          "CTRL-015-17",
+          "CTRL-015-18",
+          "CTRL-015-20",
+          "CTRL-015-21",
+          "CTRL-015-24",
+          "CTRL-015-25",
+          "CTRL-015-27",
+          "CTRL-015-28",
+          "CTRL-015-30",
+          "CTRL-015-31",
+          "CTRL-015-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0016": {
+      "document_id": "audit-report-0016",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0016.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "016",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0114
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3059
+      },
+      "entities": {
+        "entities": [
+          "RISK-016-01",
+          "RISK-016-04",
+          "RISK-016-08",
+          "RISK-016-11",
+          "RISK-016-14",
+          "RISK-016-18",
+          "RISK-016-21",
+          "RISK-016-24",
+          "RISK-016-28",
+          "RISK-016-31",
+          "RISK-016-34",
+          "CTRL-016-01",
+          "CTRL-016-04",
+          "CTRL-016-05",
+          "CTRL-016-07",
+          "CTRL-016-08",
+          "CTRL-016-10",
+          "CTRL-016-11",
+          "CTRL-016-14",
+          "CTRL-016-15",
+          "CTRL-016-17",
+          "CTRL-016-18",
+          "CTRL-016-20",
+          "CTRL-016-21",
+          "CTRL-016-24",
+          "CTRL-016-25",
+          "CTRL-016-27",
+          "CTRL-016-28",
+          "CTRL-016-30",
+          "CTRL-016-31",
+          "CTRL-016-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0017": {
+      "document_id": "audit-report-0017",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0017.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "017",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0265
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3057
+      },
+      "entities": {
+        "entities": [
+          "RISK-017-01",
+          "RISK-017-04",
+          "RISK-017-08",
+          "RISK-017-11",
+          "RISK-017-14",
+          "RISK-017-18",
+          "RISK-017-21",
+          "RISK-017-24",
+          "RISK-017-28",
+          "RISK-017-31",
+          "RISK-017-34",
+          "CTRL-017-01",
+          "CTRL-017-04",
+          "CTRL-017-05",
+          "CTRL-017-07",
+          "CTRL-017-08",
+          "CTRL-017-10",
+          "CTRL-017-11",
+          "CTRL-017-14",
+          "CTRL-017-15",
+          "CTRL-017-17",
+          "CTRL-017-18",
+          "CTRL-017-20",
+          "CTRL-017-21",
+          "CTRL-017-24",
+          "CTRL-017-25",
+          "CTRL-017-27",
+          "CTRL-017-28",
+          "CTRL-017-30",
+          "CTRL-017-31",
+          "CTRL-017-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0018": {
+      "document_id": "audit-report-0018",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0018.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "018",
+            "score": 0.1674
+          },
+          {
+            "term": "audit",
+            "score": 0.0634
+          },
+          {
+            "term": "areas",
+            "score": 0.063
+          },
+          {
+            "term": "insights",
+            "score": 0.0614
+          },
+          {
+            "term": "pace",
+            "score": 0.0606
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0606
+          },
+          {
+            "term": "varying",
+            "score": 0.0606
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0606
+          },
+          {
+            "term": "showed",
+            "score": 0.0606
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0606
+          }
+        ],
+        "num_unique_terms": 412,
+        "max_tfidf_score": 0.1674
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9405
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.3079
+      },
+      "entities": {
+        "entities": [
+          "RISK-018-01",
+          "RISK-018-04",
+          "RISK-018-08",
+          "RISK-018-11",
+          "RISK-018-14",
+          "RISK-018-18",
+          "RISK-018-21",
+          "RISK-018-24",
+          "RISK-018-28",
+          "RISK-018-31",
+          "RISK-018-34",
+          "CTRL-018-01",
+          "CTRL-018-04",
+          "CTRL-018-05",
+          "CTRL-018-07",
+          "CTRL-018-08",
+          "CTRL-018-10",
+          "CTRL-018-11",
+          "CTRL-018-14",
+          "CTRL-018-15",
+          "CTRL-018-17",
+          "CTRL-018-18",
+          "CTRL-018-20",
+          "CTRL-018-21",
+          "CTRL-018-24",
+          "CTRL-018-25",
+          "CTRL-018-27",
+          "CTRL-018-28",
+          "CTRL-018-30",
+          "CTRL-018-31",
+          "CTRL-018-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0019": {
+      "document_id": "audit-report-0019",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0019.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "audit",
+            "score": 0.0643
+          },
+          {
+            "term": "areas",
+            "score": 0.0639
+          },
+          {
+            "term": "insights",
+            "score": 0.0623
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0615
+          },
+          {
+            "term": "varying",
+            "score": 0.0615
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0615
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0615
+          },
+          {
+            "term": "pace",
+            "score": 0.0615
+          },
+          {
+            "term": "showed",
+            "score": 0.0615
+          }
+        ],
+        "num_unique_terms": 411,
+        "max_tfidf_score": 0.0643
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9521
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 9,
+            "weight": -0.0
+          }
+        ],
+        "topic_diversity": 0.3101
+      },
+      "entities": {
+        "entities": [
+          "RISK-019-01",
+          "RISK-019-04",
+          "RISK-019-08",
+          "RISK-019-11",
+          "RISK-019-14",
+          "RISK-019-18",
+          "RISK-019-21",
+          "RISK-019-24",
+          "RISK-019-28",
+          "RISK-019-31",
+          "RISK-019-34",
+          "CTRL-019-01",
+          "CTRL-019-04",
+          "CTRL-019-05",
+          "CTRL-019-07",
+          "CTRL-019-08",
+          "CTRL-019-10",
+          "CTRL-019-11",
+          "CTRL-019-14",
+          "CTRL-019-15",
+          "CTRL-019-17",
+          "CTRL-019-18",
+          "CTRL-019-20",
+          "CTRL-019-21",
+          "CTRL-019-24",
+          "CTRL-019-25",
+          "CTRL-019-27",
+          "CTRL-019-28",
+          "CTRL-019-30",
+          "CTRL-019-31",
+          "CTRL-019-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "audit-report-0020": {
+      "document_id": "audit-report-0020",
+      "document_type": "audit-report",
+      "file_path": "audit-reports/audit-report-0020.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "audit",
+            "score": 0.0643
+          },
+          {
+            "term": "areas",
+            "score": 0.0639
+          },
+          {
+            "term": "insights",
+            "score": 0.0623
+          },
+          {
+            "term": "demonstrated",
+            "score": 0.0615
+          },
+          {
+            "term": "varying",
+            "score": 0.0615
+          },
+          {
+            "term": "varying levels",
+            "score": 0.0615
+          },
+          {
+            "term": "control effectiveness",
+            "score": 0.0615
+          },
+          {
+            "term": "inconsistent",
+            "score": 0.0615
+          },
+          {
+            "term": "pace",
+            "score": 0.0615
+          },
+          {
+            "term": "showed",
+            "score": 0.0615
+          }
+        ],
+        "num_unique_terms": 411,
+        "max_tfidf_score": 0.0643
+      },
+      "lsa": {
+        "primary_topic": 0,
+        "top_topics": [
+          {
+            "topic_id": 0,
+            "weight": 0.9521
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          },
+          {
+            "topic_id": 9,
+            "weight": -0.0
+          }
+        ],
+        "topic_diversity": 0.3101
+      },
+      "entities": {
+        "entities": [
+          "RISK-020-01",
+          "RISK-020-04",
+          "RISK-020-08",
+          "RISK-020-11",
+          "RISK-020-14",
+          "RISK-020-18",
+          "RISK-020-21",
+          "RISK-020-24",
+          "RISK-020-28",
+          "RISK-020-31",
+          "RISK-020-34",
+          "CTRL-020-01",
+          "CTRL-020-04",
+          "CTRL-020-05",
+          "CTRL-020-07",
+          "CTRL-020-08",
+          "CTRL-020-10",
+          "CTRL-020-11",
+          "CTRL-020-14",
+          "CTRL-020-15",
+          "CTRL-020-17",
+          "CTRL-020-18",
+          "CTRL-020-20",
+          "CTRL-020-21",
+          "CTRL-020-24",
+          "CTRL-020-25",
+          "CTRL-020-27",
+          "CTRL-020-28",
+          "CTRL-020-30",
+          "CTRL-020-31",
+          "CTRL-020-34"
+        ],
+        "entity_count": 31,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -6.65,
+        "flesch_kincaid_grade": 17.6,
+        "gunning_fog": 20.97,
+        "smog_index": 16.53,
+        "coleman_liau_index": 23.36,
+        "automated_readability_index": 19.32,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11158,
+        "lexicon_count": 4731,
+        "sentence_count": 344
+      }
+    },
+    "risk-matrix-0001": {
+      "document_id": "risk-matrix-0001",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0001.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "001",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 4,
+            "weight": 0.1201
+          }
+        ],
+        "topic_diversity": 0.2847
+      },
+      "entities": {
+        "entities": [
+          "RISK-001-01",
+          "RISK-001-02",
+          "RISK-001-04",
+          "RISK-001-05",
+          "RISK-001-08",
+          "RISK-001-11",
+          "RISK-001-12",
+          "RISK-001-14",
+          "RISK-001-15",
+          "RISK-001-18",
+          "RISK-001-21",
+          "RISK-001-22",
+          "RISK-001-24",
+          "RISK-001-25",
+          "RISK-001-28",
+          "RISK-001-31",
+          "RISK-001-32",
+          "RISK-001-34",
+          "RISK-001-35",
+          "CTRL-001-01",
+          "CTRL-001-05",
+          "CTRL-001-08",
+          "CTRL-001-11",
+          "CTRL-001-15",
+          "CTRL-001-18",
+          "CTRL-001-21",
+          "CTRL-001-25",
+          "CTRL-001-28",
+          "CTRL-001-31",
+          "CTRL-001-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0002": {
+      "document_id": "risk-matrix-0002",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0002.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "002",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0789
+          }
+        ],
+        "topic_diversity": 0.2953
+      },
+      "entities": {
+        "entities": [
+          "RISK-002-01",
+          "RISK-002-02",
+          "RISK-002-04",
+          "RISK-002-05",
+          "RISK-002-08",
+          "RISK-002-11",
+          "RISK-002-12",
+          "RISK-002-14",
+          "RISK-002-15",
+          "RISK-002-18",
+          "RISK-002-21",
+          "RISK-002-22",
+          "RISK-002-24",
+          "RISK-002-25",
+          "RISK-002-28",
+          "RISK-002-31",
+          "RISK-002-32",
+          "RISK-002-34",
+          "RISK-002-35",
+          "CTRL-002-01",
+          "CTRL-002-05",
+          "CTRL-002-08",
+          "CTRL-002-11",
+          "CTRL-002-15",
+          "CTRL-002-18",
+          "CTRL-002-21",
+          "CTRL-002-25",
+          "CTRL-002-28",
+          "CTRL-002-31",
+          "CTRL-002-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0003": {
+      "document_id": "risk-matrix-0003",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0003.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "003",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.1019
+          }
+        ],
+        "topic_diversity": 0.2893
+      },
+      "entities": {
+        "entities": [
+          "RISK-003-01",
+          "RISK-003-02",
+          "RISK-003-04",
+          "RISK-003-05",
+          "RISK-003-08",
+          "RISK-003-11",
+          "RISK-003-12",
+          "RISK-003-14",
+          "RISK-003-15",
+          "RISK-003-18",
+          "RISK-003-21",
+          "RISK-003-22",
+          "RISK-003-24",
+          "RISK-003-25",
+          "RISK-003-28",
+          "RISK-003-31",
+          "RISK-003-32",
+          "RISK-003-34",
+          "RISK-003-35",
+          "CTRL-003-01",
+          "CTRL-003-05",
+          "CTRL-003-08",
+          "CTRL-003-11",
+          "CTRL-003-15",
+          "CTRL-003-18",
+          "CTRL-003-21",
+          "CTRL-003-25",
+          "CTRL-003-28",
+          "CTRL-003-31",
+          "CTRL-003-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0004": {
+      "document_id": "risk-matrix-0004",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0004.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "004",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.0936
+          }
+        ],
+        "topic_diversity": 0.2803
+      },
+      "entities": {
+        "entities": [
+          "RISK-004-01",
+          "RISK-004-02",
+          "RISK-004-04",
+          "RISK-004-05",
+          "RISK-004-08",
+          "RISK-004-11",
+          "RISK-004-12",
+          "RISK-004-14",
+          "RISK-004-15",
+          "RISK-004-18",
+          "RISK-004-21",
+          "RISK-004-22",
+          "RISK-004-24",
+          "RISK-004-25",
+          "RISK-004-28",
+          "RISK-004-31",
+          "RISK-004-32",
+          "RISK-004-34",
+          "RISK-004-35",
+          "CTRL-004-01",
+          "CTRL-004-05",
+          "CTRL-004-08",
+          "CTRL-004-11",
+          "CTRL-004-15",
+          "CTRL-004-18",
+          "CTRL-004-21",
+          "CTRL-004-25",
+          "CTRL-004-28",
+          "CTRL-004-31",
+          "CTRL-004-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0005": {
+      "document_id": "risk-matrix-0005",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0005.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "005",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.013
+          }
+        ],
+        "topic_diversity": 0.2999
+      },
+      "entities": {
+        "entities": [
+          "RISK-005-01",
+          "RISK-005-02",
+          "RISK-005-04",
+          "RISK-005-05",
+          "RISK-005-08",
+          "RISK-005-11",
+          "RISK-005-12",
+          "RISK-005-14",
+          "RISK-005-15",
+          "RISK-005-18",
+          "RISK-005-21",
+          "RISK-005-22",
+          "RISK-005-24",
+          "RISK-005-25",
+          "RISK-005-28",
+          "RISK-005-31",
+          "RISK-005-32",
+          "RISK-005-34",
+          "RISK-005-35",
+          "CTRL-005-01",
+          "CTRL-005-05",
+          "CTRL-005-08",
+          "CTRL-005-11",
+          "CTRL-005-15",
+          "CTRL-005-18",
+          "CTRL-005-21",
+          "CTRL-005-25",
+          "CTRL-005-28",
+          "CTRL-005-31",
+          "CTRL-005-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0006": {
+      "document_id": "risk-matrix-0006",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0006.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "006",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 6,
+            "weight": 0.0924
+          }
+        ],
+        "topic_diversity": 0.2906
+      },
+      "entities": {
+        "entities": [
+          "RISK-006-01",
+          "RISK-006-02",
+          "RISK-006-04",
+          "RISK-006-05",
+          "RISK-006-08",
+          "RISK-006-11",
+          "RISK-006-12",
+          "RISK-006-14",
+          "RISK-006-15",
+          "RISK-006-18",
+          "RISK-006-21",
+          "RISK-006-22",
+          "RISK-006-24",
+          "RISK-006-25",
+          "RISK-006-28",
+          "RISK-006-31",
+          "RISK-006-32",
+          "RISK-006-34",
+          "RISK-006-35",
+          "CTRL-006-01",
+          "CTRL-006-05",
+          "CTRL-006-08",
+          "CTRL-006-11",
+          "CTRL-006-15",
+          "CTRL-006-18",
+          "CTRL-006-21",
+          "CTRL-006-25",
+          "CTRL-006-28",
+          "CTRL-006-31",
+          "CTRL-006-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0007": {
+      "document_id": "risk-matrix-0007",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0007.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "007",
+            "score": 0.1526
+          },
+          {
+            "term": "strategies",
+            "score": 0.0729
+          },
+          {
+            "term": "risk management",
+            "score": 0.0676
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0624
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0624
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0624
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0624
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0624
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0624
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0624
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.1526
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.9307
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3334
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.1067
+          }
+        ],
+        "topic_diversity": 0.2901
+      },
+      "entities": {
+        "entities": [
+          "RISK-007-01",
+          "RISK-007-02",
+          "RISK-007-04",
+          "RISK-007-05",
+          "RISK-007-08",
+          "RISK-007-11",
+          "RISK-007-12",
+          "RISK-007-14",
+          "RISK-007-15",
+          "RISK-007-18",
+          "RISK-007-21",
+          "RISK-007-22",
+          "RISK-007-24",
+          "RISK-007-25",
+          "RISK-007-28",
+          "RISK-007-31",
+          "RISK-007-32",
+          "RISK-007-34",
+          "RISK-007-35",
+          "CTRL-007-01",
+          "CTRL-007-05",
+          "CTRL-007-08",
+          "CTRL-007-11",
+          "CTRL-007-15",
+          "CTRL-007-18",
+          "CTRL-007-21",
+          "CTRL-007-25",
+          "CTRL-007-28",
+          "CTRL-007-31",
+          "CTRL-007-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0008": {
+      "document_id": "risk-matrix-0008",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0008.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "008",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "enterprise",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2913
+      },
+      "entities": {
+        "entities": [
+          "RISK-008-01",
+          "RISK-008-02",
+          "RISK-008-04",
+          "RISK-008-05",
+          "RISK-008-08",
+          "RISK-008-11",
+          "RISK-008-12",
+          "RISK-008-14",
+          "RISK-008-15",
+          "RISK-008-18",
+          "RISK-008-21",
+          "RISK-008-22",
+          "RISK-008-24",
+          "RISK-008-25",
+          "RISK-008-28",
+          "RISK-008-31",
+          "RISK-008-32",
+          "RISK-008-34",
+          "RISK-008-35",
+          "CTRL-008-01",
+          "CTRL-008-05",
+          "CTRL-008-08",
+          "CTRL-008-11",
+          "CTRL-008-15",
+          "CTRL-008-18",
+          "CTRL-008-21",
+          "CTRL-008-25",
+          "CTRL-008-28",
+          "CTRL-008-31",
+          "CTRL-008-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0009": {
+      "document_id": "risk-matrix-0009",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0009.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "009",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2873
+      },
+      "entities": {
+        "entities": [
+          "RISK-009-01",
+          "RISK-009-02",
+          "RISK-009-04",
+          "RISK-009-05",
+          "RISK-009-08",
+          "RISK-009-11",
+          "RISK-009-12",
+          "RISK-009-14",
+          "RISK-009-15",
+          "RISK-009-18",
+          "RISK-009-21",
+          "RISK-009-22",
+          "RISK-009-24",
+          "RISK-009-25",
+          "RISK-009-28",
+          "RISK-009-31",
+          "RISK-009-32",
+          "RISK-009-34",
+          "RISK-009-35",
+          "CTRL-009-01",
+          "CTRL-009-05",
+          "CTRL-009-08",
+          "CTRL-009-11",
+          "CTRL-009-15",
+          "CTRL-009-18",
+          "CTRL-009-21",
+          "CTRL-009-25",
+          "CTRL-009-28",
+          "CTRL-009-31",
+          "CTRL-009-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0010": {
+      "document_id": "risk-matrix-0010",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0010.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "010",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2869
+      },
+      "entities": {
+        "entities": [
+          "RISK-010-01",
+          "RISK-010-02",
+          "RISK-010-04",
+          "RISK-010-05",
+          "RISK-010-08",
+          "RISK-010-11",
+          "RISK-010-12",
+          "RISK-010-14",
+          "RISK-010-15",
+          "RISK-010-18",
+          "RISK-010-21",
+          "RISK-010-22",
+          "RISK-010-24",
+          "RISK-010-25",
+          "RISK-010-28",
+          "RISK-010-31",
+          "RISK-010-32",
+          "RISK-010-34",
+          "RISK-010-35",
+          "CTRL-010-01",
+          "CTRL-010-05",
+          "CTRL-010-08",
+          "CTRL-010-11",
+          "CTRL-010-15",
+          "CTRL-010-18",
+          "CTRL-010-21",
+          "CTRL-010-25",
+          "CTRL-010-28",
+          "CTRL-010-31",
+          "CTRL-010-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0011": {
+      "document_id": "risk-matrix-0011",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0011.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "011",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2868
+      },
+      "entities": {
+        "entities": [
+          "RISK-011-01",
+          "RISK-011-02",
+          "RISK-011-04",
+          "RISK-011-05",
+          "RISK-011-08",
+          "RISK-011-11",
+          "RISK-011-12",
+          "RISK-011-14",
+          "RISK-011-15",
+          "RISK-011-18",
+          "RISK-011-21",
+          "RISK-011-22",
+          "RISK-011-24",
+          "RISK-011-25",
+          "RISK-011-28",
+          "RISK-011-31",
+          "RISK-011-32",
+          "RISK-011-34",
+          "RISK-011-35",
+          "CTRL-011-01",
+          "CTRL-011-05",
+          "CTRL-011-08",
+          "CTRL-011-11",
+          "CTRL-011-15",
+          "CTRL-011-18",
+          "CTRL-011-21",
+          "CTRL-011-25",
+          "CTRL-011-28",
+          "CTRL-011-31",
+          "CTRL-011-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0012": {
+      "document_id": "risk-matrix-0012",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0012.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "012",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.12
+          }
+        ],
+        "topic_diversity": 0.2836
+      },
+      "entities": {
+        "entities": [
+          "RISK-012-01",
+          "RISK-012-02",
+          "RISK-012-04",
+          "RISK-012-05",
+          "RISK-012-08",
+          "RISK-012-11",
+          "RISK-012-12",
+          "RISK-012-14",
+          "RISK-012-15",
+          "RISK-012-18",
+          "RISK-012-21",
+          "RISK-012-22",
+          "RISK-012-24",
+          "RISK-012-25",
+          "RISK-012-28",
+          "RISK-012-31",
+          "RISK-012-32",
+          "RISK-012-34",
+          "RISK-012-35",
+          "CTRL-012-01",
+          "CTRL-012-05",
+          "CTRL-012-08",
+          "CTRL-012-11",
+          "CTRL-012-15",
+          "CTRL-012-18",
+          "CTRL-012-21",
+          "CTRL-012-25",
+          "CTRL-012-28",
+          "CTRL-012-31",
+          "CTRL-012-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0013": {
+      "document_id": "risk-matrix-0013",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0013.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "013",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2866
+      },
+      "entities": {
+        "entities": [
+          "RISK-013-01",
+          "RISK-013-02",
+          "RISK-013-04",
+          "RISK-013-05",
+          "RISK-013-08",
+          "RISK-013-11",
+          "RISK-013-12",
+          "RISK-013-14",
+          "RISK-013-15",
+          "RISK-013-18",
+          "RISK-013-21",
+          "RISK-013-22",
+          "RISK-013-24",
+          "RISK-013-25",
+          "RISK-013-28",
+          "RISK-013-31",
+          "RISK-013-32",
+          "RISK-013-34",
+          "RISK-013-35",
+          "CTRL-013-01",
+          "CTRL-013-05",
+          "CTRL-013-08",
+          "CTRL-013-11",
+          "CTRL-013-15",
+          "CTRL-013-18",
+          "CTRL-013-21",
+          "CTRL-013-25",
+          "CTRL-013-28",
+          "CTRL-013-31",
+          "CTRL-013-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0014": {
+      "document_id": "risk-matrix-0014",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0014.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "014",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2867
+      },
+      "entities": {
+        "entities": [
+          "RISK-014-01",
+          "RISK-014-02",
+          "RISK-014-04",
+          "RISK-014-05",
+          "RISK-014-08",
+          "RISK-014-11",
+          "RISK-014-12",
+          "RISK-014-14",
+          "RISK-014-15",
+          "RISK-014-18",
+          "RISK-014-21",
+          "RISK-014-22",
+          "RISK-014-24",
+          "RISK-014-25",
+          "RISK-014-28",
+          "RISK-014-31",
+          "RISK-014-32",
+          "RISK-014-34",
+          "RISK-014-35",
+          "CTRL-014-01",
+          "CTRL-014-05",
+          "CTRL-014-08",
+          "CTRL-014-11",
+          "CTRL-014-15",
+          "CTRL-014-18",
+          "CTRL-014-21",
+          "CTRL-014-25",
+          "CTRL-014-28",
+          "CTRL-014-31",
+          "CTRL-014-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0015": {
+      "document_id": "risk-matrix-0015",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0015.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "015",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0234
+          }
+        ],
+        "topic_diversity": 0.2856
+      },
+      "entities": {
+        "entities": [
+          "RISK-015-01",
+          "RISK-015-02",
+          "RISK-015-04",
+          "RISK-015-05",
+          "RISK-015-08",
+          "RISK-015-11",
+          "RISK-015-12",
+          "RISK-015-14",
+          "RISK-015-15",
+          "RISK-015-18",
+          "RISK-015-21",
+          "RISK-015-22",
+          "RISK-015-24",
+          "RISK-015-25",
+          "RISK-015-28",
+          "RISK-015-31",
+          "RISK-015-32",
+          "RISK-015-34",
+          "RISK-015-35",
+          "CTRL-015-01",
+          "CTRL-015-05",
+          "CTRL-015-08",
+          "CTRL-015-11",
+          "CTRL-015-15",
+          "CTRL-015-18",
+          "CTRL-015-21",
+          "CTRL-015-25",
+          "CTRL-015-28",
+          "CTRL-015-31",
+          "CTRL-015-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0016": {
+      "document_id": "risk-matrix-0016",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0016.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "016",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0112
+          }
+        ],
+        "topic_diversity": 0.2861
+      },
+      "entities": {
+        "entities": [
+          "RISK-016-01",
+          "RISK-016-02",
+          "RISK-016-04",
+          "RISK-016-05",
+          "RISK-016-08",
+          "RISK-016-11",
+          "RISK-016-12",
+          "RISK-016-14",
+          "RISK-016-15",
+          "RISK-016-18",
+          "RISK-016-21",
+          "RISK-016-22",
+          "RISK-016-24",
+          "RISK-016-25",
+          "RISK-016-28",
+          "RISK-016-31",
+          "RISK-016-32",
+          "RISK-016-34",
+          "RISK-016-35",
+          "CTRL-016-01",
+          "CTRL-016-05",
+          "CTRL-016-08",
+          "CTRL-016-11",
+          "CTRL-016-15",
+          "CTRL-016-18",
+          "CTRL-016-21",
+          "CTRL-016-25",
+          "CTRL-016-28",
+          "CTRL-016-31",
+          "CTRL-016-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0017": {
+      "document_id": "risk-matrix-0017",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0017.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "017",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 9,
+            "weight": 0.0261
+          }
+        ],
+        "topic_diversity": 0.2855
+      },
+      "entities": {
+        "entities": [
+          "RISK-017-01",
+          "RISK-017-02",
+          "RISK-017-04",
+          "RISK-017-05",
+          "RISK-017-08",
+          "RISK-017-11",
+          "RISK-017-12",
+          "RISK-017-14",
+          "RISK-017-15",
+          "RISK-017-18",
+          "RISK-017-21",
+          "RISK-017-22",
+          "RISK-017-24",
+          "RISK-017-25",
+          "RISK-017-28",
+          "RISK-017-31",
+          "RISK-017-32",
+          "RISK-017-34",
+          "RISK-017-35",
+          "CTRL-017-01",
+          "CTRL-017-05",
+          "CTRL-017-08",
+          "CTRL-017-11",
+          "CTRL-017-15",
+          "CTRL-017-18",
+          "CTRL-017-21",
+          "CTRL-017-25",
+          "CTRL-017-28",
+          "CTRL-017-31",
+          "CTRL-017-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "risk-matrix-0018": {
+      "document_id": "risk-matrix-0018",
+      "document_type": "risk-matrice",
+      "file_path": "risk-matrices/risk-matrix-0018.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "018",
+            "score": 0.165
+          },
+          {
+            "term": "strategies",
+            "score": 0.0728
+          },
+          {
+            "term": "risk management",
+            "score": 0.0675
+          },
+          {
+            "term": "vulnerabilities",
+            "score": 0.0623
+          },
+          {
+            "term": "likelihood",
+            "score": 0.0623
+          },
+          {
+            "term": "stress",
+            "score": 0.0623
+          },
+          {
+            "term": "multiple risk",
+            "score": 0.0623
+          },
+          {
+            "term": "emerging risks",
+            "score": 0.0623
+          },
+          {
+            "term": "evaluated",
+            "score": 0.0623
+          },
+          {
+            "term": "mitigation strategies",
+            "score": 0.0623
+          }
+        ],
+        "num_unique_terms": 393,
+        "max_tfidf_score": 0.165
+      },
+      "lsa": {
+        "primary_topic": 1,
+        "top_topics": [
+          {
+            "topic_id": 1,
+            "weight": 0.929
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.3329
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0
+          }
+        ],
+        "topic_diversity": 0.2899
+      },
+      "entities": {
+        "entities": [
+          "RISK-018-01",
+          "RISK-018-02",
+          "RISK-018-04",
+          "RISK-018-05",
+          "RISK-018-08",
+          "RISK-018-11",
+          "RISK-018-12",
+          "RISK-018-14",
+          "RISK-018-15",
+          "RISK-018-18",
+          "RISK-018-21",
+          "RISK-018-22",
+          "RISK-018-24",
+          "RISK-018-25",
+          "RISK-018-28",
+          "RISK-018-31",
+          "RISK-018-32",
+          "RISK-018-34",
+          "RISK-018-35",
+          "CTRL-018-01",
+          "CTRL-018-05",
+          "CTRL-018-08",
+          "CTRL-018-11",
+          "CTRL-018-15",
+          "CTRL-018-18",
+          "CTRL-018-21",
+          "CTRL-018-25",
+          "CTRL-018-28",
+          "CTRL-018-31",
+          "CTRL-018-35"
+        ],
+        "entity_count": 30,
+        "unique_entity_types": 2
+      },
+      "readability": {
+        "flesch_reading_ease": -3.6,
+        "flesch_kincaid_grade": 17.4,
+        "gunning_fog": 21.5,
+        "smog_index": 16.95,
+        "coleman_liau_index": 22.91,
+        "automated_readability_index": 19.34,
+        "text_standard": "15th and 16th grade",
+        "syllable_count": 10878,
+        "lexicon_count": 4706,
+        "sentence_count": 321
+      }
+    },
+    "compliance-doc-0001": {
+      "document_id": "compliance-doc-0001",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0001.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "001",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 4,
+            "weight": 0.084
+          }
+        ],
+        "topic_diversity": 0.2917
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0002": {
+      "document_id": "compliance-doc-0002",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0002.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "002",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 8,
+            "weight": 0.0552
+          }
+        ],
+        "topic_diversity": 0.2983
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0003": {
+      "document_id": "compliance-doc-0003",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0003.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "003",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 3,
+            "weight": 0.0713
+          }
+        ],
+        "topic_diversity": 0.2945
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0004": {
+      "document_id": "compliance-doc-0004",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0004.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "004",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 7,
+            "weight": 0.0655
+          }
+        ],
+        "topic_diversity": 0.289
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0005": {
+      "document_id": "compliance-doc-0005",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0005.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "005",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 1,
+            "weight": 0.0229
+          }
+        ],
+        "topic_diversity": 0.3013
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0006": {
+      "document_id": "compliance-doc-0006",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0006.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "006",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 6,
+            "weight": 0.0646
+          }
+        ],
+        "topic_diversity": 0.2954
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    },
+    "compliance-doc-0007": {
+      "document_id": "compliance-doc-0007",
+      "document_type": "compliance-doc",
+      "file_path": "compliance-docs/compliance-doc-0007.txt",
+      "tfidf": {
+        "top_terms": [
+          {
+            "term": "007",
+            "score": 0.1067
+          },
+          {
+            "term": "policy",
+            "score": 0.0858
+          },
+          {
+            "term": "identification",
+            "score": 0.0847
+          },
+          {
+            "term": "processes ensure",
+            "score": 0.0774
+          },
+          {
+            "term": "visibility compliance",
+            "score": 0.0774
+          },
+          {
+            "term": "maintain",
+            "score": 0.0774
+          },
+          {
+            "term": "enable",
+            "score": 0.0774
+          },
+          {
+            "term": "management processes",
+            "score": 0.0774
+          },
+          {
+            "term": "promote",
+            "score": 0.0774
+          },
+          {
+            "term": "planning",
+            "score": 0.0765
+          }
+        ],
+        "num_unique_terms": 281,
+        "max_tfidf_score": 0.1067
+      },
+      "lsa": {
+        "primary_topic": 2,
+        "top_topics": [
+          {
+            "topic_id": 2,
+            "weight": 0.9872
+          },
+          {
+            "topic_id": 0,
+            "weight": 0.1234
+          },
+          {
+            "topic_id": 5,
+            "weight": 0.0746
+          }
+        ],
+        "topic_diversity": 0.295
+      },
+      "entities": {
+        "entities": [],
+        "entity_count": 0,
+        "unique_entity_types": 0
+      },
+      "readability": {
+        "flesch_reading_ease": -10.94,
+        "flesch_kincaid_grade": 18.1,
+        "gunning_fog": 23.13,
+        "smog_index": 17.08,
+        "coleman_liau_index": 23.99,
+        "automated_readability_index": 19.54,
+        "text_standard": "16th and 17th grade",
+        "syllable_count": 11195,
+        "lexicon_count": 4637,
+        "sentence_count": 348
+      }
+    }
+  }
+}

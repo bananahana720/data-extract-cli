@@ -1,0 +1,331 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>11</storyId>
+    <title>Sprint Status Manager &amp; Security Scanner Automation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-11-sprint-security-automation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>scrum master and security-conscious developer</asA>
+    <iWant>automated sprint status management and comprehensive security scanning</iWant>
+    <soThat>sprint tracking is effortless and security vulnerabilities are caught early</soThat>
+    <tasks>
+      <!-- Sprint Status Manager Tasks -->
+      - Task 1: Core functionality (AC: 1-3)
+        - Create scripts/manage_sprint_status.py
+        - Implement YAML parser for sprint-status.yaml
+        - Add interactive CLI with rich/typer
+        - Generate sprint reports
+      - Task 2: Metrics &amp; integration (AC: 4-6)
+        - Calculate velocity metrics
+        - Add epic-level tracking
+        - Implement notification integration
+      <!-- Security Scanner Tasks -->
+      - Task 3: Scanning implementation (AC: 7-9)
+        - Create scripts/scan_security.py
+        - Integrate GitLeaks or similar for secret scanning
+        - Add dependency vulnerability checking
+        - Implement permission validation
+      - Task 4: Advanced features (AC: 10-12)
+        - Generate comprehensive security reports
+        - Add git history scanning option
+        - Integrate with SAST tools
+      <!-- Integration Tasks -->
+      - Task 5: Hooks &amp; CI/CD (AC: 13-14)
+        - Add pre-commit hook configuration
+        - Update CI/CD workflows
+        - Add GitHub Actions security workflow
+      - Task 6: Configuration &amp; quality (AC: 15-16)
+        - Implement .scanignore support
+        - Add configuration file parsing
+        - Write comprehensive tests
+        - Run quality gates
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <!-- Sprint Status Manager (P2 Script 10) -->
+    <criterion id="AC-1">Status display: Shows current sprint status with story breakdowns, completion percentages, and blockers</criterion>
+    <criterion id="AC-2">Story state updates: Interactive CLI for updating story states in docs/sprint-status.yaml</criterion>
+    <criterion id="AC-3">Sprint reports: Generates markdown/HTML sprint reports with burndown charts and metrics</criterion>
+    <criterion id="AC-4">Velocity calculation: Calculates team velocity based on completed story points over time</criterion>
+    <criterion id="AC-5">Epic tracking: Tracks epic-level progress with rollup of story completions</criterion>
+    <criterion id="AC-6">Notification integration: Optional Slack/Teams notifications for status changes</criterion>
+    <!-- Security Scanner (P2 Script 11) -->
+    <criterion id="AC-7">Secret scanning: Scans codebase for hardcoded secrets, API keys, and credentials</criterion>
+    <criterion id="AC-8">Dependency vulnerabilities: Checks dependencies against vulnerability databases (CVE, OSV)</criterion>
+    <criterion id="AC-9">Permission validation: Validates file permissions for sensitive files (.env, keys, etc.)</criterion>
+    <criterion id="AC-10">Security reports: Generates detailed security report with severity levels and remediation steps</criterion>
+    <criterion id="AC-11">Git history scanning: Optionally scans git history for previously committed secrets</criterion>
+    <criterion id="AC-12">SAST integration: Integrates with static application security testing tools</criterion>
+    <!-- Integration Requirements -->
+    <criterion id="AC-13">Pre-commit hooks: Security scanner runs as pre-commit hook to prevent secret commits</criterion>
+    <criterion id="AC-14">CI/CD pipeline: Both tools integrate with CI/CD for automated reporting</criterion>
+    <criterion id="AC-15">Configuration: Support for .scanignore and config files for customization</criterion>
+    <criterion id="AC-16">Quality gates: Scripts pass all quality checks with &gt;80% test coverage</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification - Tooling &amp; Semantic Prep</title>
+        <section>Process/Tooling Improvements</section>
+        <snippet>Story/Review Template Generator, CLAUDE.md Lessons Section, Test Dependency Audit Documentation as process improvements from retrospective findings</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/research/script-automation-recommendations.md</path>
+        <title>Script Automation Recommendations</title>
+        <section>P2 Priority Scripts (10-11)</section>
+        <snippet>Sprint Status Manager for interactive sprint management with velocity metrics; Security Scanner for comprehensive security checks including secrets scanning and vulnerability detection</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/research/script-automation-research-findings.md</path>
+        <title>Script Automation Research Findings</title>
+        <section>Security Best Practices</section>
+        <snippet>Detailed security scanning patterns, vulnerability detection methods, and integration strategies for security automation tools</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/sprint-status.yaml</path>
+        <title>Sprint Status Tracking</title>
+        <section>Development Status</section>
+        <snippet>Current YAML structure for story tracking with status transitions: backlog → drafted → ready-for-dev → in-progress → review → done</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/automation-guide.md</path>
+        <title>Development Automation Guide</title>
+        <section>P0 Scripts</section>
+        <snippet>Documentation of existing automation scripts including template generator, quality gate runner, and session initializer</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>scripts/generate_story_template.py</path>
+        <kind>script</kind>
+        <symbol>StoryTemplateGenerator</symbol>
+        <lines>30-200</lines>
+        <reason>Reference implementation for automation script patterns using Jinja2, structlog, YAML parsing</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/run_quality_gates.py</path>
+        <kind>script</kind>
+        <symbol>QualityGateRunner</symbol>
+        <lines>1-300</lines>
+        <reason>Pattern for running quality checks (black, ruff, mypy, tests) with detailed reporting</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/init_claude_session.py</path>
+        <kind>script</kind>
+        <symbol>SessionInitializer</symbol>
+        <lines>1-250</lines>
+        <reason>Pattern for git sync, dependency checking, environment setup automation</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/check_dependency_changes.py</path>
+        <kind>hook</kind>
+        <symbol>check_dependencies</symbol>
+        <lines>1-100</lines>
+        <reason>Pre-commit hook integration pattern for dependency validation</reason>
+      </artifact>
+      <artifact>
+        <path>.pre-commit-config.yaml</path>
+        <kind>config</kind>
+        <symbol>local hooks</symbol>
+        <lines>44-55</lines>
+        <reason>Configuration for integrating custom hooks into pre-commit pipeline</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/test.yml</path>
+        <kind>ci-config</kind>
+        <symbol>CI workflow</symbol>
+        <lines>1-100</lines>
+        <reason>GitHub Actions CI/CD pipeline configuration for test automation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <core>
+          <package>pydantic</package>
+          <version>&gt;=2.0.0,&lt;3.0</version>
+          <purpose>Data validation for configuration files</purpose>
+        </core>
+        <core>
+          <package>PyYAML</package>
+          <version>&gt;=6.0.0,&lt;7.0</version>
+          <purpose>YAML parsing for sprint-status.yaml</purpose>
+        </core>
+        <core>
+          <package>structlog</package>
+          <version>&gt;=24.0.0,&lt;25.0</version>
+          <purpose>Structured logging for script output</purpose>
+        </core>
+        <core>
+          <package>rich</package>
+          <version>&gt;=13.0.0</version>
+          <purpose>Beautiful CLI output and progress displays</purpose>
+        </core>
+        <core>
+          <package>click</package>
+          <version>&gt;=8.1.0</version>
+          <purpose>CLI framework (alternative to typer)</purpose>
+        </core>
+        <core>
+          <package>jinja2</package>
+          <version>latest</version>
+          <purpose>Template rendering for reports</purpose>
+        </core>
+        <suggested>
+          <package>ruamel.yaml</package>
+          <version>latest</version>
+          <purpose>YAML preservation with comments and formatting</purpose>
+        </suggested>
+        <suggested>
+          <package>plotly</package>
+          <version>latest</version>
+          <purpose>Interactive burndown charts and metrics visualization</purpose>
+        </suggested>
+        <suggested>
+          <package>matplotlib</package>
+          <version>latest</version>
+          <purpose>Alternative chart generation for sprint reports</purpose>
+        </suggested>
+        <suggested>
+          <package>GitPython</package>
+          <version>latest</version>
+          <purpose>Git history scanning and repository analysis</purpose>
+        </suggested>
+        <suggested>
+          <package>safety</package>
+          <version>latest</version>
+          <purpose>Dependency vulnerability checking</purpose>
+        </suggested>
+        <suggested>
+          <package>pip-audit</package>
+          <version>latest</version>
+          <purpose>Alternative dependency vulnerability scanner</purpose>
+        </suggested>
+      </python>
+      <external>
+        <tool>GitLeaks</tool>
+        <purpose>Primary tool for secret scanning</purpose>
+        <integration>subprocess or docker</integration>
+      </external>
+      <external>
+        <tool>pre-commit</tool>
+        <purpose>Git hook framework for security scanning integration</purpose>
+        <version>&gt;=3.0.0</version>
+      </external>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>quality-gate</type>
+      <description>All scripts must pass Black formatting (100 char line length), Ruff linting, and achieve &gt;80% test coverage</description>
+      <source>Story AC-16, project standards</source>
+    </constraint>
+    <constraint>
+      <type>dependency</type>
+      <description>Must integrate with existing automation infrastructure (Story 3.5-1 core scripts)</description>
+      <source>Story dependencies</source>
+    </constraint>
+    <constraint>
+      <type>architecture</type>
+      <description>Scripts must follow established patterns: structlog for logging, Pydantic for validation, click/typer for CLI</description>
+      <source>Existing script implementations</source>
+    </constraint>
+    <constraint>
+      <type>security</type>
+      <description>Security scanner must NOT commit detected secrets to git history, must support .scanignore patterns</description>
+      <source>AC-13, AC-15</source>
+    </constraint>
+    <constraint>
+      <type>performance</type>
+      <description>Sprint status operations should complete in &lt;1s for typical 50-story sprint; security scan &lt;30s for full codebase</description>
+      <source>Dev Notes - performance requirements</source>
+    </constraint>
+    <constraint>
+      <type>compatibility</type>
+      <description>Must preserve YAML comments and formatting when updating sprint-status.yaml</description>
+      <source>Technical implementation notes</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>sprint-status.yaml structure</name>
+      <kind>data-format</kind>
+      <signature>development_status: {story_key: status} where status in [backlog, drafted, ready-for-dev, in-progress, review, done]</signature>
+      <path>docs/sprint-status.yaml</path>
+    </interface>
+    <interface>
+      <name>Story file format</name>
+      <kind>markdown-structure</kind>
+      <signature>Standard story markdown with Status:, Story:, Acceptance Criteria:, Tasks:, Dev Notes: sections</signature>
+      <path>docs/stories/*.md</path>
+    </interface>
+    <interface>
+      <name>Pre-commit hook API</name>
+      <kind>hook-interface</kind>
+      <signature>entry: python scripts/scan_security.py, files: patterns, pass_filenames: bool</signature>
+      <path>.pre-commit-config.yaml</path>
+    </interface>
+    <interface>
+      <name>CLI command structure</name>
+      <kind>cli-pattern</kind>
+      <signature>python scripts/manage_sprint_status.py [--status|--update|--report|--velocity]</signature>
+      <path>scripts/manage_sprint_status.py</path>
+    </interface>
+    <interface>
+      <name>GitHub Actions workflow</name>
+      <kind>ci-interface</kind>
+      <signature>on: [push, pull_request], jobs: security-scan, sprint-report</signature>
+      <path>.github/workflows/security.yml</path>
+    </interface>
+    <interface>
+      <name>Script logging pattern</name>
+      <kind>logging-api</kind>
+      <signature>logger = structlog.get_logger(); logger.info("event", **context)</signature>
+      <path>scripts/*.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test framework: pytest with pytest-cov for coverage. All scripts require unit tests in tests/unit/test_scripts/ with &gt;80% coverage.
+      Integration tests in tests/integration/ validate end-to-end workflows. Use pytest fixtures for test data and mocking.
+      Follow existing patterns from test_template_generator.py. Test files must pass mypy type checking.
+      Security tests should validate both positive (secrets detected) and negative (false positives avoided) cases.
+    </standards>
+    <locations>
+      <location>tests/unit/test_scripts/test_manage_sprint_status.py</location>
+      <location>tests/unit/test_scripts/test_scan_security.py</location>
+      <location>tests/integration/test_sprint_workflow.py</location>
+      <location>tests/integration/test_security_pipeline.py</location>
+      <location>tests/fixtures/sprint_status_samples/</location>
+      <location>tests/fixtures/security_test_files/</location>
+    </locations>
+    <ideas>
+      <test ac="AC-1">Test sprint status display with various story states and calculate correct percentages</test>
+      <test ac="AC-2">Test YAML update preserves comments and formatting using ruamel.yaml</test>
+      <test ac="AC-3">Test report generation produces valid markdown/HTML with correct metrics</test>
+      <test ac="AC-4">Test velocity calculation across multiple sprints with varying story points</test>
+      <test ac="AC-5">Test epic progress rollup aggregates story statuses correctly</test>
+      <test ac="AC-6">Mock notification APIs (Slack/Teams) and verify message formatting</test>
+      <test ac="AC-7">Test secret detection with known patterns (AWS keys, API tokens, private keys)</test>
+      <test ac="AC-8">Test vulnerability checking with mocked CVE database responses</test>
+      <test ac="AC-9">Test file permission validation on Unix/Windows systems</test>
+      <test ac="AC-10">Test security report generation with various severity levels</test>
+      <test ac="AC-11">Test git history scanning with mock repository containing historical secrets</test>
+      <test ac="AC-12">Test SAST tool integration with mock tool responses</test>
+      <test ac="AC-13">Test pre-commit hook blocks commits with detected secrets</test>
+      <test ac="AC-14">Test CI/CD integration generates expected artifacts</test>
+      <test ac="AC-15">Test .scanignore pattern matching and config file parsing</test>
+      <test ac="AC-16">Verify &gt;80% code coverage for both scripts</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,204 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-extraction-tool"
+version = "0.1.0"
+description = "Enterprise data extraction tool with modular pipeline architecture for document processing"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Proprietary"}
+authors = [
+    {name = "Andrew", email = "andrew@example.com"},
+]
+keywords = [
+    "document-extraction",
+    "ai-ready",
+    "enterprise",
+    "data-extraction",
+    "pdf",
+    "docx",
+    "excel",
+    "powerpoint",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Office/Business",
+    "Topic :: Text Processing",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    # Core Epic 1 Foundation (required for Story 1.4)
+    "pydantic>=2.0.0,<3.0",
+    "PyYAML>=6.0.0,<7.0",
+    "python-dotenv>=1.0.0,<2.0",
+    "structlog>=24.0.0,<25.0",
+
+    # Epic 2 Normalization (Story 2.3 schema standardization)
+    "beautifulsoup4>=4.12.0,<5.0",
+    "lxml>=5.0.0,<6.0",
+    "spacy>=3.7.2,<4.0",  # Story 2.5.2: Sentence boundary detection for Epic 3
+
+    # Epic 3 Output Formatting (Story 3.4 JSON schema validation)
+    "jsonschema>=4.0.0,<5.0",  # JSON Schema Draft 7 validation
+
+    # Epic 3.5 Story 3.5-4: Semantic Dependencies (Epic 4 preparation)
+    "scikit-learn>=1.3.0,<2.0",  # TF-IDF, LSA, cosine similarity for Epic 4
+    "joblib>=1.3.0,<2.0",  # Efficient serialization for ML models
+    "textstat>=0.7.3,<1.0",  # Readability metrics (Flesch, SMOG, etc.)
+
+    # Brownfield compatibility (existing dependencies, kept for Story 1.2 assessment)
+    "python-docx>=0.8.11",
+    "pypdf>=3.0.0",
+    "python-pptx>=0.6.21",
+    "openpyxl>=3.0.10",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",  # Epic 5 Story 5-1: CLI framework (Rich already included)
+    "InquirerPy>=0.3.4",  # Epic 5 Story 5-6: Interactive error prompts
+    "pdfplumber>=0.10.0",
+    "Pillow>=10.0.0",
+    "fastapi>=0.111.0,<1.0",
+    "uvicorn>=0.30.0,<1.0",
+    "sqlalchemy>=2.0.0,<3.0",
+    "alembic>=1.13.0,<2.0",
+    "python-multipart>=0.0.9,<1.0",
+]
+
+[project.optional-dependencies]
+# OCR support (optional, requires system dependencies)
+ocr = [
+    "pytesseract>=0.3.10",
+    "pdf2image>=1.16.0",
+    "deskew>=1.5.0",
+    "scikit-image>=0.22.0",
+]
+
+# Development dependencies
+dev = [
+    "pytest>=8.0.0,<9.0",
+    "pytest-cov>=5.0.0,<6.0",
+    "pytest-xdist>=3.6.0,<4.0",
+    "pytest-mock>=3.11.0",
+    "black>=24.0.0,<25.0",
+    "ruff>=0.6.0,<0.7",
+    "mypy>=1.11.0,<2.0",
+    "pre-commit>=3.0.0,<4.0",
+    "psutil>=5.9.0,<6.0",  # Performance monitoring (Story 2.5.1)
+    "memory-profiler>=0.61.0,<1.0",  # Line-by-line memory profiling (Story 2.5.1, optional)
+    "reportlab>=3.5.0,<5.0",  # PDF fixture generation
+    "coverage>=7.0.0,<8.0",  # Code coverage for generate_docs.py
+    "types-PyYAML>=6.0.0",  # Type stubs for mypy
+    "types-reportlab>=3.0.0",  # Type stubs for mypy (Story 3.5-10)
+    "types-openpyxl>=3.0.0",  # Type stubs for mypy (Story 3.5-10)
+    "types-toml>=0.10.0",  # Type stubs for toml library (Story 3.5-8)
+    "types-requests>=2.31.0",  # Type stubs for requests library (Story 3.5-11)
+    "structlog>=24.0.0",  # Structured logging for automation scripts (Story 3.5-8)
+    "toml>=0.10.0",  # TOML parsing for dependency auditor (Story 3.5-8)
+    "pandas>=2.0.0,<3.0",  # Story 3.6: CSV parser validation
+    "csvkit>=2.0.0,<3.0",  # Story 3.6: CLI parser validation
+    "httpx>=0.27.0,<1.0",  # FastAPI TestClient transport
+]
+
+# All optional dependencies
+all = [
+    "data-extraction-tool[ocr,dev]",
+]
+
+[project.scripts]
+data-extract = "data_extract.app:app"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/ai-data-extractor"
+Documentation = "https://github.com/yourusername/ai-data-extractor/blob/main/README.md"
+Repository = "https://github.com/yourusername/ai-data-extractor"
+Issues = "https://github.com/yourusername/ai-data-extractor/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml", "*.json", "*.txt"]
+infrastructure = ["*.yaml", "*.yml", "*.json"]
+cli = ["*.yaml", "*.yml", "*.json"]
+formatters = ["*.yaml", "*.yml"]
+extractors = ["*.yaml", "*.yml"]
+processors = ["*.yaml", "*.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=src --cov-report=term-missing"
+markers = [
+    "performance: marks tests as performance tests (deselect with '-m \"not performance\"')",
+    "slow: marks tests as slow running (deselect with '-m \"not slow\"')",
+    "P0: Critical path tests - always run (entry points, config, session, error handling)",
+    "P1: Core functionality tests - run on PR (features, happy paths, standard workflows)",
+    "P2: Extended coverage tests - run nightly (edge cases, performance, stress tests)",
+    "test_id(id): Unique test identifier for traceability (format: {epic}.{story}-{type}-{seq})",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]  # Line too long (handled by black)
+
+[tool.ruff.lint.per-file-ignores]
+# Test files may have unused variables for stub tests (RED phase ATDD)
+"tests/**/*.py" = ["F841"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+namespace_packages = true
+exclude = [
+    "src/(cli|extractors|processors|formatters|core|pipeline|infrastructure)/",
+]
+
+# Third-party libraries without type stubs
+[[tool.mypy.overrides]]
+module = [
+    "numpy.*",
+    "scipy.*",
+    "sklearn.*",
+    "joblib.*",
+    "pydantic.*",
+    "click.*",
+    "rich.*",
+    "structlog.*",
+    "textstat.*",
+    "typer.*",
+    "InquirerPy.*",
+    "cli.*",  # Brownfield CLI code
+    "data_extract.core.*",  # Brownfield code - excluded from type checking
+    "data_extract.cli.learning.*",  # Epic 5 stub - not yet implemented
+    "data_extract.cli.components.*",  # Epic 5 stub - not yet implemented
+    "data_extract.cli.exit_codes.*",  # Epic 5 stub - not yet implemented
+    "data_extract.cli.session.*",  # Epic 5 stub - not yet implemented
+    "data_extract.cli.config",  # Epic 5 config package
+    "data_extract.cli.config.*",  # Epic 5 config sub-modules
+]
+ignore_missing_imports = true

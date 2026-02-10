@@ -1,0 +1,882 @@
+<test-context id="bmad/bmm/workflows/4-implementation/build-test-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3-1-semantic-boundary-aware-chunking-engine</storyId>
+    <storyKey>3.1</storyKey>
+    <title>Semantic Boundary-Aware Chunking Engine</title>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Build Test Context Workflow</generator>
+    <testCasesFile>C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-cases\3.1-test-cases.md</testCasesFile>
+    <sourceStoryPath>C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-1-semantic-boundary-aware-chunking-engine.md</sourceStoryPath>
+  </metadata>
+
+  <testCases>
+    <summary>
+      <totalTests>34</totalTests>
+      <unitTests>24</unitTests>
+      <integrationTests>7</integrationTests>
+      <cliTests>0</cliTests>
+      <manualTests>3</manualTests>
+      <performanceTests>0</performanceTests>
+    </summary>
+    <testCaseList>
+      <!-- AC-3.1-1: Chunks Never Split Mid-Sentence (P0 - Critical) -->
+      <testCase id="TC-3.1-1-HP-01" ac="AC-3.1-1" type="Unit" scenario="Happy Path" critical="true">
+        <objective>Verify that basic chunking respects sentence boundaries in typical documents</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>All chunks end with complete sentences, ~4-6 chunks generated</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-1-EC-01" ac="AC-3.1-1" type="Unit" scenario="Edge Case" critical="true">
+        <objective>Verify that very long sentences (>chunk_size) become single chunks without splitting</objective>
+        <fixtures>tests/fixtures/normalized_results/very_long_sentences.json</fixtures>
+        <expectedOutcome>Single chunk with 700 tokens (exceeds chunk_size), warning logged</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-1-EC-02" ac="AC-3.1-1" type="Unit" scenario="Edge Case">
+        <objective>Verify that micro-sentences (<10 chars) are combined until chunk_size reached</objective>
+        <fixtures>tests/fixtures/normalized_results/micro_sentences.json</fixtures>
+        <expectedOutcome>Multiple micro-sentences combined into 1-2 chunks</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-1-EC-03" ac="AC-3.1-1" type="Unit" scenario="Edge Case">
+        <objective>Verify chunking handles text with no punctuation using spaCy statistical model</objective>
+        <fixtures>tests/fixtures/normalized_results/no_punctuation.json</fixtures>
+        <expectedOutcome>Chunks generated using spaCy statistical boundaries, 2-3 chunks</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-1-ERR-01" ac="AC-3.1-1" type="Unit" scenario="Error Case">
+        <objective>Verify empty ProcessingResult produces zero chunks without errors</objective>
+        <fixtures>None (inline creation)</fixtures>
+        <expectedOutcome>Zero chunks yielded, info log message, no exceptions</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-1-INT-01" ac="AC-3.1-1" type="Integration" scenario="Integration" critical="true">
+        <objective>Validate sentence boundary preservation with real audit documents (SOC2 report)</objective>
+        <fixtures>tests/fixtures/normalized_results/soc2_report.json</fixtures>
+        <expectedOutcome>15-25 chunks, all end with complete sentences, section headers preserved</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-2: Section Boundaries Respected When Possible (P0) -->
+      <testCase id="TC-3.1-2-HP-01" ac="AC-3.1-2" type="Unit" scenario="Happy Path" critical="true">
+        <objective>Verify chunking aligns with section boundaries when chunk_size permits</objective>
+        <fixtures>tests/fixtures/normalized_results/multi_section_policy.json</fixtures>
+        <expectedOutcome>3 chunks (one per section), metadata.section_context populated</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-2-EC-01" ac="AC-3.1-2" type="Unit" scenario="Edge Case">
+        <objective>Verify large sections (>chunk_size) are split at sentence boundaries within section</objective>
+        <fixtures>tests/fixtures/normalized_results/large_section.json</fixtures>
+        <expectedOutcome>~4 chunks with shared section_context, sentence boundaries preserved</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-2-EC-02" ac="AC-3.1-2" type="Unit" scenario="Edge Case">
+        <objective>Verify short sections (<chunk_size) become single chunks without artificial splitting</objective>
+        <fixtures>tests/fixtures/normalized_results/short_sections.json</fixtures>
+        <expectedOutcome>2-3 chunks combining multiple sections intelligently</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-2-ERR-01" ac="AC-3.1-2" type="Unit" scenario="Error Case">
+        <objective>Verify ProcessingResult without section markers chunks by sentence boundaries only</objective>
+        <fixtures>None (inline creation)</fixtures>
+        <expectedOutcome>Chunks based on sentences only, metadata.section_context empty</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-2-INT-01" ac="AC-3.1-2" type="Integration" scenario="Integration" critical="true">
+        <objective>Validate section boundary preservation with real risk register document</objective>
+        <fixtures>tests/fixtures/normalized_results/risk_register.json</fixtures>
+        <expectedOutcome>10-20 chunks with section hierarchy preserved in metadata</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-3: Chunk Size Configurable (P1) -->
+      <testCase id="TC-3.1-3-HP-01" ac="AC-3.1-3" type="Unit" scenario="Happy Path">
+        <objective>Verify ChunkingEngine accepts and applies various chunk_size configurations</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>chunk_size inversely proportional to chunk count (256→8, 512→4, 1024→2)</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-3-EC-01" ac="AC-3.1-3" type="Unit" scenario="Edge Case">
+        <objective>Verify chunk_size at lower boundary (128 tokens) works with warning</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Warning logged, 10-15 chunks with ~128 tokens each</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-3-EC-02" ac="AC-3.1-3" type="Unit" scenario="Edge Case">
+        <objective>Verify chunk_size at upper boundary (2048 tokens) works with warning</objective>
+        <fixtures>tests/fixtures/normalized_results/large_document.json</fixtures>
+        <expectedOutcome>Warning logged, 3-4 chunks with ~2048 tokens each</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-3-ERR-01" ac="AC-3.1-3" type="Unit" scenario="Error Case">
+        <objective>Verify invalid chunk_size (size=1) raises validation error</objective>
+        <fixtures>None</fixtures>
+        <expectedOutcome>ValueError with message: "chunk_size must be ≥ 128 tokens"</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-4: Chunk Overlap Configurable (P1) -->
+      <testCase id="TC-3.1-4-HP-01" ac="AC-3.1-4" type="Unit" scenario="Happy Path">
+        <objective>Verify ChunkingEngine applies overlap_pct correctly in sliding window</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Overlap verified: 0.15→76 tokens, 0.0→0 tokens, 0.2→102 tokens</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-4-EC-01" ac="AC-3.1-4" type="Unit" scenario="Edge Case">
+        <objective>Verify overlap_pct at lower boundary (0.0) produces contiguous chunks</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Zero token overlap, contiguous chunks, no gaps in coverage</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-4-EC-02" ac="AC-3.1-4" type="Unit" scenario="Edge Case">
+        <objective>Verify overlap_pct at upper boundary (0.5) produces 50% overlap with warning</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Warning logged, 256-token overlap (50%), significant duplication</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-4-ERR-01" ac="AC-3.1-4" type="Unit" scenario="Error Case">
+        <objective>Verify invalid overlap_pct (overlap=1.0) raises validation error</objective>
+        <fixtures>None</fixtures>
+        <expectedOutcome>ValueError with message: "overlap_pct must be in range 0.0-0.5"</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-5: Sentence Tokenization Uses spaCy (P0) -->
+      <testCase id="TC-3.1-5-HP-01" ac="AC-3.1-5" type="Unit" scenario="Happy Path">
+        <objective>Verify ChunkingEngine uses injected SentenceSegmenter dependency</objective>
+        <fixtures>None (mock)</fixtures>
+        <expectedOutcome>Mock SentenceSegmenter.segment() called exactly once</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-5-EC-01" ac="AC-3.1-5" type="Integration" scenario="Edge Case">
+        <objective>Verify spaCy model loaded lazily on first use (not during __init__)</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Model loaded on first chunk_document() call, cached for reuse</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-5-INT-01" ac="AC-3.1-5" type="Integration" scenario="Integration">
+        <objective>Verify spaCy model version logged in ChunkMetadata.processing_version</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>processing_version contains "en_core_web_md-3.7.x"</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-5-INT-02" ac="AC-3.1-5" type="Integration" scenario="Integration" critical="true">
+        <objective>Validate spaCy sentence boundary detection accuracy with real documents</objective>
+        <fixtures>tests/fixtures/normalized_results/soc2_report.json</fixtures>
+        <expectedOutcome>95%+ sentence boundary accuracy, no mid-sentence splits</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-6: Edge Cases Handled (P0) -->
+      <testCase id="TC-3.1-6-HP-01" ac="AC-3.1-6" type="Unit" scenario="Happy Path">
+        <objective>Verify typical document (mixed sentence lengths) chunks successfully</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>4-6 chunks, no errors/warnings, all sentences included</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-EC-01" ac="AC-3.1-6" type="Unit" scenario="Edge Case" critical="true">
+        <objective>Verify very long sentence (>chunk_size) becomes single chunk with warning</objective>
+        <fixtures>tests/fixtures/normalized_results/very_long_sentences.json</fixtures>
+        <expectedOutcome>Single chunk with 700 tokens, warning logged</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-EC-02" ac="AC-3.1-6" type="Unit" scenario="Edge Case">
+        <objective>Verify micro-sentences (<10 chars) are combined until chunk_size reached</objective>
+        <fixtures>tests/fixtures/normalized_results/micro_sentences.json</fixtures>
+        <expectedOutcome>1-2 chunks with combined micro-sentences</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-EC-03" ac="AC-3.1-6" type="Unit" scenario="Edge Case">
+        <objective>Verify short section (<chunk_size) becomes single chunk without artificial splitting</objective>
+        <fixtures>tests/fixtures/normalized_results/short_sections.json</fixtures>
+        <expectedOutcome>Single chunk with 200 tokens, no padding</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-EC-04" ac="AC-3.1-6" type="Unit" scenario="Edge Case">
+        <objective>Verify empty normalized document produces zero chunks with info log</objective>
+        <fixtures>None (inline creation)</fixtures>
+        <expectedOutcome>Zero chunks, info log message, no errors</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-ERR-01" ac="AC-3.1-6" type="Unit" scenario="Error Case">
+        <objective>Verify ProcessingResult with None normalized_text raises clear error</objective>
+        <fixtures>None (inline creation)</fixtures>
+        <expectedOutcome>ValueError with message: "normalized_text cannot be None"</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-6-INT-01" ac="AC-3.1-6" type="Integration" scenario="Integration" critical="true">
+        <objective>Validate edge case handling with real edge case documents (10,000-word single sentence)</objective>
+        <fixtures>tests/fixtures/normalized_results/extreme_long_sentence.json</fixtures>
+        <expectedOutcome>Single extreme chunk with ~10,000 words, warning logged</expectedOutcome>
+      </testCase>
+
+      <!-- AC-3.1-7: Chunking is Deterministic (P0 - Critical) -->
+      <testCase id="TC-3.1-7-HP-01" ac="AC-3.1-7" type="Unit" scenario="Happy Path" critical="true">
+        <objective>Verify same ProcessingResult produces identical chunks across 10 runs</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>All 10 runs produce byte-for-byte identical chunks</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-7-EC-01" ac="AC-3.1-7" type="Unit" scenario="Edge Case" critical="true">
+        <objective>Verify chunk_id generation is deterministic (derived from source + position)</objective>
+        <fixtures>None (inline creation)</fixtures>
+        <expectedOutcome>Chunk IDs follow pattern: test_policy_chunk_000, test_policy_chunk_001</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-7-EC-02" ac="AC-3.1-7" type="Unit" scenario="Edge Case">
+        <objective>Verify different configurations produce different chunks (sensitivity test)</objective>
+        <fixtures>tests/fixtures/normalized_results/typical_policy.json</fixtures>
+        <expectedOutcome>Different configs→different chunks, same config→identical chunks</expectedOutcome>
+      </testCase>
+      <testCase id="TC-3.1-7-INT-01" ac="AC-3.1-7" type="Integration" scenario="Integration" critical="true">
+        <objective>Validate determinism with real audit documents across spaCy model versions</objective>
+        <fixtures>tests/fixtures/normalized_results/soc2_report.json</fixtures>
+        <expectedOutcome>5 runs produce identical chunks, spaCy version "en_core_web_md-3.7.2"</expectedOutcome>
+      </testCase>
+    </testCaseList>
+  </testCases>
+
+  <fixtures>
+    <fixtureFiles>
+      <!-- EXISTING FIXTURES (Ready to Use) -->
+      <fixture path="tests/fixtures/spacy_gold_standard.json" category="spaCy Validation" status="exists">
+        <description>Gold standard corpus with 55 test cases, 135 sentences across 29 categories</description>
+        <size>~50 KB</size>
+        <usedBy>TC-3.1-5-INT-02 (sentence boundary accuracy validation)</usedBy>
+      </fixture>
+      <fixture path="tests/fixtures/real-world-files/COBIT-2019-Design-Guide_res_eng_1218.pdf" category="Real Documents" status="exists">
+        <description>COBIT governance framework PDF</description>
+        <size>~3 MB</size>
+        <usedBy>Integration testing (can generate ProcessingResult via Epic 2)</usedBy>
+      </fixture>
+      <fixture path="tests/fixtures/normalization/expected_clean_outputs/excessive_whitespace_clean.txt" category="Normalized Text" status="exists">
+        <description>Normalized text example</description>
+        <size>~2 KB</size>
+        <usedBy>Reference for normalized text structure</usedBy>
+      </fixture>
+
+      <!-- DYNAMIC FIXTURES (Generated by conftest.py) -->
+      <fixture path="N/A (dynamic)" category="Dynamic" status="generated">
+        <description>sample_processing_result (conftest.py) - ProcessingResult with enriched content blocks</description>
+        <scope>function</scope>
+        <usedBy>Unit tests requiring ProcessingResult input</usedBy>
+      </fixture>
+    </fixtureFiles>
+
+    <generationScripts>
+      <script path="scripts/generate_chunking_fixtures.py" status="to-be-created">
+        <description>Generate all 11 ProcessingResult JSON fixtures for Story 3.1</description>
+        <fixtures>
+          <generates>tests/fixtures/normalized_results/typical_policy.json</generates>
+          <generates>tests/fixtures/normalized_results/soc2_report.json</generates>
+          <generates>tests/fixtures/normalized_results/risk_register.json</generates>
+          <generates>tests/fixtures/normalized_results/very_long_sentences.json</generates>
+          <generates>tests/fixtures/normalized_results/micro_sentences.json</generates>
+          <generates>tests/fixtures/normalized_results/no_punctuation.json</generates>
+          <generates>tests/fixtures/normalized_results/multi_section_policy.json</generates>
+          <generates>tests/fixtures/normalized_results/large_section.json</generates>
+          <generates>tests/fixtures/normalized_results/short_sections.json</generates>
+          <generates>tests/fixtures/normalized_results/large_document.json</generates>
+          <generates>tests/fixtures/normalized_results/extreme_long_sentence.json</generates>
+        </fixtures>
+        <executionCommand>python scripts/generate_chunking_fixtures.py</executionCommand>
+        <estimatedSize>5-10 MB total (11 JSON files)</estimatedSize>
+      </script>
+    </generationScripts>
+
+    <missingFixtures>
+      <!-- CRITICAL: All 11 fixtures required for Story 3.1 test cases -->
+      <missing path="tests/fixtures/normalized_results/typical_policy.json" priority="P0">
+        <description>ProcessingResult: 5 paragraphs, ~2000 words, normal sentence structure</description>
+        <characteristics>Epic 2 Normalize output, mixed sentence lengths, typical policy document</characteristics>
+        <usedBy>8 test cases (TC-3.1-1-HP-01, TC-3.1-3-HP-01, TC-3.1-3-EC-01, TC-3.1-4-EC-01, TC-3.1-4-EC-02, TC-3.1-6-HP-01, TC-3.1-7-HP-01, TC-3.1-7-EC-02)</usedBy>
+        <generationApproach>Run Epic 2 pipeline on sample policy document OR synthetic generation</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/soc2_report.json" priority="P0">
+        <description>ProcessingResult: Real SOC2 report with section hierarchy</description>
+        <characteristics>Section headers (Risk Assessment, etc.), 15-25 expected chunks, entity tags</characteristics>
+        <usedBy>3 test cases (TC-3.1-1-INT-01, TC-3.1-5-INT-02, TC-3.1-7-INT-01)</usedBy>
+        <generationApproach>Run Epic 2 pipeline on SOC2 report template OR use real-world-files/ PDF</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/risk_register.json" priority="P0">
+        <description>ProcessingResult: Risk register with multi-level section hierarchy</description>
+        <characteristics>Section hierarchy: Risk Assessment > Identified Risks > Financial Risks</characteristics>
+        <usedBy>1 test case (TC-3.1-2-INT-01)</usedBy>
+        <generationApproach>Synthetic generation with nested ContentBlocks for sections</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/very_long_sentences.json" priority="P0">
+        <description>ProcessingResult: Contains 700-token sentence (complex legal clause)</description>
+        <characteristics>Single sentence exceeding chunk_size=512, tests graceful handling</characteristics>
+        <usedBy>2 test cases (TC-3.1-1-EC-01, TC-3.1-6-EC-01)</usedBy>
+        <generationApproach>Synthetic generation: create long legal-style sentence, wrap in ProcessingResult</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/micro_sentences.json" priority="P1">
+        <description>ProcessingResult: 20 micro-sentences (<10 chars each)</description>
+        <characteristics>Short sentences: "Yes.", "No.", "OK.", "Maybe." - tests sentence combining</characteristics>
+        <usedBy>2 test cases (TC-3.1-1-EC-02, TC-3.1-6-EC-02)</usedBy>
+        <generationApproach>Synthetic generation: create list of micro-sentences, wrap in ProcessingResult</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/no_punctuation.json" priority="P1">
+        <description>ProcessingResult: 1000-word continuous text with no punctuation marks</description>
+        <characteristics>No periods/commas/punctuation, tests spaCy statistical model fallback</characteristics>
+        <usedBy>1 test case (TC-3.1-1-EC-03)</usedBy>
+        <generationApproach>Synthetic generation: remove all punctuation from text, wrap in ProcessingResult</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/multi_section_policy.json" priority="P1">
+        <description>ProcessingResult: 3 sections (Overview, Methodology, Findings), ~400 tokens each</description>
+        <characteristics>ContentBlocks with section markers, fits in chunk_size=512</characteristics>
+        <usedBy>1 test case (TC-3.1-2-HP-01)</usedBy>
+        <generationApproach>Synthetic generation with ContentBlocks marking section boundaries</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/large_section.json" priority="P1">
+        <description>ProcessingResult: Single 2000-token section</description>
+        <characteristics>Large section requiring splitting at sentence boundaries</characteristics>
+        <usedBy>1 test case (TC-3.1-2-EC-01)</usedBy>
+        <generationApproach>Synthetic generation: create long section, wrap in ProcessingResult</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/short_sections.json" priority="P1">
+        <description>ProcessingResult: 5 short sections (100 tokens each)</description>
+        <characteristics>Multiple small sections testing intelligent combining</characteristics>
+        <usedBy>2 test cases (TC-3.1-2-EC-02, TC-3.1-6-EC-03)</usedBy>
+        <generationApproach>Synthetic generation: create 5 short sections, wrap in ProcessingResult</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/large_document.json" priority="P2">
+        <description>ProcessingResult: 3000-word document</description>
+        <characteristics>Large document for upper boundary chunk_size=2048 testing</characteristics>
+        <usedBy>1 test case (TC-3.1-3-EC-02)</usedBy>
+        <generationApproach>Synthetic generation or Epic 2 pipeline on large document</generationApproach>
+      </missing>
+      <missing path="tests/fixtures/normalized_results/extreme_long_sentence.json" priority="P2">
+        <description>ProcessingResult: 10,000-word run-on sentence (extreme edge case)</description>
+        <characteristics>Extreme edge case for stress testing graceful degradation</characteristics>
+        <usedBy>1 test case (TC-3.1-6-INT-01)</usedBy>
+        <generationApproach>Synthetic generation: create very long run-on sentence, wrap in ProcessingResult</generationApproach>
+      </missing>
+    </missingFixtures>
+
+    <fixtureDocumentation>
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\README.md</path>
+      <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
+      <updateRequired>true</updateRequired>
+      <updateNote>Add section for normalized_results/ fixtures with generation script reference</updateNote>
+    </fixtureDocumentation>
+  </fixtures>
+
+  <helpers>
+    <globalFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\conftest.py</path>
+        <fixtures>
+          <!-- ContentBlock Fixtures -->
+          <fixture name="sample_content_block" scope="function">
+            <description>Basic paragraph ContentBlock with sample text, position, metadata, confidence=0.95</description>
+            <returns>ContentBlock</returns>
+          </fixture>
+          <fixture name="sample_heading_block" scope="function">
+            <description>Heading ContentBlock with type=HEADING, level=1</description>
+            <returns>ContentBlock</returns>
+          </fixture>
+          <fixture name="sample_table_block" scope="function">
+            <description>Table ContentBlock with TableMetadata (2x2 table with headers)</description>
+            <returns>ContentBlock</returns>
+          </fixture>
+          <fixture name="sample_image_block" scope="function">
+            <description>Image ContentBlock with PNG metadata and alt_text</description>
+            <returns>ContentBlock</returns>
+          </fixture>
+          <fixture name="sample_content_blocks" scope="function">
+            <description>List of mixed ContentBlocks (heading, 2 paragraphs, table, image)</description>
+            <returns>List[ContentBlock]</returns>
+          </fixture>
+
+          <!-- ExtractionResult Fixtures -->
+          <fixture name="sample_document_metadata" scope="function">
+            <description>DocumentMetadata with sample values (uses tmp_path for test file)</description>
+            <returns>DocumentMetadata</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="sample_extraction_result" scope="function">
+            <description>Successful ExtractionResult with success=True, content_blocks, no errors</description>
+            <returns>ExtractionResult</returns>
+            <dependencies>sample_content_blocks, sample_document_metadata</dependencies>
+          </fixture>
+          <fixture name="failed_extraction_result" scope="function">
+            <description>Failed ExtractionResult with success=False, errors, warnings</description>
+            <returns>ExtractionResult</returns>
+            <dependencies>sample_document_metadata</dependencies>
+          </fixture>
+
+          <!-- ProcessingResult Fixtures (CRITICAL for Story 3.1) -->
+          <fixture name="sample_processing_result" scope="function">
+            <description>Successful ProcessingResult with enriched content blocks (Epic 2 output model)</description>
+            <returns>ProcessingResult</returns>
+            <dependencies>sample_content_blocks, sample_document_metadata</dependencies>
+            <note>PRIMARY fixture for unit tests - represents Epic 2 Normalize stage output</note>
+          </fixture>
+
+          <!-- Temporary File Fixtures -->
+          <fixture name="temp_test_file" scope="function">
+            <description>Temporary text file with multi-paragraph content, auto-cleanup via tmp_path</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="empty_test_file" scope="function">
+            <description>Empty file for edge case testing</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="large_test_file" scope="function">
+            <description>~1MB text file (50,000 lines) for performance testing</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="fixture_dir" scope="function">
+            <description>Returns Path to tests/fixtures/ directory</description>
+            <returns>Path</returns>
+          </fixture>
+
+          <!-- Validation Helper Fixtures -->
+          <fixture name="validate_extraction_result" scope="function">
+            <description>Returns callable that validates ExtractionResult structure (checks types, success logic, content blocks)</description>
+            <returns>Callable[[ExtractionResult], None]</returns>
+          </fixture>
+          <fixture name="validate_processing_result" scope="function">
+            <description>Returns callable that validates ProcessingResult structure (checks types, quality_score range 0-100)</description>
+            <returns>Callable[[ProcessingResult], None]</returns>
+          </fixture>
+        </fixtures>
+      </conftest>
+    </globalFixtures>
+
+    <integrationFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\integration\conftest.py</path>
+        <fixtures>
+          <!-- Sample Document Fixtures (Dynamically Generated) -->
+          <fixture name="sample_docx_file" scope="function">
+            <description>Creates valid DOCX with headings, paragraphs, 3x3 table, metadata</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="sample_pdf_file" scope="function">
+            <description>Creates PDF using reportlab with 2 pages, headings, paragraphs</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+          <fixture name="large_docx_file" scope="function">
+            <description>Large DOCX with 100+ paragraphs (~1MB) for performance testing</description>
+            <returns>Path</returns>
+            <dependencies>tmp_path</dependencies>
+          </fixture>
+
+          <!-- Pipeline Fixtures (CRITICAL for Integration Tests) -->
+          <fixture name="configured_pipeline" scope="function">
+            <description>ExtractionPipeline with registered extractors, processors, formatters</description>
+            <returns>ExtractionPipeline</returns>
+            <note>Enables end-to-end Epic 2 -> Epic 3 integration testing</note>
+          </fixture>
+
+          <!-- Performance Testing Fixtures -->
+          <fixture name="performance_timer" scope="function">
+            <description>Simple Timer class with start(), stop(), elapsed property</description>
+            <returns>Timer</returns>
+            <note>Use for NFR-P3 latency validation (<2 sec per 10k words)</note>
+          </fixture>
+        </fixtures>
+      </conftest>
+    </integrationFixtures>
+
+    <utilityFunctions>
+      <!-- Helper Functions to Implement for Story 3.1 -->
+      <function name="verify_token_overlap" purpose="validate sliding window overlap">
+        <signature>verify_token_overlap(chunk_i: Chunk, chunk_i_plus_1: Chunk, expected_overlap_tokens: int) -> None</signature>
+        <description>Validates that last N tokens of chunk_i appear in first N tokens of chunk_i_plus_1</description>
+        <usedBy>TC-3.1-4-HP-01, TC-3.1-4-EC-01, TC-3.1-4-EC-02</usedBy>
+        <implementation>To be created in tests/unit/test_chunk/conftest.py or tests/conftest.py</implementation>
+      </function>
+      <function name="verify_sentence_boundary" purpose="check chunk ends with sentence punctuation">
+        <signature>verify_sentence_boundary(chunk_text: str) -> bool</signature>
+        <description>Returns True if chunk_text ends with sentence-ending punctuation (., !, ?, :)</description>
+        <usedBy>TC-3.1-1-HP-01, TC-3.1-1-INT-01, TC-3.1-5-INT-02</usedBy>
+        <implementation>To be created in tests/unit/test_chunk/conftest.py</implementation>
+      </function>
+      <function name="serialize_chunks_to_json" purpose="determinism byte comparison">
+        <signature>serialize_chunks_to_json(chunks: List[Chunk]) -> str</signature>
+        <description>Serializes chunks to JSON string for byte-for-byte comparison in determinism tests</description>
+        <usedBy>TC-3.1-7-HP-01, TC-3.1-7-INT-01</usedBy>
+        <implementation>To be created in tests/unit/test_chunk/conftest.py</implementation>
+      </function>
+      <function name="count_tokens" purpose="token estimation">
+        <signature>count_tokens(text: str) -> int</signature>
+        <description>Estimates token count using industry standard: len(text) // 4</description>
+        <usedBy>Multiple test cases for chunk size validation</usedBy>
+        <implementation>To be created in tests/unit/test_chunk/conftest.py or src/data_extract/chunk/engine.py</implementation>
+      </function>
+    </utilityFunctions>
+  </helpers>
+
+  <configuration>
+    <pytest>
+      <configFile>C:\Users\Andrew\projects\data-extraction-tool-1\pytest.ini</configFile>
+      <markers>
+        <marker name="unit">Unit tests (fast, isolated)</marker>
+        <marker name="integration">Integration tests (slower, multiple components)</marker>
+        <marker name="slow">Tests that may take more than 1 second</marker>
+        <marker name="performance">Performance and benchmarking tests</marker>
+        <marker name="chunking">Chunking module tests (Epic 3) - PRIMARY MARKER FOR STORY 3.1</marker>
+        <marker name="sentence_boundary">Sentence boundary preservation tests (AC-3.1-1)</marker>
+        <marker name="determinism">Determinism and reproducibility tests (AC-3.1-7)</marker>
+        <marker name="edge_case">Edge case handling tests (AC-3.1-6)</marker>
+        <marker name="configuration">Configuration validation tests (AC-3.1-3, AC-3.1-4)</marker>
+        <marker name="spacy_integration">spaCy SentenceSegmenter integration tests (AC-3.1-5)</marker>
+      </markers>
+      <settings>
+        <setting name="python_files">test_*.py</setting>
+        <setting name="python_classes">Test*</setting>
+        <setting name="python_functions">test_*</setting>
+        <setting name="testpaths">tests</setting>
+        <setting name="minversion">3.11</setting>
+        <setting name="addopts">-v -ra --showlocals --strict-markers</setting>
+      </settings>
+      <coverage>
+        <source>src</source>
+        <omit>*/tests/*, */test_*, */__pycache__/*, */venv/*, */.venv/*</omit>
+        <fail_under>60</fail_under>
+        <precision>2</precision>
+        <show_missing>true</show_missing>
+        <target_for_story_3_1>>90% for src/data_extract/chunk/ module</target_for_story_3_1>
+      </coverage>
+    </pytest>
+    <environment>
+      <variable name="PYTHONPATH" value="{project-root}/src">Required for module imports</variable>
+      <variable name="SPACY_MODEL" value="en_core_web_md">spaCy model for sentence segmentation</variable>
+      <variable name="PYTEST_TIMEOUT" value="300">5-minute timeout for slow tests (optional, requires pytest-timeout)</variable>
+    </environment>
+  </configuration>
+
+  <codeUnderTest>
+    <!-- PRIMARY: New Code to Implement -->
+    <artifact path="src/data_extract/chunk/engine.py" type="greenfield" priority="P0">
+      <description>ChunkingEngine class - orchestrates semantic chunking with sentence/section boundary respect</description>
+      <components>
+        <class name="ChunkingEngine">
+          <implements>PipelineStage[Document, List[Chunk]]</implements>
+          <methods>
+            <method name="__init__">
+              <signature>__init__(self, segmenter: SentenceSegmenter, chunk_size: int = 512, overlap_pct: float = 0.15)</signature>
+              <validation>chunk_size in range 128-2048, overlap_pct in range 0.0-0.5</validation>
+            </method>
+            <method name="chunk_document">
+              <signature>chunk_document(self, result: ProcessingResult) -> Iterator[Chunk]</signature>
+              <behavior>Yields chunks one at a time (streaming generator pattern)</behavior>
+            </method>
+          </methods>
+        </class>
+      </components>
+      <dependencies>SentenceSegmenter (injected), ProcessingResult (Epic 2 input)</dependencies>
+      <testFiles>tests/unit/test_chunk/test_engine.py, tests/integration/test_chunk/test_chunking_pipeline.py</testFiles>
+    </artifact>
+
+    <artifact path="src/data_extract/chunk/models.py" type="greenfield" priority="P0">
+      <description>Chunk data models: Chunk, ChunkMetadata, QualityScore with Pydantic v2 validation</description>
+      <components>
+        <class name="Chunk">
+          <type>@dataclass(frozen=True)</type>
+          <fields>chunk_id, text, metadata, entities, quality</fields>
+          <methods>to_dict(), to_csv_row(), to_txt()</methods>
+        </class>
+        <class name="ChunkMetadata">
+          <type>@dataclass(frozen=True)</type>
+          <fields>chunk_id, source_file, source_hash, document_type, section_context, position_index, entity_tags, quality, word_count, token_count, created_at, processing_version</fields>
+        </class>
+        <class name="QualityScore">
+          <type>@dataclass(frozen=True)</type>
+          <fields>readability_score, coherence_score, completeness_score</fields>
+          <note>Placeholder for Story 3.3 - defaults to 0.0</note>
+        </class>
+      </components>
+      <testFiles>tests/unit/test_chunk/test_models.py (to be created)</testFiles>
+    </artifact>
+
+    <artifact path="src/data_extract/chunk/__init__.py" type="greenfield" priority="P1">
+      <description>Package initialization - exports ChunkingEngine, Chunk, ChunkMetadata</description>
+      <exports>ChunkingEngine, Chunk, ChunkMetadata, QualityScore</exports>
+    </artifact>
+
+    <!-- DEPENDENCIES: Existing Code Referenced -->
+    <artifact path="src/data_extract/core/models.py" type="existing" priority="reference">
+      <description>Core data models from Epic 2</description>
+      <exports>Document (Epic 2 Normalizer output), ProcessingContext, Metadata, Entity</exports>
+      <note>ProcessingResult is the primary input to ChunkingEngine</note>
+    </artifact>
+
+    <artifact path="src/data_extract/utils/nlp.py" type="existing" priority="reference">
+      <description>NLP utilities with spaCy integration</description>
+      <exports>get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[int]</exports>
+      <behavior>Lazy-loads en_core_web_md on first use, caches globally, returns sentence boundary character offsets</behavior>
+      <performance>Model load ~1.2 sec (one-time), processing ~10ms per 1000 words</performance>
+    </artifact>
+
+    <artifact path="src/data_extract/core/pipeline.py" type="existing" priority="reference">
+      <description>PipelineStage protocol definition</description>
+      <exports>PipelineStage[Input, Output] protocol</exports>
+      <contract>process(input: Input, context: ProcessingContext) -> Output</contract>
+      <note>ChunkingEngine must implement this protocol for composability</note>
+    </artifact>
+
+    <artifact path="src/data_extract/core/exceptions.py" type="existing" priority="reference">
+      <description>Error hierarchy for chunking error handling</description>
+      <exports>ProcessingError (recoverable), CriticalError (unrecoverable)</exports>
+      <usage>Raise ProcessingError for edge cases (very long sentences), CriticalError for config errors</usage>
+    </artifact>
+
+    <artifact path="src/data_extract/normalize/normalizer.py" type="existing" priority="reference">
+      <description>Pattern reference for PipelineStage implementation</description>
+      <note>Reference implementation for error handling, metadata enrichment, factory pattern</note>
+    </artifact>
+  </codeUnderTest>
+
+  <integrationPoints>
+    <!-- External Dependencies -->
+    <integration type="external-package" name="spacy" version="3.7.2+">
+      <purpose>Sentence boundary detection via get_sentence_boundaries()</purpose>
+      <setup>pip install spacy>=3.7.2</setup>
+      <model>en_core_web_md (43MB) - download via: python -m spacy download en_core_web_md</model>
+      <performance>Model load ~1.2 sec (cached globally), processing ~10ms per 1000 words</performance>
+      <testStrategy>Unit tests mock SentenceSegmenter, integration tests use real model</testStrategy>
+      <ciCaching>spaCy models cached in CI (transparent to developers)</ciCaching>
+    </integration>
+
+    <integration type="external-package" name="pydantic" version="2.x">
+      <purpose>Data model validation for Chunk, ChunkMetadata, QualityScore</purpose>
+      <setup>pip install pydantic>=2.0</setup>
+      <testStrategy>Unit tests verify validation logic (invalid data raises ValidationError)</testStrategy>
+    </integration>
+
+    <integration type="external-package" name="structlog">
+      <purpose>Structured logging for audit trail (from ProcessingContext.logger)</purpose>
+      <setup>pip install structlog</setup>
+      <usage>Log warnings (very long sentences), info (empty documents), errors (validation failures)</usage>
+    </integration>
+
+    <!-- Internal Module Dependencies -->
+    <integration type="epic2-output" name="ProcessingResult">
+      <purpose>Normalized document input from Epic 2 Normalize stage</purpose>
+      <source>src/data_extract/core/models.py</source>
+      <contract>
+        <fields>normalized_text (str), entities (List[Entity]), metadata (DocumentMetadata), content_blocks (List[ContentBlock])</fields>
+      </contract>
+      <testStrategy>Use sample_processing_result fixture (conftest.py) for unit tests, real Epic 2 outputs for integration</testStrategy>
+    </integration>
+
+    <integration type="internal-module" name="get_sentence_boundaries">
+      <purpose>spaCy-based sentence boundary detection utility</purpose>
+      <source>src/data_extract/utils/nlp.py</source>
+      <signature>get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[int]</signature>
+      <behavior>Returns character offsets where sentences end</behavior>
+      <testStrategy>Unit tests mock return values, integration tests validate accuracy with spacy_gold_standard.json</testStrategy>
+    </integration>
+
+    <integration type="protocol" name="PipelineStage">
+      <purpose>ChunkingEngine implements PipelineStage[Document, List[Chunk]]</purpose>
+      <source>src/data_extract/core/pipeline.py</source>
+      <contract>process(document: Document, context: ProcessingContext) -> List[Chunk]</contract>
+      <benefit>Enables pipeline composition, testing, gradual refactoring</benefit>
+    </integration>
+
+    <!-- File System Integration -->
+    <integration type="filesystem" name="tests/fixtures/normalized_results/">
+      <purpose>ProcessingResult JSON fixtures for test data</purpose>
+      <setup>Create directory: mkdir -p tests/fixtures/normalized_results/</setup>
+      <permissions>Read-only for tests, write for fixture generation script</permissions>
+      <testStrategy>Load fixtures via json.load() in test setup</testStrategy>
+    </integration>
+
+    <!-- Environment Variables -->
+    <integration type="environment" name="PYTHONPATH">
+      <purpose>Ensure src/ is in Python path for module imports</purpose>
+      <setup>export PYTHONPATH={project-root}/src (Unix) OR set PYTHONPATH={project-root}\src (Windows)</setup>
+      <testStrategy>pytest automatically sets PYTHONPATH if pyproject.toml configured</testStrategy>
+    </integration>
+  </integrationPoints>
+
+  <storyContext>
+    <!-- Story Development Context from 3-1-semantic-boundary-aware-chunking-engine.context.xml -->
+    <storyContextSummary>
+      <codeArtifacts>
+        <artifact path="src/data_extract/core/models.py" purpose="Core data models: Document (Epic 2 input), Chunk (Epic 3 output), ProcessingContext (pipeline state), Metadata (provenance tracking), Entity" />
+        <artifact path="src/data_extract/utils/nlp.py" purpose="CRITICAL: get_sentence_boundaries() utility - spaCy-based sentence boundary detection, returns character offsets, lazy-loads en_core_web_md with caching" />
+        <artifact path="src/data_extract/core/pipeline.py" purpose="PipelineStage protocol - core contract for ChunkingEngine to implement: process(Input, ProcessingContext) -> Output" />
+        <artifact path="src/data_extract/core/exceptions.py" purpose="Error hierarchy: ProcessingError (recoverable), CriticalError (unrecoverable) - for chunking error handling" />
+        <artifact path="src/data_extract/normalize/normalizer.py" purpose="Pattern reference for PipelineStage implementation, error handling, metadata enrichment, factory pattern" />
+        <artifact path="src/data_extract/chunk/engine.py" purpose="PRIMARY: ChunkingEngine class - orchestrates semantic chunking with sentence/section boundary respect, configurable chunk_size and overlap_pct" />
+        <artifact path="src/data_extract/chunk/models.py" purpose="Chunk data models: Chunk, ChunkMetadata (frozen), QualityScore with Pydantic v2 validation" />
+      </codeArtifacts>
+
+      <documentation>
+        <doc path="docs/tech-spec-epic-3.md" relevance="Core technical specification for chunking design, ChunkingEngine architecture, EntityPreserver, performance optimizations, data contracts" />
+        <doc path="docs/architecture.md" relevance="Epic 3 architecture mapping, Pipeline Stage Pattern, Normalize->Chunk data contract, immutability principle" />
+        <doc path="docs/architecture/FOUNDATION.md" relevance="ContentBlock atomic unit design, immutability principle for all data models" />
+        <doc path="docs/performance-baselines-story-2.5.1.md" relevance="NFR-P3 and NFR-P4 requirements: &lt;5 sec individual file, deterministic chunking (100% reproducibility)" />
+        <doc path="docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md" relevance="spaCy dependency context, get_sentence_boundaries() function signature, model performance characteristics (load ~2-3s, 10ms per 1000 words)" />
+      </documentation>
+
+      <dependencies>
+        <dependency type="external-package" name="spacy" version="3.7.2+" purpose="Sentence boundary detection via get_sentence_boundaries()" />
+        <dependency type="external-package" name="pydantic" version="2.x" purpose="Data model validation for Chunk, ChunkMetadata, QualityScore" />
+        <dependency type="external-package" name="structlog" purpose="Structured logging for audit trail (from ProcessingContext.logger)" />
+        <dependency type="spacy-model" name="en_core_web_md" size="43MB" purpose="Sentence segmentation, rule-based+statistical parser for chunking boundaries" />
+        <dependency type="internal-module" name="src/data_extract/core/models" exports="Document, Chunk, ProcessingContext, Metadata, Entity" />
+        <dependency type="internal-module" name="src/data_extract/core/pipeline" exports="PipelineStage" />
+        <dependency type="internal-module" name="src/data_extract/core/exceptions" exports="ProcessingError, CriticalError" />
+        <dependency type="internal-module" name="src/data_extract/utils/nlp" exports="get_sentence_boundaries" />
+        <dependency type="epic2-output" name="ProcessingResult" purpose="Normalized document with text, entities, metadata from Normalize stage" />
+      </dependencies>
+
+      <constraints>
+        <constraint id="ARCH-001" description="All data models must be immutable (frozen=True dataclasses) per ADR-001 - prevents pipeline state corruption" />
+        <constraint id="ARCH-002" description="ChunkingEngine must implement PipelineStage[Document, List[Chunk]] protocol - enables composability and testing" />
+        <constraint id="ARCH-003" description="Use streaming generator pattern (yield chunks, not list) for memory efficiency - no buffering" />
+        <constraint id="PERF-P3" description="NFR-P3: 10,000-word document chunks in &lt;2 seconds (including spaCy model load amortized)" />
+        <constraint id="PERF-P4" description="NFR-P4: Deterministic chunking - same input always produces identical chunks (100% reproducibility, no timestamps in IDs)" />
+        <constraint id="QUALITY-001" description="All code must pass: black (100 char lines), ruff (linting), mypy strict mode - enforced by pre-commit hooks" />
+        <constraint id="QUALITY-002" description="Run quality gates BEFORE committing (shift-left approach) - established pattern from Epic 2" />
+        <constraint id="TEST-001" description="Unit tests: &gt;90% coverage for src/data_extract/chunk/ module" />
+        <constraint id="TEST-002" description="Integration tests: Epic 2 -> Epic 3 pipeline with real audit documents (COBIT, NIST, OWASP)" />
+        <constraint id="TEST-003" description="Determinism tests: Run same document 10 times, verify byte-for-byte identical output" />
+        <constraint id="ERROR-001" description="Follow graceful degradation pattern: log warnings, continue processing (continue-on-error) - no batch failures on single doc error" />
+        <constraint id="ERROR-002" description="ProcessingError for recoverable errors, CriticalError for unrecoverable - follow error hierarchy" />
+        <constraint id="MODULE-001" description="No brownfield dependencies - Epic 3 is pure greenfield in src/data_extract/chunk/" />
+      </constraints>
+
+      <interfaces>
+        <interface name="PipelineStage[Document, List[Chunk]]" path="src/data_extract/core/pipeline.py" purpose="Core protocol - ChunkingEngine must implement process(document: Document, context: ProcessingContext) -> List[Chunk]" />
+        <interface name="Document (Input)" path="src/data_extract/core/models.py" purpose="Epic 2 Normalizer output: id, text, entities, metadata, structure" />
+        <interface name="Chunk (Output)" path="src/data_extract/core/models.py" purpose="Epic 3 primary output: id, text, document_id, position_index, token_count, word_count, entities, section_context, quality_score, readability_scores, metadata" />
+        <interface name="get_sentence_boundaries()" path="src/data_extract/utils/nlp.py" purpose="CRITICAL spaCy utility - signature: get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[int], returns character offsets where sentences end" />
+        <interface name="ProcessingContext" path="src/data_extract/core/models.py" purpose="Pipeline state container: config (Dict), logger (structlog instance), metrics (Dict) - passed through all stages for deterministic auditable processing" />
+        <interface name="SentenceSegmenter" path="src/data_extract/utils/nlp.py" purpose="Dependency injected into ChunkingEngine, lazy-loads en_core_web_md on first use, cached globally for reuse across documents" />
+      </interfaces>
+    </storyContextSummary>
+
+    <acceptanceCriteria>
+      <ac id="AC-3.1-1" priority="P0" critical="true">
+        <description>Chunks Never Split Mid-Sentence</description>
+        <testCases>6 (TC-3.1-1-HP-01, TC-3.1-1-EC-01, TC-3.1-1-EC-02, TC-3.1-1-EC-03, TC-3.1-1-ERR-01, TC-3.1-1-INT-01)</testCases>
+      </ac>
+      <ac id="AC-3.1-2" priority="P0" critical="true">
+        <description>Section Boundaries Respected When Possible</description>
+        <testCases>5 (TC-3.1-2-HP-01, TC-3.1-2-EC-01, TC-3.1-2-EC-02, TC-3.1-2-ERR-01, TC-3.1-2-INT-01)</testCases>
+      </ac>
+      <ac id="AC-3.1-3" priority="P1">
+        <description>Chunk Size Configurable</description>
+        <testCases>4 (TC-3.1-3-HP-01, TC-3.1-3-EC-01, TC-3.1-3-EC-02, TC-3.1-3-ERR-01)</testCases>
+      </ac>
+      <ac id="AC-3.1-4" priority="P1">
+        <description>Chunk Overlap Configurable</description>
+        <testCases>4 (TC-3.1-4-HP-01, TC-3.1-4-EC-01, TC-3.1-4-EC-02, TC-3.1-4-ERR-01)</testCases>
+      </ac>
+      <ac id="AC-3.1-5" priority="P0">
+        <description>Sentence Tokenization Uses spaCy</description>
+        <testCases>4 (TC-3.1-5-HP-01, TC-3.1-5-EC-01, TC-3.1-5-INT-01, TC-3.1-5-INT-02)</testCases>
+      </ac>
+      <ac id="AC-3.1-6" priority="P0" critical="true">
+        <description>Edge Cases Handled</description>
+        <testCases>7 (TC-3.1-6-HP-01, TC-3.1-6-EC-01, TC-3.1-6-EC-02, TC-3.1-6-EC-03, TC-3.1-6-EC-04, TC-3.1-6-ERR-01, TC-3.1-6-INT-01)</testCases>
+      </ac>
+      <ac id="AC-3.1-7" priority="P0" critical="true">
+        <description>Chunking is Deterministic</description>
+        <testCases>4 (TC-3.1-7-HP-01, TC-3.1-7-EC-01, TC-3.1-7-EC-02, TC-3.1-7-INT-01)</testCases>
+      </ac>
+    </acceptanceCriteria>
+  </storyContext>
+
+  <setupRequirements>
+    <prerequisites>
+      <prerequisite id="PREREQ-001" priority="P0" status="BLOCKER">
+        <description>Create tests/fixtures/normalized_results/ directory</description>
+        <command>mkdir -p tests/fixtures/normalized_results/</command>
+        <verification>ls tests/fixtures/normalized_results/</verification>
+        <blocking>true</blocking>
+        <blocksTests>All 34 test cases require ProcessingResult fixtures</blocksTests>
+      </prerequisite>
+      <prerequisite id="PREREQ-002" priority="P0" status="required">
+        <description>Install spaCy and download en_core_web_md model</description>
+        <command>pip install spacy>=3.7.2 &amp;&amp; python -m spacy download en_core_web_md</command>
+        <verification>python -m spacy validate</verification>
+        <estimatedTime>~2 minutes (43MB model download)</estimatedTime>
+        <ciCaching>Model cached in CI, transparent to developers</ciCaching>
+      </prerequisite>
+      <prerequisite id="PREREQ-003" priority="P1" status="required">
+        <description>Install test dependencies (pydantic, structlog, pytest)</description>
+        <command>pip install -e ".[dev]"</command>
+        <verification>pytest --version &amp;&amp; python -c "import pydantic; import structlog"</verification>
+      </prerequisite>
+      <prerequisite id="PREREQ-004" priority="P2" status="recommended">
+        <description>Update tests/fixtures/README.md with normalized_results/ documentation</description>
+        <action>Add section describing ProcessingResult fixtures and generation script</action>
+        <benefit>Maintains fixture inventory documentation</benefit>
+      </prerequisite>
+    </prerequisites>
+
+    <fixtureGeneration>
+      <step n="1" priority="P0" status="CRITICAL">
+        <description>Create fixture generation script: scripts/generate_chunking_fixtures.py</description>
+        <implementation>
+          <approach>Script generates 11 ProcessingResult JSON fixtures using Epic 2 pipeline or synthetic generation</approach>
+          <fixtures>
+            <generates>tests/fixtures/normalized_results/typical_policy.json (2000 words, 5 paragraphs)</generates>
+            <generates>tests/fixtures/normalized_results/soc2_report.json (SOC2 report, section hierarchy)</generates>
+            <generates>tests/fixtures/normalized_results/risk_register.json (risk register, nested sections)</generates>
+            <generates>tests/fixtures/normalized_results/very_long_sentences.json (700-token sentence)</generates>
+            <generates>tests/fixtures/normalized_results/micro_sentences.json (20 micro-sentences)</generates>
+            <generates>tests/fixtures/normalized_results/no_punctuation.json (1000 words, no punctuation)</generates>
+            <generates>tests/fixtures/normalized_results/multi_section_policy.json (3 sections, 400 tokens each)</generates>
+            <generates>tests/fixtures/normalized_results/large_section.json (2000-token section)</generates>
+            <generates>tests/fixtures/normalized_results/short_sections.json (5 sections, 100 tokens each)</generates>
+            <generates>tests/fixtures/normalized_results/large_document.json (3000 words)</generates>
+            <generates>tests/fixtures/normalized_results/extreme_long_sentence.json (10,000-word run-on)</generates>
+          </fixtures>
+        </implementation>
+        <executionCommand>python scripts/generate_chunking_fixtures.py</executionCommand>
+        <estimatedTime>~5 minutes (Epic 2 pipeline processing for realistic fixtures)</estimatedTime>
+        <estimatedSize>5-10 MB total (11 JSON files)</estimatedSize>
+        <verification>ls -lh tests/fixtures/normalized_results/*.json | wc -l  # Should show 11 files</verification>
+        <blockingTests>All 34 test cases depend on these fixtures</blockingTests>
+      </step>
+
+      <step n="2" priority="P1" status="recommended">
+        <description>Validate fixture structure matches ProcessingResult schema</description>
+        <implementation>
+          <approach>Run validation script to ensure all fixtures conform to Epic 2 ProcessingResult model</approach>
+          <validation>
+            <check>All fixtures have required fields: normalized_text, entities, metadata, content_blocks</check>
+            <check>All fixtures deserialize successfully via ProcessingResult.from_json()</check>
+            <check>All fixtures have realistic content (no placeholder text)</check>
+          </validation>
+        </implementation>
+        <executionCommand>python scripts/validate_chunking_fixtures.py</executionCommand>
+        <estimatedTime>~1 minute</estimatedTime>
+      </step>
+
+      <step n="3" priority="P2" status="optional">
+        <description>Generate additional edge case fixtures as needed during testing</description>
+        <approach>Iterative: Add fixtures when new edge cases discovered during test implementation</approach>
+        <note>Start with 11 core fixtures, expand as needed</note>
+      </step>
+    </fixtureGeneration>
+
+    <environmentSetup>
+      <step n="1" priority="P0">
+        <description>Set PYTHONPATH for module imports</description>
+        <command>export PYTHONPATH={project-root}/src (Unix) OR set PYTHONPATH={project-root}\src (Windows)</command>
+        <note>pytest automatically handles this if pyproject.toml configured</note>
+      </step>
+      <step n="2" priority="P1">
+        <description>Verify spaCy model loaded correctly</description>
+        <command>python -c "import spacy; nlp = spacy.load('en_core_web_md'); print(f'Model loaded: {nlp.meta[\"version\"]}')"</command>
+        <expectedOutput>Model loaded: 3.7.x</expectedOutput>
+      </step>
+      <step n="3" priority="P2">
+        <description>Run pre-commit hooks to ensure quality gates ready</description>
+        <command>pre-commit install &amp;&amp; pre-commit run --all-files</command>
+        <note>Ensures black, ruff, mypy configured and passing</note>
+      </step>
+    </environmentSetup>
+  </setupRequirements>
+
+  <nextSteps>
+    <step n="1">Review test context and verify all fixtures are available</step>
+    <step n="2">Generate missing fixtures using scripts/generate_chunking_fixtures.py (BLOCKER - must complete before testing)</step>
+    <step n="3">Implement helper functions (verify_token_overlap, verify_sentence_boundary, serialize_chunks_to_json, count_tokens)</step>
+    <step n="4">Create test file structure: tests/unit/test_chunk/, tests/integration/test_chunk/, tests/performance/test_chunk/</step>
+    <step n="5">Run execute-tests workflow: workflow execute-tests (after fixture generation complete)</step>
+    <step n="6">Monitor test execution and capture results</step>
+    <step n="7">Run review-uat-results workflow for QA approval</step>
+  </nextSteps>
+
+  <summary>
+    <totalTestCases>34</totalTestCases>
+    <criticalTests>9 (AC-3.1-1, AC-3.1-2, AC-3.1-6, AC-3.1-7)</criticalTests>
+    <fixturesDiscovered>4 (spacy_gold_standard.json, real-world PDFs, normalization samples, conftest dynamics)</fixturesDiscovered>
+    <fixturesMissing>11 (BLOCKER - all ProcessingResult fixtures for Story 3.1)</fixturesMissing>
+    <globalFixtures>13 (ContentBlock, ExtractionResult, ProcessingResult, temp files, validators)</globalFixtures>
+    <integrationFixtures>17 (sample docs, pipeline configs, performance timers)</integrationFixtures>
+    <pytestMarkers>15 (including 'chunking' for Epic 3, plus 'sentence_boundary', 'determinism', etc.)</pytestMarkers>
+    <codeFilesToCreate>3 (src/data_extract/chunk/engine.py, models.py, __init__.py)</codeFilesToCreate>
+    <helperFunctionsNeeded>4 (verify_token_overlap, verify_sentence_boundary, serialize_chunks_to_json, count_tokens)</helperFunctionsNeeded>
+    <blockerStatus>BLOCKER: tests/fixtures/normalized_results/ directory and 11 fixtures MUST be created before testing</blockerStatus>
+    <estimatedSetupTime>~10 minutes (2 min spaCy, 5 min fixture generation, 3 min validation)</estimatedSetupTime>
+    <estimatedTestExecutionTime>~30 minutes (5 min unit, 10 min integration, 15 min manual)</estimatedTestExecutionTime>
+  </summary>
+</test-context>

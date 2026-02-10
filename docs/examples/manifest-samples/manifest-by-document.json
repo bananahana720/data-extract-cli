@@ -1,0 +1,63 @@
+{
+  "organization_strategy": "by_document",
+  "generated_at": "2025-11-16T10:30:45Z",
+  "config_snapshot": {
+    "chunk_size": 512,
+    "overlap_pct": 0.15,
+    "entity_aware": true,
+    "quality_enrichment": true,
+    "max_text_length": null,
+    "include_metadata": false,
+    "delimiter": "━━━ CHUNK {{n}} ━━━"
+  },
+  "total_chunks": 42,
+  "folders": {
+    "audit_report": {
+      "chunk_count": 42,
+      "chunk_ids": [
+        "audit_report_001",
+        "audit_report_002",
+        "audit_report_003",
+        "audit_report_004",
+        "audit_report_005",
+        "audit_report_006",
+        "audit_report_007"
+      ]
+    }
+  },
+  "source_hashes": {
+    "audit_report.pdf": "a3f5e8c2d1b94f7a6e3c9d5b8f2a1e7c4d9b6f3a8e5c2d1b9f7a4e6c3d8b5f2a"
+  },
+  "entity_summary": {
+    "total_entities": 18,
+    "entity_types": {
+      "RISK": 7,
+      "CTRL": 9,
+      "PROC": 2,
+      "REG": 1,
+      "ISSUE": 2
+    },
+    "unique_entity_ids": [
+      "RISK-001",
+      "RISK-023",
+      "CTRL-042",
+      "CTRL-105",
+      "PROC-105",
+      "REG-207",
+      "ISSUE-007",
+      "ISSUE-008"
+    ]
+  },
+  "quality_summary": {
+    "avg_quality_score": 0.92,
+    "min_quality_score": 0.78,
+    "max_quality_score": 0.97,
+    "chunks_with_quality": 42,
+    "quality_flags": {
+      "low_ocr": 1,
+      "high_complexity": 0,
+      "incomplete_extraction": 0,
+      "gibberish": 0
+    }
+  }
+}

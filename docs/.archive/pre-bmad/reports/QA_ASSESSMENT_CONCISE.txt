@@ -1,0 +1,54 @@
+ULTRA-CONCISE QA ASSESSMENT: ConfigManager None Parameter & Default Path
+========================================================================
+
+EXISTING COVERAGE:
+- test_config_manager.py:test_load_yaml_config_file - YAML loading ✓
+- test_config_manager.py:test_load_json_config_file - JSON loading ✓
+- test_config_manager.py:test_load_nonexistent_file_uses_defaults - Defaults fallback ✓
+- test_config_manager.py:test_env_var_overrides_config_value - Env precedence ✓
+- test_config_manager.py:test_validate_config_with_valid_data - Schema validation ✓
+- test_config_command.py:test_config_show_default_location - CLI defaults (loose) ✓
+- test_config_command.py:test_config_path_default_location - CLI path display (loose) ✓
+
+CRITICAL GAPS:
+- ❌ No test for ConfigManager(config_file=None)
+- ❌ No test for None → ./config.yaml discovery
+- ❌ No test for default path precedence chain
+- ❌ No test for installed package scenario with None
+- ❌ No CLI tests for extract/batch without --config parameter
+- ❌ No concurrent reload test with None parameter
+
+EDGE CASES MISSING:
+- Explicit path vs ./config.yaml precedence
+- Windows path resolution (UNC, relative)
+- Config.yaml parent directory exclusion (should NOT traverse)
+- Reload preserving None parameter state
+- Multiple threads with None parameter
+
+NEW TESTS NEEDED (Priority 1):
+
+1. ConfigManager with None Parameter
+   Test: ConfigManager(config_file=None) should default to cwd discovery
+
+2. Default Path Discovery
+   Test: Auto-discover ./config.yaml when None provided
+
+3. None Parameter with No Default File
+   Test: Graceful fallback when ./config.yaml missing
+
+4. CLI Extract Without Config
+   Test: extract command works without --config parameter
+
+5. Installed Package Scenario
+   Test: Simulate installed package: None → cwd discovery
+
+ACCEPTANCE CRITERIA:
+- All 5 tests pass with proposed ConfigManager changes
+- None parameter correctly defaults to ./config.yaml discovery
+- CLI extract/batch work without --config parameter
+- No regressions in existing 611 unit tests
+- Coverage remains >90% in ConfigManager
+
+IMPLEMENTATION ESTIMATE: 2-3 hours
+
+DETAILED ANALYSIS: See QA_ASSESSMENT_CONFIG_SYSTEM_COVERAGE.md

@@ -1,0 +1,465 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2.5</epicId>
+    <storyId>2</storyId>
+    <title>spaCy Integration & Validation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer preparing for Epic 3 semantic chunking</asA>
+    <iWant>spaCy 3.7.2 integrated with sentence boundary detection validated to 95%+ accuracy</iWant>
+    <soThat>Epic 3 can leverage production-ready NLP utilities for semantic-aware chunking</soThat>
+    <tasks>
+### Task 1: Install and Validate spaCy (AC: #2.5.2-1, #2.5.2-2)
+- Add spaCy 3.7.2 to pyproject.toml dependencies
+- Check for known CVEs in spaCy 3.7.2 (security requirement)
+- Install spaCy and verify with `python -m spacy validate`
+- Download en_core_web_md model: `python -m spacy download en_core_web_md`
+- Test model loading in Python
+- Document model size (43MB) and load time baseline
+
+### Task 2: Implement get_sentence_boundaries() Utility (AC: #2.5.2-4)
+- Create `src/data_extract/utils/nlp.py` module
+- Implement `get_sentence_boundaries(text: str, nlp: Language = None) -> List[int]`
+- Add lazy model loading with caching
+- Add input validation (ValueError for empty text)
+- Add type hints and Google-style docstring
+- Log model version on first load
+
+### Task 3: Unit Tests for Utility Function (AC: #2.5.2-5)
+- Create `tests/unit/test_utils/test_nlp.py`
+- Test empty/whitespace text → ValueError
+- Test single/multi-sentence boundary detection
+- Test with/without nlp parameter
+- Verify all unit tests execute in <100ms
+
+### Task 4: Create Gold Standard Corpus (AC: #2.5.2-3)
+- Create test corpus with 50+ sentences covering edge cases
+- Include abbreviations (Dr., Inc., U.S.)
+- Include complex punctuation (quotes, ellipsis)
+- Manually annotate correct sentence boundaries
+- Store in `tests/fixtures/spacy_gold_standard.json`
+
+### Task 5: Sentence Segmentation Accuracy Test (AC: #2.5.2-3)
+- Create accuracy validation test in integration tests
+- Load gold standard corpus
+- Run spaCy segmentation and compare vs ground truth
+- Calculate accuracy: (correct / total) * 100
+- Assert accuracy ≥95%
+
+### Task 6: Integration Tests (AC: #2.5.2-6)
+- Create `tests/integration/test_spacy_integration.py`
+- Test model loading and singleton pattern
+- Test segmentation on sample documents
+- Test error handling (model not installed, invalid input)
+- Verify tests pass in CI
+
+### Task 7: Performance Validation (NFR-P3, NFR-O4)
+- Measure model load time: assert <5 seconds
+- Measure segmentation time for 1000-word doc: assert <100ms
+- Log performance metrics during testing
+- Document baseline performance
+
+### Task 8: Documentation Updates (AC: #2.5.2-7)
+- Update CLAUDE.md with spaCy setup section
+- Update README.md with model download requirement
+- Create docs/troubleshooting-spacy.md guide
+- Document performance benchmarks
+- Add example usage of get_sentence_boundaries()
+
+### Task 9: Quality Gates & Validation
+- Run full test suite: `pytest`
+- Run Black, Ruff, Mypy
+- Verify 95%+ sentence segmentation accuracy
+- Verify all 307+ existing tests still pass
+- Update sprint-status.yaml: drafted → ready-for-dev
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+### AC 2.5.2-1: spaCy 3.7.2 Installation & Validation
+- spaCy 3.7.2 added to pyproject.toml with version constraint
+- `python -m spacy validate` succeeds after installation
+- spaCy version check returns 3.7.2
+- No known CVEs in spaCy 3.7.2
+
+### AC 2.5.2-2: en_core_web_md Model Download & Loading
+- Model download completes successfully
+- Model loads without errors: `nlp = spacy.load("en_core_web_md")`
+- Model version and size logged on load
+- Clear error message if model missing
+
+### AC 2.5.2-3: Sentence Segmentation Accuracy Validation
+- Accuracy ≥95% on gold standard test corpus
+- Test corpus includes edge cases: abbreviations, acronyms, complex punctuation
+- Accuracy metric documented with pass/fail threshold
+- Validation test runs in CI pipeline
+
+### AC 2.5.2-4: get_sentence_boundaries() Utility Function
+- Function in `src/data_extract/utils/nlp.py`
+- Signature: `get_sentence_boundaries(text: str, nlp: Language = None) -> List[int]`
+- Returns character positions of sentence ends (zero-indexed)
+- Lazy loads en_core_web_md if nlp parameter is None
+- Raises ValueError for empty/whitespace-only text
+- Handles edge cases: single sentence, multi-paragraph, special characters
+
+### AC 2.5.2-5: Unit Tests for Utility Function
+- Test empty/whitespace text → ValueError
+- Test single/multi-sentence → correct boundaries
+- Test with/without nlp parameter
+- All unit tests pass in <100ms per NFR-P1
+
+### AC 2.5.2-6: Integration Tests for spaCy Pipeline
+- `tests/integration/test_spacy_integration.py` created
+- Tests model loading and caching behavior
+- Tests sentence segmentation on real documents
+- Tests error handling for missing model
+- Integration tests run in CI
+- Tests use fixtures from `tests/fixtures/`
+
+### AC 2.5.2-7: Documentation & Setup Instructions
+- CLAUDE.md updated with spaCy installation steps
+- README.md mentions model download requirement
+- Troubleshooting guide for common issues
+- Performance benchmarks documented
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>Story 2.5.2 Implementation Workflow</section>
+        <snippet>10-step implementation: Add spaCy 3.7.2 to pyproject.toml, install and validate, download en_core_web_md model, create get_sentence_boundaries() utility in src/data_extract/utils/nlp.py, write unit and integration tests, validate 95%+ accuracy on gold standard corpus.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>get_sentence_boundaries() Function Specification</section>
+        <snippet>Signature: get_sentence_boundaries(text: str, nlp: Language = None) -> List[int]. Returns character positions where sentences end. Lazy loads en_core_web_md if nlp is None. Raises ValueError for empty text. Prepares for Epic 3 Story 3.1 semantic chunking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>NFR-P3 Performance Requirements</section>
+        <snippet>spaCy model load time must be less than 5 seconds for en_core_web_md initial load. Sentence segmentation must complete in less than 100ms for 1000-word document. Unit tests measure execution time to validate performance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>NFR-O4 Observability Requirements</section>
+        <snippet>Log spaCy model version, language, and size on load. Log sentence count and average sentence length for processed documents. spaCy failures logged with context including input text snippet and stack trace.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>NFR-R3 Robustness Requirements</section>
+        <snippet>en_core_web_md model must support offline operation with clear error message if missing (not silent failure). Setup instructions include model download step. Tests check model existence before attempting to load.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Five-Stage Pipeline Pattern</section>
+        <snippet>Pipeline stages: extract → normalize → chunk → analyze → output. Each stage is independent, testable, and replaceable. spaCy 3.7.x provides production-ready sentence segmentation using en_core_web_md model. Chunking uses spaCy sentence boundaries for semantic-aware splitting.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Data Models and Type Contracts</section>
+        <snippet>Type contracts between pipeline stages use Pydantic models. Extract→Normalize: Document (raw text), Normalize→Chunk: Document (cleaned text, normalized entities), Chunk→Semantic: List[Chunk] (with metadata). Models use frozen=False for mutability where needed.</snippet>
+      </doc>
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Project Development Guide</title>
+        <section>Testing Strategy</section>
+        <snippet>Tests mirror src/ structure exactly. tests/unit/ for fast isolated tests, tests/integration/ for multi-component end-to-end tests, tests/fixtures/ for shared test data. Use pytest fixtures and markers for selective execution.</snippet>
+      </doc>
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Project Development Guide</title>
+        <section>Technology Stack - NLP Components</section>
+        <snippet>Chunking uses spaCy for production-ready sentence boundaries. Semantic analysis uses scikit-learn (TF-IDF, LSA) and gensim (Word2Vec, LDA). Enterprise constraint: Classical NLP only, no transformer models allowed.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-3.1 Semantic Chunking Requirement</section>
+        <snippet>Chunks must respect sentence boundaries (no mid-sentence splits) and maintain semantic context. Configurable chunk size (256-512 tokens default) with 10-20% overlap. Entity-aware chunking keeps entity mentions within chunks. Structure-aware to preserve heading context.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage[Input, Output]</symbol>
+        <lines>20-59</lines>
+        <reason>Core protocol defining contract for all pipeline stages. Demonstrates type-safe generic parameters and ProcessingContext usage pattern for Epic 3 chunking integration.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingContext</symbol>
+        <lines>336-360</lines>
+        <reason>Shared pipeline state (config, logger, metrics) passed through stages. Use for structured logging of spaCy model info and segmentation metrics per NFR-O4.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Document</symbol>
+        <lines>269-294</lines>
+        <reason>Extract→Normalize contract. Output from normalize stage will flow into Epic 3 chunking which consumes get_sentence_boundaries() utility.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Chunk</symbol>
+        <lines>296-334</lines>
+        <reason>Chunk→Semantic contract. Epic 3 Story 3.1 will produce chunks using sentence boundaries from this story's utility function.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/exceptions.py</path>
+        <kind>exception</kind>
+        <symbol>DataExtractError hierarchy</symbol>
+        <lines>all</lines>
+        <reason>Exception hierarchy for error handling. Use ValueError for empty text, OSError for missing model with actionable message. Follow existing patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/adapter.py</path>
+        <kind>adapter</kind>
+        <symbol>ExtractorAdapter</symbol>
+        <lines>71-388</lines>
+        <reason>Demonstrates lazy loading pattern for expensive resources (learned from Story 2.5.1.1). Apply same pattern for spaCy model caching with module-level variable.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/validation.py</path>
+        <kind>validator</kind>
+        <symbol>QualityValidator</symbol>
+        <lines>34-142</lines>
+        <reason>Quality validation with structlog logging pattern. Follow same structured logging approach for spaCy model load events and segmentation metrics.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/normalizer.py</path>
+        <kind>orchestrator</kind>
+        <symbol>Normalizer</symbol>
+        <lines>25-97</lines>
+        <reason>Demonstrates orchestration pattern that Epic 3 Chunker will follow. Stateless, deterministic, auditable design principles apply to get_sentence_boundaries().</reason>
+      </artifact>
+      <artifact>
+        <path>tests/conftest.py</path>
+        <kind>test-config</kind>
+        <symbol>pytest markers and fixtures</symbol>
+        <lines>36-422</lines>
+        <reason>Test configuration with markers (unit, integration, performance) and fixture patterns (tmp_path, validation helpers). Use @pytest.mark.unit and @pytest.mark.integration for Story 2.5.2 tests.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/fixtures/</path>
+        <kind>test-data</kind>
+        <symbol>sample documents</symbol>
+        <lines>directory</lines>
+        <reason>Test fixture location. Add tests/fixtures/spacy_gold_standard.json with 50+ manually annotated sentences for 95%+ accuracy validation (AC 2.5.2-3).</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/utils/__init__.py</path>
+        <kind>module</kind>
+        <symbol>utils package</symbol>
+        <lines>1</lines>
+        <reason>Exists but empty. Ready for nlp.py addition as first utility module in greenfield architecture.</reason>
+      </artifact>
+      <artifact>
+        <path>docs/stories/2.5-1.1-greenfield-extractor-migration.md</path>
+        <kind>documentation</kind>
+        <symbol>Story learnings</symbol>
+        <lines>all</lines>
+        <reason>Previous story validated lazy loading pattern for expensive resources. Apply same approach: module-level spaCy model cache, load once on first call.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <version>&gt;=3.12</version>
+        <constraint>Mandatory enterprise requirement. spaCy 3.7.2 verified compatible with Python 3.12.</constraint>
+      </python>
+      <production>
+        <package name="spacy" version="^3.7.2" status="already-in-pyproject">
+          Core NLP library for sentence boundary detection. Already listed in pyproject.toml line 46 but not yet implemented in codebase.
+        </package>
+        <package name="en_core_web_md" version="3.7.0" type="spacy-model">
+          43MB English language model. Download: python -m spacy download en_core_web_md. Required for production use.
+        </package>
+        <package name="pydantic" version="&gt;=2.0.0,&lt;3.0">
+          Data validation for Document/Chunk models. Already installed.
+        </package>
+        <package name="structlog" version="&gt;=24.0.0,&lt;25.0">
+          Structured logging for spaCy model load events and metrics. Already installed.
+        </package>
+      </production>
+      <development>
+        <package name="pytest" version="&gt;=8.0.0">
+          Testing framework. Already installed. Use markers: @pytest.mark.unit, @pytest.mark.integration.
+        </package>
+        <package name="pytest-cov" version="&gt;=4.0.0">
+          Coverage reporting. Target &gt;80% for Epic 2.
+        </package>
+        <package name="black" version="&gt;=24.0.0">
+          Code formatter. 100 char line length, Python 3.12 target. Pre-commit hook enforced.
+        </package>
+        <package name="ruff" version="&gt;=0.1.0">
+          Fast linter. Must pass before commit.
+        </package>
+        <package name="mypy" version="&gt;=1.0.0">
+          Static type checker. Strict mode for src/data_extract/. Excludes brownfield code.
+        </package>
+      </development>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      <constraint>Classical NLP only - no transformer models allowed (enterprise constraint). spaCy en_core_web_md uses rule-based + statistical models, NOT transformers.</constraint>
+      <constraint>Five-stage pipeline pattern: Extract → Normalize → Chunk → Semantic → Output. Each stage independent, testable, replaceable.</constraint>
+      <constraint>Immutability via frozen dataclasses where possible. Use Pydantic ConfigDict(frozen=False) only when mutation required during processing.</constraint>
+      <constraint>Zero brownfield modifications strategy. Create new greenfield modules, adapt brownfield via thin wrappers only.</constraint>
+      <constraint>Lazy loading for expensive resources (learned from Story 2.5.1.1). Load spaCy model once, cache at module level.</constraint>
+    </architectural>
+    <code-quality>
+      <constraint>Black formatting: 100 char line length, Python 3.12 target. Pre-commit hook enforced.</constraint>
+      <constraint>Ruff linting: Must pass all checks. Pre-commit hook enforced.</constraint>
+      <constraint>Mypy strict mode: All code in src/data_extract/ must pass strict type checking. Brownfield excluded.</constraint>
+      <constraint>Type hints required on all public functions. Use Language from spacy.language for nlp model parameter.</constraint>
+      <constraint>Google-style docstrings for all public APIs with examples.</constraint>
+    </code-quality>
+    <testing>
+      <constraint>Tests mirror src/ structure exactly. Create tests/unit/test_utils/test_nlp.py mirroring src/data_extract/utils/nlp.py.</constraint>
+      <constraint>Use pytest markers: @pytest.mark.unit for fast tests (&lt;100ms), @pytest.mark.integration for multi-component tests.</constraint>
+      <constraint>Coverage target: &gt;80% for Epic 2. Aim for 100% coverage of nlp.py utility module.</constraint>
+      <constraint>Unit tests must execute in &lt;100ms per NFR-P1. Integration tests can be slower but should complete in CI pipeline.</constraint>
+      <constraint>Use pytest fixtures from tests/conftest.py. Follow tmp_path pattern for test isolation.</constraint>
+    </testing>
+    <performance>
+      <constraint>NFR-P3: spaCy model load time &lt;5 seconds for en_core_web_md initial load. Validate in integration tests.</constraint>
+      <constraint>NFR-P3: Sentence segmentation &lt;100ms for 1000-word document. Validate in performance tests.</constraint>
+      <constraint>Individual file processing &lt;5 seconds total (extraction + normalization + spaCy overhead).</constraint>
+    </performance>
+    <logging>
+      <constraint>NFR-O4: Use structlog.get_logger(__name__) for all logging.</constraint>
+      <constraint>NFR-O4: Log spaCy model version, language, vocab size on first load.</constraint>
+      <constraint>NFR-O4: Log sentence count and average sentence length per document processed.</constraint>
+      <constraint>NFR-O4: Log errors with context (text snippet, stack trace) for debugging.</constraint>
+    </logging>
+    <error-handling>
+      <constraint>NFR-R3: Raise ValueError for empty or whitespace-only text input (per AC 2.5.2-4).</constraint>
+      <constraint>NFR-R3: Raise OSError with actionable message if en_core_web_md model missing: "Run: python -m spacy download en_core_web_md"</constraint>
+      <constraint>Use existing exception hierarchy from src/data_extract/core/exceptions.py for consistency.</constraint>
+      <constraint>Clear error messages, not silent failures. Document troubleshooting in docs/troubleshooting-spacy.md.</constraint>
+    </error-handling>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>get_sentence_boundaries</name>
+      <kind>function</kind>
+      <signature>get_sentence_boundaries(text: str, nlp: Language = None) -> List[int]</signature>
+      <path>src/data_extract/utils/nlp.py</path>
+      <description>Primary deliverable. Extract sentence boundary positions from text using spaCy. Lazy loads en_core_web_md if nlp is None. Returns character positions (zero-indexed) where sentences end. Raises ValueError for empty text.</description>
+      <consumers>
+        <consumer>Epic 3 Story 3.1 - Semantic Boundary-Aware Chunking Engine</consumer>
+        <consumer>Future chunking utilities requiring sentence-level segmentation</consumer>
+      </consumers>
+    </interface>
+    <interface>
+      <name>PipelineStage[Input, Output]</name>
+      <kind>protocol</kind>
+      <signature>process(input_data: Input, context: ProcessingContext) -> Output</signature>
+      <path>src/data_extract/core/pipeline.py</path>
+      <description>Protocol that all pipeline stages implement. While get_sentence_boundaries() is a utility function (not a stage), understand this pattern for Epic 3 Chunker integration.</description>
+    </interface>
+    <interface>
+      <name>Document</name>
+      <kind>model</kind>
+      <signature>Pydantic BaseModel with id, text, entities, metadata fields</signature>
+      <path>src/data_extract/core/models.py</path>
+      <description>Data contract between Extract→Normalize→Chunk stages. Normalize stage outputs Document which flows into Epic 3 Chunker consuming get_sentence_boundaries().</description>
+    </interface>
+    <interface>
+      <name>Chunk</name>
+      <kind>model</kind>
+      <signature>Pydantic BaseModel with text, metadata, position, quality_score fields</signature>
+      <path>src/data_extract/core/models.py</path>
+      <description>Output of Epic 3 Chunker. Metadata includes sentence-level information derived from this story's sentence boundary utility.</description>
+    </interface>
+    <interface>
+      <name>ProcessingContext</name>
+      <kind>model</kind>
+      <signature>Pydantic BaseModel with config, logger, metrics fields</signature>
+      <path>src/data_extract/core/models.py</path>
+      <description>Shared pipeline state. Use context.logger for structured logging of spaCy events per NFR-O4.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      **Testing Framework**: pytest with markers for selective execution (unit, integration, performance, slow).
+
+      **Test Organization**: Tests mirror src/ structure exactly. Unit tests in tests/unit/test_utils/test_nlp.py, integration tests in tests/integration/test_spacy_integration.py.
+
+      **Markers**: Use @pytest.mark.unit for fast isolated tests (&lt;100ms per NFR-P1), @pytest.mark.integration for multi-component end-to-end tests with real spaCy model.
+
+      **Fixtures**: Use pytest fixtures from tests/conftest.py. Follow tmp_path pattern for test isolation. Create fixtures for spaCy model, sample texts, and gold standard corpus.
+
+      **Coverage**: Target &gt;80% for Epic 2. Aim for 100% coverage of nlp.py utility module. Use pytest-cov for coverage reporting.
+
+      **Quality Gates**: All tests must pass before commit. Run Black, Ruff, and Mypy before marking tasks complete (learned from Story 2.5.1.1 code review).
+
+      **Performance Validation**: Integration tests measure model load time (&lt;5s) and segmentation time (&lt;100ms per 1000 words) per NFR-P3.
+    </standards>
+    <locations>
+      <location>tests/unit/test_utils/test_nlp.py - Unit tests for get_sentence_boundaries() function</location>
+      <location>tests/integration/test_spacy_integration.py - Integration tests with real spaCy model</location>
+      <location>tests/fixtures/spacy_gold_standard.json - Gold standard corpus with 50+ annotated sentences</location>
+      <location>tests/conftest.py - Shared fixtures and pytest configuration</location>
+    </locations>
+    <ideas>
+      <test ac="AC-2.5.2-1" priority="high">
+        Test spaCy installation validation: Run `python -m spacy validate` programmatically, assert success. Verify spaCy.__version__ == "3.7.2". Check for known CVEs (security requirement NFR-S1).
+      </test>
+      <test ac="AC-2.5.2-2" priority="high">
+        Test en_core_web_md model loading: Load model with spacy.load("en_core_web_md"), assert no errors. Verify model metadata (version, language, size). Test clear error message if model missing.
+      </test>
+      <test ac="AC-2.5.2-3" priority="critical">
+        Test sentence segmentation accuracy on gold standard corpus: Load tests/fixtures/spacy_gold_standard.json with 50+ manually annotated sentences. Run get_sentence_boundaries() on each text. Compare detected boundaries vs ground truth. Calculate accuracy: (correct / total) * 100. Assert accuracy ≥95%.
+      </test>
+      <test ac="AC-2.5.2-4" priority="critical">
+        Test get_sentence_boundaries() basic functionality: Single sentence returns one boundary. Multiple sentences return multiple boundaries. Verify returned positions are character offsets (zero-indexed). Test lazy loading when nlp=None. Test with provided nlp parameter.
+      </test>
+      <test ac="AC-2.5.2-5" priority="high">
+        Test get_sentence_boundaries() edge cases: Empty text raises ValueError. Whitespace-only text raises ValueError. Single word returns one boundary. Text with abbreviations (Dr., Inc., U.S.) handled correctly. Text with complex punctuation (quotes, ellipsis) handled correctly. Multi-paragraph text returns correct boundaries.
+      </test>
+      <test ac="AC-2.5.2-5" priority="high">
+        Test get_sentence_boundaries() performance: All unit tests execute in &lt;100ms total per NFR-P1. Use pytest benchmark or time.perf_counter() to measure execution time. Assert max execution time.
+      </test>
+      <test ac="AC-2.5.2-6" priority="high">
+        Test spaCy model caching behavior: First call to get_sentence_boundaries() loads model. Subsequent calls reuse cached model (no reload). Verify model loaded only once using mock or logging inspection.
+      </test>
+      <test ac="AC-2.5.2-6" priority="high">
+        Test error handling for missing model: Simulate missing en_core_web_md model. Call get_sentence_boundaries() and expect OSError with message containing "python -m spacy download en_core_web_md".
+      </test>
+      <test ac="AC-2.5.2-6" priority="medium">
+        Test integration with real document samples: Use fixtures from tests/fixtures/ (sample.txt, test_with_table.docx). Extract text and run sentence segmentation. Verify boundaries are reasonable (not mid-word, respects punctuation).
+      </test>
+      <test ac="NFR-P3" priority="high">
+        Test performance benchmarks: Model load time &lt;5 seconds (measure first load). Segmentation time &lt;100ms for 1000-word document. Log performance metrics for baseline documentation.
+      </test>
+      <test ac="NFR-O4" priority="medium">
+        Test logging output: Verify structlog logs contain model version, language, vocab size on first load. Verify sentence count and average sentence length logged per document. Use caplog fixture to inspect log messages.
+      </test>
+      <test ac="NFR-R3" priority="medium">
+        Test offline support: Verify model works without internet after initial download. Test fallback behavior if model unavailable. Verify clear error messages (not silent failures).
+      </test>
+      <test ac="regression" priority="medium">
+        Test all 307+ existing tests still pass: Run full test suite `pytest` to verify zero regressions. Verify coverage remains &gt;80% for Epic 2. Verify no breaking changes to existing pipeline stages.
+      </test>
+    </ideas>
+  </tests>
+</story-context>

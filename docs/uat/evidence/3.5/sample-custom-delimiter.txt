@@ -1,0 +1,9 @@
+=== SECTION 001 ===
+This sample demonstrates custom delimiter patterns. The delimiter parameter accepts any string with {{n}} as the chunk number placeholder.
+
+Custom delimiters are useful for domain-specific workflows or branding requirements.
+
+=== SECTION 002 ===
+The chunk numbering remains sequential (001, 002, 003...) regardless of delimiter pattern.
+
+All other features (text cleaning, metadata headers, encoding) work identically with custom delimiters.

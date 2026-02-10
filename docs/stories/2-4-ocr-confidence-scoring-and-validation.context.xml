@@ -1,0 +1,333 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>OCR Confidence Scoring and Validation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-4-ocr-confidence-scoring-and-validation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>quality assurance engineer</asA>
+    <iWant>OCR operations to include confidence scoring and validation</iWant>
+    <soThat>low-quality extractions are flagged and quarantined before reaching AI systems</soThat>
+    <tasks>
+- Task 1: Create data models for validation (AC: 2.4.6, 2.4.7)
+  - Add QualityFlag enum to core/models.py (LOW_OCR_CONFIDENCE, MISSING_IMAGES, INCOMPLETE_EXTRACTION)
+  - Create ValidationReport model (quarantine_recommended, confidence_scores, quality_flags, extraction_gaps)
+  - Extend Metadata model with ocr_confidence (Dict[int, float]) and quality_flags (List[QualityFlag])
+  - Write 5+ unit tests for data model validation
+
+- Task 2: Implement OCR confidence calculation (AC: 2.4.1)
+  - Create QualityValidator class in normalize/validation.py implementing PipelineStage protocol
+  - Implement validate_ocr_confidence() method using pytesseract.image_to_data()
+  - Calculate per-page confidence scores (average of word-level confidences)
+  - Calculate document-level average confidence
+  - Write 8+ unit tests with mocked pytesseract responses
+
+- Task 3: Implement confidence threshold flagging (AC: 2.4.2)
+  - Add ocr_confidence_threshold config field to NormalizationConfig (default 0.95)
+  - Flag pages below threshold with QualityFlag.LOW_OCR_CONFIDENCE
+  - Set ValidationReport.quarantine_recommended = True when below threshold
+  - Write 6+ unit tests for threshold logic (edge cases: 0.94, 0.95, 0.96)
+
+- Task 4: Implement image preprocessing pipeline (AC: 2.4.3)
+  - Create preprocess_image_for_ocr() method using Pillow
+  - Implement deskew (rotation correction using PIL.ImageOps)
+  - Implement denoise (PIL.ImageFilter.MedianFilter)
+  - Implement contrast enhancement (PIL.ImageEnhance.Contrast)
+  - Add ocr_preprocessing_enabled config flag (default True)
+  - Write 10+ unit tests with sample scanned images
+
+- Task 5: Implement scanned vs. native PDF detection (AC: 2.4.4)
+  - Create detect_scanned_pdf() method analyzing ContentBlock metadata
+  - Check for OCR-generated text indicators (low font info, image-based content)
+  - Use heuristics: if >50% of content is from images → scanned
+  - Write 6+ unit tests with native and scanned PDF fixtures
+
+- Task 6: Implement quarantine mechanism (AC: 2.4.5)
+  - Create quarantine directory structure ({output_dir}/quarantine/{date}/)
+  - Implement quarantine logging with file hash, confidence scores, timestamp
+  - Add quarantine_low_confidence config flag (default True)
+  - Write quarantine audit log as JSON (file_path, reason, confidence, timestamp)
+  - Write 5+ unit tests for quarantine logic
+
+- Task 7: Add confidence scores to metadata (AC: 2.4.6)
+  - Populate Metadata.ocr_confidence with per-page scores (Dict[page_num, confidence])
+  - Calculate and store document-level average in metadata
+  - Add quality_flags to metadata (List[QualityFlag])
+  - Ensure JSON serialization works (Pydantic validation)
+  - Write 4+ unit tests for metadata population
+
+- Task 8: Implement OCR operation logging (AC: 2.4.7)
+  - Log OCR confidence calculation events with structlog
+  - Include before/after preprocessing confidence metrics
+  - Log quarantine decisions with reason and threshold
+  - Use structured fields: page_num, confidence_before, confidence_after, preprocessed
+  - Write 3+ unit tests verifying log output
+
+- Task 9: Integrate QualityValidator into normalization pipeline (AC: All)
+  - Add QualityValidator as Step 6 in normalize/normalizer.py (after SchemaStandardizer)
+  - Update NormalizationConfig with validation fields (ocr_confidence_threshold, ocr_preprocessing_enabled, quarantine_low_confidence)
+  - Ensure graceful degradation if pytesseract/Tesseract missing (ProcessingError)
+  - Write integration test: Full pipeline with OCR validation
+
+- Task 10: Testing and validation (AC: All)
+  - Achieve >85% test coverage for normalize/validation.py module (target 100% following Story 2.3 standard)
+  - Create test fixtures: Scanned PDFs with varying quality (high >95%, medium 85-95%, low <85% confidence)
+  - Run Black, Ruff, Mypy (strict mode) - all must pass BEFORE marking tasks complete
+  - Verify determinism: Same scanned PDF → same confidence scores (10 runs)
+  - Integration test: Extract → normalize with OCR validation → verify quarantine
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **AC-2.4.1**: OCR confidence score is calculated for each page/image using pytesseract
+2. **AC-2.4.2**: Scores below 95% threshold are flagged for manual review (configurable threshold)
+3. **AC-2.4.3**: OCR preprocessing is applied (deskew, denoise, contrast enhancement via Pillow)
+4. **AC-2.4.4**: Scanned vs. native PDF is auto-detected
+5. **AC-2.4.5**: Low-confidence results are quarantined separately with clear audit log
+6. **AC-2.4.6**: Confidence scores are included in output metadata (per-page and document average)
+7. **AC-2.4.7**: OCR operations are logged with before/after confidence metrics
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Story 2.4: OCR Confidence Scoring and Validation</section>
+        <snippet>Per-page/image confidence scoring using pytesseract. Image preprocessing pipeline (deskew, denoise, contrast enhancement via Pillow). 95% confidence threshold with configurable override. Quarantine mechanism for low-confidence extractions. Scanned vs. native PDF auto-detection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Data Models - QualityFlag, ValidationReport, Metadata Extensions</section>
+        <snippet>QualityFlag enum (LOW_OCR_CONFIDENCE, MISSING_IMAGES, INCOMPLETE_EXTRACTION). ValidationReport model stores quarantine_recommended, confidence_scores, quality_flags, extraction_gaps. Metadata extended with ocr_confidence: Dict[int, float] and quality_flags: List[QualityFlag].</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation</title>
+        <section>Pipeline Stage Pattern</section>
+        <snippet>All pipeline stages implement PipelineStage Protocol[Input, Output] with process(input_data, context) method. Enables composable, testable stages with consistent error handling and context propagation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-2: Text Normalization & Cleaning</section>
+        <snippet>Transform raw extracted text into clean, standardized format suitable for LLM consumption. Entity normalization standardizes audit entity references across documents for consistent entity representation improving LLM understanding.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-schema-standardization-across-document-types.md</path>
+        <title>Story 2.3 - Schema Standardization (Completed)</title>
+        <section>Learnings and Patterns</section>
+        <snippet>SchemaStandardizer runs at Step 5. Configuration cascade pattern established. Achieved 100% test coverage with Black/Ruff/Mypy compliance. PipelineStage protocol pattern with graceful degradation for errors.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>data models</kind>
+        <symbol>Document, Metadata, ContentBlock, DocumentType</symbol>
+        <lines>multiple classes</lines>
+        <reason>Core data models - need to extend Metadata with ocr_confidence and quality_flags fields. Add QualityFlag enum and ValidationReport model for Story 2.4.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/schema.py</path>
+        <kind>pipeline stage</kind>
+        <symbol>SchemaStandardizer</symbol>
+        <lines>full class</lines>
+        <reason>Story 2.3 implementation - runs at Step 5 before QualityValidator. Follow this PipelineStage[Document, Document] pattern for consistency.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>configuration</kind>
+        <symbol>NormalizationConfig, load_config</symbol>
+        <lines>full module</lines>
+        <reason>Configuration cascade pattern (CLI > env > YAML > defaults). Need to add ocr_confidence_threshold, ocr_preprocessing_enabled, quarantine_low_confidence fields to NormalizationConfig.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/normalizer.py</path>
+        <kind>pipeline orchestrator</kind>
+        <symbol>Normalizer class</symbol>
+        <lines>full class</lines>
+        <reason>Pipeline orchestrator - need to add Step 6 (QualityValidator) after SchemaStandardizer. Coordinates all normalization stages.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol interface</kind>
+        <symbol>PipelineStage, ProcessingContext</symbol>
+        <lines>protocol definition</lines>
+        <reason>PipelineStage protocol that QualityValidator must implement. Defines process(input_data, context) signature for all pipeline stages.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/entities.py</path>
+        <kind>pipeline stage</kind>
+        <symbol>EntityNormalizer</symbol>
+        <lines>full class</lines>
+        <reason>Story 2.2 implementation - example of PipelineStage pattern to follow. Shows entity tagging and logging patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_normalize/test_schema.py</path>
+        <kind>test file</kind>
+        <symbol>test classes with fixtures</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.3 test patterns - achieved 100% coverage. Use as template for test_validation.py structure, fixtures, and pytest patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pytesseract" version=">=0.3.10">OCR wrapper for Tesseract engine - confidence scoring API</package>
+        <package name="Pillow" version=">=10.0.0">Image preprocessing (deskew, denoise, contrast enhancement)</package>
+        <package name="pydantic" version=">=2.0.0,&lt;3.0">Data validation and models (already installed)</package>
+        <package name="structlog" version=">=24.0.0,&lt;25.0">Structured logging for audit trails (already installed)</package>
+        <package name="pytest" version=">=8.0.0,&lt;9.0">Testing framework (already installed)</package>
+        <package name="pytest-mock" version=">=3.11.0">Mocking pytesseract for unit tests (already installed)</package>
+      </python>
+      <system>
+        <package name="Tesseract OCR" version="v4 or v5">System-level OCR engine - must be installed separately. Windows: requires PATH configuration or manual path override in config.</package>
+      </system>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="arch-1">Must implement PipelineStage[Document, Document] protocol with process(document: Document, context: ProcessingContext) -> Document signature</constraint>
+    <constraint id="arch-2">Run as Step 6 in normalization pipeline after SchemaStandardizer (Step 5) - DO NOT change this sequence</constraint>
+    <constraint id="config-1">Follow configuration cascade pattern: CLI flags > environment variables > YAML config > NormalizationConfig defaults</constraint>
+    <constraint id="config-2">Add three config fields to NormalizationConfig: ocr_confidence_threshold (default 0.95), ocr_preprocessing_enabled (default True), quarantine_low_confidence (default True)</constraint>
+    <constraint id="error-1">Graceful degradation: If Tesseract not installed, raise ProcessingError, log warning, skip OCR validation, continue pipeline</constraint>
+    <constraint id="error-2">If pytesseract fails on single page, log error, mark page LOW_OCR_CONFIDENCE, continue processing other pages</constraint>
+    <constraint id="nfr-1">Determinism (NFR-R1): Same scanned PDF + same config must produce identical confidence scores across multiple runs</constraint>
+    <constraint id="nfr-2">Graceful degradation (NFR-R2): Low confidence results trigger quarantine but must NOT halt batch processing of other documents</constraint>
+    <constraint id="quality-1">Code quality: Black formatting (100 char lines), Ruff linting (zero errors), Mypy strict mode (zero errors) - MUST pass before marking tasks complete</constraint>
+    <constraint id="test-1">Test coverage: Minimum 85% for normalize/validation.py, target 100% (Story 2.3 standard)</constraint>
+    <constraint id="test-2">Test organization: Separate test classes per AC (TestOCRConfidenceCalculation, TestConfidenceThresholdFlagging, etc.)</constraint>
+    <constraint id="data-1">Use relative imports within normalize module (e.g., from .config import NormalizationConfig)</constraint>
+    <constraint id="data-2">All paths in metadata must be project-relative, not absolute</constraint>
+    <constraint id="compat-1">Maintain backwards compatibility: DO NOT modify existing Metadata fields from Stories 2.1-2.3, only add new fields</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>PipelineStage Protocol</name>
+      <kind>Generic protocol interface</kind>
+      <signature>class PipelineStage(Protocol, Generic[Input, Output]):
+    def process(self, input_data: Input, context: ProcessingContext) -> Output: ...</signature>
+      <path>src/data_extract/core/pipeline.py</path>
+      <reason>QualityValidator must implement this as PipelineStage[Document, Document]</reason>
+    </interface>
+    <interface>
+      <name>pytesseract.image_to_data()</name>
+      <kind>External library API</kind>
+      <signature>pytesseract.image_to_data(image: Image, output_type=Output.DICT) -> Dict[str, List]
+Returns: {'conf': [confidence_scores], 'text': [words], 'left': [x_coords], ...}</signature>
+      <path>External: pytesseract library</path>
+      <reason>Core API for extracting word-level confidence scores from OCR operations</reason>
+    </interface>
+    <interface>
+      <name>PIL Image Processing APIs</name>
+      <kind>External library API</kind>
+      <signature>PIL.ImageOps (deskew), PIL.ImageFilter.MedianFilter (denoise), PIL.ImageEnhance.Contrast (enhance)</signature>
+      <path>External: Pillow library</path>
+      <reason>Image preprocessing pipeline for improving OCR accuracy before confidence scoring</reason>
+    </interface>
+    <interface>
+      <name>NormalizationConfig.model_validate()</name>
+      <kind>Pydantic validation</kind>
+      <signature>NormalizationConfig.model_validate(config_dict: Dict) -> NormalizationConfig</signature>
+      <path>src/data_extract/normalize/config.py</path>
+      <reason>Validate configuration with new OCR fields before pipeline execution</reason>
+    </interface>
+    <interface>
+      <name>structlog Logger</name>
+      <kind>Logging interface</kind>
+      <signature>logger.info("ocr_confidence_calculated", page_num=int, confidence_before=float, confidence_after=float, preprocessed=bool)</signature>
+      <path>src/data_extract/utils/logging.py</path>
+      <reason>Structured logging for OCR operations audit trail (AC-2.4.7)</reason>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing framework: pytest with fixtures, parametrization, and mocking. Test organization mirrors src/ structure exactly. Coverage target: &gt;85% minimum for normalize/validation.py (aim for 100% following Story 2.3 standard which achieved 91% overall, 100% for critical paths). Use pytest markers: @pytest.mark.unit, @pytest.mark.integration. Mock external dependencies (pytesseract) for unit tests, use real libraries for integration tests where available. Edge case coverage is critical: missing Tesseract, corrupt images, very low confidence (&lt;50%), empty pages, preprocessing failures. Test determinism: Run same input 10 times, verify identical outputs. Code quality gates: Black (100 char lines), Ruff (zero errors), Mypy strict mode (zero errors) must pass BEFORE marking tasks complete.
+    </standards>
+    <locations>
+      <location>tests/unit/test_normalize/test_validation.py</location>
+      <location>tests/integration/test_normalization_pipeline.py</location>
+      <location>tests/fixtures/normalization/ocr_test_docs/</location>
+      <location>tests/conftest.py (shared fixtures)</location>
+    </locations>
+    <ideas>
+      <test ac="AC-2.4.1" name="OCR Confidence Calculation">
+        - Test pytesseract.image_to_data() integration with mock responses
+        - Test per-page confidence calculation (average of word-level scores)
+        - Test document-level average confidence
+        - Test confidence score normalization (0.0-1.0 scale)
+        - Test handling of empty pages (no text detected)
+        - Test handling of pages with -1 confidence (invalid OCR)
+        - Test multiple pages with varying quality
+        - Test error handling when pytesseract unavailable
+      </test>
+      <test ac="AC-2.4.2" name="Confidence Threshold Flagging">
+        - Test 95% default threshold flagging
+        - Test custom threshold from config (80%, 90%, 99%)
+        - Test edge cases: exactly 0.94, 0.95, 0.96
+        - Test quarantine_recommended flag set correctly
+        - Test QualityFlag.LOW_OCR_CONFIDENCE added to metadata
+        - Test multiple low-confidence pages in single document
+      </test>
+      <test ac="AC-2.4.3" name="Image Preprocessing Pipeline">
+        - Test deskew operation with rotated images
+        - Test denoise with MedianFilter on noisy scans
+        - Test contrast enhancement on low-contrast images
+        - Test preprocessing improves confidence scores (before/after)
+        - Test ocr_preprocessing_enabled flag disables preprocessing
+        - Test preprocessing failure handling (corrupt image)
+        - Test preprocessing with various image formats (PNG, JPEG, TIFF)
+        - Test preprocessing preserves original image (non-destructive)
+        - Test preprocessing performance (should be fast &lt;1s per image)
+        - Test preprocessing with very large images (memory handling)
+      </test>
+      <test ac="AC-2.4.4" name="Scanned vs Native PDF Detection">
+        - Test native PDF detection (high font info, no OCR metadata)
+        - Test scanned PDF detection (&gt;50% content from images)
+        - Test hybrid PDF (mix of native text and scanned images)
+        - Test ContentBlock metadata analysis for detection
+        - Test edge case: exactly 50% image content
+        - Test documents with no images (100% native)
+      </test>
+      <test ac="AC-2.4.5" name="Quarantine Mechanism">
+        - Test quarantine directory creation ({output_dir}/quarantine/{date}/)
+        - Test quarantine audit log JSON format
+        - Test quarantine log includes: file_path, reason, confidence, timestamp, file_hash
+        - Test quarantine_low_confidence flag disables quarantine
+        - Test multiple documents quarantined in same batch
+        - Test quarantine does not halt batch processing
+        - Test quarantine log is append-only (multiple runs)
+      </test>
+      <test ac="AC-2.4.6" name="Metadata Population">
+        - Test Metadata.ocr_confidence populated with per-page scores (Dict[int, float])
+        - Test document-level average confidence calculated
+        - Test quality_flags list populated with QualityFlag enums
+        - Test Pydantic validation and JSON serialization
+        - Test backwards compatibility with existing Metadata fields
+      </test>
+      <test ac="AC-2.4.7" name="OCR Operation Logging">
+        - Test structlog events for OCR confidence calculation
+        - Test log includes: page_num, confidence_before, confidence_after, preprocessed
+        - Test quarantine decision logged with reason and threshold
+        - Test log output is structured JSON
+        - Test log includes correlation IDs for tracing
+      </test>
+      <test ac="All" name="Integration Tests">
+        - Test full pipeline: Extract → Normalize (Steps 1-6) → Verify quarantine
+        - Test high quality scan (&gt;95% confidence) → no quarantine
+        - Test low quality scan (&lt;85% confidence) → quarantine with audit log
+        - Test native PDF → skip OCR validation or report N/A
+        - Test Tesseract missing → graceful degradation, pipeline continues
+        - Test determinism: Same scanned PDF → identical confidence scores (10 runs)
+        - Test batch processing with mixed quality documents
+      </test>
+    </ideas>
+  </tests>
+</story-context>

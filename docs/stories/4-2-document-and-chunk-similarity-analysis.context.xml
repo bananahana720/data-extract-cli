@@ -1,0 +1,219 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Implement Document and Chunk Similarity Analysis Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-2-document-and-chunk-similarity-analysis.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>audit analyst processing large document collections</asA>
+    <iWant>to compute pairwise similarity between documents and chunks to identify duplicates and related content</iWant>
+    <soThat>I can reduce redundant processing by 30-40% and build relationship graphs for navigation</soThat>
+    <tasks>
+      <!-- Core Implementation -->
+      <task>Create src/data_extract/semantic/similarity.py module</task>
+      <task>Implement SimilarityAnalysisStage class with PipelineStage protocol</task>
+      <task>Add cosine_similarity computation using sklearn.metrics.pairwise</task>
+      <task>Implement sparse matrix handling for memory efficiency</task>
+      <task>Create similarity statistics calculator (mean, std, max)</task>
+      <!-- Duplicate Detection -->
+      <task>Implement find_similar_pairs() method with threshold parameter</task>
+      <task>Create duplicate groups identifier for transitive relationships</task>
+      <task>Add configurable similarity thresholds (duplicate: 0.95, related: 0.7)</task>
+      <task>Generate duplicate report with pair counts and savings estimate</task>
+      <task>Validate precision/recall against golden dataset</task>
+      <!-- Memory Optimization -->
+      <task>Implement block-wise similarity computation for large matrices</task>
+      <task>Add streaming mode for documents exceeding memory limits</task>
+      <task>Use scipy.sparse operations throughout</task>
+      <task>Implement matrix compression for cache storage</task>
+      <task>Profile memory usage with 10k document corpus</task>
+      <!-- Graph Construction -->
+      <task>Build similarity graph using networkx or simple adjacency list</task>
+      <task>Add edge weights for similarity scores</task>
+      <task>Implement connected components for cluster identification</task>
+      <task>Create graph traversal utilities for navigation</task>
+      <task>Export graph in standard formats (GraphML, JSON)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.2-1">SimilarityAnalysisStage implements PipelineStage protocol accepting ProcessingResult from TF-IDF and returning enriched ProcessingResult</criterion>
+    <criterion id="AC-4.2-2">Compute pairwise cosine similarity for all document pairs using sparse matrix operations</criterion>
+    <criterion id="AC-4.2-3">Duplicate detection identifies near-duplicates with configurable threshold (default 0.95) achieving ≥85% precision</criterion>
+    <criterion id="AC-4.2-4">Build similarity graph with edges for relationships above threshold (default 0.7) for document navigation</criterion>
+    <criterion id="AC-4.2-5">Memory-efficient block-wise computation for matrices &gt;1000 documents using configurable block size</criterion>
+    <criterion id="AC-4.2-6">Similarity matrix is symmetric (similarity(A,B) == similarity(B,A)) and deterministic</criterion>
+    <criterion id="AC-4.2-7">Performance meets NFR: &lt;200ms for 100x100 matrix, &lt;5s for 1000x1000 matrix, &lt;500MB memory</criterion>
+    <criterion id="AC-4.2-8">Output includes similarity_matrix, similar_pairs list, and statistics (mean, std, max, count above threshold)</criterion>
+    <criterion id="AC-4.2-9">Cache similarity matrices using content-based keys with compression for space efficiency</criterion>
+    <criterion id="AC-4.2-10">All code passes mypy with zero errors and black/ruff with zero violations</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture/epic-4-knowledge-curation-architecture.md</path>
+        <title>Epic 4 Knowledge Curation Architecture</title>
+        <section>Story 4.2: Document and Chunk Similarity Analysis</section>
+        <snippet>Compute pairwise cosine similarity with sparse matrix operations, find duplicates with 0.95 threshold, build similarity graph for navigation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation/epic-4-implementation-patterns.md</path>
+        <title>Epic 4 Implementation Patterns</title>
+        <section>3.2 Similarity Matrix Computation Pattern</section>
+        <snippet>Memory-efficient block-wise computation for large matrices, using scipy.sparse operations and cosine_similarity from sklearn.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/epic-4-behavioral-test-strategy.md</path>
+        <title>Behavioral Test Strategy</title>
+        <section>Test 1: Duplicate Detection</section>
+        <snippet>Identify near-duplicates using cosine similarity, compare with golden duplicate pairs, assert precision ≥0.85 and recall ≥0.80.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>Similarity Analysis (Story 4.2)</section>
+        <snippet>Pairwise cosine similarity computation, duplicate detection (threshold: 0.95), related document graph construction, memory-efficient block-wise processing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/epic-4-performance-baselines.md</path>
+        <title>Performance Baselines</title>
+        <section>Similarity Computation</section>
+        <snippet>Target performance: 200ms for 100x100 matrix, 5s for 1000x1000, memory usage under 500MB for 10k documents.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage</symbol>
+        <lines>20</lines>
+        <reason>Base protocol that SimilarityAnalysisStage must implement</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingResult</symbol>
+        <lines>434</lines>
+        <reason>Input and output type for similarity stage (chaining from TF-IDF)</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/tfidf.py</path>
+        <kind>stage</kind>
+        <symbol>TfidfVectorizationStage</symbol>
+        <lines>to be created</lines>
+        <reason>Previous stage that provides TF-IDF matrix as input</reason>
+      </artifact>
+      <artifact>
+        <path>tests/bridge/test_pipeline_epic3_to_epic4.py</path>
+        <kind>test</kind>
+        <symbol>test_e34_009_tfidf_performance</symbol>
+        <lines>151-162</lines>
+        <reason>Performance validation for TF-IDF that feeds into similarity</reason>
+      </artifact>
+      <artifact>
+        <path>tests/behavioral/epic_4/test_duplicate_detection.py</path>
+        <kind>test</kind>
+        <symbol>test_duplicate_detection_accuracy</symbol>
+        <lines>to be created</lines>
+        <reason>Behavioral test for duplicate detection precision/recall</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>scikit-learn</package>
+        <version>>=1.3.0</version>
+        <purpose>cosine_similarity from sklearn.metrics.pairwise</purpose>
+      </python>
+      <python>
+        <package>scipy</package>
+        <version>>=1.11.1</version>
+        <purpose>Sparse matrix operations (csr_matrix, save_npz, load_npz)</purpose>
+      </python>
+      <python>
+        <package>numpy</package>
+        <version>>=1.24.3</version>
+        <purpose>Array operations for similarity statistics</purpose>
+      </python>
+      <python>
+        <package>joblib</package>
+        <version>>=1.3.0</version>
+        <purpose>Cache persistence for similarity matrices</purpose>
+      </python>
+      <python>
+        <package>networkx</package>
+        <version>optional</version>
+        <purpose>Graph construction and analysis (optional)</purpose>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must chain with TF-IDF stage output (ProcessingResult with tfidf_matrix)</constraint>
+    <constraint>Similarity matrix must be symmetric: similarity(A,B) == similarity(B,A)</constraint>
+    <constraint>Use block-wise computation for matrices larger than 1000x1000</constraint>
+    <constraint>Duplicate threshold must be configurable (default 0.95)</constraint>
+    <constraint>Memory usage must stay under 500MB for 10k documents</constraint>
+    <constraint>Only compute upper triangle of matrix (symmetry optimization)</constraint>
+    <constraint>Store only similarities above minimum threshold (sparsification)</constraint>
+    <constraint>Results must be deterministic across runs</constraint>
+    <constraint>Cache keys must be based on input matrix content hash</constraint>
+    <constraint>All code must pass mypy, black, and ruff with zero violations</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>SimilarityAnalysisStage</name>
+      <kind>class</kind>
+      <signature>class SimilarityAnalysisStage: def process(self, input_result: ProcessingResult, context: ProcessingContext) -> ProcessingResult</signature>
+      <path>src/data_extract/semantic/similarity.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>cosine_similarity</name>
+      <kind>function</kind>
+      <signature>from sklearn.metrics.pairwise import cosine_similarity</signature>
+      <path>sklearn.metrics.pairwise</path>
+    </interface>
+    <interface>
+      <name>SimilarityConfig</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass class SimilarityConfig: duplicate_threshold: float = 0.95; related_threshold: float = 0.7; block_size: int = 100; use_cache: bool = True</signature>
+      <path>src/data_extract/semantic/similarity.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>SimilarityResult</name>
+      <kind>model</kind>
+      <signature>matrix: np.ndarray; duplicates: List[Tuple[str, str, float]]; graph: Dict[str, List[str]]; stats: Dict[str, float]</signature>
+      <path>src/data_extract/semantic/similarity.py (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>The project uses pytest as the test framework with pytest-benchmark for performance testing. Tests must be organized in tests/unit/ mirroring the src/ structure. All greenfield code requires 80% coverage minimum, with 90% target for similarity modules. Behavioral tests use golden datasets with 45 verified duplicate pairs. Performance tests validate NFR requirements using time.time() and psutil for memory profiling. Tests must check mathematical properties (symmetry, reflexivity).</standards>
+    <locations>
+      <location>tests/unit/test_semantic/test_similarity_stage.py (unit tests)</location>
+      <location>tests/behavioral/epic_4/test_duplicate_detection.py (behavioral)</location>
+      <location>tests/behavioral/epic_4/test_similarity_properties.py (mathematical)</location>
+      <location>tests/performance/test_similarity_benchmarks.py (performance)</location>
+      <location>tests/fixtures/semantic/golden_duplicates.yaml (test data)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.2-1">Test SimilarityAnalysisStage accepts ProcessingResult and returns enriched ProcessingResult</idea>
+      <idea ac="AC-4.2-2">Test cosine similarity computation produces values in [0,1] range</idea>
+      <idea ac="AC-4.2-3">Test duplicate detection against 45 golden duplicate pairs for precision/recall</idea>
+      <idea ac="AC-4.2-4">Test similarity graph contains edges only for scores above threshold</idea>
+      <idea ac="AC-4.2-5">Test block-wise computation produces identical results to full computation</idea>
+      <idea ac="AC-4.2-6">Test symmetry: similarity(A,B) == similarity(B,A) for all pairs</idea>
+      <idea ac="AC-4.2-7">Benchmark performance with 100x100, 1000x1000, 10000x10000 matrices</idea>
+      <idea ac="AC-4.2-8">Test output contains all required fields (matrix, pairs, stats)</idea>
+      <idea ac="AC-4.2-9">Test cache retrieval returns identical matrix to original computation</idea>
+      <idea ac="AC-4.2-6">Test reflexivity: similarity(A,A) == 1.0 for all documents</idea>
+      <idea ac="AC-4.2-6">Test triangle inequality holds for similarity-based distance</idea>
+    </ideas>
+  </tests>
+</story-context>

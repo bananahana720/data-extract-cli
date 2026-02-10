@@ -1,0 +1,238 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-6</storyId>
+    <title>Graceful Error Handling and Recovery with Session Resume</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-6-graceful-error-handling-and-recovery.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user processing document batches</asA>
+    <iWant>robust error handling that continues processing when individual files fail and allows me to resume interrupted sessions</iWant>
+    <soThat>one bad file doesn't block my entire workflow and I never lose progress</soThat>
+    <tasks>
+      <task id="1" title="Session State Infrastructure" acs="1">
+        <subtask>Create src/data_extract/cli/session.py module</subtask>
+        <subtask>Define SessionState dataclass with session_id, files, status, configuration</subtask>
+        <subtask>Implement SessionManager class with create, load, update, save, cleanup methods</subtask>
+        <subtask>Create .data-extract-session/ directory management</subtask>
+        <subtask>Implement atomic file writes (temp then rename)</subtask>
+        <subtask>Add JSON schema validation</subtask>
+        <subtask>Write unit tests for SessionManager (8+ tests)</subtask>
+      </task>
+      <task id="2" title="Resume Capability" acs="2">
+        <subtask>Add --resume flag to data-extract process command</subtask>
+        <subtask>Implement resume detection logic</subtask>
+        <subtask>Prompt: Resume / Start Fresh / Cancel</subtask>
+        <subtask>Filter already-processed files from input</subtask>
+        <subtask>Add --resume-session=id for specific session</subtask>
+        <subtask>Handle configuration mismatch</subtask>
+      </task>
+      <task id="3" title="Failed File Tracking and Retry" acs="3">
+        <subtask>Extend SessionState with error_type, error_message, stack_trace, retry_count</subtask>
+        <subtask>Implement data-extract retry command</subtask>
+        <subtask>retry --last - retry failed files from most recent session</subtask>
+        <subtask>retry --session=id - retry specific session</subtask>
+        <subtask>Implement failure categorization: RECOVERABLE, PERMANENT, REQUIRES_CONFIG</subtask>
+        <subtask>Create quarantine directory for permanent failures</subtask>
+      </task>
+      <task id="4" title="Interactive Error Prompts" acs="4">
+        <subtask>Create src/data_extract/cli/error_prompts.py module</subtask>
+        <subtask>Implement ErrorPrompt class with prompt_on_error method</subtask>
+        <subtask>Define ErrorAction enum: CONTINUE, RETRY, SKIP, STOP</subtask>
+        <subtask>Design Rich panel for error display with options</subtask>
+        <subtask>Add --interactive flag (default: True for TTY)</subtask>
+        <subtask>Add --non-interactive for CI/scripting (auto-skip)</subtask>
+      </task>
+      <task id="5" title="Graceful Degradation" acs="5">
+        <subtask>Refactor batch processor with continue-on-error pattern</subtask>
+        <subtask>Wrap individual file processing in try/except</subtask>
+        <subtask>Implement error aggregation for summary report</subtask>
+        <subtask>Add exit codes: 0=success, 1=partial, 2=failure, 3=config error</subtask>
+        <subtask>Create error summary panel</subtask>
+        <subtask>Implement actionable suggestions per error type</subtask>
+      </task>
+      <task id="6" title="Journey 6 UAT Support" acs="6">
+        <subtask>Create tests/uat/journeys/test_journey_6_error_recovery.py</subtask>
+        <subtask>Test error prompt with recovery options</subtask>
+        <subtask>Test skip continues processing</subtask>
+        <subtask>Test session state file created</subtask>
+        <subtask>Test resume detects incomplete session</subtask>
+        <subtask>Test retry --last re-processes failed files</subtask>
+        <subtask>Add error corpus fixtures</subtask>
+      </task>
+      <task id="7" title="Session Cleanup" acs="7">
+        <subtask>Implement automatic cleanup on success</subtask>
+        <subtask>Implement archive on partial success (7-day retention)</subtask>
+        <subtask>Add data-extract session command group</subtask>
+        <subtask>session list - show sessions</subtask>
+        <subtask>session clean - remove old</subtask>
+        <subtask>session show id - display details</subtask>
+        <subtask>Handle orphaned sessions from crashes</subtask>
+      </task>
+      <task id="8" title="Quality and Documentation">
+        <subtask>Run Black/Ruff/Mypy on all new code</subtask>
+        <subtask>Add docstrings to all public functions</subtask>
+        <subtask>Update CLI help text</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.6-1">Session state persisted to .data-extract-session/ with JSON state file containing processed files, failed files, configuration</criterion>
+    <criterion id="AC-5.6-2">--resume flag on process commands detects and resumes interrupted batches from session state</criterion>
+    <criterion id="AC-5.6-3">Failed file tracking with retry --last command to re-process only failed files</criterion>
+    <criterion id="AC-5.6-4">Interactive error prompts offer: Continue, Retry, Skip, Stop options when file processing fails</criterion>
+    <criterion id="AC-5.6-5">Graceful degradation via continue-on-error pattern - pipeline continues when single file errors</criterion>
+    <criterion id="AC-5.6-6">Journey 6 (Error Recovery) workflows operational - all UAT assertions pass</criterion>
+    <criterion id="AC-5.6-7">Session cleanup on successful completion - .data-extract-session/ removed or archived</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Section 3.4 - Error Recovery Architecture</section>
+        <snippet>Session state JSON schema, continue-on-error pattern, error categorization (RECOVERABLE, PERMANENT, REQUIRES_CONFIG).</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Journey 6 - Error Recovery</section>
+        <snippet>Error prompt panel with Skip/Retry/Stop options. Resume prompt on startup if incomplete session detected. Error summary with retry commands.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/architecture-decision-records-adrs.md</path>
+        <title>Architecture Decision Records</title>
+        <section>ADR-003: File-Based Storage</section>
+        <snippet>No database - use JSON files in .data-extract-session/ for session state persistence.</snippet>
+      </doc>
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Project Guidelines</title>
+        <section>Error Handling</section>
+        <snippet>Pipeline uses continue-on-error pattern - graceful degradation per file. Don't fail entire batch on single document error.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/data_extract/core/exceptions.py</path>
+        <kind>exceptions</kind>
+        <symbol>DataExtractError, ProcessingError, CriticalError</symbol>
+        <lines>1-145</lines>
+        <reason>Greenfield exception hierarchy - extend for error categorization (RECOVERABLE, PERMANENT, REQUIRES_CONFIG).</reason>
+      </file>
+      <file>
+        <path>src/infrastructure/error_handler.py</path>
+        <kind>error_handler</kind>
+        <symbol>ErrorHandler, RecoveryAction, DataExtractionError</symbol>
+        <lines>1-493</lines>
+        <reason>Brownfield error handling with error codes, recovery actions, retry with backoff. Reference implementation.</reason>
+      </file>
+      <file>
+        <path>tests/fixtures/cli_fixtures.py</path>
+        <kind>test_fixtures</kind>
+        <symbol>SessionStateBuilder, session_state_fixture, error_corpus_fixture</symbol>
+        <lines>310-902</lines>
+        <reason>Test fixtures for session state and error corpus already scaffolded. SessionStateBuilder creates test sessions.</reason>
+      </file>
+      <file>
+        <path>tests/uat/fixtures/sample_corpus/</path>
+        <kind>test_data</kind>
+        <symbol>sample files</symbol>
+        <lines>N/A</lines>
+        <reason>Sample corpus for UAT - need to add error_corpus/ with corrupted.pdf, locked.docx, empty.xlsx.</reason>
+      </file>
+      <file>
+        <path>tests/uat/framework/ux_assertions.py</path>
+        <kind>uat_assertions</kind>
+        <symbol>assert_error_guide_shown, assert_panel_displayed</symbol>
+        <lines>1-576</lines>
+        <reason>UAT assertions for error panel validation - assert_error_guide_shown checks for actionable guidance.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <python>
+        <package name="rich" version=">=13.0.0">Error panels, prompts, console formatting</package>
+        <package name="typer" version=">=0.9.0">CLI framework (depends on Story 5-1)</package>
+        <package name="inquirerpy" version=">=0.3.4" optional="true">Complex interactive prompts (optional - can use Rich)</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="ADR-003">Session state uses JSON files in .data-extract-session/ - no database</constraint>
+    <constraint source="tech-spec">Session files use atomic writes (write to temp, rename)</constraint>
+    <constraint source="CLAUDE.md">Continue-on-error pattern - one file failure doesn't block batch</constraint>
+    <constraint source="CLAUDE.md">Quality gates: Black/Ruff/Mypy must pass with 0 violations</constraint>
+    <constraint source="story">Exit codes: 0=success, 1=partial, 2=failure, 3=config error</constraint>
+    <constraint source="story">Session archive retention: 7 days (configurable)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>SessionState</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass class SessionState: session_id: str; started_at: datetime; status: str; processed_files: List[dict]; failed_files: List[dict]; configuration: dict</signature>
+      <path>src/data_extract/cli/session.py (to create)</path>
+    </interface>
+    <interface>
+      <name>SessionManager</name>
+      <kind>class</kind>
+      <signature>class SessionManager: create_session() -> SessionState; load_session(id) -> SessionState; find_latest_session(dir) -> SessionState | None; update_progress(file, success, error); save_session(); cleanup_session()</signature>
+      <path>src/data_extract/cli/session.py (to create)</path>
+    </interface>
+    <interface>
+      <name>ErrorPrompt</name>
+      <kind>class</kind>
+      <signature>class ErrorPrompt: def prompt_on_error(self, file: Path, error: Exception) -> ErrorAction</signature>
+      <path>src/data_extract/cli/error_prompts.py (to create)</path>
+    </interface>
+    <interface>
+      <name>ErrorAction</name>
+      <kind>enum</kind>
+      <signature>class ErrorAction(Enum): CONTINUE = "continue"; RETRY = "retry"; SKIP = "skip"; STOP = "stop"</signature>
+      <path>src/data_extract/cli/error_prompts.py (to create)</path>
+    </interface>
+    <interface>
+      <name>retry command</name>
+      <kind>cli_command</kind>
+      <signature>data-extract retry --last | --session=id | --file=path</signature>
+      <path>src/data_extract/cli/retry.py (to create)</path>
+    </interface>
+    <interface>
+      <name>session command group</name>
+      <kind>cli_commands</kind>
+      <signature>data-extract session list | clean | show id</signature>
+      <path>src/data_extract/app.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest for unit and integration tests. Create Journey 6 UAT test file. Use fixtures from tests/fixtures/cli_fixtures.py including SessionStateBuilder and error_corpus_fixture. Create error corpus fixtures with corrupted.pdf, locked.docx, empty.xlsx for guaranteed failures.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/test_session.py</location>
+      <location>tests/unit/test_cli/test_story_5_6/</location>
+      <location>tests/unit/test_cli/test_error_prompts.py</location>
+      <location>tests/unit/test_cli/test_retry.py</location>
+      <location>tests/uat/journeys/test_journey_6_error_recovery.py (to create)</location>
+      <location>tests/uat/fixtures/error_corpus/</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.6-1">Test session JSON created with schema validation, atomic writes</idea>
+      <idea ac="AC-5.6-2">Test --resume detects session, prompts user, filters processed files</idea>
+      <idea ac="AC-5.6-3">Test retry --last finds failed files, re-processes only failures</idea>
+      <idea ac="AC-5.6-4">Test error prompt shows Skip/Retry/Stop options, returns correct action</idea>
+      <idea ac="AC-5.6-5">Test continue-on-error: corrupted file logged, processing continues</idea>
+      <idea ac="AC-5.6-6">UAT Journey 6: error prompt, skip continues, resume detects session</idea>
+      <idea ac="AC-5.6-7">Test cleanup removes session on success, archives on partial</idea>
+      <idea ac="AC-5.6-7">Test session list/clean/show commands</idea>
+    </ideas>
+  </tests>
+</story-context>

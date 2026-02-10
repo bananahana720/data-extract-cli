@@ -1,0 +1,56 @@
+# MANIFEST.in - Package data inclusion rules
+# Controls which non-Python files are included in the distribution
+
+# Documentation
+include README.md
+include LICENSE
+include INSTALL.md
+include docs/USER_GUIDE.md
+include docs/QUICKSTART.md
+
+# Configuration templates
+include config.yaml.example
+
+# Include all Python source files
+recursive-include src *.py
+
+# CRITICAL: Include data files needed at runtime
+recursive-include src *.yaml
+recursive-include src *.yml
+recursive-include src *.json
+recursive-include src *.txt
+
+# Include development files for source distribution
+include pytest.ini
+graft tests
+graft examples
+graft scripts
+
+# CRITICAL: Override setuptools default test exclusion
+global-include test*.py
+prune tests/__pycache__
+prune tests/.pytest_cache
+
+# Exclude only cache and build artifacts
+recursive-exclude * __pycache__
+recursive-exclude * *.pyc
+recursive-exclude * .pytest_cache
+exclude .coverage
+exclude .gitignore
+
+# Exclude build artifacts
+recursive-exclude dist *
+recursive-exclude build *
+recursive-exclude *.egg-info *
+
+# Exclude IDE and version control
+recursive-exclude .git *
+recursive-exclude .vscode *
+recursive-exclude .idea *
+exclude .DS_Store
+
+# Exclude temporary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *~
+global-exclude \#*

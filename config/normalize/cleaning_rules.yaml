@@ -1,0 +1,193 @@
+# Normalization Cleaning Rules Configuration
+# ==========================================
+# This file defines patterns for text cleaning and artifact removal.
+# Used by TextCleaner class in src/data_extract/normalize/cleaning.py
+#
+# Schema Version: 1.0
+# Story: 2.1 - Text Cleaning and Artifact Removal
+
+# OCR Artifact Patterns (AC-2.1.1)
+# --------------------------------
+# Regex patterns to detect and remove OCR-generated noise
+ocr_artifacts:
+  # Repeated special characters (common OCR errors)
+  - pattern: '\^{3,}'
+    description: "Multiple caret symbols (^^^)"
+    replacement: ""
+
+  - pattern: '■{3,}'
+    description: "Multiple filled squares (■■■)"
+    replacement: ""
+
+  - pattern: '~{3,}'
+    description: "Multiple tildes (~~~)"
+    replacement: ""
+
+  - pattern: '_{10,}'
+    description: "Long underscores (10+ consecutive)"
+    replacement: ""
+
+  - pattern: '-{10,}'
+    description: "Long dashes (10+ consecutive)"
+    replacement: ""
+
+  - pattern: '={10,}'
+    description: "Long equals signs (10+ consecutive)"
+    replacement: ""
+
+  # Control characters (non-printable)
+  - pattern: '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'
+    description: "Control characters (non-printable ASCII)"
+    replacement: ""
+
+  # Random character sequences (likely OCR noise)
+  - pattern: '[^\w\s\.\,\!\?\:\;\-\(\)\[\]\{\}\"\'']{5,}'
+    description: "Long sequences of random symbols (5+ chars)"
+    replacement: ""
+
+  # Isolated symbols surrounded by whitespace
+  - pattern: '\s+[^\w\s]{1,3}\s+'
+    description: "Isolated symbols (1-3 chars) surrounded by whitespace"
+    replacement: " "
+
+# Header/Footer Patterns (AC-2.1.3)
+# ---------------------------------
+# Patterns to detect non-content headers and footers
+headers_footers:
+  # Page numbers
+  - pattern: 'Page\s+\d+(\s+of\s+\d+)?'
+    description: "Page numbers (Page 1, Page 1 of 10)"
+    case_insensitive: true
+
+  - pattern: '^\d+\s*$'
+    description: "Standalone numbers (likely page numbers)"
+
+  # Confidentiality markers
+  - pattern: 'Confidential(\s*-\s*Internal\s+Use\s+Only)?'
+    description: "Confidentiality markers"
+    case_insensitive: true
+
+  - pattern: 'CONFIDENTIAL'
+    description: "CONFIDENTIAL (uppercase)"
+
+  - pattern: 'Internal\s+Use\s+Only'
+    description: "Internal Use Only"
+    case_insensitive: true
+
+  # Draft markers
+  - pattern: 'DRAFT'
+    description: "DRAFT marker"
+    case_insensitive: true
+
+  - pattern: 'Preliminary'
+    description: "Preliminary marker"
+    case_insensitive: true
+
+  # Date stamps (common in headers/footers)
+  - pattern: '\d{1,2}[/-]\d{1,2}[/-]\d{2,4}'
+    description: "Date stamps (MM/DD/YYYY, MM-DD-YY, etc.)"
+
+  - pattern: '\d{4}[/-]\d{1,2}[/-]\d{1,2}'
+    description: "ISO date stamps (YYYY-MM-DD, YYYY/MM/DD)"
+
+  # Company names or document IDs (example patterns - customize for your domain)
+  - pattern: 'Document\s+ID:\s*\w+'
+    description: "Document ID headers"
+    case_insensitive: true
+
+  - pattern: 'Version:\s*[\d\.]+'
+    description: "Version headers"
+    case_insensitive: true
+
+# Whitespace Normalization Settings (AC-2.1.2)
+# --------------------------------------------
+whitespace:
+  # Maximum consecutive newlines allowed (preserves paragraph breaks)
+  max_consecutive_newlines: 2
+
+  # Normalize tabs to spaces
+  normalize_tabs: true
+  tab_size: 4
+
+  # Trim leading/trailing whitespace per line
+  trim_lines: true
+
+  # Normalize multiple spaces to single space (within lines)
+  normalize_multiple_spaces: true
+
+# Formatting Preservation Rules (AC-2.1.5)
+# ----------------------------------------
+# Patterns for intentional formatting that should NOT be removed
+preserve_formatting:
+  # Markdown-style lists
+  - pattern: '^\s*[-\*\+]\s+'
+    description: "Unordered list markers (-, *, +)"
+
+  - pattern: '^\s*\d+\.\s+'
+    description: "Ordered list markers (1., 2., 3.)"
+
+  - pattern: '^\s*[a-z]\.\s+'
+    description: "Lettered list markers (a., b., c.)"
+
+  # Code blocks (indented or fenced)
+  - pattern: '^\s{4,}'
+    description: "Indented code blocks (4+ spaces)"
+
+  - pattern: '```[\s\S]*?```'
+    description: "Fenced code blocks (```)"
+
+  # Emphasis markers
+  - pattern: '\*\*[^\*]+\*\*'
+    description: "Bold emphasis (**text**)"
+
+  - pattern: '\*[^\*]+\*'
+    description: "Italic emphasis (*text*)"
+
+  - pattern: '_[^_]+_'
+    description: "Italic emphasis (_text_)"
+
+  # Paragraph breaks (double newlines) - preserved by max_consecutive_newlines: 2
+
+# Header/Footer Detection Settings (AC-2.1.4)
+# -------------------------------------------
+header_footer_detection:
+  # Minimum number of pages for repetition analysis
+  min_pages_for_detection: 3
+
+  # Top/bottom percentage of page to analyze
+  header_region_percent: 10  # Top 10% of page
+  footer_region_percent: 10  # Bottom 10% of page
+
+  # Minimum similarity threshold for detection (0.0-1.0)
+  similarity_threshold: 0.8  # 80% similarity required
+
+  # Maximum length of header/footer text (characters)
+  max_header_length: 500
+  max_footer_length: 500
+
+# Cleaning Pipeline Configuration
+# -------------------------------
+cleaning_pipeline:
+  # Order of cleaning operations (applied in sequence)
+  stages:
+    - ocr_artifact_removal
+    - header_footer_removal
+    - whitespace_normalization
+
+  # Enable audit logging (AC-2.1.7)
+  enable_audit_log: true
+
+  # Capture before/after snapshots (for debugging)
+  capture_snapshots: false  # Set to true for debugging
+
+# Determinism Settings (AC-2.1.6)
+# -------------------------------
+determinism:
+  # Ensure same input always produces same output
+  disable_randomness: true
+
+  # Fixed regex pattern compilation (no dynamic generation)
+  precompile_patterns: true
+
+  # Timestamps excluded from processing logic (metadata only)
+  timestamp_in_metadata_only: true

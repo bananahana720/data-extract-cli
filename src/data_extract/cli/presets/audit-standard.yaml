@@ -1,0 +1,24 @@
+# Audit Standard Preset
+# Default configuration for audit document processing
+
+semantic:
+  tfidf:
+    max_features: 5000
+    ngram_range: [1, 2]
+    min_df: 2
+    max_df: 0.95
+  similarity:
+    duplicate_threshold: 0.95
+    related_threshold: 0.7
+  lsa:
+    n_components: 100
+  cache:
+    enabled: true
+    max_size_mb: 500
+
+chunk:
+  max_tokens: 512
+  overlap: 128
+
+quality:
+  min_score: 0.3

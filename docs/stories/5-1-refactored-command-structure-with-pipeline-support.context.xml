@@ -1,0 +1,249 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-1</storyId>
+    <title>Refactored Command Structure with Click-to-Typer Migration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-1-refactored-command-structure-with-pipeline-support.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a refactored CLI using Typer with git-style subcommands, full type hints, and auto-validation</iWant>
+    <soThat>the CLI is type-safe, self-documenting, and aligned with ADR-001 architecture decision</soThat>
+    <tasks>
+      <task id="1" title="Typer Migration Infrastructure" acs="1,2,8">
+        <subtask>Install Typer as primary CLI dependency (update pyproject.toml)</subtask>
+        <subtask>Create src/data_extract/cli/base.py with Typer app factory</subtask>
+        <subtask>Implement create_app() function returning configured Typer instance</subtask>
+        <subtask>Add Rich integration for help formatting</subtask>
+        <subtask>Configure auto-completion support</subtask>
+      </task>
+      <task id="2" title="Migrate app.py Entry Point" acs="1,2,8">
+        <subtask>Convert @click.group() to typer.Typer() app</subtask>
+        <subtask>Migrate @click.command() decorators to Typer patterns</subtask>
+        <subtask>Update @click.option() to Annotated[type, typer.Option()] syntax</subtask>
+        <subtask>Add typer.Argument() for positional arguments</subtask>
+        <subtask>Remove all Click imports from app.py</subtask>
+      </task>
+      <task id="3" title="Migrate semantic_commands.py" acs="2,3,4">
+        <subtask>Replace Click imports with Typer equivalents</subtask>
+        <subtask>Migrate 4 commands: analyze, deduplicate, cluster, topics</subtask>
+        <subtask>Add type hints to ALL parameters (Path, bool, int, float, Optional)</subtask>
+        <subtask>Use Annotated[type, typer.Option(...)] pattern</subtask>
+      </task>
+      <task id="4" title="Migrate cache_commands.py" acs="2,3,4">
+        <subtask>Replace Click imports with Typer equivalents</subtask>
+        <subtask>Migrate 4 commands: status, clear, warm, metrics</subtask>
+        <subtask>Add type hints to ALL parameters</subtask>
+      </task>
+      <task id="5" title="Command Router Implementation" acs="1,9">
+        <subtask>Create src/data_extract/cli/router.py</subtask>
+        <subtask>Define CommandResult Pydantic model for standardized returns</subtask>
+        <subtask>Implement command registration pattern</subtask>
+        <subtask>Add subcommand groups: process, extract, analyze, report, config, cache, semantic</subtask>
+      </task>
+      <task id="6" title="Journey 1 - First-Time Setup Wizard" acs="6">
+        <subtask>Create src/data_extract/cli/wizards/__init__.py</subtask>
+        <subtask>Create src/data_extract/cli/wizards/first_time_setup.py</subtask>
+        <subtask>Implement welcome panel with Rich formatting</subtask>
+        <subtask>Add mode selection (Enterprise/Hobbyist) prompt</subtask>
+        <subtask>Add tutorial offer flow</subtask>
+      </task>
+      <task id="7" title="Journey 4 - Learning Mode" acs="7">
+        <subtask>Create src/data_extract/cli/learning.py</subtask>
+        <subtask>Implement LearningModeContext class</subtask>
+        <subtask>Add --learn / -l flag to all relevant commands</subtask>
+        <subtask>Create step-by-step explanation templates</subtask>
+      </task>
+      <task id="8" title="Update Tests" acs="5">
+        <subtask>Update tests/test_cli/test_semantic_commands.py for Typer</subtask>
+        <subtask>Update tests/test_cli/test_cache_commands.py for Typer</subtask>
+        <subtask>Use typer.testing.CliRunner instead of Click's</subtask>
+        <subtask>Add tests for new --learn flag</subtask>
+        <subtask>Add tests for Journey 1 wizard</subtask>
+      </task>
+      <task id="9" title="Update Tech-Spec Diagram" acs="10">
+        <subtask>Edit docs/tech-spec-epic-5.md lines 106-107</subtask>
+        <subtask>Change diagram from Click to Typer</subtask>
+      </task>
+      <task id="10" title="Quality Gates" acs="3,5">
+        <subtask>Run Black formatting on all CLI modules</subtask>
+        <subtask>Run Ruff linting on all CLI modules</subtask>
+        <subtask>Run Mypy strict on src/data_extract/cli/</subtask>
+        <subtask>Verify 0 quality gate violations</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.1-1">Git-style command structure implemented with Typer app groups - data-extract group command pattern works</criterion>
+    <criterion id="AC-5.1-2">Click-to-Typer migration complete (0 Click imports in greenfield CLI) - rg "import click" src/data_extract/cli/ returns 0 matches</criterion>
+    <criterion id="AC-5.1-3">100% type hints on all command parameters (no Any types) - Mypy strict passes on CLI modules</criterion>
+    <criterion id="AC-5.1-4">Pydantic validation integrated for complex config/input models - Config models use Pydantic v2 validation</criterion>
+    <criterion id="AC-5.1-5">All existing tests passing post-migration (no regressions) - pytest tests/test_cli/ passes 100%</criterion>
+    <criterion id="AC-5.1-6">Journey 1 (First-Time Setup) wizard functional via UAT - UAT test validates welcome panel + mode selection</criterion>
+    <criterion id="AC-5.1-7">Journey 4 (Learning Mode) --learn flag operational on all commands - data-extract process --learn shows step-by-step explanations</criterion>
+    <criterion id="AC-5.1-8">Auto-generated help text leverages type hints and docstrings - data-extract --help shows rich formatted help</criterion>
+    <criterion id="AC-5.1-9">Command router supports pipeline composition pattern - Commands return standardized results for chaining</criterion>
+    <criterion id="AC-5.1-10">Tech-spec diagram updated from Click to Typer - docs/tech-spec-epic-5.md shows Typer</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Section 3.1 - CLI Architecture</section>
+        <snippet>CLI uses Typer framework with git-style command groups. ADR-001 decision: Typer over Click for auto-generated help from type hints, less boilerplate.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Journey 1 - First-Time Setup</section>
+        <snippet>Welcome panel -> Mode selection (Enterprise/Hobbyist) -> Tutorial offer -> Sample processing -> Success summary. Journey 4: --learn flag for step-by-step explanations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/architecture-decision-records-adrs.md</path>
+        <title>Architecture Decision Records</title>
+        <section>ADR-001: Choose Typer Over Click</section>
+        <snippet>Decision: Use Typer (built on Click) for CLI. Rationale: Auto-generated help text from type hints, less boilerplate, Click compatible.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Definitions</title>
+        <section>Story 5.1</section>
+        <snippet>Refactored command structure with Click-to-Typer migration. Learning mode and first-time setup wizard implementation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/data_extract/app.py</path>
+        <kind>entry_point</kind>
+        <symbol>app</symbol>
+        <lines>1-303</lines>
+        <reason>Main CLI entry point using Click - requires full migration to Typer. Contains @click.group() and 2 commands.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/semantic_commands.py</path>
+        <kind>command_module</kind>
+        <symbol>semantic</symbol>
+        <lines>1-941</lines>
+        <reason>Semantic analysis commands (analyze, deduplicate, cluster, topics) using Click - requires Typer migration. 941 lines, HIGH complexity.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/cache_commands.py</path>
+        <kind>command_module</kind>
+        <symbol>cache</symbol>
+        <lines>1-334</lines>
+        <reason>Cache management commands (status, clear, warm, metrics) using Click - requires Typer migration. 334 lines, MEDIUM complexity.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/config.py</path>
+        <kind>config</kind>
+        <symbol>SemanticCliConfig</symbol>
+        <lines>15-51</lines>
+        <reason>CLI configuration using dataclass - requires migration to Pydantic BaseModel per AC-5.1-4.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/cli/__init__.py</path>
+        <kind>module</kind>
+        <symbol>exports</symbol>
+        <lines>1-10</lines>
+        <reason>CLI module exports - update to include new components (base, router, wizards, learning).</reason>
+      </file>
+      <file>
+        <path>tests/fixtures/cli_fixtures.py</path>
+        <kind>test_fixtures</kind>
+        <symbol>typer_cli_runner</symbol>
+        <lines>41-77</lines>
+        <reason>Typer CLI test runner fixture already exists - use for migrated tests.</reason>
+      </file>
+      <file>
+        <path>tests/uat/framework/tmux_wrapper.py</path>
+        <kind>uat_framework</kind>
+        <symbol>TmuxSession</symbol>
+        <lines>1-234</lines>
+        <reason>UAT framework for Journey 1 and 4 validation - use for AC-5.1-6 and AC-5.1-7.</reason>
+      </file>
+      <file>
+        <path>tests/uat/framework/ux_assertions.py</path>
+        <kind>uat_assertions</kind>
+        <symbol>assert_panel_displayed</symbol>
+        <lines>1-576</lines>
+        <reason>18+ UX assertions for Rich component validation - use for wizard and progress testing.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <python>
+        <package name="typer" version=">=0.9.0" new="true">Primary CLI framework (replaces Click as interface)</package>
+        <package name="click" version=">=8.1.0">Keep - Typer uses Click internally</package>
+        <package name="rich" version=">=13.0.0">Keep - Rich formatting and panels</package>
+        <package name="pydantic" version=">=2.0.0">Keep - Model validation</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="ADR-001">Use Typer pattern: Annotated[type, typer.Option()] for all options</constraint>
+    <constraint source="ADR-001">Zero Click imports allowed in greenfield CLI after migration</constraint>
+    <constraint source="CLAUDE.md">Quality gates required: Black, Ruff, Mypy must pass with 0 violations</constraint>
+    <constraint source="tech-spec">CLI startup time must remain under 2 seconds</constraint>
+    <constraint source="tech-spec">Command response under 100ms (excluding processing)</constraint>
+    <constraint source="CLAUDE.md">100% type hints on all public functions</constraint>
+    <constraint source="CLAUDE.md">Google-style docstrings for public APIs</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Typer App Factory</name>
+      <kind>function_signature</kind>
+      <signature>def create_app() -> typer.Typer</signature>
+      <path>src/data_extract/cli/base.py (to create)</path>
+    </interface>
+    <interface>
+      <name>CommandResult</name>
+      <kind>pydantic_model</kind>
+      <signature>class CommandResult(BaseModel): success: bool; data: Any; error: Optional[str]</signature>
+      <path>src/data_extract/cli/router.py (to create)</path>
+    </interface>
+    <interface>
+      <name>Typer Command Pattern</name>
+      <kind>decorator_pattern</kind>
+      <signature>@app.command() def cmd(arg: Annotated[Path, typer.Argument(...)], opt: Annotated[bool, typer.Option(...)] = False) -> None</signature>
+      <path>src/data_extract/cli/*.py</path>
+    </interface>
+    <interface>
+      <name>typer.testing.CliRunner</name>
+      <kind>test_utility</kind>
+      <signature>runner = CliRunner(); result = runner.invoke(app, ["command", "--option"])</signature>
+      <path>tests/test_cli/*.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest with typer.testing.CliRunner for CLI tests. Unit tests for individual commands, integration tests for command chains. UAT tests for Journey 1 and 4 via tmux-cli framework. Minimum 80% coverage on CLI modules. Use fixtures from tests/fixtures/cli_fixtures.py including typer_cli_runner and isolated_cli_runner.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/</location>
+      <location>tests/unit/test_cli/test_story_5_1/</location>
+      <location>tests/uat/journeys/test_journey_1_first_time_setup.py</location>
+      <location>tests/uat/journeys/test_journey_4_learning_mode.py</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.1-1">Test git-style command hierarchy: data-extract semantic analyze, data-extract cache status</idea>
+      <idea ac="AC-5.1-2">Grep test: verify 0 Click imports in src/data_extract/cli/</idea>
+      <idea ac="AC-5.1-3">Mypy strict validation on all CLI modules</idea>
+      <idea ac="AC-5.1-4">Test Pydantic validation errors show clear messages</idea>
+      <idea ac="AC-5.1-5">Full test suite regression: pytest tests/test_cli/ -v</idea>
+      <idea ac="AC-5.1-6">UAT Journey 1: welcome panel, mode selection, tutorial offer</idea>
+      <idea ac="AC-5.1-7">UAT Journey 4: --learn flag shows explanations, [Continue] prompts</idea>
+      <idea ac="AC-5.1-8">Verify --help output is rich formatted with type info</idea>
+      <idea ac="AC-5.1-9">Test CommandResult return values for pipeline composition</idea>
+      <idea ac="AC-5.1-10">Verify tech-spec diagram shows Typer not Click</idea>
+    </ideas>
+  </tests>
+</story-context>

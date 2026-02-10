@@ -1,0 +1,195 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>7</storyId>
+    <title>Batch Processing Optimization and Incremental Updates</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-7-batch-processing-optimization-and-incremental-updates.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user processing document batches</asA>
+    <iWant>efficient batch processing with incremental updates that skip already-processed files</iWant>
+    <soThat>I can re-process document sets quickly when adding new files without re-doing completed work</soThat>
+    <tasks>
+      <task n="1" title="Change Detection Infrastructure">
+        <subtask>1.1 Create IncrementalProcessor class in src/data_extract/cli/batch.py</subtask>
+        <subtask>1.1.1 Implement SHA256 file hashing with hashlib</subtask>
+        <subtask>1.1.2 Design state file schema (JSON) for tracking processed files</subtask>
+        <subtask>1.1.3 Add ProcessedFileEntry dataclass: {path, hash, processed_at, output_path, config_hash}</subtask>
+        <subtask>1.2 Implement state file persistence in .data-extract-session/incremental-state.json</subtask>
+        <subtask>1.2.1 State file read/write with atomic operations</subtask>
+        <subtask>1.2.2 Handle state file corruption gracefully</subtask>
+        <subtask>1.3 Build change detection logic</subtask>
+        <subtask>1.3.1 New files: path not in state</subtask>
+        <subtask>1.3.2 Modified files: path exists but hash differs</subtask>
+        <subtask>1.3.3 Unchanged files: path exists and hash matches</subtask>
+        <subtask>1.3.4 Deleted from source: in state but path no longer exists</subtask>
+      </task>
+      <task n="2" title="Glob Pattern Support">
+        <subtask>2.1 Add glob pattern expansion in process command</subtask>
+        <subtask>2.1.1 Support patterns: **/*.pdf, docs/**/*.docx, *.xlsx</subtask>
+        <subtask>2.1.2 Use pathlib.Path.glob() for cross-platform support</subtask>
+        <subtask>2.2 Validate patterns and show matched file count</subtask>
+        <subtask>2.2.1 Error on no matches: "Pattern matched 0 files"</subtask>
+        <subtask>2.2.2 Display matched files in verbose mode</subtask>
+      </task>
+      <task n="3" title="Process Command Enhancement">
+        <subtask>3.1 Add --incremental flag to process command</subtask>
+        <subtask>3.1.1 Default: false (backward compatible)</subtask>
+        <subtask>3.1.2 When enabled, load state and filter to only new/modified files</subtask>
+        <subtask>3.2 Add --force flag to override incremental skip</subtask>
+        <subtask>3.3 Implement pre-processing analysis panel (UX spec pattern)</subtask>
+        <subtask>3.3.1 Show: New files (N), Modified (M), Unchanged (U), Deleted (D)</subtask>
+        <subtask>3.3.2 Rich panel with change summary per UX Journey 7 spec</subtask>
+        <subtask>3.4 Calculate and display time savings estimate</subtask>
+      </task>
+      <task n="4" title="Status Command Implementation">
+        <subtask>4.1 Create status subcommand in CLI</subtask>
+        <subtask>4.2 Implement status report output (Rich panel)</subtask>
+        <subtask>4.2.1 Total files processed</subtask>
+        <subtask>4.2.2 Last updated timestamp</subtask>
+        <subtask>4.2.3 Source directory tracked</subtask>
+        <subtask>4.2.4 Sync status: "Up to date" or "N changes detected"</subtask>
+        <subtask>4.3 Handle orphaned outputs</subtask>
+        <subtask>4.3.1 List orphaned files with suggested cleanup</subtask>
+        <subtask>4.3.2 Option: --cleanup-orphans to remove them</subtask>
+      </task>
+      <task n="5" title="Journey 7 UAT Integration">
+        <subtask>5.1 Create UAT test: test_journey_7_incremental_batch.py</subtask>
+        <subtask>5.1.1 Test: Change detection identifies new/modified/unchanged files</subtask>
+        <subtask>5.1.2 Test: Incremental option processes only changed files</subtask>
+        <subtask>5.1.3 Test: Time savings displayed vs full reprocess</subtask>
+        <subtask>5.1.4 Test: --force flag reprocesses everything</subtask>
+        <subtask>5.1.5 Test: Status command shows sync state</subtask>
+        <subtask>5.2 Verify Journey 2 (Batch Processing) still works</subtask>
+      </task>
+      <task n="6" title="Performance Optimization">
+        <subtask>6.1 Implement fast startup for incremental check</subtask>
+        <subtask>6.1.1 Load state file lazily (only if --incremental)</subtask>
+        <subtask>6.1.2 Hash calculation should be parallelizable (future)</subtask>
+        <subtask>6.2 Add performance test: test_incremental_startup_performance.py</subtask>
+        <subtask>6.2.1 Baseline: less than 2 seconds for state file with 1000 entries</subtask>
+      </task>
+      <task n="7" title="Unit Tests and Documentation">
+        <subtask>7.1 Create tests/test_cli/test_batch_processing.py</subtask>
+        <subtask>7.2 Create tests/test_cli/test_status_command.py</subtask>
+        <subtask>7.3 Update CLI help text with incremental processing examples</subtask>
+        <subtask>7.4 Run quality gates: Black, Ruff, Mypy, Tests</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.7-1">Incremental mode (--incremental flag) processes only new/modified files</criterion>
+    <criterion id="AC-5.7-2">SHA256 hash tracking persisted in state file for change detection</criterion>
+    <criterion id="AC-5.7-3">Glob pattern support for batch input (data-extract process "**/*.pdf")</criterion>
+    <criterion id="AC-5.7-4">status command shows corpus sync status (X/Y files processed, orphaned outputs)</criterion>
+    <criterion id="AC-5.7-5">Journey 2 (Batch Processing) workflows functional with progress indicators</criterion>
+    <criterion id="AC-5.7-6">Journey 7 (Incremental Batch Updates) complete flow validated</criterion>
+    <criterion id="AC-5.7-7">Incremental check startup completes in less than 2 seconds (performance baseline)</criterion>
+    <criterion id="AC-5.7-8">--force flag overrides incremental skip logic and reprocesses all files</criterion>
+    <criterion id="AC-5.7-9">Processing manifest tracks all processed files with metadata (hash, timestamp, output path)</criterion>
+    <criterion id="AC-5.7-10">Time savings displayed after incremental processing vs full reprocess estimate</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-5.md" title="Epic 5 Technical Specification" section="3.7 Batch Processing Architecture" snippet="Story 5-7 delivers incremental processing with SHA256 change detection, glob pattern expansion, and status command for corpus sync tracking."/>
+      <doc path="docs/ux-design-specification.md" title="UX Design Specification" section="Journey 7: Incremental Batch Updates" snippet="Pre-processing analysis panel shows: New files: 5, Modified: 2, Unchanged: 45, Deleted: 1. Options: Process only changes (Recommended), Reprocess everything, Preview changes first."/>
+      <doc path="CLAUDE.md" title="Project Instructions" section="Critical Lessons from Story 4-1" snippet="Cache invalidation patterns from TF-IDF vectorization, state file management from CacheManager singleton design, need explicit _reset() method for test isolation."/>
+    </docs>
+    <code>
+      <artifact path="src/data_extract/cli/batch.py" kind="module" symbol="IncrementalProcessor, FileHasher, StateFile, ChangeDetector, GlobPatternExpander, ChangeSummary, ProcessedFileEntry" lines="1-641" reason="EXISTING: Complete batch processing module with SHA256 hashing, state persistence, change detection, glob expansion, and incremental processing orchestration"/>
+      <artifact path="src/data_extract/cli/base.py" kind="module" symbol="process, status" lines="889-2565" reason="Main CLI with process command - integrate --incremental, --force flags and status subcommand"/>
+      <artifact path="src/data_extract/semantic/cache.py" kind="module" symbol="CacheManager" lines="all" reason="Reference: Cache invalidation patterns from Epic 4 - similar state management"/>
+      <artifact path="src/data_extract/cli/components/panels.py" kind="component" symbol="Panel patterns" lines="all" reason="Rich Panel patterns for change summary display"/>
+      <artifact path="src/data_extract/cli/components/progress.py" kind="component" symbol="Progress tracking" lines="all" reason="Story 5-3 progress infrastructure - batch progress integration"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="hashlib" version="stdlib" purpose="SHA256 file hashing for change detection"/>
+        <package name="pathlib" version="stdlib" purpose="Cross-platform glob pattern expansion"/>
+        <package name="json" version="stdlib" purpose="State file persistence"/>
+        <package name="rich" version=">=13.0.0" purpose="Progress panels and status display"/>
+        <package name="typer" version=">=0.9.0" purpose="CLI framework with flag support"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Use frozen dataclasses for immutable data structures (ProcessedFileEntry, ChangeSummary)</constraint>
+    <constraint type="pattern">State file uses atomic write (temp file then rename) to prevent corruption</constraint>
+    <constraint type="pattern">SHA256 hashing with 8KB chunk reads for memory efficiency</constraint>
+    <constraint type="pattern">Determinism required - same input produces same output per audit trail requirement</constraint>
+    <constraint type="performance">Incremental startup less than 2 seconds for 1000-entry state file</constraint>
+    <constraint type="performance">State file operations less than 100ms for JSON load/save</constraint>
+    <constraint type="layer">CLI batch module in src/data_extract/cli/ - do not modify brownfield code</constraint>
+    <constraint type="enterprise">Classical NLP only - no transformer models per ADR-004</constraint>
+    <constraint type="cross-platform">Glob patterns must work on Windows, macOS, Linux</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="IncrementalProcessor" kind="class" path="src/data_extract/cli/batch.py">
+      <signature>class IncrementalProcessor: __init__(source_dir, output_dir, config_hash), analyze() -> ChangeSummary, process(force, files) -> ProcessingResult, get_status() -> dict</signature>
+    </interface>
+    <interface name="FileHasher" kind="class" path="src/data_extract/cli/batch.py">
+      <signature>class FileHasher: CHUNK_SIZE=8192, @staticmethod compute_hash(file_path) -> str (SHA256 hex)</signature>
+    </interface>
+    <interface name="StateFile" kind="class" path="src/data_extract/cli/batch.py">
+      <signature>class StateFile: __init__(work_dir), load() -> dict|None, save(state), exists() -> bool, get_path() -> Path</signature>
+    </interface>
+    <interface name="ChangeDetector" kind="class" path="src/data_extract/cli/batch.py">
+      <signature>class ChangeDetector: __init__(state, hasher), detect_changes(files) -> ChangeSummary</signature>
+    </interface>
+    <interface name="GlobPatternExpander" kind="class" path="src/data_extract/cli/batch.py">
+      <signature>class GlobPatternExpander: __init__(base_dir), expand(pattern) -> list[Path]</signature>
+    </interface>
+    <interface name="ChangeSummary" kind="dataclass" path="src/data_extract/cli/batch.py">
+      <signature>@dataclass(frozen=True) class ChangeSummary: new_files, modified_files, unchanged_files, deleted_files, @property new_count, modified_count, unchanged_count, deleted_count, total_changes</signature>
+    </interface>
+    <interface name="ProcessedFileEntry" kind="dataclass" path="src/data_extract/cli/batch.py">
+      <signature>@dataclass(frozen=True) class ProcessedFileEntry: path, hash, processed_at, output_path, size_bytes</signature>
+    </interface>
+    <interface name="process command" kind="CLI endpoint" path="src/data_extract/cli/base.py">
+      <signature>@app.command() def process(input_path, output_path, --incremental, --force)</signature>
+    </interface>
+    <interface name="status command" kind="CLI endpoint" path="src/data_extract/cli/base.py">
+      <signature>@app.command() def status(input_path): Show corpus sync status</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      pytest with fixtures and tmp_path for state file isolation.
+      Test change detection with controlled file system state.
+      Test atomic writes and corruption recovery.
+      Performance tests with 1000-entry state files.
+      80%+ coverage on new code per CLAUDE.md requirements.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/test_incremental_processor.py - Unit tests for batch processing classes</location>
+      <location>tests/integration/test_cli/test_batch_incremental.py - CLI integration tests</location>
+      <location>tests/performance/test_incremental_performance.py - Startup and hash performance tests</location>
+      <location>tests/behavioral/epic_5/test_incremental_behavior.py - Behavioral tests</location>
+      <location>tests/uat/journeys/test_journey_7_incremental_batch.py - Journey 7 UAT tests</location>
+      <location>tests/uat/journeys/test_journey_2_batch_processing.py - Journey 2 regression tests</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.7-1">Test --incremental skips files with matching hashes</idea>
+      <idea ac="AC-5.7-2">Test SHA256 hash computed correctly and persisted in state</idea>
+      <idea ac="AC-5.7-3">Test glob patterns expand correctly: **/*.pdf, *.docx</idea>
+      <idea ac="AC-5.7-4">Test status command shows correct file counts and sync state</idea>
+      <idea ac="AC-5.7-5">Test Journey 2 batch processing with progress bars</idea>
+      <idea ac="AC-5.7-6">Test Journey 7 complete flow: initial -> add files -> incremental</idea>
+      <idea ac="AC-5.7-7">Test incremental startup less than 2s with 1000 entries</idea>
+      <idea ac="AC-5.7-8">Test --force reprocesses all files regardless of state</idea>
+      <idea ac="AC-5.7-9">Test state file contains hash, timestamp, output_path for each file</idea>
+      <idea ac="AC-5.7-10">Test time savings estimate displayed after incremental run</idea>
+      <idea ac="AC-5.7-2">Test state file corruption handled gracefully (treat as fresh)</idea>
+      <idea ac="AC-5.7-3">Test empty glob pattern produces helpful error message</idea>
+    </ideas>
+  </tests>
+</story-context>

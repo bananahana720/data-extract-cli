@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <epic>2.5</epic>
+    <story>1.1</story>
+    <key>2.5-1.1-greenfield-extractor-migration</key>
+    <title>Greenfield Extractor Migration (Lift-and-Shift)</title>
+    <generated-date>2025-11-12</generated-date>
+    <status>drafted</status>
+  </metadata>
+
+  <story-definition>
+    <user-story>
+      <as-a>developer implementing Story 2.5.1 performance validation</as-a>
+      <i-want>brownfield extractors migrated to greenfield architecture with adapter pattern</i-want>
+      <so-that>I can profile the complete Extract → Normalize pipeline using the intended Epic 2 architecture</so-that>
+    </user-story>
+
+    <background>
+      <context>
+        Epic 2 was designed with hybrid architecture: brownfield extractors → greenfield normalizer.
+        Tech Spec Epic 2 explicitly states: "NO REFACTORING OF EXTRACTORS REQUIRED" - use "ADAPT AND EXTEND" strategy.
+        Greenfield extractors (src/data_extract/extract/) were never built - placeholder says "Implementation planned for Epic 2-3".
+        Story 2.5.1 code review incorrectly asked for "pure greenfield" which doesn't exist yet.
+      </context>
+      <purpose>
+        Create lightweight adapter wrappers that allow brownfield extractors to work with greenfield Document models,
+        enabling valid performance testing without rebuilding all extractors from scratch.
+      </purpose>
+    </background>
+
+    <acceptance-criteria>
+      <criterion id="AC-2.5.1.1-1" priority="CRITICAL">
+        <description>Extractor Adapter Interface</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/adapter.py with ExtractorAdapter base class</requirement>
+          <requirement>Adapter implements PipelineStage[Path, Document] protocol</requirement>
+          <requirement>Adapter wraps brownfield extractor and converts output to greenfield Document model</requirement>
+          <requirement>Type hints and docstrings following greenfield standards</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-2" priority="CRITICAL">
+        <description>PDF Extractor Adapter</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/pdf.py wrapping src/extractors/pdf_extractor.PdfExtractor</requirement>
+          <requirement>Converts ExtractionResult (brownfield) → Document (greenfield)</requirement>
+          <requirement>Preserves all extraction metadata (OCR confidence, page count, etc.)</requirement>
+          <requirement>Unit tests validate conversion accuracy (10+ test cases)</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-3" priority="HIGH">
+        <description>DOCX Extractor Adapter</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/docx.py wrapping src/extractors/docx_extractor.DocxExtractor</requirement>
+          <requirement>Converts brownfield → greenfield Document</requirement>
+          <requirement>Preserves document structure (headings, tables, comments)</requirement>
+          <requirement>Unit tests validate conversion (8+ test cases)</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-4" priority="HIGH">
+        <description>Excel Extractor Adapter</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/excel.py wrapping src/extractors/excel_extractor.ExcelExtractor</requirement>
+          <requirement>Converts brownfield → greenfield Document</requirement>
+          <requirement>Preserves worksheet structure and table data</requirement>
+          <requirement>Unit tests validate conversion (8+ test cases)</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-5" priority="MEDIUM">
+        <description>PPTX Extractor Adapter</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/pptx.py wrapping src/extractors/pptx_extractor.PptxExtractor</requirement>
+          <requirement>Converts brownfield → greenfield Document</requirement>
+          <requirement>Preserves slide structure and notes</requirement>
+          <requirement>Unit tests validate conversion (6+ test cases)</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-6" priority="MEDIUM">
+        <description>CSV/TXT Extractor Adapters</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/csv.py wrapping CSVExtractor</requirement>
+          <requirement>Create src/data_extract/extract/txt.py wrapping TextFileExtractor</requirement>
+          <requirement>Both convert to greenfield Document model</requirement>
+          <requirement>Unit tests for both (5+ test cases each)</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-7" priority="CRITICAL">
+        <description>Extractor Registry and Factory</description>
+        <requirements>
+          <requirement>Create src/data_extract/extract/__init__.py with extractor registry</requirement>
+          <requirement>Factory function: get_extractor(file_path: Path) → ExtractorAdapter</requirement>
+          <requirement>Auto-detect format from file extension</requirement>
+          <requirement>Raise clear error for unsupported formats</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-8" priority="CRITICAL">
+        <description>Integration Testing</description>
+        <requirements>
+          <requirement>Integration tests validate end-to-end: file → adapter → Document → Normalizer</requirement>
+          <requirement>Test all 6 formats (PDF, DOCX, XLSX, PPTX, CSV, TXT)</requirement>
+          <requirement>Verify Document model passes Pydantic validation</requirement>
+          <requirement>Verify Normalizer accepts adapted Documents without errors</requirement>
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2.5.1.1-9" priority="CRITICAL">
+        <description>Zero Regressions</description>
+        <requirements>
+          <requirement>All 307+ existing tests still pass</requirement>
+          <requirement>Brownfield extractors remain unchanged (no modifications)</requirement>
+          <requirement>Black, Ruff, Mypy pass with zero violations</requirement>
+        </requirements>
+      </criterion>
+    </acceptance-criteria>
+
+    <tasks>
+      <task id="TASK-1" acceptance-criteria="AC-2.5.1.1-1">
+        <title>Design Adapter Architecture</title>
+        <subtasks>
+          <subtask>Review brownfield extractor outputs (ExtractionResult, ContentBlock)</subtask>
+          <subtask>Review greenfield Document model structure</subtask>
+          <subtask>Design ExtractorAdapter base class with conversion logic</subtask>
+          <subtask>Document adapter pattern in docstrings with examples</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-2" acceptance-criteria="AC-2.5.1.1-2">
+        <title>Implement PDF Adapter</title>
+        <subtasks>
+          <subtask>Create src/data_extract/extract/pdf.py</subtask>
+          <subtask>Wrap PdfExtractor and convert to Document</subtask>
+          <subtask>Map OCR metadata to ValidationReport</subtask>
+          <subtask>Write 10+ unit tests covering native and scanned PDFs</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-3" acceptance-criteria="AC-2.5.1.1-3">
+        <title>Implement DOCX Adapter</title>
+        <subtasks>
+          <subtask>Create src/data_extract/extract/docx.py</subtask>
+          <subtask>Wrap DocxExtractor and convert to Document</subtask>
+          <subtask>Preserve heading hierarchy and table structures</subtask>
+          <subtask>Write 8+ unit tests</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-4" acceptance-criteria="AC-2.5.1.1-4">
+        <title>Implement Excel Adapter</title>
+        <subtasks>
+          <subtask>Create src/data_extract/extract/excel.py</subtask>
+          <subtask>Wrap ExcelExtractor and convert to Document</subtask>
+          <subtask>Handle multi-sheet workbooks</subtask>
+          <subtask>Write 8+ unit tests</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-5" acceptance-criteria="AC-2.5.1.1-5">
+        <title>Implement PPTX Adapter</title>
+        <subtasks>
+          <subtask>Create src/data_extract/extract/pptx.py</subtask>
+          <subtask>Wrap PptxExtractor and convert to Document</subtask>
+          <subtask>Preserve slide order and notes</subtask>
+          <subtask>Write 6+ unit tests</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-6" acceptance-criteria="AC-2.5.1.1-6">
+        <title>Implement CSV/TXT Adapters</title>
+        <subtasks>
+          <subtask>Create src/data_extract/extract/csv.py and txt.py</subtask>
+          <subtask>Wrap both brownfield extractors</subtask>
+          <subtask>Write 5+ unit tests for each</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-7" acceptance-criteria="AC-2.5.1.1-7">
+        <title>Implement Extractor Registry</title>
+        <subtasks>
+          <subtask>Create factory pattern in __init__.py</subtask>
+          <subtask>Map file extensions to adapters</subtask>
+          <subtask>Write tests for auto-detection logic</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-8" acceptance-criteria="AC-2.5.1.1-8">
+        <title>Integration Testing</title>
+        <subtasks>
+          <subtask>Create tests/integration/test_extract_normalize.py</subtask>
+          <subtask>Test complete flow: file → extract → normalize</subtask>
+          <subtask>Validate against sample documents from tests/fixtures/</subtask>
+          <subtask>Verify Pydantic validation passes</subtask>
+        </subtasks>
+      </task>
+
+      <task id="TASK-9" acceptance-criteria="AC-2.5.1.1-9">
+        <title>Validation and Regression Testing</title>
+        <subtasks>
+          <subtask>Run full test suite (pytest)</subtask>
+          <subtask>Run Black, Ruff, Mypy quality gates</subtask>
+          <subtask>Verify zero changes to brownfield extractors</subtask>
+          <subtask>Update documentation</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story-definition>
+
+  <documentation-artifacts>
+    <artifact type="tech-spec" path="docs/tech-spec-epic-2.md">
+      <section name="Brownfield Integration">
+        <key-point>NO REFACTORING OF EXTRACTORS REQUIRED - use ADAPT AND EXTEND strategy</key-point>
+        <key-point>Existing extractors in src/extractors/ remain unchanged</key-point>
+        <key-point>Epic 2 normalizers work with outputs from existing extractors</key-point>
+        <key-point>Add EntityType, DocumentType, QualityFlag enums to models</key-point>
+        <key-point>Extend Metadata with quality scores and entity tags</key-point>
+      </section>
+
+      <section name="System Architecture Alignment">
+        <key-point>Epic 2 input contract: ExtractionResult from src/extractors/ stage</key-point>
+        <key-point>Contains List[ContentBlock] with raw extracted text</key-point>
+        <key-point>Metadata includes source file, extraction confidence, document structure</key-point>
+        <key-point>Output contract: ProcessingResult to src/data_extract/chunk/ stage</key-point>
+      </section>
+    </artifact>
+
+    <artifact type="architecture" path="docs/architecture.md">
+      <section name="ADR-002: Use Pydantic Over Dataclasses">
+        <key-point>Use Pydantic v2 for all data models (Document, Chunk, Config)</key-point>
+        <key-point>Runtime validation prevents bugs</key-point>
+        <key-point>JSON schema generation for documentation</key-point>
+        <key-point>Better error messages than dataclasses</key-point>
+      </section>
+
+      <section name="Pipeline Stage Pattern">
+        <key-point>All pipeline stages implement PipelineStage[Input, Output] protocol</key-point>
+        <key-point>process(input_data: Input, context: ProcessingContext) → Output</key-point>
+        <key-point>Stages should be stateless - all state in ProcessingContext</key-point>
+        <key-point>Stages should be deterministic for audit reproducibility</key-point>
+      </section>
+    </artifact>
+
+    <artifact type="retrospective" path="docs/retrospectives/epic-2-retro-20250111.md">
+      <section name="Epic 2 Deliverables">
+        <key-point>6/6 Stories Completed - 100% delivery rate</key-point>
+        <key-point>307 Tests Passing - 218 new tests added with zero regressions</key-point>
+        <key-point>Metadata Integration Complete - file hash, timestamps, entity tags, quality scores</key-point>
+        <key-point>PipelineStage Protocol Validated at Scale - 5 normalizers using protocol</key-point>
+      </section>
+
+      <section name="Lessons Learned">
+        <key-point>Automation Beats Documentation for Quality Enforcement</key-point>
+        <key-point>PipelineStage Protocol Scales Without Friction</key-point>
+        <key-point>Test Coverage Growth Validates Architecture Investment</key-point>
+        <key-point>Bridge Epics Prevent Downstream Blockers</key-point>
+      </section>
+    </artifact>
+  </documentation-artifacts>
+
+  <existing-code>
+    <brownfield-extractors>
+      <extractor path="src/extractors/pdf_extractor.py">
+        <class-name>PdfExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Native text extraction using pypdf</feature>
+          <feature>OCR fallback using pytesseract for image-based PDFs</feature>
+          <feature>Table detection and structure preservation</feature>
+          <feature>Image metadata extraction</feature>
+          <feature>Multi-page document support</feature>
+        </features>
+      </extractor>
+
+      <extractor path="src/extractors/docx_extractor.py">
+        <class-name>DocxExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Heading hierarchy extraction</feature>
+          <feature>Table structure preservation</feature>
+          <feature>Comment extraction</feature>
+          <feature>Tracked changes support</feature>
+        </features>
+      </extractor>
+
+      <extractor path="src/extractors/excel_extractor.py">
+        <class-name>ExcelExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Multi-sheet workbook support</feature>
+          <feature>Table structure preservation</feature>
+          <feature>Cell formatting extraction</feature>
+          <feature>Formula extraction</feature>
+        </features>
+      </extractor>
+
+      <extractor path="src/extractors/pptx_extractor.py">
+        <class-name>PptxExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Slide order preservation</feature>
+          <feature>Notes extraction</feature>
+          <feature>Image extraction</feature>
+          <feature>Table extraction</feature>
+        </features>
+      </extractor>
+
+      <extractor path="src/extractors/csv_extractor.py">
+        <class-name>CSVExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Header detection</feature>
+          <feature>Delimiter auto-detection</feature>
+          <feature>Encoding detection</feature>
+        </features>
+      </extractor>
+
+      <extractor path="src/extractors/txt_extractor.py">
+        <class-name>TextFileExtractor</class-name>
+        <base-class>BaseExtractor</base-class>
+        <output-type>ExtractionResult</output-type>
+        <features>
+          <feature>Encoding detection</feature>
+          <feature>Line-based extraction</feature>
+          <feature>Paragraph detection</feature>
+        </features>
+      </extractor>
+    </brownfield-extractors>
+
+    <brownfield-models path="src/core/models.py">
+      <model name="ExtractionResult">
+        <field name="content_blocks" type="tuple[ContentBlock, ...]">Raw content blocks without enrichment</field>
+        <field name="document_metadata" type="DocumentMetadata">Source file, format, statistics</field>
+        <field name="images" type="tuple[ImageMetadata, ...]">Extracted images</field>
+        <field name="tables" type="tuple[TableMetadata, ...]">Extracted tables</field>
+        <field name="success" type="bool">Extraction status</field>
+        <field name="errors" type="tuple[str, ...]">Error messages</field>
+        <field name="warnings" type="tuple[str, ...]">Warning messages</field>
+      </model>
+
+      <model name="ContentBlock">
+        <field name="block_id" type="UUID">Unique identifier</field>
+        <field name="block_type" type="ContentType">paragraph, heading, table, image, etc.</field>
+        <field name="content" type="str">Primary text content</field>
+        <field name="raw_content" type="Optional[str]">Original content before processing</field>
+        <field name="position" type="Optional[Position]">Location in document</field>
+        <field name="metadata" type="dict[str, Any]">Block-specific metadata</field>
+        <field name="confidence" type="Optional[float]">Extraction confidence (0.0-1.0)</field>
+      </model>
+
+      <model name="DocumentMetadata">
+        <field name="source_file" type="Path">Source file path</field>
+        <field name="file_format" type="str">File format</field>
+        <field name="file_hash" type="Optional[str]">SHA-256 hash</field>
+        <field name="page_count" type="Optional[int]">Number of pages</field>
+        <field name="word_count" type="Optional[int]">Number of words</field>
+        <field name="image_count" type="int">Number of images</field>
+        <field name="table_count" type="int">Number of tables</field>
+      </model>
+    </brownfield-models>
+
+    <greenfield-models path="src/data_extract/core/models.py">
+      <model name="Document">
+        <field name="id" type="str">Unique document identifier</field>
+        <field name="text" type="str">Document text content (raw or normalized)</field>
+        <field name="entities" type="List[Entity]">Extracted entities</field>
+        <field name="metadata" type="Metadata">Processing metadata and quality tracking</field>
+        <field name="structure" type="Dict[str, Any]">Document structure metadata</field>
+      </model>
+
+      <model name="Entity">
+        <field name="type" type="EntityType">process, risk, control, regulation, policy, issue</field>
+        <field name="id" type="str">Canonical entity identifier (e.g., Risk-123)</field>
+        <field name="text" type="str">Entity text content</field>
+        <field name="confidence" type="float">Confidence score (0.0-1.0)</field>
+        <field name="location" type="Dict[str, int]">Character position in document</field>
+      </model>
+
+      <model name="Metadata">
+        <field name="source_file" type="Path">Path to original source file</field>
+        <field name="file_hash" type="str">SHA-256 hash</field>
+        <field name="processing_timestamp" type="datetime">When processed</field>
+        <field name="tool_version" type="str">Tool version</field>
+        <field name="config_version" type="str">Config version</field>
+        <field name="document_type" type="Optional[DocumentType]">report, matrix, export, image</field>
+        <field name="quality_scores" type="Dict[str, float]">Quality metrics</field>
+        <field name="quality_flags" type="List[str]">Quality warnings</field>
+        <field name="entity_tags" type="List[str]">Canonical entity IDs</field>
+      </model>
+    </greenfield-models>
+
+    <greenfield-pipeline path="src/data_extract/core/pipeline.py">
+      <protocol name="PipelineStage">
+        <type-parameters>
+          <param name="Input" variance="contravariant"/>
+          <param name="Output" variance="covariant"/>
+        </type-parameters>
+        <method name="process">
+          <signature>def process(self, input_data: Input, context: ProcessingContext) -> Output</signature>
+          <description>Process input and return output with shared context</description>
+          <raises>
+            <exception>ProcessingError: For recoverable errors (log, skip file, continue batch)</exception>
+            <exception>CriticalError: For unrecoverable errors (halt processing)</exception>
+          </raises>
+        </method>
+      </protocol>
+    </greenfield-pipeline>
+
+    <greenfield-normalizer path="src/data_extract/normalize/normalizer.py">
+      <class-name>Normalizer</class-name>
+      <implements>PipelineStage[Document, Document]</implements>
+      <orchestrates>
+        <component>TextCleaner - Story 2.1</component>
+        <component>EntityNormalizer - Story 2.2</component>
+        <component>SchemaStandardizer - Story 2.3</component>
+        <component>QualityValidator - Story 2.4, 2.5</component>
+        <component>MetadataEnricher - Story 2.6</component>
+      </orchestrates>
+      <input>Document with raw text</input>
+      <output>Document with cleaned text + entities + standardized schema + validated OCR</output>
+    </greenfield-normalizer>
+  </existing-code>
+
+  <dependencies>
+    <runtime-dependencies>
+      <dependency name="pydantic" version=">=2.0.0,<3.0" purpose="Data validation, runtime type checking" />
+      <dependency name="PyYAML" version=">=6.0.0,<7.0" purpose="Configuration file parsing" />
+      <dependency name="structlog" version=">=24.0.0,<25.0" purpose="Structured logging" />
+      <dependency name="pypdf" version=">=3.0.0" purpose="PDF extraction (brownfield)" />
+      <dependency name="python-docx" version=">=0.8.11" purpose="DOCX extraction (brownfield)" />
+      <dependency name="openpyxl" version=">=3.0.10" purpose="Excel extraction (brownfield)" />
+      <dependency name="python-pptx" version=">=0.6.21" purpose="PPTX extraction (brownfield)" />
+      <dependency name="pytesseract" version=">=0.3.10" purpose="OCR extraction (optional, brownfield)" />
+      <dependency name="Pillow" version=">=10.0.0" purpose="Image processing (brownfield)" />
+    </runtime-dependencies>
+
+    <dev-dependencies>
+      <dependency name="pytest" version=">=8.0.0,<9.0" purpose="Testing framework" />
+      <dependency name="pytest-cov" version=">=5.0.0,<6.0" purpose="Coverage reporting" />
+      <dependency name="pytest-mock" version=">=3.11.0" purpose="Mocking support" />
+      <dependency name="black" version=">=24.0.0,<25.0" purpose="Code formatting" />
+      <dependency name="ruff" version=">=0.6.0,<0.7" purpose="Fast Python linter" />
+      <dependency name="mypy" version=">=1.11.0,<2.0" purpose="Static type checking" />
+    </dev-dependencies>
+  </dependencies>
+
+  <interfaces>
+    <adapter-interface>
+      <name>ExtractorAdapter</name>
+      <purpose>Bridge brownfield extractors to greenfield Document model</purpose>
+      <implements>PipelineStage[Path, Document]</implements>
+      <methods>
+        <method>
+          <signature>def __init__(self, brownfield_extractor: BaseExtractor)</signature>
+          <description>Initialize adapter with brownfield extractor instance</description>
+        </method>
+        <method>
+          <signature>def process(self, file_path: Path, context: ProcessingContext) -> Document</signature>
+          <description>Extract using brownfield, convert to greenfield Document</description>
+          <steps>
+            <step>Call brownfield extractor.extract(file_path) → ExtractionResult</step>
+            <step>Convert ExtractionResult to Document using _convert_to_document()</step>
+            <step>Preserve all metadata (OCR confidence, page count, etc.)</step>
+            <step>Return greenfield Document</step>
+          </steps>
+        </method>
+        <method>
+          <signature>def _convert_to_document(self, extraction_result: ExtractionResult) -> Document</signature>
+          <description>Convert brownfield ExtractionResult to greenfield Document</description>
+          <conversion-logic>
+            <mapping source="content_blocks" target="text">Concatenate all ContentBlock.content into Document.text</mapping>
+            <mapping source="document_metadata" target="metadata">Transform DocumentMetadata to Metadata model</mapping>
+            <mapping source="images, tables" target="structure">Preserve in Document.structure dict</mapping>
+            <mapping source="ContentBlock.position" target="structure">Preserve position information</mapping>
+            <mapping source="ContentBlock.metadata.ocr_confidence" target="metadata.ocr_confidence">Map OCR scores</mapping>
+          </conversion-logic>
+        </method>
+      </methods>
+    </adapter-interface>
+
+    <factory-interface>
+      <name>get_extractor</name>
+      <signature>def get_extractor(file_path: Path) -> ExtractorAdapter</signature>
+      <description>Factory function to auto-detect and return appropriate adapter</description>
+      <extension-mapping>
+        <mapping extension=".pdf" adapter="PdfExtractorAdapter" />
+        <mapping extension=".docx" adapter="DocxExtractorAdapter" />
+        <mapping extension=".xlsx" adapter="ExcelExtractorAdapter" />
+        <mapping extension=".pptx" adapter="PptxExtractorAdapter" />
+        <mapping extension=".csv" adapter="CsvExtractorAdapter" />
+        <mapping extension=".txt" adapter="TxtExtractorAdapter" />
+      </extension-mapping>
+      <error-handling>
+        <unsupported-format>Raise ValueError with clear message listing supported formats</unsupported-format>
+        <file-not-found>Raise FileNotFoundError with file path</file-not-found>
+      </error-handling>
+    </factory-interface>
+  </interfaces>
+
+  <conversion-mapping>
+    <brownfield-to-greenfield>
+      <model-conversion source="ExtractionResult" target="Document">
+        <field-mapping>
+          <map from="content_blocks[].content" to="text">
+            <logic>Concatenate all ContentBlock.content with newlines into single text string</logic>
+            <preserve>Order by ContentBlock.position.sequence_index</preserve>
+          </map>
+          <map from="document_metadata.source_file" to="metadata.source_file">
+            <logic>Direct copy of Path</logic>
+          </map>
+          <map from="document_metadata.file_hash" to="metadata.file_hash">
+            <logic>Direct copy of SHA-256 hash, compute if None</logic>
+          </map>
+          <map from="document_metadata.extracted_at" to="metadata.processing_timestamp">
+            <logic>Direct copy of datetime</logic>
+          </map>
+          <map from="document_metadata.page_count" to="structure['page_count']">
+            <logic>Store in Document.structure dict</logic>
+          </map>
+          <map from="document_metadata.word_count" to="structure['word_count']">
+            <logic>Store in Document.structure dict</logic>
+          </map>
+          <map from="images" to="structure['images']">
+            <logic>Serialize ImageMetadata tuple to dict list</logic>
+          </map>
+          <map from="tables" to="structure['tables']">
+            <logic>Serialize TableMetadata tuple to dict list</logic>
+          </map>
+          <map from="content_blocks[].metadata.ocr_confidence" to="metadata.ocr_confidence">
+            <logic>Extract per-page OCR confidence scores, map by page number</logic>
+            <format>Dict[int, float] where key is page number</format>
+          </map>
+        </field-mapping>
+
+        <default-values>
+          <field name="id">Generate from source_file.stem + timestamp hash</field>
+          <field name="entities">Empty list (populated by Normalizer)</field>
+          <field name="metadata.tool_version">Import from package __version__</field>
+          <field name="metadata.config_version">Extract from ProcessingContext.config</field>
+          <field name="metadata.quality_scores">Empty dict (populated by QualityValidator)</field>
+          <field name="metadata.quality_flags">Empty list (populated by QualityValidator)</field>
+          <field name="metadata.entity_tags">Empty list (populated by EntityNormalizer)</field>
+        </default-values>
+      </model-conversion>
+    </brownfield-to-greenfield>
+  </conversion-mapping>
+
+  <testing-strategy>
+    <unit-tests path="tests/unit/test_extract/">
+      <test-file name="test_adapter.py">
+        <test>test_extractor_adapter_base_class_interface</test>
+        <test>test_conversion_preserves_text_content</test>
+        <test>test_conversion_preserves_metadata</test>
+        <test>test_conversion_handles_empty_content</test>
+        <test>test_conversion_handles_missing_metadata</test>
+      </test-file>
+
+      <test-file name="test_pdf.py">
+        <test-count>10+</test-count>
+        <test>test_pdf_adapter_native_text_extraction</test>
+        <test>test_pdf_adapter_scanned_pdf_ocr</test>
+        <test>test_pdf_adapter_preserves_page_count</test>
+        <test>test_pdf_adapter_maps_ocr_confidence</test>
+        <test>test_pdf_adapter_handles_multi_page_document</test>
+        <test>test_pdf_adapter_preserves_image_metadata</test>
+        <test>test_pdf_adapter_preserves_table_metadata</test>
+        <test>test_pdf_adapter_pydantic_validation_passes</test>
+        <test>test_pdf_adapter_empty_pdf</test>
+        <test>test_pdf_adapter_corrupted_pdf_error</test>
+      </test-file>
+
+      <test-file name="test_docx.py">
+        <test-count>8+</test-count>
+        <test>test_docx_adapter_heading_hierarchy</test>
+        <test>test_docx_adapter_preserves_tables</test>
+        <test>test_docx_adapter_preserves_comments</test>
+        <test>test_docx_adapter_pydantic_validation_passes</test>
+      </test-file>
+
+      <test-file name="test_excel.py">
+        <test-count>8+</test-count>
+        <test>test_excel_adapter_multi_sheet_workbook</test>
+        <test>test_excel_adapter_preserves_table_structure</test>
+        <test>test_excel_adapter_handles_formulas</test>
+        <test>test_excel_adapter_pydantic_validation_passes</test>
+      </test-file>
+
+      <test-file name="test_pptx.py">
+        <test-count>6+</test-count>
+        <test>test_pptx_adapter_slide_order</test>
+        <test>test_pptx_adapter_preserves_notes</test>
+        <test>test_pptx_adapter_pydantic_validation_passes</test>
+      </test-file>
+
+      <test-file name="test_csv.py">
+        <test-count>5+</test-count>
+        <test>test_csv_adapter_header_detection</test>
+        <test>test_csv_adapter_delimiter_detection</test>
+        <test>test_csv_adapter_pydantic_validation_passes</test>
+      </test-file>
+
+      <test-file name="test_txt.py">
+        <test-count>5+</test-count>
+        <test>test_txt_adapter_encoding_detection</test>
+        <test>test_txt_adapter_paragraph_detection</test>
+        <test>test_txt_adapter_pydantic_validation_passes</test>
+      </test-file>
+
+      <test-file name="test_registry.py">
+        <test>test_get_extractor_pdf</test>
+        <test>test_get_extractor_docx</test>
+        <test>test_get_extractor_xlsx</test>
+        <test>test_get_extractor_pptx</test>
+        <test>test_get_extractor_csv</test>
+        <test>test_get_extractor_txt</test>
+        <test>test_get_extractor_unsupported_format_raises_error</test>
+        <test>test_get_extractor_file_not_found_raises_error</test>
+      </test-file>
+    </unit-tests>
+
+    <integration-tests path="tests/integration/">
+      <test-file name="test_extract_normalize.py">
+        <test>test_pdf_extract_normalize_integration</test>
+        <test>test_docx_extract_normalize_integration</test>
+        <test>test_excel_extract_normalize_integration</test>
+        <test>test_pptx_extract_normalize_integration</test>
+        <test>test_csv_extract_normalize_integration</test>
+        <test>test_txt_extract_normalize_integration</test>
+        <test>test_all_formats_pydantic_validation_passes</test>
+        <test>test_normalizer_accepts_adapted_documents</test>
+      </test-file>
+    </integration-tests>
+
+    <coverage-target>
+      <overall>40+ new tests for adapters</overall>
+      <adapter-module>>90% coverage</adapter-module>
+      <registry-module>100% coverage</registry-module>
+    </coverage-target>
+  </testing-strategy>
+
+  <constraints>
+    <architectural-constraints>
+      <constraint>Zero brownfield modifications - ADAPT, don't refactor</constraint>
+      <constraint>Type safety with mypy strict mode (no violations allowed)</constraint>
+      <constraint>All 307+ existing tests must pass (zero regressions)</constraint>
+      <constraint>Black/Ruff/Mypy quality gates must pass before marking complete</constraint>
+      <constraint>Thin adapter layer - model conversion only, no business logic</constraint>
+    </architectural-constraints>
+
+    <design-constraints>
+      <constraint>Adapter pattern - wrap brownfield, convert to greenfield</constraint>
+      <constraint>Stateless adapters - all state in ProcessingContext</constraint>
+      <constraint>Deterministic conversion - same input → same output</constraint>
+      <constraint>Preserve all metadata - no information loss during conversion</constraint>
+    </design-constraints>
+
+    <code-quality-constraints>
+      <constraint>Google-style docstrings for all public methods</constraint>
+      <constraint>Type hints on all function signatures</constraint>
+      <constraint>100-character line length (Black configured)</constraint>
+      <constraint>Pydantic v2 for all data models</constraint>
+    </code-quality-constraints>
+  </constraints>
+
+  <key-design-decisions>
+    <decision id="DEC-1">
+      <title>Zero Brownfield Modifications</title>
+      <rationale>Brownfield extractors are production-tested with 307+ tests. Modification risk outweighs adapter overhead.</rationale>
+      <impact>Adapter layer adds slight performance overhead but preserves stability</impact>
+    </decision>
+
+    <decision id="DEC-2">
+      <title>Thin Adapter Layer</title>
+      <rationale>Adapters only handle model conversion, no business logic. Keeps adapters simple and testable.</rationale>
+      <impact>Clear separation of concerns - extraction logic in brownfield, conversion in adapter</impact>
+    </decision>
+
+    <decision id="DEC-3">
+      <title>PipelineStage[Path, Document] Protocol</title>
+      <rationale>Adapters implement same protocol as future pure greenfield extractors. Enables seamless replacement.</rationale>
+      <impact>Type-safe integration with Normalizer and pipeline orchestration</impact>
+    </decision>
+
+    <decision id="DEC-4">
+      <title>Factory Pattern for Extractor Selection</title>
+      <rationale>Auto-detection from file extension simplifies usage. Single entry point for all formats.</rationale>
+      <impact>Simplified API: get_extractor(path) → adapter</impact>
+    </decision>
+  </key-design-decisions>
+
+  <success-criteria>
+    <criterion priority="CRITICAL">
+      <description>All 6 extractor adapters working (PDF, DOCX, XLSX, PPTX, CSV, TXT)</description>
+      <validation>Unit tests pass for all 6 adapters</validation>
+    </criterion>
+
+    <criterion priority="CRITICAL">
+      <description>Story 2.5.1 can profile Extract → Normalize pipeline with real extractors</description>
+      <validation>Integration tests confirm end-to-end flow works</validation>
+    </criterion>
+
+    <criterion priority="CRITICAL">
+      <description>Zero brownfield modifications (ADAPT, don't refactor)</description>
+      <validation>Git diff shows no changes to src/extractors/*.py</validation>
+    </criterion>
+
+    <criterion priority="CRITICAL">
+      <description>All 307+ tests still passing + 40+ new adapter tests</description>
+      <validation>pytest runs with 347+ tests passing, 0 failures</validation>
+    </criterion>
+
+    <criterion priority="HIGH">
+      <description>Type safety maintained (mypy strict mode passes)</description>
+      <validation>mypy src/data_extract/ reports 0 errors</validation>
+    </criterion>
+
+    <criterion priority="HIGH">
+      <description>Code quality gates pass (Black, Ruff, Mypy)</description>
+      <validation>Pre-commit hooks pass with zero violations</validation>
+    </criterion>
+  </success-criteria>
+
+  <references>
+    <reference type="story-file" path="docs/stories/2.5-1.1-greenfield-extractor-migration.md">
+      <description>Story definition with acceptance criteria and tasks</description>
+    </reference>
+
+    <reference type="tech-spec" path="docs/tech-spec-epic-2.md">
+      <description>Epic 2 brownfield integration strategy - ADAPT AND EXTEND</description>
+    </reference>
+
+    <reference type="tech-spec" path="docs/tech-spec-epic-2.5.md">
+      <description>Epic 2.5 bridge epic - performance validation and spaCy integration</description>
+    </reference>
+
+    <reference type="architecture" path="docs/architecture.md">
+      <description>ADR-002 Pydantic models, Pipeline Stage Pattern</description>
+    </reference>
+
+    <reference type="retrospective" path="docs/retrospectives/epic-2-retro-20250111.md">
+      <description>Epic 2 deliverables and lessons learned</description>
+    </reference>
+
+    <reference type="code" path="src/core/models.py">
+      <description>Brownfield ExtractionResult, ContentBlock, DocumentMetadata models</description>
+    </reference>
+
+    <reference type="code" path="src/data_extract/core/models.py">
+      <description>Greenfield Document, Metadata, Entity models</description>
+    </reference>
+
+    <reference type="code" path="src/data_extract/core/pipeline.py">
+      <description>PipelineStage protocol definition</description>
+    </reference>
+
+    <reference type="code" path="src/data_extract/normalize/normalizer.py">
+      <description>Normalizer orchestrator (target for adapter output)</description>
+    </reference>
+  </references>
+
+  <file-paths>
+    <new-files>
+      <file>src/data_extract/extract/__init__.py</file>
+      <file>src/data_extract/extract/adapter.py</file>
+      <file>src/data_extract/extract/pdf.py</file>
+      <file>src/data_extract/extract/docx.py</file>
+      <file>src/data_extract/extract/excel.py</file>
+      <file>src/data_extract/extract/pptx.py</file>
+      <file>src/data_extract/extract/csv.py</file>
+      <file>src/data_extract/extract/txt.py</file>
+      <file>tests/unit/test_extract/test_adapter.py</file>
+      <file>tests/unit/test_extract/test_pdf.py</file>
+      <file>tests/unit/test_extract/test_docx.py</file>
+      <file>tests/unit/test_extract/test_excel.py</file>
+      <file>tests/unit/test_extract/test_pptx.py</file>
+      <file>tests/unit/test_extract/test_csv.py</file>
+      <file>tests/unit/test_extract/test_txt.py</file>
+      <file>tests/unit/test_extract/test_registry.py</file>
+      <file>tests/integration/test_extract_normalize.py</file>
+    </new-files>
+
+    <unchanged-files>
+      <file>src/extractors/*.py (all brownfield extractors)</file>
+      <file>src/core/models.py (brownfield models)</file>
+      <file>All 307+ existing test files</file>
+    </unchanged-files>
+
+    <modified-files>
+      <file>pyproject.toml (no changes expected, all dependencies already present)</file>
+      <file>CLAUDE.md (potentially updated with adapter pattern documentation)</file>
+    </modified-files>
+  </file-paths>
+</story-context>

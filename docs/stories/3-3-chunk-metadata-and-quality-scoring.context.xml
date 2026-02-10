@@ -1,0 +1,696 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3</storyId>
+    <title>Chunk Metadata and Quality Scoring</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-3-chunk-metadata-and-quality-scoring.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>quality engineer preparing RAG workflows</asA>
+    <iWant>each chunk enriched with comprehensive metadata and quality scores</iWant>
+    <soThat>RAG systems can filter, prioritize, and validate high-quality retrievals based on objective metrics</soThat>
+    <tasks>
+### Task 1: Create QualityScore Dataclass (AC: #3.3-4, #3.3-5, #3.3-8)
+- [ ] Create `src/data_extract/chunk/quality.py` module
+- [ ] Implement `QualityScore` dataclass (frozen=True)
+  - [ ] Fields: readability_flesch_kincaid, readability_gunning_fog, ocr_confidence, completeness, coherence, overall, flags
+  - [ ] Method: `to_dict()` for JSON serialization
+  - [ ] Method: `is_high_quality()` helper (overall >= 0.75 threshold)
+  - [ ] Pydantic v2 validation (all scores 0.0-1.0 range, FK/Gunning Fog 0.0-30.0)
+- [ ] Add type hints (mypy strict mode compliant)
+- [ ] Add comprehensive docstrings (Google style)
+
+### Task 2: Implement MetadataEnricher Component (AC: #3.3-1, #3.3-4, #3.3-5, #3.3-7, #3.3-8)
+- [ ] Create `src/data_extract/chunk/metadata_enricher.py`
+- [ ] Implement `MetadataEnricher` class
+  - [ ] Constructor: `__init__(self, textstat_library=textstat)` (dependency injection for testing)
+  - [ ] Method: `enrich_chunk(chunk: Chunk, source_metadata: dict) -> Chunk`
+  - [ ] Calculate readability scores (FK, Gunning Fog) using textstat
+  - [ ] Extract OCR confidence from source_metadata (Epic 2)
+  - [ ] Calculate completeness from entity preservation rate
+  - [ ] Calculate coherence using sentence lexical overlap heuristic
+  - [ ] Compute overall weighted score (40% OCR, 30% completeness, 20% coherence, 10% readability)
+  - [ ] Generate quality flags (low_ocr, incomplete_extraction, high_complexity, gibberish)
+  - [ ] Calculate word count (whitespace split)
+  - [ ] Estimate token count (len(text) / 4)
+  - [ ] Return new Chunk with enriched QualityScore
+  - [ ] Private method: `_calculate_coherence(text: str) -> float`
+  - [ ] Private method: `_detect_quality_flags(quality: QualityScore, text: str) -> List[str]`
+  - [ ] Add type hints and docstrings
+
+### Task 3: Update ChunkMetadata Model (AC: #3.3-1, #3.3-2, #3.3-3, #3.3-6, #3.3-7)
+- [ ] Update `ChunkMetadata` dataclass in `src/data_extract/chunk/models.py`
+  - [ ] Add field: `source_hash: str` (SHA-256 hash)
+  - [ ] Add field: `document_type: str` (from Epic 2 classification)
+  - [ ] Add field: `word_count: int`
+  - [ ] Add field: `token_count: int`
+  - [ ] Add field: `quality: QualityScore` (composite quality metrics)
+  - [ ] Add field: `created_at: datetime` (processing timestamp)
+  - [ ] Add field: `processing_version: str` (tool version for reproducibility)
+- [ ] Update `Chunk.to_dict()` to serialize new fields
+  - [ ] Convert QualityScore to nested dict
+  - [ ] Format datetime as ISO 8601 string
+- [ ] Ensure Pydantic v2 validation handles all new fields
+- [ ] Update type hints
+
+### Task 4: Integrate MetadataEnricher into ChunkingEngine (AC: all)
+- [ ] Update `ChunkingEngine.chunk_document()` in `src/data_extract/chunk/engine.py`
+  - [ ] Instantiate MetadataEnricher at engine init
+  - [ ] After entity-aware chunking, enrich each chunk with quality metadata
+  - [ ] Pass source_metadata from ProcessingResult to enrich_chunk()
+  - [ ] Maintain streaming generator pattern (enrich on-the-fly, no buffering)
+- [ ] Add configuration: Optional `quality_enrichment: bool = True` parameter
+- [ ] Maintain determinism (quality calculations are deterministic)
+
+### Task 5: Unit Testing - QualityScore and MetadataEnricher (AC: #3.3-4, #3.3-5, #3.3-7, #3.3-8)
+- [ ] Create `tests/unit/test_chunk/test_quality.py`
+- [ ] Create `tests/unit/test_chunk/test_metadata_enricher.py`
+- [ ] Use fixtures with known readability levels (e.g., children's book text, PhD thesis)
+- [ ] Achieve >90% coverage for quality.py and metadata_enricher.py modules
+
+### Task 6: Integration Testing - End-to-End Quality Enrichment (AC: all)
+- [ ] Create `tests/integration/test_chunk/test_quality_enrichment.py`
+- [ ] Create `tests/integration/test_chunk/test_quality_filtering.py`
+- [ ] Use fixtures from `tests/fixtures/quality_test_documents/` (varied quality samples)
+
+### Task 7: Integration Testing - Metadata Validation (AC: #3.3-1, #3.3-2, #3.3-3, #3.3-6, #3.3-7)
+- [ ] Update `tests/integration/test_chunk/test_chunk_metadata.py`
+- [ ] Validate metadata JSON schema compliance
+
+### Task 8: Documentation and Validation (AC: all)
+- [ ] Update `CLAUDE.md`
+- [ ] Update `docs/architecture.md`
+- [ ] Update `docs/performance-baselines-epic-3.md`
+- [ ] Run all quality gates
+- [ ] Validate all 8 ACs end-to-end
+- [ ] Update Epic 3 completion checklist in docs/epics.md
+- [ ] Mark story as done, ready for review
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC-3.3-1: Chunk Includes Source Document and File Path (P0 - Critical)**
+- ChunkMetadata.source_file includes absolute path to original document
+- ChunkMetadata.source_hash includes SHA-256 hash of original file (immutability verification)
+- ChunkMetadata.document_type includes Epic 2 classification (report, matrix, export, image)
+- Source metadata enables 100% traceability (chunk → source document lookup)
+
+**AC-3.3-2: Section/Heading Context Included (P1)**
+- ChunkMetadata.section_context populated from Story 3.2 section detection
+- Breadcrumb format: "Parent Section > Child Section > Grandchild Section"
+- Empty string if no section detected (not null, not "unknown")
+- Section context enables semantic filtering (e.g., retrieve only "Risk Assessment" chunks)
+
+**AC-3.3-3: Entity Tags List All Entities in Chunk (P1)**
+- ChunkMetadata.entity_tags populated from Story 3.2 entity analysis
+- Each EntityReference includes: entity_type, entity_id, start_pos, end_pos, is_partial, context_snippet
+- Entity tags enable entity-based retrieval (find all chunks mentioning "RISK-2024-001")
+- Duplicate entity mentions deduplicated (one entry per unique entity_id)
+
+**AC-3.3-4: Readability Score Calculated (Flesch-Kincaid, Gunning Fog) (P0)**
+- QualityScore.readability_flesch_kincaid calculated using textstat library
+- QualityScore.readability_gunning_fog calculated using textstat library
+- Readability scores enable complexity filtering (e.g., exclude chunks with FK grade level >15)
+- Scores calculated per chunk (not document-level average)
+- Handles edge cases: empty chunks (score=0.0), very short chunks (<3 sentences)
+
+**AC-3.3-5: Quality Score Combines OCR, Completeness, Coherence (P0 - Critical)**
+- QualityScore.ocr_confidence propagated from source document metadata (Epic 2)
+- QualityScore.completeness calculated based on entity preservation rate (from Story 3.2)
+- QualityScore.coherence calculated using semantic similarity within chunk (simple heuristic: sentence-to-sentence overlap)
+- QualityScore.overall computed as weighted average: OCR confidence (40%), Completeness (30%), Coherence (20%), Readability (10%)
+- Overall score range: 0.0 (worst) to 1.0 (best)
+
+**AC-3.3-6: Chunk Position Tracked (Sequential Index) (P1)**
+- ChunkMetadata.position_index starts at 0 for first chunk in document
+- Position increments sequentially (0, 1, 2, ...) through entire document
+- Position enables chunk ordering and relationship analysis (adjacency detection)
+- Position deterministic (same document → same position assignments)
+
+**AC-3.3-7: Word Count and Token Count Included (P1)**
+- ChunkMetadata.word_count calculated using whitespace split (simple, fast)
+- ChunkMetadata.token_count estimated using `len(text) / 4` heuristic (OpenAI approximation)
+- Counts enable chunk sizing validation (verify chunks within configured limits)
+- Counts support billing estimation for LLM API usage
+
+**AC-3.3-8: Low-Quality Chunks Flagged with Specific Issues (P0 - Critical)**
+- QualityScore.flags list populated with specific quality issues detected:
+  - `low_ocr`: OCR confidence <0.95 (from Epic 2 validation)
+  - `incomplete_extraction`: Completeness score <0.90 (missing entities/content)
+  - `high_complexity`: Readability FK grade level >15 (overly complex text)
+  - `gibberish`: Text contains excessive non-alphabetic characters (>30%)
+- Flags enable targeted manual review (users can filter flagged chunks)
+- Empty list if no issues detected (not null)
+- Multiple flags possible for single chunk (e.g., [low_ocr, high_complexity])
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+<!-- Product Requirements -->
+<doc>
+  <path>docs/PRD/index.md</path>
+  <title>Product Requirements Document</title>
+  <section>FR-4: Quality Assessment & Validation</section>
+  <snippet>Calculate readability scores (Flesch-Kincaid, Gunning Fog, SMOG), flag low-quality chunks (<95% OCR confidence, incomplete extractions), generate quality validation reports with summary statistics.</snippet>
+</doc>
+
+<doc>
+  <path>docs/PRD/index.md</path>
+  <title>Product Requirements Document</title>
+  <section>FR-3.2: Chunk Metadata Enrichment</section>
+  <snippet>Attach rich metadata to each chunk: source document/file path, section/heading context, entity tags, quality score (readability, coherence), document type, chunk position, word/token count.</snippet>
+</doc>
+
+<!-- Technical Specifications -->
+<doc>
+  <path>docs/tech-spec-epic-3.md</path>
+  <title>Epic 3 Technical Specification</title>
+  <section>Story 3.3: Chunk Metadata and Quality Scoring</section>
+  <snippet>Implements QualityScore model with textstat readability metrics, MetadataEnricher component for quality calculation, extends ChunkMetadata with quality, word_count, token_count, source_hash, document_type fields.</snippet>
+</doc>
+
+<doc>
+  <path>docs/tech-spec-epic-3.md</path>
+  <title>Epic 3 Technical Specification</title>
+  <section>2.2 MetadataEnricher Component</section>
+  <snippet>Calculate quality scores (readability, coherence, completeness), enrich chunks with source document context, add entity tags/word counts/token counts, flag low-quality chunks with specific issues (low_ocr, incomplete_extraction, high_complexity, gibberish).</snippet>
+</doc>
+
+<doc>
+  <path>docs/tech-spec-epic-3.md</path>
+  <title>Epic 3 Technical Specification</title>
+  <section>4.1 External Dependencies - textstat 0.7.x</section>
+  <snippet>Purpose: Readability metrics for chunk quality scoring. Metrics: Flesch-Kincaid Grade Level, Gunning Fog Index, SMOG Index, Lexical diversity. Performance: Fast (<0.1 sec per chunk), pure Python, deterministic.</snippet>
+</doc>
+
+<!-- Architecture -->
+<doc>
+  <path>docs/architecture.md</path>
+  <title>Architecture Overview</title>
+  <section>ADR-001: Immutable Models</section>
+  <snippet>All data models use frozen dataclasses for immutability to prevent pipeline state corruption. QualityScore and ChunkMetadata follow this pattern with @dataclass(frozen=True).</snippet>
+</doc>
+
+<doc>
+  <path>docs/architecture.md</path>
+  <title>Architecture Overview</title>
+  <section>Data Architecture - Core Data Models</section>
+  <snippet>ChunkMetadata extends with quality: QualityScore field containing readability_flesch_kincaid, readability_gunning_fog, ocr_confidence, completeness, coherence, overall, flags. Metadata persisted with outputs for reproducibility and audit trail.</snippet>
+</doc>
+
+<!-- Story Dependencies -->
+<doc>
+  <path>docs/stories/3-1-semantic-boundary-aware-chunking-engine.md</path>
+  <title>Story 3.1: Semantic Boundary-Aware Chunking Engine</title>
+  <section>Implementation</section>
+  <snippet>ChunkingEngine implements semantic chunking with spaCy sentence segmentation, ChunkMetadata base model with chunk_id, source_file, entity_tags (from Story 3.2), section_context, position_index. Story 3.3 extends this with quality metrics.</snippet>
+</doc>
+
+<doc>
+  <path>docs/stories/3-2-entity-aware-chunking.md</path>
+  <title>Story 3.2: Entity-Aware Chunking</title>
+  <section>Implementation</section>
+  <snippet>EntityPreserver analyzes entities for boundary planning, EntityReference model tracks entity metadata, ChunkMetadata.entity_tags populated with EntityReference objects. Story 3.3 uses entity preservation rate for completeness quality score.</snippet>
+</doc>
+
+<!-- Performance Baselines -->
+<doc>
+  <path>docs/performance-baselines-epic-3.md</path>
+  <title>Epic 3 Performance Baselines</title>
+  <section>Story 3.1-3.2 Baselines</section>
+  <snippet>Chunking latency: ~0.19s per 1,000 words (Story 3.1). Entity analysis overhead: ~0.3s per 10k words (Story 3.2). Total current latency: ~3.3s per 10k words. Story 3.3 target: quality enrichment <0.1s per 1k words, total <4.3s per 10k words.</snippet>
+</doc>
+    </docs>
+
+    <code>
+<!-- Existing Chunk Module Components (Stories 3.1-3.2) -->
+<artifact>
+  <path>src/data_extract/chunk/models.py</path>
+  <kind>module</kind>
+  <symbol>ChunkMetadata</symbol>
+  <lines>18-82</lines>
+  <reason>Story 3.3 Task 3 extends ChunkMetadata with quality, source_hash, document_type, word_count, token_count, created_at, processing_version fields. Currently has entity_tags, section_context, entity_relationships from Story 3.2.</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/chunk/entity_preserver.py</path>
+  <kind>module</kind>
+  <symbol>EntityPreserver</symbol>
+  <lines>76-252</lines>
+  <reason>EntityPreserver provides entity preservation rate data for QualityScore.completeness calculation (AC-3.3-5). analyze_entities() returns EntityReference list used in metadata enrichment.</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/chunk/entity_preserver.py</path>
+  <kind>module</kind>
+  <symbol>EntityReference</symbol>
+  <lines>26-74</lines>
+  <reason>EntityReference dataclass model used in ChunkMetadata.entity_tags (AC-3.3-3). Provides entity_type, entity_id, start_pos, end_pos, is_partial, context_snippet fields for metadata enrichment.</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/chunk/engine.py</path>
+  <kind>module</kind>
+  <symbol>ChunkingEngine</symbol>
+  <lines>1-700</lines>
+  <reason>Story 3.3 Task 4 integrates MetadataEnricher into ChunkingEngine.chunk_document(). Engine generates chunks via _generate_chunks(), calls MetadataEnricher.enrich_chunk() to add quality metadata, passes source_metadata from ProcessingResult.</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/chunk/sentence_segmenter.py</path>
+  <kind>module</kind>
+  <symbol>SentenceSegmenter</symbol>
+  <lines>1-150</lines>
+  <reason>Provides spaCy-based sentence segmentation used by MetadataEnricher._calculate_coherence() for sentence-to-sentence lexical overlap analysis (AC-3.3-5 coherence calculation).</reason>
+</artifact>
+
+<!-- Epic 2 Integration -->
+<artifact>
+  <path>src/data_extract/core/models.py</path>
+  <kind>module</kind>
+  <symbol>ProcessingResult</symbol>
+  <lines>1-500</lines>
+  <reason>Epic 2 output containing source_metadata with OCR confidence, completeness scores. ChunkingEngine receives ProcessingResult, extracts source_metadata for MetadataEnricher.enrich_chunk() (AC-3.3-5 quality score inputs).</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/core/models.py</path>
+  <kind>module</kind>
+  <symbol>Chunk</symbol>
+  <lines>1-200</lines>
+  <reason>Core Chunk model re-exported in chunk/models.py for compatibility. Frozen dataclass with text, metadata, position_index, token_count, word_count. Story 3.3 enriches with QualityScore via MetadataEnricher.</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/core/models.py</path>
+  <kind>module</kind>
+  <symbol>Metadata</symbol>
+  <lines>1-300</lines>
+  <reason>Document-level Metadata from Epic 2 containing OCR confidence, quality scores. ChunkMetadata.source_metadata field references this for provenance tracking (AC-3.3-1 traceability).</reason>
+</artifact>
+
+<!-- Files to CREATE (Story 3.3) -->
+<artifact>
+  <path>src/data_extract/chunk/quality.py</path>
+  <kind>module (NEW)</kind>
+  <symbol>QualityScore</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 1 creates QualityScore dataclass with readability_flesch_kincaid, readability_gunning_fog, ocr_confidence, completeness, coherence, overall, flags. Frozen dataclass for immutability (ADR-001).</reason>
+</artifact>
+
+<artifact>
+  <path>src/data_extract/chunk/metadata_enricher.py</path>
+  <kind>module (NEW)</kind>
+  <symbol>MetadataEnricher</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 2 creates MetadataEnricher component with enrich_chunk() method, _calculate_coherence() heuristic, _detect_quality_flags() logic. Integrates textstat for readability metrics (AC-3.3-4, AC-3.3-5, AC-3.3-8).</reason>
+</artifact>
+
+<!-- Test Files to CREATE -->
+<artifact>
+  <path>tests/unit/test_chunk/test_quality.py</path>
+  <kind>test (NEW)</kind>
+  <symbol>TestQualityScore</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 5 unit tests for QualityScore model: creation, validation, to_dict() serialization, is_high_quality() threshold logic, field validation (score ranges, flag values).</reason>
+</artifact>
+
+<artifact>
+  <path>tests/unit/test_chunk/test_metadata_enricher.py</path>
+  <kind>test (NEW)</kind>
+  <symbol>TestMetadataEnricher</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 5 unit tests for MetadataEnricher: readability calculation, OCR propagation, completeness calculation, coherence heuristic, overall score weighted average, quality flag detection, word/token counts, edge cases. Target >90% coverage.</reason>
+</artifact>
+
+<artifact>
+  <path>tests/integration/test_chunk/test_quality_enrichment.py</path>
+  <kind>test (NEW)</kind>
+  <symbol>TestQualityEnrichment</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 6 integration tests: End-to-end ProcessingResult → ChunkingEngine → Enriched Chunks pipeline, quality score distribution, quality flag accuracy, source traceability, metadata completeness, determinism validation.</reason>
+</artifact>
+
+<artifact>
+  <path>tests/integration/test_chunk/test_quality_filtering.py</path>
+  <kind>test (NEW)</kind>
+  <symbol>TestQualityFiltering</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 6 integration tests: Filtering chunks by overall quality score (overall >= 0.75), filtering by specific flags (exclude low_ocr chunks), filtering by readability (FK grade level <12).</reason>
+</artifact>
+
+<artifact>
+  <path>tests/fixtures/quality_test_documents/</path>
+  <kind>directory (NEW)</kind>
+  <symbol>N/A</symbol>
+  <lines>N/A</lines>
+  <reason>Story 3.3 Task 6 fixture directory for varied quality samples: clean text, low OCR confidence, high complexity (PhD thesis), gibberish, anonymized audit documents with known quality issues. Used for integration tests.</reason>
+</artifact>
+    </code>
+
+    <dependencies>
+<!-- External Dependencies -->
+<dependency>
+  <ecosystem>Python/PyPI</ecosystem>
+  <package>textstat</package>
+  <version>0.7.x</version>
+  <purpose>Readability metrics calculation (Flesch-Kincaid Grade Level, Gunning Fog Index, SMOG Index, lexical diversity) for AC-3.3-4. Fast (<0.1 sec per chunk), pure Python, deterministic.</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Python/PyPI</ecosystem>
+  <package>spacy</package>
+  <version>3.7.2+</version>
+  <purpose>Already installed via Story 2.5.2. Used by MetadataEnricher._calculate_coherence() for sentence segmentation in lexical overlap heuristic (AC-3.3-5 coherence calculation).</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Python Standard Library</ecosystem>
+  <package>hashlib</package>
+  <version>Built-in</version>
+  <purpose>SHA-256 file hashing for ChunkMetadata.source_hash field (AC-3.3-1 immutability verification). Enables integrity validation and deterministic processing.</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Python Standard Library</ecosystem>
+  <package>datetime</package>
+  <version>Built-in</version>
+  <purpose>ChunkMetadata.created_at field (AC-3.3-1 processing timestamp). ISO 8601 format for audit trail and reproducibility.</purpose>
+</dependency>
+
+<!-- Internal Dependencies (Epic 2) -->
+<dependency>
+  <ecosystem>Internal</ecosystem>
+  <package>src/data_extract/core/models.py</package>
+  <version>Epic 2</version>
+  <purpose>ProcessingResult provides source_metadata with OCR confidence and completeness scores for QualityScore (AC-3.3-5). Metadata model referenced in ChunkMetadata.source_metadata for provenance.</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Internal</ecosystem>
+  <package>src/data_extract/chunk/entity_preserver.py</package>
+  <version>Story 3.2</version>
+  <purpose>EntityPreserver.analyze_entities() provides entity preservation rate data for QualityScore.completeness calculation (AC-3.3-5). EntityReference used in ChunkMetadata.entity_tags (AC-3.3-3).</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Internal</ecosystem>
+  <package>src/data_extract/chunk/engine.py</package>
+  <version>Stories 3.1-3.2</version>
+  <purpose>ChunkingEngine integrates MetadataEnricher in chunk_document() method (Task 4). Passes source_metadata from ProcessingResult to enrich_chunk(), maintains streaming generator pattern.</purpose>
+</dependency>
+
+<dependency>
+  <ecosystem>Internal</ecosystem>
+  <package>src/data_extract/chunk/models.py</package>
+  <version>Stories 3.1-3.2</version>
+  <purpose>ChunkMetadata base model extended in Story 3.3 Task 3 with quality, source_hash, document_type, word_count, token_count, created_at, processing_version fields. Currently has entity_tags, section_context, entity_relationships.</purpose>
+</dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+<!-- Architectural Constraints -->
+<constraint>
+  <type>Architecture</type>
+  <description>ADR-001: Immutable Models</description>
+  <impact>QualityScore and ChunkMetadata must use @dataclass(frozen=True) to prevent pipeline state corruption. MetadataEnricher.enrich_chunk() returns new Chunk instance (no mutation).</impact>
+</constraint>
+
+<constraint>
+  <type>Architecture</type>
+  <description>ADR-005: Streaming Pipeline</description>
+  <impact>MetadataEnricher integrates into ChunkingEngine generator pattern. Quality enrichment performed on-the-fly during chunk yield (no buffering). Maintains constant memory usage across batch sizes.</impact>
+</constraint>
+
+<constraint>
+  <type>Architecture</type>
+  <description>ADR-011: Semantic Boundary-Aware Chunking</description>
+  <impact>Quality scoring operates on semantically coherent chunks from Stories 3.1-3.2. Coherence calculation benefits from sentence boundary respect. Deterministic chunking enables deterministic quality scores.</impact>
+</constraint>
+
+<!-- Performance Constraints -->
+<constraint>
+  <type>Performance</type>
+  <description>NFR-P3: Chunking Latency <2 sec per 10k words (Extended to <5s with overhead)</description>
+  <impact>Quality enrichment overhead target: <0.1s per 1,000 words (<1.0s per 10k words). Current chunking baseline ~3.3s per 10k words + quality overhead <1.0s = total <4.3s per 10k words (within extended threshold).</impact>
+</constraint>
+
+<constraint>
+  <type>Performance</type>
+  <description>NFR-P2: Memory Efficiency <500MB per document</description>
+  <impact>Frozen dataclass pooling for ChunkMetadata reduces memory allocations. Flyweight pattern for common fields (source_file, document_type) shared across chunks. Quality calculation stateless (no accumulation).</impact>
+</constraint>
+
+<constraint>
+  <type>Performance</type>
+  <description>NFR-P4: Deterministic Chunking</description>
+  <impact>Quality score calculations must be deterministic (same text → same scores). textstat is deterministic. Coherence lexical overlap heuristic deterministic. No random number generators allowed.</impact>
+</constraint>
+
+<!-- Enterprise Constraints -->
+<constraint>
+  <type>Enterprise</type>
+  <description>Classical NLP Only (No Transformers)</description>
+  <impact>Coherence calculation uses simple sentence-to-sentence lexical overlap heuristic instead of transformer embeddings. Provides directional signal without Epic 4 TF-IDF dependency or transformers. Replace with cosine similarity in Epic 4.</impact>
+</constraint>
+
+<constraint>
+  <type>Enterprise</type>
+  <description>Python 3.12+ Mandatory</description>
+  <impact>Use Python 3.12 type hints (PEP 695), modern syntax. textstat compatible with Python 3.12. All code validated with mypy strict mode from project root.</impact>
+</constraint>
+
+<!-- Domain Constraints -->
+<constraint>
+  <type>Domain</type>
+  <description>Audit Trail Requirement</description>
+  <impact>ChunkMetadata must include source_hash (SHA-256) for immutability verification (AC-3.3-1), processing_version for reproducibility, created_at timestamp for audit trail. Quality flags logged with specific metric values for transparency.</impact>
+</constraint>
+
+<constraint>
+  <type>Domain</type>
+  <description>No Silent Failures</description>
+  <impact>Quality flags must explicitly identify issues (low_ocr, incomplete_extraction, high_complexity, gibberish) rather than generic "low quality". Empty list if no issues detected (not null). Flags enable targeted manual review.</impact>
+</constraint>
+
+<!-- Quality Constraints -->
+<constraint>
+  <type>Quality</type>
+  <description>Pre-commit Enforcement (0 violations required)</description>
+  <impact>black src/ tests/ → 0 violations. ruff check src/ tests/ → 0 violations. mypy src/data_extract/ → 0 violations (run from project root). Fix violations immediately, do not defer.</impact>
+</constraint>
+
+<constraint>
+  <type>Quality</type>
+  <description>Test Coverage >90% for Story 3.3 Modules</description>
+  <impact>quality.py and metadata_enricher.py must achieve >90% coverage (Story 3.3 target). Epic 3 overall >80% (by Story 3.7). CI threshold 60% aggregate (greenfield + brownfield).</impact>
+</constraint>
+
+<!-- Integration Constraints -->
+<constraint>
+  <type>Integration</type>
+  <description>Epic 2 Metadata Dependency</description>
+  <impact>QualityScore.ocr_confidence propagated from ProcessingResult.metadata (Epic 2). Requires OCR confidence field present in source_metadata. Graceful degradation if missing (default to 1.0, flag as "quality_unknown").</impact>
+</constraint>
+
+<constraint>
+  <type>Integration</type>
+  <description>Story 3.2 Entity Dependency</description>
+  <impact>QualityScore.completeness calculated from entity preservation rate (Story 3.2 EntityPreserver). Requires ChunkMetadata.entity_tags populated. Graceful degradation if entity analysis unavailable (completeness = 1.0).</impact>
+</constraint>
+  </constraints>
+
+  <interfaces>
+<!-- MetadataEnricher Interface -->
+<interface>
+  <name>MetadataEnricher.enrich_chunk()</name>
+  <kind>Method</kind>
+  <signature>def enrich_chunk(self, chunk: Chunk, source_metadata: dict) -> Chunk</signature>
+  <path>src/data_extract/chunk/metadata_enricher.py</path>
+  <description>Accepts basic Chunk from ChunkingEngine, source_metadata from ProcessingResult. Returns new Chunk with enriched ChunkMetadata including QualityScore, source_hash, document_type, word_count, token_count, created_at, processing_version. Used in ChunkingEngine.chunk_document() after entity-aware chunking (Task 4).</description>
+</interface>
+
+<interface>
+  <name>QualityScore</name>
+  <kind>Frozen Dataclass</kind>
+  <signature>@dataclass(frozen=True) class QualityScore</signature>
+  <path>src/data_extract/chunk/quality.py</path>
+  <description>Immutable quality metrics model with fields: readability_flesch_kincaid (float 0.0-30.0), readability_gunning_fog (float 0.0-30.0), ocr_confidence (float 0.0-1.0), completeness (float 0.0-1.0), coherence (float 0.0-1.0), overall (float 0.0-1.0), flags (List[str]). Provides to_dict() for JSON serialization, is_high_quality() helper (overall >= 0.75).</description>
+</interface>
+
+<interface>
+  <name>ChunkMetadata (Extended)</name>
+  <kind>Frozen Dataclass</kind>
+  <signature>@dataclass(frozen=True) class ChunkMetadata</signature>
+  <path>src/data_extract/chunk/models.py</path>
+  <description>Extended in Story 3.3 with fields: quality (QualityScore), source_hash (str SHA-256), document_type (str), word_count (int), token_count (int), created_at (datetime), processing_version (str). Maintains entity_tags (List[EntityReference]), section_context (str), entity_relationships (List[Tuple]) from Story 3.2. Provides to_dict() for JSON serialization.</description>
+</interface>
+
+<interface>
+  <name>ProcessingResult.metadata</name>
+  <kind>Epic 2 Output</kind>
+  <signature>ProcessingResult(content_blocks, metadata, entities, ...)</signature>
+  <path>src/data_extract/core/models.py</path>
+  <description>Epic 2 output containing source_metadata dict with OCR confidence (ocr_confidence), completeness scores (completeness), document type classification (document_type). ChunkingEngine extracts this for MetadataEnricher.enrich_chunk() to calculate QualityScore (AC-3.3-5 inputs).</description>
+</interface>
+
+<interface>
+  <name>EntityPreserver.analyze_entities()</name>
+  <kind>Story 3.2 Method</kind>
+  <signature>def analyze_entities(self, text: str, entities: List[Entity]) -> List[EntityReference]</signature>
+  <path>src/data_extract/chunk/entity_preserver.py</path>
+  <description>Analyzes entity boundaries and builds EntityReference map. Returns entity preservation data for QualityScore.completeness calculation (AC-3.3-5). EntityReference list used in ChunkMetadata.entity_tags (AC-3.3-3).</description>
+</interface>
+
+<interface>
+  <name>textstat Readability Functions</name>
+  <kind>External Library</kind>
+  <signature>textstat.flesch_kincaid_grade(text: str) -> float, textstat.gunning_fog(text: str) -> float</signature>
+  <path>External (PyPI: textstat 0.7.x)</path>
+  <description>Calculates readability metrics for AC-3.3-4. Flesch-Kincaid Grade Level (0.0-30.0), Gunning Fog Index (0.0-30.0). Deterministic, fast (<0.1 sec per chunk), pure Python. Used in MetadataEnricher.enrich_chunk().</description>
+</interface>
+
+<interface>
+  <name>ChunkingEngine.chunk_document()</name>
+  <kind>Stories 3.1-3.2 Method</kind>
+  <signature>def chunk_document(self, result: ProcessingResult) -> Iterator[Chunk]</signature>
+  <path>src/data_extract/chunk/engine.py</path>
+  <description>Generator method yielding Chunks from ProcessingResult. Story 3.3 Task 4 integrates MetadataEnricher after entity-aware chunking. Calls enricher.enrich_chunk(chunk, source_metadata) for each chunk, yields enriched Chunk with quality metadata.</description>
+</interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing follows Epic 1-3 established patterns with pytest framework. Tests mirror src/ structure exactly. Use pytest markers for selective execution: `-m unit` (fast isolated tests), `-m integration` (end-to-end), `-m performance` (NFR validation), `-m chunking` (chunking-related), `-m quality` (NEW for Story 3.3). Fixtures in tests/conftest.py and tests/fixtures/ (reuse Epic 2 ProcessingResult fixtures, create NEW quality_test_documents/ for varied quality samples). Coverage requirements: Story 3.3 modules >90%, Epic 3 overall >80%, CI threshold 60% aggregate. Quality gates enforced via pre-commit hooks: black (formatting), ruff (linting), mypy (type checking from project root). Integration tests validate end-to-end ProcessingResult → ChunkingEngine → Enriched Chunks pipeline with quality score distribution, flag accuracy, source traceability, metadata completeness, determinism.
+    </standards>
+
+    <locations>
+tests/unit/test_chunk/test_quality.py - QualityScore model tests (NEW)
+tests/unit/test_chunk/test_metadata_enricher.py - MetadataEnricher logic tests (NEW)
+tests/integration/test_chunk/test_quality_enrichment.py - End-to-end quality pipeline (NEW)
+tests/integration/test_chunk/test_quality_filtering.py - Quality-based filtering (NEW)
+tests/integration/test_chunk/test_chunk_metadata.py - Metadata validation (UPDATE existing)
+tests/performance/test_chunk/test_chunking_latency.py - Validate <4.3s with quality overhead (UPDATE)
+tests/fixtures/quality_test_documents/ - Varied quality samples (NEW)
+tests/fixtures/normalized_results/ - ProcessingResult fixtures (REUSE from Epic 2)
+    </locations>
+
+    <ideas>
+<!-- Unit Tests (Fast, Isolated) -->
+<test id="UT-3.3-1" ac="AC-3.3-4">
+  Test QualityScore creation and validation: Create QualityScore with valid readability scores (0.0-30.0 FK/Gunning Fog), quality scores (0.0-1.0 ocr_confidence, completeness, coherence, overall), flags list. Validate Pydantic validation rejects out-of-range scores.
+</test>
+
+<test id="UT-3.3-2" ac="AC-3.3-4">
+  Test QualityScore.to_dict() serialization: Create QualityScore instance, call to_dict(), verify JSON-serializable dictionary with all fields. Ensure flags list preserved, float scores formatted correctly.
+</test>
+
+<test id="UT-3.3-3" ac="AC-3.3-5">
+  Test QualityScore.is_high_quality() threshold logic: Create QualityScore with overall=0.74 (below threshold), assert is_high_quality() returns False. Create with overall=0.75 (at threshold), assert True. Create with overall=0.90, assert True.
+</test>
+
+<test id="UT-3.3-4" ac="AC-3.3-4">
+  Test MetadataEnricher readability calculation with varied complexity texts: Use fixtures (children's book text FK ~5.0, technical manual FK ~12.0, PhD thesis FK ~18.0). Call enrich_chunk(), verify readability scores match expected ranges (±1.0 tolerance).
+</test>
+
+<test id="UT-3.3-5" ac="AC-3.3-5">
+  Test MetadataEnricher OCR confidence propagation: Create source_metadata with ocr_confidence=0.87. Call enrich_chunk(), verify QualityScore.ocr_confidence = 0.87. Test graceful degradation with missing ocr_confidence (default 1.0).
+</test>
+
+<test id="UT-3.3-6" ac="AC-3.3-5">
+  Test MetadataEnricher completeness calculation from entity preservation rate: Create chunk with 10 entities, 9 intact (1 partial). Calculate expected completeness = 0.90. Call enrich_chunk(), verify QualityScore.completeness matches.
+</test>
+
+<test id="UT-3.3-7" ac="AC-3.3-5">
+  Test MetadataEnricher coherence calculation with high/low overlap texts: High overlap text (repeated words across sentences) should score >0.7. Low overlap text (diverse vocabulary) should score <0.3. Verify _calculate_coherence() using sentence pair lexical intersection heuristic.
+</test>
+
+<test id="UT-3.3-8" ac="AC-3.3-5">
+  Test MetadataEnricher overall score weighted average: Create QualityScore inputs (ocr=0.95, completeness=0.90, coherence=0.80, readability mapped to 0-1 scale). Calculate expected overall = (0.4*0.95 + 0.3*0.90 + 0.2*0.80 + 0.1*readability_normalized). Verify computation.
+</test>
+
+<test id="UT-3.3-9" ac="AC-3.3-8">
+  Test MetadataEnricher quality flag detection (low_ocr): Set source_metadata ocr_confidence=0.93 (<0.95 threshold). Call enrich_chunk(), verify QualityScore.flags contains "low_ocr".
+</test>
+
+<test id="UT-3.3-10" ac="AC-3.3-8">
+  Test MetadataEnricher quality flag detection (incomplete_extraction): Set completeness=0.85 (<0.90 threshold). Verify flags contains "incomplete_extraction".
+</test>
+
+<test id="UT-3.3-11" ac="AC-3.3-8">
+  Test MetadataEnricher quality flag detection (high_complexity): Create chunk with FK grade level=17.2 (>15 threshold). Verify flags contains "high_complexity".
+</test>
+
+<test id="UT-3.3-12" ac="AC-3.3-8">
+  Test MetadataEnricher quality flag detection (gibberish): Create chunk with 35% non-alphabetic characters (>30% threshold). Verify flags contains "gibberish". Test edge case 30% exactly (no flag).
+</test>
+
+<test id="UT-3.3-13" ac="AC-3.3-7">
+  Test MetadataEnricher word count calculation: Create chunk text "Hello world this is a test." Call enrich_chunk(), verify word_count=6 (whitespace split). Test edge cases: empty text (0), single word (1), punctuation handling.
+</test>
+
+<test id="UT-3.3-14" ac="AC-3.3-7">
+  Test MetadataEnricher token count approximation: Create chunk text 400 characters. Expected token_count = 400 / 4 = 100. Verify ±5% tolerance (95-105 acceptable). Test edge cases: very short text, very long text.
+</test>
+
+<test id="UT-3.3-15" ac="AC-3.3-4">
+  Test MetadataEnricher handles empty chunks: Create chunk with text="". Verify readability scores default to 0.0, no exceptions raised, quality flags may include "gibberish" or other issues.
+</test>
+
+<test id="UT-3.3-16" ac="AC-3.3-4">
+  Test MetadataEnricher handles very short chunks (<3 sentences): Create chunk with 1-2 sentences. Verify readability calculation still executes (textstat may return limited accuracy), no crashes.
+</test>
+
+<!-- Integration Tests (End-to-End) -->
+<test id="IT-3.3-1" ac="AC-3.3-1, AC-3.3-5">
+  Test complete pipeline ProcessingResult → ChunkingEngine → Enriched Chunks: Create ProcessingResult from Epic 2 fixture with source_metadata. Pass to ChunkingEngine, iterate chunks, verify all chunks have QualityScore populated, source_hash matches original file SHA-256, document_type matches Epic 2 classification.
+</test>
+
+<test id="IT-3.3-2" ac="AC-3.3-5, AC-3.3-8">
+  Test quality score distribution across document corpus: Process 10 varied documents (clean, low OCR, complex, gibberish). Collect QualityScore.overall values, verify distribution makes sense (clean docs >0.9, low OCR docs flagged with low_ocr, complex docs flagged with high_complexity).
+</test>
+
+<test id="IT-3.3-3" ac="AC-3.3-8">
+  Test quality flag accuracy with deliberately low-quality documents: Create fixtures with known issues (90% OCR confidence, 85% completeness, FK=18, 40% gibberish). Process through pipeline, verify flags match expected (low_ocr, incomplete_extraction, high_complexity, gibberish).
+</test>
+
+<test id="IT-3.3-4" ac="AC-3.3-1">
+  Test source traceability chunk → source document: Process document, generate chunks. For random chunk, verify ChunkMetadata.source_file matches original path, source_hash SHA-256 matches file hash, position_index enables ordering.
+</test>
+
+<test id="IT-3.3-5" ac="AC-3.3-1, AC-3.3-2, AC-3.3-3, AC-3.3-6, AC-3.3-7">
+  Test metadata completeness (all fields populated correctly): Process document, verify every chunk has: source_file (valid path), source_hash (64 char hex), document_type (Epic 2 classification), section_context (breadcrumb or ""), entity_tags (list of EntityReference), position_index (0, 1, 2, ...), word_count (>0), token_count (>0), quality (QualityScore with all fields), created_at (datetime), processing_version (string).
+</test>
+
+<test id="IT-3.3-6" ac="NFR-P4">
+  Test determinism (same document → same quality scores): Process same document 3 times. Collect QualityScore.overall values for corresponding chunks. Verify byte-for-byte identical (deterministic chunking + deterministic quality calculations).
+</test>
+
+<test id="IT-3.3-7" ac="AC-3.3-5">
+  Test quality-based filtering (overall >= 0.75 threshold): Process document corpus, filter chunks where QualityScore.overall >= 0.75. Verify high-quality chunks pass, low-quality chunks excluded. Count percentage filtered.
+</test>
+
+<test id="IT-3.3-8" ac="AC-3.3-8">
+  Test quality-based filtering (exclude low_ocr chunks): Process corpus, filter chunks where "low_ocr" in QualityScore.flags. Verify flagged chunks excluded, clean OCR chunks pass.
+</test>
+
+<test id="IT-3.3-9" ac="AC-3.3-4">
+  Test quality-based filtering (readability FK grade level <12): Process corpus, filter chunks where readability_flesch_kincaid <12. Verify simple text passes, complex technical text excluded.
+</test>
+
+<!-- Performance Tests (NFR Validation) -->
+<test id="PT-3.3-1" ac="NFR-P3">
+  Test quality enrichment overhead: Process 10,000-word document through ChunkingEngine with quality_enrichment=True. Measure latency. Target: <4.3 seconds total (chunking ~3.3s + quality <1.0s). Verify quality overhead <0.1s per 1,000 words.
+</test>
+
+<test id="PT-3.3-2" ac="NFR-P2">
+  Test memory efficiency with quality enrichment: Process 10k-word document, measure peak memory using get_total_memory(). Target: <500 MB. Verify frozen dataclass pooling and flyweight pattern reduce allocations.
+</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,323 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>Epic 3.5</epicId>
+    <storyId>3.5.4</storyId>
+    <title>Semantic Dependencies + Smoke Test</title>
+    <status>backlog</status>
+    <generatedAt>2025-11-17</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-4-semantic-dependencies-smoke-test.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer preparing to implement Epic 4 semantic analysis features</asA>
+    <iWant>scikit-learn, joblib, and textstat installed and validated with smoke tests</iWant>
+    <soThat>TF-IDF/LSA/readability infrastructure is proven ready with <100ms baseline before semantic development starts</soThat>
+    <tasks>
+      - Task 1: Install dependencies (AC: 1)
+        - Add scikit-learn, joblib, textstat to pyproject.toml with version constraints
+        - Run pip install -e ".[dev]" to verify installation
+        - Document dependency rationale (TF-IDF/LSA/readability for Epic 4)
+        - Update requirements documentation if needed
+
+      - Task 2: Create smoke test script (AC: 2-3)
+        - Create scripts/smoke-test-semantic.py with TF-IDF performance test (<100ms)
+        - Add LSA (TruncatedSVD) dimensionality reduction test
+        - Add textstat Flesch reading ease test
+        - Add cosine similarity test
+        - Ensure script exits with non-zero code on failures
+        - Add informative output messages for each test
+
+      - Task 3: CI integration (AC: 4-5)
+        - Add smoke test step to .github/workflows/test.yml
+        - Configure scikit-learn dependency caching in GitHub Actions
+        - Test CI workflow with smoke test integration
+        - Verify cache reduces build time
+
+      - Task 4: Documentation and validation (AC: 6)
+        - Update CLAUDE.md with semantic dependencies section
+        - Document smoke test usage and expected output
+        - Add troubleshooting guidance for common dependency issues
+        - Link to test-dependency-audit.md process (Story 3.5.3)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC-1: Dependencies installed - pyproject.toml includes scikit-learn ≥1.3.0, joblib ≥1.3.0, textstat ≥0.7.3 with version constraints [Source: docs/tech-spec-epic-3.5.md#L141-L148]
+
+    AC-2: Smoke test script - scripts/smoke-test-semantic.py validates TF-IDF vectorization, LSA dimensionality reduction, textstat metrics [Source: docs/tech-spec-epic-3.5.md#L150-L175]
+
+    AC-3: Performance baseline - TF-IDF fit/transform completes in <100ms on 1k-word document (10 docs corpus) [Source: docs/tech-spec-epic-3.5.md#L151-L165]
+
+    AC-4: CI integration - Smoke test runs in GitHub Actions workflow, fails build if tests don't pass [Source: docs/tech-spec-epic-3.5.md#L177-L182]
+
+    AC-5: CI caching - GitHub Actions caches scikit-learn dependencies for faster builds (similar to spaCy caching pattern) [Source: docs/retrospectives/epic-3-retro-2025-11-16.md#L55]
+
+    AC-6: Documentation - CLAUDE.md updated with semantic dependencies setup instructions and smoke test usage [Source: docs/tech-spec-epic-3.5.md#L226-L230]
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification - Tooling & Semantic Prep</title>
+        <section>3.3 Semantic Dependencies Installation</section>
+        <snippet>Defines pyproject.toml updates for scikit-learn (≥1.3.0), joblib (≥1.3.0), textstat (≥0.7.3). Includes smoke test script template validating TF-IDF fit/transform <100ms on 1k-word document, LSA dimensionality reduction, textstat readability metrics. CI integration via .github/workflows/test.yml with scikit-learn dependency caching.</snippet>
+      </doc>
+      <doc>
+        <path>docs/archive/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-5: Foundational Semantic Analysis</section>
+        <snippet>Requires TF-IDF vectorization for identifying important terms (FR-5.1), document similarity using cosine similarity (FR-5.2), LSA for semantic grouping (FR-5.3), and textstat for quality metrics (FR-5.4). Enterprise constraint: Classical NLP only - no transformer models allowed (NFR-C3).</snippet>
+      </doc>
+      <doc>
+        <path>.claude/CLAUDE.md</path>
+        <title>CLAUDE.md Development Guidelines</title>
+        <section>spaCy Model Setup (Story 2.5.2 example)</section>
+        <snippet>Demonstrates dependency setup pattern: Download model via python -m spacy download en_core_web_md, verify with python -m spacy validate, document performance (model loads in ~1.2 seconds, processes 4000+ words/second). CI/CD caching configured transparently in .github/workflows/test.yml with cache key based on SPACY_MODEL_VERSION.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration & Validation (smoke test example)</title>
+        <section>Smoke test pattern and CI integration</section>
+        <snippet>Installed spaCy 3.7.2+ with en_core_web_md model. CI caching configured at .github/workflows/test.yml lines 42-48 with cache path ~/.cache/spacy and key based on SPACY_MODEL_VERSION. Performance validated: model load <5s, segmentation <100ms per 1000 words. Documentation added to CLAUDE.md lines 67-84 and troubleshooting guide created.</snippet>
+      </doc>
+      <doc>
+        <path>docs/retrospectives/epic-3-retro-2025-11-16.md</path>
+        <title>Epic 3 Retrospective</title>
+        <section>Preparation Sprint Task #1</section>
+        <snippet>Add scikit-learn, joblib, textstat; smoke script validating TF-IDF + textstat (4h, Charlie). Epic 4 blocker: Cannot build semantic processor without validated dependencies and performance baselines.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/architecture-decision-records-adrs.md</path>
+        <title>Architecture Decision Records</title>
+        <section>ADR-004: Classical NLP Only (No Transformers)</section>
+        <snippet>Enterprise IT restriction prohibits transformer-based LLMs (BERT, GPT, T5, etc.). Must use classical NLP methods only: TF-IDF (scikit-learn), LSA (TruncatedSVD), Word2Vec/LDA (gensim). Rationale: Corporate policy compliance, on-premise processing requirement.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>dependency-manifest</kind>
+        <symbol>dependencies</symbol>
+        <lines>36-60</lines>
+        <reason>Shows existing dependency patterns - spaCy added at line 46 with version constraint (>=3.7.2,<4.0), jsonschema for Epic 3 at line 49. Follow same pattern for scikit-learn, joblib, textstat in dependencies array (not dev dependencies - these are runtime requirements for Epic 4).</reason>
+      </artifact>
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>dependency-manifest</kind>
+        <symbol>dev-dependencies</symbol>
+        <lines>72-87</lines>
+        <reason>Dev dependencies include pytest, black, ruff, mypy. Note pandas and csvkit added for Story 3.6 CSV validation - similar pattern may be needed if semantic dependencies require validation tools.</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/test.yml</path>
+        <kind>ci-workflow</kind>
+        <symbol>spaCy caching pattern</symbol>
+        <lines>42-48</lines>
+        <reason>spaCy model caching configuration - use identical pattern for scikit-learn dependencies. Cache key: ${{ runner.os }}-scikit-${{ env.SCIKIT_VERSION }}. Cache path: ~/.cache/pip (already configured at lines 34-39 for general pip packages).</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/test.yml</path>
+        <kind>ci-workflow</kind>
+        <symbol>dependency installation step</symbol>
+        <lines>49-53</lines>
+        <reason>Shows installation pattern: pip install -e ".[dev]" followed by model downloads. For semantic dependencies, add smoke test execution after pip install: python scripts/smoke-test-semantic.py (similar to spaCy download at line 53).</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/test.yml</path>
+        <kind>ci-workflow</kind>
+        <symbol>test execution step</symbol>
+        <lines>127-129</lines>
+        <reason>Main test suite execution with coverage. Smoke test should run BEFORE full test suite to fail fast if dependencies broken. Add smoke test step between dependency installation (lines 49-53) and test execution (line 128).</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/</path>
+        <kind>scripts-directory</kind>
+        <symbol>existing script patterns</symbol>
+        <lines>N/A</lines>
+        <reason>22 existing scripts including validate_installation.py, profile_pipeline.py, regenerate_gold_standard.py. Follow naming convention: smoke-test-semantic.py (hyphenated, descriptive). Include shebang, docstring, if __name__ == "__main__" guard.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/test_spacy_integration.py</path>
+        <kind>integration-test</kind>
+        <symbol>smoke test example</symbol>
+        <lines>N/A</lines>
+        <reason>Story 2.5.2 smoke test validates model loading, accuracy (100% on gold standard), performance (model load 1.2s, throughput 4850 w/s). Similar validation needed for scikit-learn: TF-IDF fit/transform timing, LSA decomposition, textstat scoring. Reference for test structure and assertion patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>.claude/CLAUDE.md</path>
+        <kind>documentation</kind>
+        <symbol>spaCy Model Setup section</symbol>
+        <lines>67-84</lines>
+        <reason>Template for semantic dependencies documentation section. Include: installation commands, verification steps, performance characteristics, troubleshooting. Update after Story 3.5.4 complete with semantic dependencies setup instructions.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <existing>
+          <package>spacy</package>
+          <version>>=3.7.2,<4.0</version>
+          <rationale>Story 2.5.2 - Sentence boundary detection for Epic 3 chunking</rationale>
+        </existing>
+        <existing>
+          <package>jsonschema</package>
+          <version>>=4.0.0,<5.0</version>
+          <rationale>Story 3.4 - JSON Schema Draft 7 validation</rationale>
+        </existing>
+        <existing>
+          <package>pytest</package>
+          <version>>=8.0.0,<9.0</version>
+          <rationale>Testing framework (dev dependency)</rationale>
+        </existing>
+        <new-required>
+          <package>scikit-learn</package>
+          <version>>=1.3.0,<2.0.0</version>
+          <rationale>TF-IDF vectorization (TfidfVectorizer), LSA (TruncatedSVD), cosine similarity - Epic 4 core semantic analysis</rationale>
+          <apis>
+            <api>sklearn.feature_extraction.text.TfidfVectorizer</api>
+            <api>sklearn.decomposition.TruncatedSVD</api>
+            <api>sklearn.metrics.pairwise.cosine_similarity</api>
+          </apis>
+        </new-required>
+        <new-required>
+          <package>joblib</package>
+          <version>>=1.3.0</version>
+          <rationale>Model persistence for caching TF-IDF vectorizers and LSA models (Story 3.5.5 ADR)</rationale>
+          <apis>
+            <api>joblib.dump</api>
+            <api>joblib.load</api>
+          </apis>
+        </new-required>
+        <new-required>
+          <package>textstat</package>
+          <version>>=0.7.3</version>
+          <rationale>Readability metrics (Flesch reading ease, Gunning Fog, SMOG) for chunk quality scoring</rationale>
+          <apis>
+            <api>textstat.flesch_reading_ease</api>
+            <api>textstat.flesch_kincaid_grade</api>
+            <api>textstat.gunning_fog</api>
+          </apis>
+        </new-required>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Enterprise constraint: Classical NLP only - no transformer models allowed (ADR-004, PRD NFR-C3)
+    - Performance baseline: TF-IDF fit/transform must complete in <100ms on 1k-word document (10 docs corpus) per AC-3
+    - Smoke test must fail build in CI if performance baseline not met (AC-4)
+    - Follow spaCy integration pattern from Story 2.5.2 for CI caching and documentation (AC-5, AC-6)
+    - Dependencies must be runtime (not dev-only) since Epic 4 semantic analysis requires them for production features
+    - Python 3.12+ required (enterprise standardization per PRD NFR-C1)
+    - All dependencies installable via pip from PyPI (NFR-S2 - security requirement)
+    - Smoke test script must be standalone (no pytest dependency) for fast validation
+    - Exit codes: 0 for success, non-zero for any test failure (scriptability requirement from PRD FR-6.2)
+    - Follow TDD pattern: RED (write failing smoke test) → GREEN (verify installation) → BLUE (optimize and document)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>scikit-learn TfidfVectorizer API</name>
+      <kind>library-api</kind>
+      <signature>
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2))
+        vectorizer.fit(corpus: List[str])
+        vectors = vectorizer.transform(corpus)
+        # Returns: scipy.sparse matrix of shape (n_docs, n_features)
+      </signature>
+      <path>scikit-learn>=1.3.0</path>
+      <usage>Epic 4 Story 4.1 - TF-IDF vectorization engine. Smoke test validates fit/transform latency <100ms for 10 docs × 1k words each.</usage>
+    </interface>
+    <interface>
+      <name>scikit-learn TruncatedSVD (LSA) API</name>
+      <kind>library-api</kind>
+      <signature>
+        from sklearn.decomposition import TruncatedSVD
+        lsa = TruncatedSVD(n_components=100, random_state=42)
+        lsa.fit(tfidf_matrix)
+        reduced = lsa.transform(tfidf_matrix)
+        # Returns: dense array of shape (n_docs, n_components)
+      </signature>
+      <path>scikit-learn>=1.3.0</path>
+      <usage>Epic 4 Story 4.2 - LSA dimensionality reduction for semantic topics. Smoke test validates decomposition works on TF-IDF output.</usage>
+    </interface>
+    <interface>
+      <name>scikit-learn cosine_similarity API</name>
+      <kind>library-api</kind>
+      <signature>
+        from sklearn.metrics.pairwise import cosine_similarity
+        similarity_matrix = cosine_similarity(vectors)
+        # Returns: array of shape (n_docs, n_docs) with similarity scores 0-1
+      </signature>
+      <path>scikit-learn>=1.3.0</path>
+      <usage>Epic 4 Story 4.3 - Document similarity analysis. Smoke test validates similarity computation on TF-IDF vectors.</usage>
+    </interface>
+    <interface>
+      <name>textstat readability metrics API</name>
+      <kind>library-api</kind>
+      <signature>
+        import textstat
+        score = textstat.flesch_reading_ease(text: str)  # Returns: float 0-100
+        grade = textstat.flesch_kincaid_grade(text: str) # Returns: float grade level
+        fog = textstat.gunning_fog(text: str)            # Returns: float 6-17
+      </signature>
+      <path>textstat>=0.7.3</path>
+      <usage>Epic 3 Story 3.3 - Chunk quality scoring. Smoke test validates metrics return expected ranges for sample text.</usage>
+    </interface>
+    <interface>
+      <name>joblib persistence API</name>
+      <kind>library-api</kind>
+      <signature>
+        import joblib
+        joblib.dump(model, filename: str, compress=3)
+        loaded_model = joblib.load(filename: str)
+      </signature>
+      <path>joblib>=1.3.0</path>
+      <usage>Story 3.5.5 ADR - Model caching strategy. Smoke test validates save/load round-trip for TF-IDF vectorizer.</usage>
+    </interface>
+    <interface>
+      <name>Smoke test script interface</name>
+      <kind>script-interface</kind>
+      <signature>
+        scripts/smoke-test-semantic.py
+        # Exit codes: 0 = all tests pass, 1 = any test fails
+        # Output: Prints ✓ for each passing test with timing, ✗ for failures with error message
+      </signature>
+      <path>scripts/smoke-test-semantic.py</path>
+      <usage>CI integration at .github/workflows/test.yml - run after pip install, before pytest suite. Fail fast if semantic dependencies broken.</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows established patterns from Story 2.5.2 (spaCy integration):
+      - Smoke test script is standalone (no pytest dependency) for fast validation in CI
+      - Integration tests use pytest with markers (@pytest.mark.integration, @pytest.mark.performance)
+      - Performance tests validate NFRs with assertions on timing baselines (e.g., assert duration_ms < 100)
+      - Test fixtures mirror production data patterns (e.g., 1k-word documents for 10-doc corpus)
+      - CI caching configured via .github/workflows/test.yml using actions/cache@v4
+      - All quality gates (Black, Ruff, Mypy) must pass before merge
+      - Test organization mirrors src/ structure (tests/unit/, tests/integration/, tests/performance/)
+    </standards>
+    <locations>
+      - scripts/smoke-test-semantic.py (new - smoke test script)
+      - tests/integration/test_semantic_smoke.py (new - pytest integration tests for smoke test validation)
+      - tests/performance/ (existing - may add semantic performance benchmarks)
+      - .github/workflows/test.yml (modify - add smoke test step after dependency installation)
+    </locations>
+    <ideas>
+      - AC-1: Unit test for pyproject.toml parsing - verify scikit-learn/joblib/textstat versions present in dependencies list
+      - AC-2: Smoke test validates all 4 APIs (TF-IDF, LSA, cosine similarity, textstat) with sample data
+      - AC-3: Performance test: assert TF-IDF fit/transform <100ms for 10 docs × 1k words (reference: Story 2.5.2 achieved 1.2s model load vs 5s requirement)
+      - AC-4: CI integration test - mock GitHub Actions run, verify smoke test step executes and fails build on error
+      - AC-5: Cache validation test - verify pip cache hit reduces installation time (reference: spaCy cache pattern at .github/workflows/test.yml:42-48)
+      - AC-6: Documentation completeness test - verify CLAUDE.md contains "Semantic Dependencies" section with setup commands
+      - Edge case: Test smoke script with missing dependencies (pip uninstall scikit-learn) - should print actionable error message
+      - Edge case: Test smoke script with old scikit-learn version <1.3.0 - should fail with version mismatch error
+      - Regression test: Ensure existing 307+ tests still pass after adding new dependencies (Story 2.5.2 validation pattern)
+      - Performance baseline: Document TF-IDF timing on various corpus sizes (1k, 10k, 100k words) for Epic 4 reference
+    </ideas>
+  </tests>
+</story-context>

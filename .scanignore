@@ -1,0 +1,84 @@
+# Security Scanner Ignore Patterns
+# Lines starting with # are comments
+# Patterns are matched against file paths relative to project root
+
+# Test fixtures and test data
+tests/fixtures/
+tests/data/
+**/test_*.py
+**/*_test.py
+
+# Documentation and examples
+docs/examples/
+*.example
+*.sample
+
+# Build and distribution
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache and temporary files
+.cache/
+*.cache
+.pytest_cache/
+.mypy_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated reports
+docs/reports/
+docs/security-reports/
+docs/uat/
+
+# Dependency directories
+venv/
+.venv/
+env/
+.env/
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Known false positives (add specific files here)
+# Example: scripts/test_security_patterns.py
+
+# Security scanner test fixtures (contain fake secrets for testing)
+tests/unit/test_scripts/test_scan_security.py
+tests/unit/test_scripts/
+
+# Claude Code commands (contain example connection strings for documentation)
+.claude/commands/
+
+# Jupyter notebooks (often contain example keys)
+*.ipynb
+
+# Log files
+*.log
+logs/
+
+# Package lock files
+package-lock.json
+poetry.lock
+Pipfile.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

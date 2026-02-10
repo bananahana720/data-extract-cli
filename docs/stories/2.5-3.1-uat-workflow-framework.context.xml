@@ -1,0 +1,400 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2.5</epicId>
+    <storyId>3.1</storyId>
+    <title>UAT Workflow Framework</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2.5-3.1-uat-workflow-framework.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>QA Engineer / Developer</asA>
+    <iWant>automated UAT workflows for test case creation, context-building, AI-assisted test execution, and senior QA review</iWant>
+    <soThat>acceptance criteria can be systematically validated with AI assistance and human oversight</soThat>
+    <tasks>
+**Task 1: Design create-test-cases Workflow** (AC: 1)
+- Create bmad/bmm/workflows/4-implementation/create-test-cases/ directory structure
+- Create workflow.yaml with input/output specifications (story file, epic file input → test-cases.md output)
+- Create instructions.md with step-by-step workflow logic (parse ACs, generate test scenarios, map to test types)
+- Create template.md for test case output format
+- Create checklist.md for workflow validation
+- Document workflow purpose and usage in README.md
+
+**Task 2: Design build-test-context Workflow** (AC: 2)
+- Create bmad/bmm/workflows/4-implementation/build-test-context/ directory structure
+- Create workflow.yaml with input/output specifications (story file, test cases, optional story context → test-context.xml)
+- Create instructions.md with context gathering logic (identify fixtures, discover helpers, gather pytest config)
+- Create template.xml for test context output format
+- Create checklist.md for workflow validation
+- Document relationship to story-context workflow in README.md
+
+**Task 3: Design execute-tests Workflow** (AC: 3)
+- Create bmad/bmm/workflows/4-implementation/execute-tests/ directory structure
+- Create workflow.yaml with input/output specifications (test cases, test context, story file → test-execution-results.md)
+- Create instructions.md with test execution logic (categorize tests, execute via tmux-cli, aggregate results with evidence)
+- Create template.md for test execution results format
+- Document tmux-cli integration patterns and examples
+- Create checklist.md for workflow validation
+- Document workflow purpose and tmux-cli requirements in README.md
+
+**Task 4: Design review-uat-results Workflow** (AC: 4)
+- Create bmad/bmm/workflows/4-implementation/review-uat-results/ directory structure
+- Create workflow.yaml with input/output specifications (test results, test cases, story file → uat-review.md)
+- Create instructions.md with AI-assisted review logic (analyze pass/fail ratio, identify gaps, check evidence quality, generate review findings)
+- Create template.md for UAT review report format
+- Create checklist.md for review quality validation
+- Document senior QA role and decision criteria in README.md
+
+**Task 5: Document Workflow Integration** (AC: 5)
+- Update docs/tech-spec-epic-2.5.md with UAT workflow section
+- Create end-to-end UAT process flow diagram showing workflow sequence and handoff points
+- Document workflow orchestration options (manual sequential, automated, selective execution)
+- Add UAT workflow usage to CLAUDE.md under "Common Tasks"
+- Document when to use UAT workflows vs standard testing
+
+**Task 6: Execute Example UAT for Story 2.5.3** (AC: 6)
+- Run create-test-cases on parent story (2.5-3-quality-gate-automation-and-documentation.md)
+- Review generated test cases and validate coverage of all 8 ACs
+- Run build-test-context to gather test fixtures and helpers
+- Run execute-tests (manual/hybrid mode for fixture creation story)
+- Run review-uat-results and generate review report
+- Document lessons learned and workflow refinements needed
+- Update workflow templates based on real execution feedback
+
+**Task 7: Testing and Validation**
+- Validate all 4 workflow.yaml files parse correctly
+- Validate all workflow instructions are complete and unambiguous
+- Validate all templates provide clear structure and guidance
+- Execute example UAT end-to-end and capture metrics (time, quality)
+- Update CLAUDE.md with UAT workflow patterns and best practices
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC-2.5.3.1-1**: UAT workflow `create-test-cases` designed and documented
+- Input: Story markdown files with acceptance criteria
+- Output: Test case specifications with scenarios and expected outcomes
+- Workflow stub created in `bmad/bmm/workflows/4-implementation/create-test-cases/`
+
+**AC-2.5.3.1-2**: UAT workflow `build-test-context` designed and documented
+- Input: Story file + test cases from create-test-cases
+- Output: Test context XML with relevant code, fixtures, and configuration
+- Similar to story-context workflow but focused on testing needs
+
+**AC-2.5.3.1-3**: UAT workflow `execute-tests` designed and documented
+- Input: Test cases + test context
+- Output: Test execution results with pass/fail/blocked status
+- Integration with tmux-cli for CLI testing scenarios
+- AI-driven test execution with structured result capture
+
+**AC-2.5.3.1-4**: UAT workflow `review-uat-results` designed and documented
+- Input: Test execution results
+- Output: Senior QA review with approval/changes-requested status
+- AI-assisted review identifying gaps, edge cases, and quality issues
+- Human-readable summary for stakeholder review
+
+**AC-2.5.3.1-5**: Workflow integration documented in tech-spec-epic-2.5.md
+- End-to-end UAT process flow diagram
+- Workflow orchestration and handoff points
+- Integration with existing story-based development workflows
+
+**AC-2.5.3.1-6**: Example UAT execution documented for Story 2.5.3
+- Demonstrate all 4 workflows on parent story
+- Generate test cases, context, execute, and review
+- Document lessons learned and refinements needed
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Project Development Guide</title>
+        <section>Project Overview, Testing Strategy, Development Commands</section>
+        <snippet>Five-stage pipeline architecture (Extract → Normalize → Chunk → Semantic → Output). Testing with pytest markers (unit, integration, performance). Dual codebase during migration (greenfield/brownfield).</snippet>
+      </doc>
+      <doc>
+        <path>docs/TESTING-README.md</path>
+        <title>Testing Guide</title>
+        <section>Test Categories, Quick Start, Coverage Targets</section>
+        <snippet>88% coverage (923/1047 tests passing). Unit tests 100% passing. Integration tests 71% passing. Test organization: tests/{unit,integration,performance,fixtures}/. Markers for selective execution.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tmux-cli-instructions.md</path>
+        <title>tmux-cli Command Reference</title>
+        <section>Core Commands, Typical Workflow, Pane Management</section>
+        <snippet>Tool for controlling CLI applications in tmux. Commands: launch, send, capture, wait_idle, interrupt, escape, kill. Auto-detects inside/outside tmux mode. Critical: Always launch shell (zsh) first to prevent losing output.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Epic 2.5 Technical Specification</title>
+        <section>Story 2.5.3 - Large Document Fixtures & Testing Infrastructure</section>
+        <snippet>Epic 2.5 bridges Epic 2 (Extract & Normalize) and Epic 3 (Chunking). Story 2.5.3 deferred AC-2.5.3.7 (UAT workflow) to sub-story 2.5.3.1. Focus: Workflow design for test case creation, context building, execution, and QA review.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2.5-3-quality-gate-automation-and-documentation.md</path>
+        <title>Parent Story 2.5.3 - Large Document Fixtures</title>
+        <section>Testing Infrastructure, File List, Completion Notes</section>
+        <snippet>Created large document fixtures (60-page PDF, 10K-row Excel, scanned PDF), integration tests (test_large_files.py), fixture generation scripts, README.md. Memory monitoring pattern (get_total_memory). NFR-P2 validated: 167MB peak (92% under 2GB).</snippet>
+      </doc>
+      <doc>
+        <path>tests/fixtures/README.md</path>
+        <title>Test Fixtures Documentation</title>
+        <section>Fixture Inventory, Generation Process, Contributor Guidelines</section>
+        <snippet>Comprehensive fixture documentation including large document fixtures, generation scripts (reportlab, openpyxl, PIL), sanitization process, size budget (35.87 MB / 100 MB used).</snippet>
+      </doc>
+      <doc>
+        <path>bmad/core/tasks/workflow.xml</path>
+        <title>BMAD Workflow Execution Engine</title>
+        <section>Workflow Processing Rules, Step Execution, Template Output</section>
+        <snippet>Core workflow engine. Processes workflow.yaml + instructions.md. Supports template-output tags, conditional execution, step iteration. Normal and #yolo modes. Handles variables, config resolution, validation.</snippet>
+      </doc>
+      <doc>
+        <path>bmad/core/tasks/validate-workflow.xml</path>
+        <title>Workflow Validation Task</title>
+        <section>Checklist Validation, Report Generation</section>
+        <snippet>Validates workflow outputs against checklist.md. Generates validation reports with pass/fail/partial/N/A marks. Produces structured reports with evidence, impact analysis, and recommendations.</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/workflows/4-implementation/create-story/workflow.yaml</path>
+        <title>Create Story Workflow Configuration</title>
+        <section>Workflow Structure, Variables, Input Patterns</section>
+        <snippet>Example workflow structure: workflow.yaml + instructions.md + template.md + checklist.md. Smart input file references (whole/sharded docs). Selective epic loading. Config-driven variables.</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/workflows/4-implementation/story-context/workflow.yaml</path>
+        <title>Story Context Workflow Configuration</title>
+        <section>Context Assembly, Artifact Discovery</section>
+        <snippet>Assembles dynamic story context XML from docs, code, dependencies. Discovers relevant artifacts using story keywords. Selective epic loading optimization. Updates story status to ready-for-dev.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>bmad/bmm/workflows/4-implementation/</path>
+        <kind>directory</kind>
+        <symbol>Existing Phase 4 Workflows</symbol>
+        <lines>N/A</lines>
+        <reason>Contains 10 existing workflows (code-review, create-story, story-context, dev-story, etc.) demonstrating standard workflow structure pattern to follow for UAT workflows</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/test_large_files.py</path>
+        <kind>integration_test</kind>
+        <symbol>test_large_pdf_memory_usage, test_large_excel_processing, test_scanned_pdf_ocr_completion</symbol>
+        <lines>1-233</lines>
+        <reason>Integration test patterns for large document processing. Memory monitoring with get_total_memory(). Example of testing large fixtures created in parent story.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/fixtures/pdfs/large/audit-report-large.pdf</path>
+        <kind>test_fixture</kind>
+        <symbol>Large PDF Fixture</symbol>
+        <lines>N/A</lines>
+        <reason>60-page test fixture from parent story. Available for UAT workflow example execution (Task 6).</reason>
+      </artifact>
+      <artifact>
+        <path>tests/fixtures/xlsx/large/audit-data-10k-rows.xlsx</path>
+        <kind>test_fixture</kind>
+        <symbol>Large Excel Fixture</symbol>
+        <lines>N/A</lines>
+        <reason>10K-row test fixture from parent story. Available for UAT workflow example execution.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/generate_large_pdf_fixture.py</path>
+        <kind>script</kind>
+        <symbol>generate_large_pdf</symbol>
+        <lines>N/A</lines>
+        <reason>Fixture generation pattern using reportlab. Demonstrates reusable script approach for test infrastructure.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/conftest.py</path>
+        <kind>pytest_config</kind>
+        <symbol>Shared fixtures and configuration</symbol>
+        <lines>N/A</lines>
+        <reason>Pytest integration test configuration. Relevant for understanding test infrastructure that UAT workflows will interact with.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>pytest</package>
+        <package>pytest-cov</package>
+        <package>reportlab</package>
+        <package>openpyxl</package>
+        <package>PIL (Pillow)</package>
+        <package>psutil</package>
+        <package>spacy</package>
+        <package>pyyaml</package>
+      </python>
+      <tools>
+        <tool>tmux-cli</tool>
+        <tool>black</tool>
+        <tool>ruff</tool>
+        <tool>mypy</tool>
+      </tools>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="scope">
+      <description>Workflow design only - No Python code implementation</description>
+      <rationale>This story creates BMAD workflow documentation (YAML/Markdown). No production code, no test code modifications. Future stories may implement UAT orchestration agents if needed.</rationale>
+      <source>Story Dev Notes lines 315-317</source>
+    </constraint>
+    <constraint type="architecture">
+      <description>Four-workflow pipeline pattern required</description>
+      <rationale>UAT framework must have complete lifecycle coverage: create-test-cases → build-test-context → execute-tests → review-uat-results. Each workflow independent and composable.</rationale>
+      <source>Story Dev Notes lines 153-176</source>
+    </constraint>
+    <constraint type="integration">
+      <description>tmux-cli integration for CLI testing scenarios</description>
+      <rationale>execute-tests workflow requires tmux-cli for AI-driven CLI testing without human interaction. Enables automated CLI command testing, interactive application testing, and real-time output capture.</rationale>
+      <source>Story Dev Notes lines 183-211, docs/tmux-cli-instructions.md</source>
+    </constraint>
+    <constraint type="conventions">
+      <description>Follow BMAD workflow structure conventions</description>
+      <rationale>Each workflow must have: workflow.yaml (config + variables), instructions.md (step-by-step logic), template.{md|xml} (output format), checklist.md (validation criteria), README.md (purpose + usage).</rationale>
+      <source>bmad/bmm/workflows/4-implementation/create-story/, story-context/ as reference patterns</source>
+    </constraint>
+    <constraint type="integration">
+      <description>Integration with existing BMAD workflow framework</description>
+      <rationale>UAT workflows executed via bmad/core/tasks/workflow.xml engine. Must use config-driven variables from bmad/bmm/config.yaml. Must support validation via bmad/core/tasks/validate-workflow.xml.</rationale>
+      <source>bmad/core/tasks/workflow.xml, Story Dev Notes lines 344-352</source>
+    </constraint>
+    <constraint type="design_principles">
+      <description>Modularity, Repeatability, Evidence-Based, AI-Assisted/Human-Approved, Graceful Degradation</description>
+      <rationale>Workflows must be independently executable, produce deterministic outputs, include evidence capture (logs/screenshots), require human QA approval, and continue if optional inputs missing.</rationale>
+      <source>Story Dev Notes lines 241-254</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>BMAD Workflow File Structure</name>
+      <kind>File System Convention</kind>
+      <signature>
+bmad/bmm/workflows/4-implementation/{workflow-name}/
+├── workflow.yaml       # Configuration, variables, input patterns
+├── instructions.md     # Step-by-step execution logic (XML tags)
+├── template.{md|xml}   # Output document template with {{placeholders}}
+├── checklist.md        # Validation criteria for workflow output
+└── README.md           # Purpose, usage, examples
+      </signature>
+      <path>bmad/bmm/workflows/4-implementation/create-story/ (reference example)</path>
+    </interface>
+    <interface>
+      <name>Story Markdown Input Format</name>
+      <kind>Input Document Structure</kind>
+      <signature>
+# Story Title
+Status: {status}
+## Story (As a / I want / So that)
+## Acceptance Criteria (Numbered list with AC-X-Y-Z format)
+## Tasks / Subtasks (Hierarchical checklist)
+## Dev Notes (Architecture, References, Learnings, Structure)
+## Change Log
+## Dev Agent Record
+      </signature>
+      <path>docs/stories/*.md (all story files follow this format)</path>
+    </interface>
+    <interface>
+      <name>Test Context XML Format</name>
+      <kind>Output Document Structure</kind>
+      <signature>
+&lt;test-context&gt;
+  &lt;metadata&gt;epicId, storyId, testCaseId, generatedAt&lt;/metadata&gt;
+  &lt;testCases&gt;scenarios, preconditions, steps, expectedResults&lt;/testCases&gt;
+  &lt;fixtures&gt;test data files, helpers, configuration&lt;/fixtures&gt;
+  &lt;helpers&gt;conftest.py, custom fixtures, pytest plugins&lt;/helpers&gt;
+  &lt;configuration&gt;pytest.ini, markers, timeouts&lt;/configuration&gt;
+&lt;/test-context&gt;
+      </signature>
+      <path>Similar to story-context.xml format (docs/stories/*.context.xml)</path>
+    </interface>
+    <interface>
+      <name>tmux-cli Command Interface</name>
+      <kind>External Tool API</kind>
+      <signature>
+tmux-cli launch "command"                     # Returns pane ID
+tmux-cli send "input" --pane=ID               # Send to pane
+tmux-cli capture --pane=ID                    # Get output
+tmux-cli wait_idle --pane=ID                  # Wait for completion
+tmux-cli interrupt --pane=ID                  # Send Ctrl+C
+tmux-cli kill --pane=ID                       # Terminate pane
+      </signature>
+      <path>docs/tmux-cli-instructions.md</path>
+    </interface>
+    <interface>
+      <name>Workflow YAML Configuration Schema</name>
+      <kind>Configuration Format</kind>
+      <signature>
+name: workflow-name
+description: "Brief description"
+config_source: "{project-root}/bmad/bmm/config.yaml"
+installed_path: "{project-root}/bmad/bmm/workflows/.../workflow-name"
+template: "{installed_path}/template.{md|xml}"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+variables: {story_path, output_file, etc.}
+default_output_file: "path/to/output.{md|xml}"
+standalone: true
+      </signature>
+      <path>bmad/bmm/workflows/4-implementation/*/workflow.yaml (all workflow configs)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Story 2.5.3.1 creates workflow design documentation only (no code), so traditional unit/integration tests don't apply. However, workflows themselves must be validated:
+
+**Workflow Validation Standards:**
+- All workflow.yaml files must parse correctly (valid YAML syntax)
+- Instructions.md must be complete and unambiguous (can be executed by workflow.xml engine)
+- Templates must provide clear structure and guidance with proper {{placeholder}} syntax
+- Checklists must define measurable validation criteria
+- Example execution (Task 6) validates end-to-end workflow design
+
+**Project Testing Standards (for reference):**
+- Pytest-based testing framework with markers (unit, integration, performance, extraction, processing, formatting)
+- Test organization: tests/{unit, integration, performance, fixtures}/
+- Coverage targets: >80% for Epic 2, >90% for critical paths
+- Integration tests validate multi-component workflows with real fixtures
+- Performance tests benchmark throughput and memory usage against NFRs
+
+**From docs/TESTING-README.md**: 88% coverage (923/1047 tests passing). Unit tests mirror src/ structure. Integration tests in tests/integration/ with ~10s runtime. Fixtures in tests/fixtures/ with README.md documentation.
+    </standards>
+    <locations>
+**Workflow Output Locations** (created by this story):
+- bmad/bmm/workflows/4-implementation/create-test-cases/
+- bmad/bmm/workflows/4-implementation/build-test-context/
+- bmad/bmm/workflows/4-implementation/execute-tests/
+- bmad/bmm/workflows/4-implementation/review-uat-results/
+
+**UAT Artifacts Locations** (generated by workflows when executed):
+- docs/uat/test-cases/{story-key}-test-cases.md
+- docs/uat/test-context/{story-key}-test-context.xml
+- docs/uat/test-results/{story-key}-test-results.md
+- docs/uat/reviews/{story-key}-uat-review.md
+
+**Existing Test Infrastructure** (available for reference):
+- tests/fixtures/ - Test data files with README.md documentation
+- tests/integration/test_large_files.py - Large document testing patterns
+- tests/integration/conftest.py - Shared pytest fixtures and configuration
+- scripts/generate_*_fixture.py - Fixture generation script patterns
+    </locations>
+    <ideas>
+**Task 6 Validation Ideas** (Execute example UAT on Story 2.5.3):
+1. **AC-2.5.3.1-1 Validation**: Run create-test-cases workflow on parent story file (docs/stories/2.5-3-quality-gate-automation-and-documentation.md). Verify it generates test cases covering all 8 ACs with happy path, edge cases, and error scenarios.
+
+2. **AC-2.5.3.1-2 Validation**: Run build-test-context workflow with generated test cases. Verify it discovers relevant fixtures (tests/fixtures/{pdfs,xlsx}/large/), helpers (tests/integration/conftest.py), and pytest configuration.
+
+3. **AC-2.5.3.1-3 Validation**: Run execute-tests workflow (manual/hybrid mode). Verify tmux-cli integration patterns work for CLI scenarios. Capture test results with evidence (fixture file paths, generation script references).
+
+4. **AC-2.5.3.1-4 Validation**: Run review-uat-results workflow on test execution output. Verify AI generates gap analysis, edge case identification, and approval/changes-requested decision with severity ratings.
+
+5. **AC-2.5.3.1-5 Validation**: Verify docs/tech-spec-epic-2.5.md updated with UAT workflow section including process flow diagram (ASCII or mermaid), workflow sequence, handoff points, and integration with story development workflows.
+
+6. **AC-2.5.3.1-6 Validation**: Document lessons learned from example execution. Capture workflow refinements needed, time/quality metrics, and update workflow templates based on real execution feedback.
+
+7. **Task 7 Validation**: Validate all 4 workflow.yaml files parse correctly (valid YAML). Verify instructions.md completeness (all steps executable, no ambiguous actions). Verify templates provide clear structure. Execute end-to-end example and capture metrics.
+    </ideas>
+  </tests>
+</story-context>

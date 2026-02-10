@@ -1,0 +1,434 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Project Infrastructure Initialization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-1-project-infrastructure-initialization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a properly configured Python 3.12 development environment with dependency management</iWant>
+    <soThat>I have a reliable foundation for building the data-extraction-tool</soThat>
+    <tasks>
+- [ ] Task 1: Create Python 3.12 virtual environment (AC: 1.1.1)
+  - [ ] 1.1: Verify Python 3.12 is available on system
+  - [ ] 1.2: Create venv using `python3.12 -m venv venv`
+  - [ ] 1.3: Activate virtual environment and verify isolation
+  - [ ] 1.4: Confirm `python --version` shows 3.12.x
+
+- [ ] Task 2: Initialize pyproject.toml with project metadata (AC: 1.1.2)
+  - [ ] 2.1: Create pyproject.toml following PEP 621 format
+  - [ ] 2.2: Add project metadata (name, version, description, author)
+  - [ ] 2.3: Define core dependencies with pinned versions (pydantic >= 2.0.0, <3.0, etc.)
+  - [ ] 2.4: Define development dependencies in [project.optional-dependencies]
+  - [ ] 2.5: Add CLI entry point for future use: `data-extract = "data_extract.cli:app"`
+
+- [ ] Task 3: Install and verify development toolchain (AC: 1.1.3)
+  - [ ] 3.1: Install development dependencies: `pip install -e ".[dev]"`
+  - [ ] 3.2: Verify pytest installation: `pytest --version`
+  - [ ] 3.3: Verify black installation: `black --version`
+  - [ ] 3.4: Verify mypy installation: `mypy --version`
+  - [ ] 3.5: Verify ruff installation: `ruff --version`
+  - [ ] 3.6: Run pytest (should execute even with no tests)
+
+- [ ] Task 4: Configure .gitignore for Python project (AC: 1.1.4)
+  - [ ] 4.1: Create .gitignore file
+  - [ ] 4.2: Add Python-specific excludes (venv/, __pycache__/, *.pyc, .pytest_cache/, .coverage, .mypy_cache/)
+  - [ ] 4.3: Add output and log excludes (output/, logs/, *.log)
+  - [ ] 4.4: Add IDE excludes (.vscode/, .idea/)
+  - [ ] 4.5: Add environment file excludes (.env)
+
+- [ ] Task 5: Create project directory structure (AC: 1.1.5)
+  - [ ] 5.1: Create src/data_extract/ package with __init__.py
+  - [ ] 5.2: Create tests/ directory with __init__.py
+  - [ ] 5.3: Verify docs/ contains architecture.md and PRD.md (already exist)
+  - [ ] 5.4: Create config/ directory for configuration templates
+  - [ ] 5.5: Create scripts/ directory for utility scripts
+
+- [ ] Task 6: Create README.md with setup instructions (AC: 1.1.6)
+  - [ ] 6.1: Document prerequisites (Python 3.12, Git)
+  - [ ] 6.2: Provide setup commands with copy-paste examples
+  - [ ] 6.3: Add verification steps to confirm installation
+  - [ ] 6.4: Include quick start guide
+  - [ ] 6.5: Document tool version and current status
+
+- [ ] Task 7: Configure pre-commit hooks (.pre-commit-config.yaml) (AC: 1.1.3)
+  - [ ] 7.1: Create .pre-commit-config.yaml
+  - [ ] 7.2: Add hooks: black (formatting), ruff (linting), mypy (type checking)
+  - [ ] 7.3: Install pre-commit hooks: `pre-commit install`
+  - [ ] 7.4: Test hooks with `pre-commit run --all-files`
+
+- [ ] Task 8: Verify complete installation (AC: 1.1.1-1.1.6)
+  - [ ] 8.1: Run all development tools to confirm functionality
+  - [ ] 8.2: Verify directory structure is complete
+  - [ ] 8.3: Test virtual environment activation/deactivation
+  - [ ] 8.4: Confirm all acceptance criteria are met
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC-1.1.1:** Python 3.12 virtual environment created and activated
+- `python --version` returns 3.12.x
+- Virtual environment isolated from system Python
+
+**AC-1.1.2:** pyproject.toml defines complete project configuration
+- Project metadata (name, version, description, author)
+- All dependencies listed with pinned versions
+- Development dependencies in optional-dependencies.dev
+- Entry point defined for CLI (future use)
+
+**AC-1.1.3:** Development toolchain installed and functional
+- pytest executes successfully (even with no tests)
+- black formats code without errors
+- mypy performs type checking
+- ruff lints code successfully
+
+**AC-1.1.4:** .gitignore properly configured
+- Excludes: venv/, __pycache__/, *.pyc, .pytest_cache/, .coverage, .mypy_cache/
+- Excludes output files and logs
+
+**AC-1.1.5:** Project structure follows modern Python conventions
+- src/data_extract/ package created
+- tests/ directory created
+- docs/ directory contains architecture.md, PRD.md
+- config/ directory for configuration templates
+
+**AC-1.1.6:** README.md documents setup and quick start
+- Prerequisites listed (Python 3.12, Git)
+- Setup commands with copy-paste examples
+- Verification steps to confirm installation
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Tech Spec Epic 1 - Primary technical specification for Story 1.1 -->
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation & Project Setup</title>
+        <section>Story 1.1 - Detailed Design & Dependencies</section>
+        <snippet>Establishes Python 3.12 environment with pyproject.toml, defines core dependencies (pydantic >= 2.0.0, PyYAML >= 6.0.0, structlog >= 24.0.0), development toolchain (pytest, black, mypy, ruff, pre-commit), and project structure following src/ layout pattern.</snippet>
+      </doc>
+
+      <!-- Architecture - System architecture and ADR context -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure & Development Setup</section>
+        <snippet>Defines modular pipeline architecture (extract → normalize → chunk → semantic → output) with src/data_extract/ package structure. Includes ADR decisions: ADR-002 (Pydantic v2), ADR-004 (Python 3.12 mandatory), and comprehensive dependency matrix with version pinning requirements for audit trail compliance.</snippet>
+      </doc>
+
+      <!-- PRD - Business requirements and domain context -->
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>Product Requirements Document</title>
+        <section>Project Classification & Domain Context</section>
+        <snippet>Enterprise F100 cybersecurity internal audit tool. Python 3.12 mandatory (NFR-C1), CLI-based batch processing for RAG optimization. Classical NLP only (no transformers), on-premise processing. High accuracy requirements for audit/compliance domain.</snippet>
+      </doc>
+
+      <!-- Epics - Story context and user story origin -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Epic 1: Foundation & Project Setup</title>
+        <section>Story 1.1: Project Infrastructure Initialization</section>
+        <snippet>User story origin defining developer need for Python 3.12 environment with dependency management. Part of foundational epic establishing development infrastructure, brownfield assessment, and modular pipeline architecture.</snippet>
+      </doc>
+
+      <!-- BMM Brownfield Index - Existing codebase context -->
+      <doc>
+        <path>docs/bmm-index.md</path>
+        <title>BMad Method Documentation Index</title>
+        <section>Brownfield Documentation Navigation</section>
+        <snippet>Master navigation for brownfield project (v1.0.6, 92% test coverage). References existing extraction capabilities, pipeline architecture, and integration points. Critical context: This story creates clean foundation structure; Story 1.2 will assess and integrate existing code.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- Existing pyproject.toml - needs updating to Python 3.12 and dependency revisions -->
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>build-config</kind>
+        <symbol>project configuration</symbol>
+        <lines>1-125</lines>
+        <reason>Existing project config currently targets Python 3.11. Story 1.1 must update to Python 3.12 mandatory requirement, revise dependencies per tech-spec (add structlog, python-dotenv, pytest-xdist, pre-commit), and align package name with data_extract pattern.</reason>
+      </artifact>
+
+      <!-- Existing .gitignore - comprehensive and up-to-date -->
+      <artifact>
+        <path>.gitignore</path>
+        <kind>git-config</kind>
+        <symbol>version control excludes</symbol>
+        <lines>1-81</lines>
+        <reason>Already comprehensive, covers Python cache, testing, logs, venv, IDE, build artifacts. Meets AC-1.1.4 requirements. May need minor additions for config/ and scripts/ directories.</reason>
+      </artifact>
+
+      <!-- Existing src/ structure - brownfield modules to integrate -->
+      <artifact>
+        <path>src/core/interfaces.py</path>
+        <kind>interface-definition</kind>
+        <symbol>BaseExtractor, BaseProcessor, BaseFormatter</symbol>
+        <lines>1-50</lines>
+        <reason>Existing interface contracts using dataclasses. Story 1.4 will migrate to Pydantic-based protocol pattern (PipelineStage[Input, Output]) per ADR-002. Current contracts demonstrate brownfield extraction capabilities.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/core/models.py</path>
+        <kind>data-models</kind>
+        <symbol>ExtractionResult, ContentType, ProcessingStage, Position</symbol>
+        <lines>1-80</lines>
+        <reason>Existing dataclass models. Story 1.4 will refactor to Pydantic v2 models (Document, Chunk, Metadata, Entity) per tech-spec. Current models show brownfield schema design.</reason>
+      </artifact>
+
+      <!-- Existing test infrastructure -->
+      <artifact>
+        <path>tests/conftest.py</path>
+        <kind>test-fixture</kind>
+        <symbol>pytest configuration and fixtures</symbol>
+        <lines>1-306</lines>
+        <reason>Existing pytest infrastructure with fixtures. Story 1.3 will enhance with additional fixtures for Epic 1 architecture testing. Current structure demonstrates brownfield test organization.</reason>
+      </artifact>
+
+      <!-- Existing extractors - brownfield capabilities -->
+      <artifact>
+        <path>src/extractors/</path>
+        <kind>module</kind>
+        <symbol>pdf_extractor, docx_extractor, excel_extractor, pptx_extractor, csv_extractor</symbol>
+        <lines>N/A</lines>
+        <reason>Existing extraction modules (v1.0.6). Story 1.2 (Brownfield Assessment) will document capabilities vs. Epic 2 requirements. Story 1.1 creates clean foundation; integration happens in Story 1.4.</reason>
+      </artifact>
+
+      <!-- Existing CLI framework using Click -->
+      <artifact>
+        <path>src/cli/main.py</path>
+        <kind>cli-entry</kind>
+        <symbol>main, CLI commands</symbol>
+        <lines>N/A</lines>
+        <reason>Existing Click-based CLI. Epic 5 will migrate to Typer per ADR-001. Current CLI shows brownfield user interface patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <!-- Core Dependencies from tech-spec Epic 1 -->
+      <python>
+        <version>3.12.x</version>
+        <constraint>Mandatory - ADR-004, NFR-C1 enterprise requirement</constraint>
+      </python>
+
+      <core>
+        <package name="pydantic" version="&gt;= 2.0.0, &lt; 3.0">Story 1.4 - Runtime validation</package>
+        <package name="PyYAML" version="&gt;= 6.0.0, &lt; 7.0">Story 1.4 - Config management</package>
+        <package name="python-dotenv" version="&gt;= 1.0.0, &lt; 2.0">Story 1.4 - Environment variables</package>
+        <package name="structlog" version="&gt;= 24.0.0, &lt; 25.0">Story 1.4 - Structured logging</package>
+      </core>
+
+      <development>
+        <package name="pytest" version="&gt;= 8.0.0, &lt; 9.0">Story 1.3 - Testing framework</package>
+        <package name="pytest-cov" version="&gt;= 5.0.0, &lt; 6.0">Story 1.3 - Coverage reporting</package>
+        <package name="pytest-xdist" version="&gt;= 3.6.0, &lt; 4.0">Story 1.3 - Parallel execution</package>
+        <package name="ruff" version="&gt;= 0.6.0, &lt; 0.7">Story 1.1 - Fast linting</package>
+        <package name="mypy" version="&gt;= 1.11.0, &lt; 2.0">Story 1.1 - Type checking</package>
+        <package name="black" version="&gt;= 24.0.0, &lt; 25.0">Story 1.1 - Code formatting</package>
+        <package name="pre-commit" version="&gt;= 3.0.0, &lt; 4.0">Story 1.1 - Git hooks</package>
+      </development>
+
+      <existing_brownfield>
+        <note>Current dependencies (python-docx, pypdf, python-pptx, openpyxl, click, rich) remain for brownfield compatibility. Story 1.2 will document which to keep vs. replace in Epic 2+.</note>
+      </existing_brownfield>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Development Constraints -->
+    <constraint category="platform">
+      <rule>Python 3.12 mandatory (ADR-004, NFR-C1) - Enterprise requirement, no fallback to 3.11</rule>
+      <rule>Primary target: Windows (enterprise environment). Secondary: macOS, Linux (portability)</rule>
+      <rule>Use pathlib for cross-platform file paths. Handle CRLF (Windows) vs. LF (Unix) line endings</rule>
+    </constraint>
+
+    <constraint category="architecture">
+      <rule>Story 1.1 creates clean foundation structure only - Do NOT integrate existing brownfield code</rule>
+      <rule>Story 1.2 will assess existing code; Story 1.4 will perform integration and refactoring</rule>
+      <rule>Follow src/ layout pattern: src/data_extract/{core,extract,normalize,chunk,semantic,output,config,utils}</rule>
+      <rule>All dependencies must be pinned with version ranges for deterministic builds (audit trail requirement)</rule>
+    </constraint>
+
+    <constraint category="testing">
+      <rule>Epic 1 coverage target: &gt;60% baseline. Epic 2-4: &gt;80%. Epic 5: &gt;90% critical paths</rule>
+      <rule>Test structure mirrors src/ organization: tests/{unit,integration,performance}</rule>
+      <rule>Use pytest exclusively. Configure pytest-cov for coverage, pytest-xdist for parallel execution</rule>
+    </constraint>
+
+    <constraint category="code_quality">
+      <rule>Pre-commit hooks mandatory: black (formatting), ruff (linting), mypy (type checking)</rule>
+      <rule>Hooks enforce standards automatically on git commit. Can bypass with --no-verify if needed</rule>
+      <rule>Black: opinionated, zero config. Ruff: replaces flake8 + isort. Mypy: strict type checking</rule>
+    </constraint>
+
+    <constraint category="brownfield_integration">
+      <rule>Existing codebase at v1.0.6 with 92% test coverage, extraction capabilities present</rule>
+      <rule>This story creates parallel clean structure. Integration deferred to Story 1.4</rule>
+      <rule>Preserve existing functionality during refactor - no breaking changes until Epic 5</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- Future Pipeline Interfaces (Story 1.4 will implement) -->
+    <interface>
+      <name>PipelineStage[Input, Output]</name>
+      <kind>Protocol (Pydantic-based)</kind>
+      <signature>
+        Protocol defining contracts for all pipeline stages:
+        - process(input: Input) -&gt; Output
+        - validate_input(input: Input) -&gt; bool
+        - Error handling through exception hierarchy
+      </signature>
+      <path>src/data_extract/core/pipeline.py (Story 1.4)</path>
+    </interface>
+
+    <!-- Existing Brownfield Interfaces (to be migrated) -->
+    <interface>
+      <name>BaseExtractor</name>
+      <kind>Abstract Base Class</kind>
+      <signature>
+        Current brownfield interface using dataclasses:
+        - extract(file_path: Path) -&gt; ExtractionResult
+        - Returns success flag + errors list
+        Story 1.4 will migrate to PipelineStage protocol
+      </signature>
+      <path>src/core/interfaces.py (existing, brownfield)</path>
+    </interface>
+
+    <!-- Configuration Interface -->
+    <interface>
+      <name>Configuration Cascade</name>
+      <kind>Three-tier precedence system</kind>
+      <signature>
+        Precedence order (highest to lowest):
+        1. CLI flags (--option value)
+        2. Environment variables (DATA_EXTRACT_* prefix)
+        3. YAML config file (~/.data-extract/config.yaml or project-local)
+        4. Hardcoded defaults
+        Epic 5 implements full cascade. Epic 1 sets up infrastructure only.
+      </signature>
+      <path>src/data_extract/config/ (Story 1.4 creates structure, Epic 5 implements)</path>
+    </interface>
+
+    <!-- CLI Entry Point -->
+    <interface>
+      <name>data-extract CLI entry point</name>
+      <kind>Console script (pyproject.toml entry point)</kind>
+      <signature>
+        Entry point definition in pyproject.toml:
+        [project.scripts]
+        data-extract = "data_extract.cli:app"
+
+        Story 1.1 defines entry point structure. Epic 5 implements Typer-based CLI.
+      </signature>
+      <path>pyproject.toml [project.scripts] section</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing framework: pytest (v8.x) as primary testing tool with coverage and parallel execution support.
+
+**Test Organization:**
+- Three-tier structure: unit/ (fast, isolated), integration/ (cross-module), performance/ (benchmarks)
+- Tests mirror src/ structure for maintainability
+- Shared fixtures in conftest.py, test data in fixtures/
+- Markers: @pytest.mark.unit, @pytest.mark.integration, @pytest.mark.slow
+
+**Coverage Requirements:**
+- Epic 1: &gt;60% baseline coverage (foundational infrastructure)
+- Epic 2-4: &gt;80% overall coverage (processing logic)
+- Epic 5: &gt;90% coverage for critical paths (CLI, batch processing)
+
+**Testing Tools:**
+- pytest: Test discovery and execution
+- pytest-cov: Coverage reporting (HTML and terminal output)
+- pytest-xdist: Parallel test execution for faster CI
+- pytest-mock: Mocking framework for unit tests
+
+**Code Quality Enforcement:**
+- Pre-commit hooks: black (formatting), ruff (linting), mypy (type checking)
+- Hooks run automatically on git commit, enforce standards before code review
+- Can bypass with --no-verify flag but generally discouraged
+
+**Existing Infrastructure (Brownfield):**
+- tests/ directory already exists with conftest.py, fixtures/, and module test directories
+- Current: 92% test coverage (v1.0.6)
+- Story 1.3 will enhance fixtures for Epic 1 architecture testing
+    </standards>
+
+    <locations>
+      <location>tests/unit/ - Fast, isolated unit tests for individual functions/classes</location>
+      <location>tests/integration/ - Cross-module integration tests for pipeline stages</location>
+      <location>tests/performance/ - Performance benchmarks and profiling tests</location>
+      <location>tests/fixtures/ - Test data files (sample documents, expected outputs)</location>
+      <location>tests/conftest.py - Shared pytest fixtures and configuration</location>
+      <location>tests/test_extractors/ - Extractor module tests (existing, brownfield)</location>
+      <location>tests/test_processors/ - Processor module tests (existing, brownfield)</location>
+      <location>tests/test_formatters/ - Formatter module tests (existing, brownfield)</location>
+      <location>tests/test_cli/ - CLI command tests (existing, brownfield)</location>
+      <location>tests/test_infrastructure/ - Infrastructure tests (config, logging, error handling)</location>
+    </locations>
+
+    <ideas>
+      <!-- AC-1.1.1: Python 3.12 virtual environment -->
+      <test id="AC-1.1.1">
+        <description>Verify Python 3.12 virtual environment creation and activation</description>
+        <approach>Manual verification: Run `python --version` in activated venv, assert output is 3.12.x. Check venv isolation by comparing sys.prefix with venv path.</approach>
+        <test_type>Manual verification script (not pytest)</test_type>
+      </test>
+
+      <!-- AC-1.1.2: pyproject.toml configuration -->
+      <test id="AC-1.1.2">
+        <description>Validate pyproject.toml structure and dependency definitions</description>
+        <approach>Unit test: Parse pyproject.toml using tomli, assert project name is "data-extraction-tool", Python version is &gt;=3.12, all required dependencies present with pinned versions, entry point defined correctly.</approach>
+        <test_type>Unit test in tests/unit/test_project_config.py</test_type>
+      </test>
+
+      <!-- AC-1.1.3: Development toolchain functional -->
+      <test id="AC-1.1.3">
+        <description>Verify development tools (pytest, black, mypy, ruff) are installed and functional</description>
+        <approach>Integration test: Run each tool with --version flag, assert exit code 0. Run pytest (should pass even with no tests), black on sample file (should format), mypy on sample typed file, ruff on sample file.</approach>
+        <test_type>Integration test in tests/integration/test_toolchain.py</test_type>
+      </test>
+
+      <!-- AC-1.1.4: .gitignore properly configured -->
+      <test id="AC-1.1.4">
+        <description>Validate .gitignore excludes all required patterns</description>
+        <approach>Unit test: Read .gitignore, assert patterns present: venv/, __pycache__/, *.pyc, .pytest_cache/, .coverage, .mypy_cache/, output/, logs/, .vscode/, .idea/, .env. Test that git status doesn't show excluded files.</approach>
+        <test_type>Unit test in tests/unit/test_gitignore.py</test_type>
+      </test>
+
+      <!-- AC-1.1.5: Project structure follows conventions -->
+      <test id="AC-1.1.5">
+        <description>Verify directory structure matches architecture specification</description>
+        <approach>Unit test: Assert directories exist: src/data_extract/{core,extract,normalize,chunk,semantic,output,config,utils}/, tests/{unit,integration,performance}/, docs/, config/, scripts/. Check __init__.py in all package directories.</approach>
+        <test_type>Unit test in tests/unit/test_project_structure.py</test_type>
+      </test>
+
+      <!-- AC-1.1.6: README.md documentation -->
+      <test id="AC-1.1.6">
+        <description>Validate README.md contains setup instructions and verification steps</description>
+        <approach>Unit test: Parse README.md, assert sections present: Prerequisites, Setup Commands, Verification Steps. Check for Python 3.12 mention, venv activation commands for both Windows and Unix.</approach>
+        <test_type>Unit test in tests/unit/test_readme.py</test_type>
+      </test>
+
+      <!-- Pre-commit hooks testing -->
+      <test id="pre-commit-hooks">
+        <description>Verify pre-commit hooks are configured and execute correctly</description>
+        <approach>Integration test: Run `pre-commit run --all-files`, assert hooks execute (black, ruff, mypy). Test that malformatted code triggers black hook, linting errors trigger ruff hook.</approach>
+        <test_type>Integration test in tests/integration/test_pre_commit.py</test_type>
+      </test>
+
+      <!-- Brownfield compatibility -->
+      <test id="brownfield-compatibility">
+        <description>Ensure existing tests continue to pass after infrastructure changes</description>
+        <approach>Regression test: Run existing test suite (test_extractors/, test_formatters/, test_processors/), assert all pass or document breaking changes with migration plan.</approach>
+        <test_type>Regression suite (existing tests should continue passing)</test_type>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

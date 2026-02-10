@@ -1,0 +1,111 @@
+<test-context id="bmad/bmm/workflows/4-implementation/build-test-context/template" v="1.0">
+  <metadata>
+    <epicId>{{epic_num}}</epicId>
+    <storyId>{{story_id}}</storyId>
+    <storyKey>{{story_key}}</storyKey>
+    <title>{{story_title}}</title>
+    <generatedAt>{{date}}</generatedAt>
+    <generator>BMAD Build Test Context Workflow</generator>
+    <testCasesFile>{{test_cases_file}}</testCasesFile>
+    <sourceStoryPath>{{story_path}}</sourceStoryPath>
+  </metadata>
+
+  <testCases>
+    <summary>
+      <totalTests>{{total_test_count}}</totalTests>
+      <unitTests>{{unit_test_count}}</unitTests>
+      <integrationTests>{{integration_test_count}}</integrationTests>
+      <cliTests>{{cli_test_count}}</cliTests>
+      <manualTests>{{manual_test_count}}</manualTests>
+      <performanceTests>{{performance_test_count}}</performanceTests>
+    </summary>
+    <testCaseList>
+{{test_case_list}}
+    </testCaseList>
+  </testCases>
+
+  <fixtures>
+    <fixtureFiles>
+{{fixture_files}}
+    </fixtureFiles>
+    <generationScripts>
+{{generation_scripts}}
+    </generationScripts>
+    <missingFixtures>
+{{missing_fixtures}}
+    </missingFixtures>
+    <fixtureDocumentation>
+      <path>{project-root}/tests/fixtures/README.md</path>
+      <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
+    </fixtureDocumentation>
+  </fixtures>
+
+  <helpers>
+    <globalFixtures>
+      <conftest>
+        <path>{project-root}/tests/conftest.py</path>
+        <fixtures>
+{{global_fixtures}}
+        </fixtures>
+      </conftest>
+    </globalFixtures>
+    <integrationFixtures>
+      <conftest>
+        <path>{project-root}/tests/integration/conftest.py</path>
+        <fixtures>
+{{integration_fixtures}}
+        </fixtures>
+      </conftest>
+    </integrationFixtures>
+    <utilityFunctions>
+{{utility_functions}}
+    </utilityFunctions>
+  </helpers>
+
+  <configuration>
+    <pytest>
+      <configFile>{project-root}/pytest.ini</configFile>
+      <markers>
+{{pytest_markers}}
+      </markers>
+      <settings>
+{{pytest_settings}}
+      </settings>
+    </pytest>
+    <environment>
+{{environment_vars}}
+    </environment>
+  </configuration>
+
+  <codeUnderTest>
+{{code_artifacts}}
+  </codeUnderTest>
+
+  <integrationPoints>
+{{integration_points}}
+  </integrationPoints>
+
+  <storyContext>
+{{story_context_section}}
+  </storyContext>
+
+  <setupRequirements>
+    <prerequisites>
+{{prerequisites}}
+    </prerequisites>
+    <fixtureGeneration>
+{{fixture_generation_steps}}
+    </fixtureGeneration>
+    <environmentSetup>
+{{environment_setup_steps}}
+    </environmentSetup>
+  </setupRequirements>
+
+  <nextSteps>
+    <step n="1">Review test context and verify all fixtures are available</step>
+    <step n="2">Generate missing fixtures using scripts or manual creation</step>
+    <step n="3">Run execute-tests workflow: workflow execute-tests</step>
+    <step n="4">Monitor test execution and capture results</step>
+    <step n="5">Run review-uat-results workflow for QA approval</step>
+  </nextSteps>
+</test-context>

@@ -1,0 +1,92 @@
+# Pre-commit hooks for code quality enforcement
+# Run manually: pre-commit run --all-files
+# Install: pre-commit install
+
+repos:
+  # Black - Opinionated code formatting
+  - repo: https://github.com/psf/black
+    rev: 25.11.0
+    hooks:
+      - id: black
+        language_version: python3.12
+        args: [--line-length=100]
+        exclude: (^TRASH/|/TRASH/)
+
+  # Ruff - Fast Python linter (replaces flake8, isort, and more)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.7
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: (^TRASH/|/TRASH/)
+
+  # Mypy - Static type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.0.0
+          - types-PyYAML
+        args: [--python-version=3.11, --ignore-missing-imports, --no-incremental, --namespace-packages, --explicit-package-bases]
+        files: ^src/data_extract/
+        exclude: ^src/data_extract/(cli|extract|normalize|chunk|semantic|output)/
+
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow heredocs in GitHub Actions workflows
+        exclude: ^\.github/workflows/performance\.yml$  # Heredoc Python scripts not parseable
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Local hooks
+  - repo: local
+    hooks:
+      # check-dependency-changes disabled - script doesn't exist
+      # - id: check-dependency-changes
+      #   name: Check for dependency changes
+      #   entry: python scripts/check_dependency_changes.py
+      #   language: python
+      #   files: pyproject\.toml$
+      #   pass_filenames: true
+      #   always_run: false
+      #   stages: [commit]
+
+      # Security scanner - Check for secrets and credentials
+      - id: security-scan
+        name: Security Scanner - Check for secrets
+        entry: python scripts/scan_security.py --secrets-only --pre-commit
+        language: python
+        additional_dependencies: [structlog>=23.0.0, rich>=13.0.0]
+        types: [text]
+        exclude: ^(\.git|\.venv|venv|node_modules|__pycache__|\.pytest_cache|\.mypy_cache|dist|build|\.tox)/
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+        description: Scans for hardcoded secrets and credentials
+
+      # - id: audit-dependencies
+      #   name: Audit test dependencies
+      #   entry: python scripts/audit_dependencies.py --output json
+      #   language: python
+      #   pass_filenames: false
+      #   always_run: false
+      #   stages: [commit]
+      #   files: ^(tests/.*\.py|pyproject\.toml)$
+      #   description: Audits test imports against declared dependencies
+
+      - id: generate-tests-reminder
+        name: Reminder to generate tests for new stories
+        entry: echo "Remember to run 'python scripts/generate_tests.py --story <story-file>' for new stories"
+        language: system
+        files: ^docs/stories/.*\.md$
+        pass_filenames: false
+        always_run: false
+        stages: [commit]

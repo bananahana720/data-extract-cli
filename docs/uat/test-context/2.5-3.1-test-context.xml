@@ -1,0 +1,447 @@
+<test-context id="bmad/bmm/workflows/4-implementation/build-test-context/template" v="1.0">
+  <metadata>
+    <epicId>2.5</epicId>
+    <storyId>Story 2.5.3.1</storyId>
+    <storyKey>2.5-3.1</storyKey>
+    <title>UAT Workflow Framework</title>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Build Test Context Workflow</generator>
+    <testCasesFile>docs/uat/test-cases/2.5-3.1-test-cases.md</testCasesFile>
+    <sourceStoryPath>docs/stories/2.5-3.1-uat-workflow-framework.md</sourceStoryPath>
+  </metadata>
+
+  <testCases>
+    <summary>
+      <totalTests>27</totalTests>
+      <unitTests>0</unitTests>
+      <integrationTests>6</integrationTests>
+      <cliTests>0</cliTests>
+      <manualTests>21</manualTests>
+      <performanceTests>0</performanceTests>
+    </summary>
+    <testCaseList>
+      <!-- AC-2.5.3.1-1: create-test-cases workflow -->
+      <testCase id="TC-2.5-3.1-1-1" type="manual" ac="AC-2.5.3.1-1" scenario="happy_path">
+        <objective>Verify create-test-cases workflow structure and documentation are complete</objective>
+        <requires>BMAD workflow framework, Story markdown files</requires>
+      </testCase>
+      <testCase id="TC-2.5-3.1-1-2" type="integration" ac="AC-2.5.3.1-1" scenario="happy_path">
+        <objective>Validate create-test-cases workflow executes successfully on a real story</objective>
+        <requires>Workflow engine, BMAD config</requires>
+      </testCase>
+      <testCase id="TC-2.5-3.1-1-3" type="manual" ac="AC-2.5.3.1-1" scenario="edge_case">
+        <objective>Verify workflow handles story files with missing or empty AC sections gracefully</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-1-4" type="manual" ac="AC-2.5.3.1-1" scenario="edge_case">
+        <objective>Verify workflow scales to stories with large numbers of ACs</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-1-5" type="manual" ac="AC-2.5.3.1-1" scenario="error_case">
+        <objective>Verify workflow handles invalid file paths gracefully</objective>
+      </testCase>
+
+      <!-- AC-2.5.3.1-2: build-test-context workflow -->
+      <testCase id="TC-2.5-3.1-2-1" type="manual" ac="AC-2.5.3.1-2" scenario="happy_path">
+        <objective>Verify build-test-context workflow structure and documentation are complete</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-2-2" type="integration" ac="AC-2.5.3.1-2" scenario="happy_path">
+        <objective>Validate build-test-context workflow executes and discovers test infrastructure</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-2-3" type="manual" ac="AC-2.5.3.1-2" scenario="edge_case">
+        <objective>Verify workflow handles test cases that don't require test fixtures</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-2-4" type="manual" ac="AC-2.5.3.1-2" scenario="edge_case">
+        <objective>Verify workflow can optionally reuse story-context.xml</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-2-5" type="manual" ac="AC-2.5.3.1-2" scenario="error_case">
+        <objective>Verify workflow handles missing test cases file gracefully</objective>
+      </testCase>
+
+      <!-- AC-2.5.3.1-3: execute-tests workflow -->
+      <testCase id="TC-2.5-3.1-3-1" type="manual" ac="AC-2.5.3.1-3" scenario="happy_path">
+        <objective>Verify execute-tests workflow structure and documentation are complete</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-3-2" type="integration" ac="AC-2.5.3.1-3" scenario="happy_path">
+        <objective>Validate execute-tests workflow runs pytest tests and captures results</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-3-3" type="manual" ac="AC-2.5.3.1-3" scenario="edge_case">
+        <objective>Verify workflow executes CLI tests using tmux-cli integration</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-3-4" type="manual" ac="AC-2.5.3.1-3" scenario="edge_case">
+        <objective>Verify workflow guides tester through manual test execution</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-3-5" type="manual" ac="AC-2.5.3.1-3" scenario="error_case">
+        <objective>Verify workflow handles missing tmux-cli gracefully</objective>
+      </testCase>
+
+      <!-- AC-2.5.3.1-4: review-uat-results workflow -->
+      <testCase id="TC-2.5-3.1-4-1" type="manual" ac="AC-2.5.3.1-4" scenario="happy_path">
+        <objective>Verify review-uat-results workflow structure and documentation are complete</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-4-2" type="integration" ac="AC-2.5.3.1-4" scenario="happy_path">
+        <objective>Validate review workflow generates approval for clean test results</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-4-3" type="manual" ac="AC-2.5.3.1-4" scenario="edge_case">
+        <objective>Verify review workflow correctly identifies complete test failure</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-4-4" type="manual" ac="AC-2.5.3.1-4" scenario="edge_case">
+        <objective>Verify review workflow makes nuanced decisions on partial failures</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-4-5" type="manual" ac="AC-2.5.3.1-4" scenario="error_case">
+        <objective>Verify workflow handles missing test results gracefully</objective>
+      </testCase>
+
+      <!-- AC-2.5.3.1-5: Documentation -->
+      <testCase id="TC-2.5-3.1-5-1" type="manual" ac="AC-2.5.3.1-5" scenario="happy_path">
+        <objective>Verify tech-spec-epic-2.5.md contains comprehensive UAT workflow documentation</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-5-2" type="manual" ac="AC-2.5.3.1-5" scenario="edge_case">
+        <objective>Verify CLAUDE.md includes UAT workflow usage under Common Tasks</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-5-3" type="integration" ac="AC-2.5.3.1-5" scenario="workflow_handoff">
+        <objective>Verify outputs of each workflow match inputs of next workflow in pipeline</objective>
+      </testCase>
+
+      <!-- AC-2.5.3.1-6: Example UAT execution -->
+      <testCase id="TC-2.5-3.1-6-1" type="manual" ac="AC-2.5.3.1-6" scenario="happy_path">
+        <objective>Execute complete UAT pipeline on Story 2.5.3 and document results</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-6-2" type="manual" ac="AC-2.5.3.1-6" scenario="edge_case">
+        <objective>Identify and document workflow improvements discovered during execution</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-6-3" type="manual" ac="AC-2.5.3.1-6" scenario="error_case">
+        <objective>Verify workflow handles test failures gracefully during example execution</objective>
+      </testCase>
+      <testCase id="TC-2.5-3.1-6-4" type="integration" ac="AC-2.5.3.1-6" scenario="metrics">
+        <objective>Capture and document UAT workflow performance metrics</objective>
+      </testCase>
+    </testCaseList>
+  </testCases>
+
+  <fixtures>
+    <fixtureFiles>
+      <!-- Story markdown files for workflow testing -->
+      <fixture path="docs/stories/2.5-3-quality-gate-automation-and-documentation.md" type="story" purpose="Example story for workflow execution testing" />
+      <fixture path="docs/stories/2.5-3.1-uat-workflow-framework.md" type="story" purpose="Current story under test" />
+
+      <!-- Test cases and context files (generated by workflows) -->
+      <fixture path="docs/uat/test-cases/2.5-3.1-test-cases.md" type="test-cases" purpose="Generated test cases for this story" />
+      <fixture path="docs/uat/test-context/2.5-3.1-test-context.xml" type="test-context" purpose="This file - test context for execution" />
+
+      <!-- BMAD workflow files (code under test) -->
+      <fixture path="bmad/bmm/workflows/4-implementation/create-test-cases/" type="workflow-dir" purpose="create-test-cases workflow structure" />
+      <fixture path="bmad/bmm/workflows/4-implementation/build-test-context/" type="workflow-dir" purpose="build-test-context workflow structure" />
+      <fixture path="bmad/bmm/workflows/4-implementation/execute-tests/" type="workflow-dir" purpose="execute-tests workflow structure" />
+      <fixture path="bmad/bmm/workflows/4-implementation/review-uat-results/" type="workflow-dir" purpose="review-uat-results workflow structure" />
+
+      <!-- Documentation files -->
+      <fixture path="docs/tech-spec-epic-2.5.md" type="documentation" purpose="Epic technical specification with UAT framework section" />
+      <fixture path="CLAUDE.md" type="documentation" purpose="Project instructions with UAT workflow usage" />
+      <fixture path="docs/tmux-cli-instructions.md" type="documentation" purpose="tmux-cli integration reference" />
+    </fixtureFiles>
+    <generationScripts>
+      <!-- No fixture generation scripts needed for this story - all files are workflow configuration files -->
+      <note>This story tests workflow design (YAML/MD files), not data fixtures requiring generation scripts</note>
+    </generationScripts>
+    <missingFixtures>
+      <!-- All required fixtures exist -->
+      <note>No missing fixtures - all workflow files and documentation created in Story 2.5.3.1</note>
+    </missingFixtures>
+    <fixtureDocumentation>
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\README.md</path>
+      <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
+    </fixtureDocumentation>
+  </fixtures>
+
+  <helpers>
+    <globalFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\conftest.py</path>
+        <fixtures>
+          <fixture name="sample_content_block">Basic ContentBlock for testing (PARAGRAPH type)</fixture>
+          <fixture name="sample_heading_block">Heading ContentBlock for testing</fixture>
+          <fixture name="sample_table_block">Table ContentBlock with TableMetadata</fixture>
+          <fixture name="sample_image_block">Image ContentBlock for testing</fixture>
+          <fixture name="sample_content_blocks">List of mixed ContentBlocks</fixture>
+          <fixture name="sample_document_metadata">DocumentMetadata with sample values</fixture>
+          <fixture name="sample_extraction_result">Successful ExtractionResult with sample data</fixture>
+          <fixture name="failed_extraction_result">Failed ExtractionResult for error testing</fixture>
+          <fixture name="sample_processing_result">Successful ProcessingResult with enriched data</fixture>
+          <fixture name="temp_test_file">Temporary text file for testing</fixture>
+          <fixture name="empty_test_file">Empty file for edge case testing</fixture>
+          <fixture name="large_test_file">Large text file (~1MB) for performance testing</fixture>
+          <fixture name="fixture_dir">Path to tests/fixtures/ directory</fixture>
+          <fixture name="validate_extraction_result">Helper to validate ExtractionResult structure</fixture>
+          <fixture name="validate_processing_result">Helper to validate ProcessingResult structure</fixture>
+        </fixtures>
+      </conftest>
+    </globalFixtures>
+    <integrationFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\integration\conftest.py</path>
+        <fixtures>
+          <fixture name="sample_docx_file">Generated DOCX with headings, paragraphs, table</fixture>
+          <fixture name="sample_pdf_file">Generated PDF with multi-page text content</fixture>
+          <fixture name="sample_text_file">Simple text file for testing</fixture>
+          <fixture name="large_docx_file">Large DOCX (100+ paragraphs, ~1MB)</fixture>
+          <fixture name="corrupted_docx_file">Invalid DOCX file for error testing</fixture>
+          <fixture name="corrupted_pdf_file">Invalid PDF file for error testing</fixture>
+          <fixture name="empty_docx_file">Empty DOCX for edge case testing</fixture>
+          <fixture name="multiple_test_files">List of 5 test files for batch processing</fixture>
+          <fixture name="batch_test_directory">Directory containing multiple test files</fixture>
+          <fixture name="configured_pipeline">Fully configured ExtractionPipeline</fixture>
+          <fixture name="batch_processor">Configured BatchProcessor with 2 workers</fixture>
+          <fixture name="cli_runner">Click CLI test runner</fixture>
+          <fixture name="config_file">Sample YAML configuration file</fixture>
+          <fixture name="invalid_config_file">Invalid config file for error testing</fixture>
+          <fixture name="output_directory">Temporary output directory</fixture>
+          <fixture name="progress_tracker">Progress tracking callback and list</fixture>
+          <fixture name="performance_timer">Timer for performance testing</fixture>
+        </fixtures>
+      </conftest>
+    </integrationFixtures>
+    <utilityFunctions>
+      <note>For UAT workflow testing, no Python utility functions are required since tests are manual/integration validation of workflow files</note>
+      <note>Workflow execution uses BMAD workflow engine (bmad/core/tasks/workflow.xml)</note>
+      <note>Manual tests involve file system checks, workflow execution observation, and documentation review</note>
+    </utilityFunctions>
+  </helpers>
+
+  <configuration>
+    <pytest>
+      <configFile>C:\Users\Andrew\projects\data-extraction-tool-1\pytest.ini</configFile>
+      <markers>
+        <marker name="unit">Unit tests (fast, isolated)</marker>
+        <marker name="integration">Integration tests (slower, multiple components)</marker>
+        <marker name="slow">Tests that may take more than 1 second</marker>
+        <marker name="performance">Performance and benchmarking tests</marker>
+        <marker name="extraction">Tests for extractor modules</marker>
+        <marker name="processing">Tests for processor modules</marker>
+        <marker name="formatting">Tests for formatter modules</marker>
+        <marker name="pipeline">Tests for pipeline orchestration</marker>
+        <marker name="cli">Command-line interface tests</marker>
+        <marker name="edge_case">Edge case and boundary condition tests</marker>
+        <marker name="stress">Resource-intensive stress tests</marker>
+        <marker name="infrastructure">Infrastructure component tests</marker>
+        <marker name="cross_format">Cross-format validation tests</marker>
+      </markers>
+      <settings>
+        <setting name="python_files">test_*.py</setting>
+        <setting name="python_classes">Test*</setting>
+        <setting name="python_functions">test_*</setting>
+        <setting name="testpaths">tests</setting>
+        <setting name="minversion">3.11</setting>
+        <setting name="addopts">-v -ra --showlocals --strict-markers</setting>
+        <setting name="console_output_style">progress</setting>
+        <setting name="log_cli">false</setting>
+        <setting name="log_cli_level">INFO</setting>
+      </settings>
+    </pytest>
+    <environment>
+      <var name="PROJECT_ROOT">C:\Users\Andrew\projects\data-extraction-tool-1</var>
+      <var name="PYTHON_VERSION">3.12+ (mandatory enterprise requirement)</var>
+      <var name="BMAD_CONFIG">bmad/bmm/config.yaml</var>
+      <var name="WORKFLOW_ENGINE">bmad/core/tasks/workflow.xml</var>
+      <note>No special environment variables required for UAT workflow testing</note>
+      <note>Workflows execute via SlashCommand tool: /bmad:bmm:workflows:*</note>
+    </environment>
+  </configuration>
+
+  <codeUnderTest>
+    <note>This story tests BMAD workflow configuration files (YAML/MD), not Python code</note>
+
+    <workflowDirectory path="bmad/bmm/workflows/4-implementation/create-test-cases/">
+      <file name="workflow.yaml">Workflow configuration with input/output specifications</file>
+      <file name="instructions.md">Step-by-step workflow execution logic (9 steps)</file>
+      <file name="template.md">Test case output template with variable placeholders</file>
+      <file name="checklist.md">Workflow validation checklist</file>
+      <file name="README.md">Workflow purpose and usage documentation</file>
+    </workflowDirectory>
+
+    <workflowDirectory path="bmad/bmm/workflows/4-implementation/build-test-context/">
+      <file name="workflow.yaml">Workflow configuration for test context building</file>
+      <file name="instructions.md">Test infrastructure discovery logic (9 steps)</file>
+      <file name="template.xml">Test context XML output template</file>
+      <file name="checklist.md">Workflow validation checklist</file>
+      <file name="README.md">Workflow purpose and relationship to story-context</file>
+    </workflowDirectory>
+
+    <workflowDirectory path="bmad/bmm/workflows/4-implementation/execute-tests/">
+      <file name="workflow.yaml">Workflow configuration for test execution</file>
+      <file name="instructions.md">Test execution logic with tmux-cli integration (9 steps)</file>
+      <file name="template.md">Test results output template with pass/fail/blocked status</file>
+      <file name="checklist.md">Workflow validation checklist</file>
+      <file name="README.md">Workflow purpose and tmux-cli requirements</file>
+    </workflowDirectory>
+
+    <workflowDirectory path="bmad/bmm/workflows/4-implementation/review-uat-results/">
+      <file name="workflow.yaml">Workflow configuration for UAT review</file>
+      <file name="instructions.md">AI-assisted review logic with gap analysis (9 steps)</file>
+      <file name="template.md">UAT review report template with approval decision</file>
+      <file name="checklist.md">Review quality validation checklist</file>
+      <file name="README.md">Senior QA role and decision criteria documentation</file>
+    </workflowDirectory>
+
+    <workflowEngine path="bmad/core/tasks/workflow.xml">
+      <description>Core workflow execution engine that processes workflow.yaml configurations</description>
+      <purpose>Interprets instructions.md, resolves variables, manages template output, handles user interaction</purpose>
+    </workflowEngine>
+
+    <documentation>
+      <file path="docs/tech-spec-epic-2.5.md">Epic 2.5 technical specification with UAT framework section</file>
+      <file path="CLAUDE.md">Project instructions with UAT workflow usage examples</file>
+      <file path="docs/tmux-cli-instructions.md">tmux-cli integration patterns and reference</file>
+    </documentation>
+  </codeUnderTest>
+
+  <integrationPoints>
+    <integration type="filesystem">
+      <description>Workflow file discovery and validation</description>
+      <paths>
+        <path>bmad/bmm/workflows/4-implementation/*/workflow.yaml</path>
+        <path>bmad/bmm/workflows/4-implementation/*/instructions.md</path>
+        <path>bmad/bmm/workflows/4-implementation/*/template.*</path>
+        <path>docs/stories/*.md</path>
+        <path>docs/uat/test-cases/*.md</path>
+        <path>docs/uat/test-context/*.xml</path>
+      </paths>
+      <requirements>
+        <requirement>Read access to workflow directories</requirement>
+        <requirement>Write access to docs/uat/ directories</requirement>
+        <requirement>File glob pattern matching</requirement>
+      </requirements>
+    </integration>
+
+    <integration type="workflow-engine">
+      <description>BMAD workflow execution via SlashCommand tool</description>
+      <commands>
+        <command>/bmad:bmm:workflows:create-test-cases</command>
+        <command>/bmad:bmm:workflows:build-test-context</command>
+        <command>/bmad:bmm:workflows:execute-tests</command>
+        <command>/bmad:bmm:workflows:review-uat-results</command>
+      </commands>
+      <requirements>
+        <requirement>BMAD core task engine (workflow.xml) functional</requirement>
+        <requirement>Config resolution from bmad/bmm/config.yaml</requirement>
+        <requirement>Variable interpolation and template rendering</requirement>
+      </requirements>
+    </integration>
+
+    <integration type="tmux-cli">
+      <description>CLI test automation via tmux-cli command</description>
+      <executable>C:\Users\Andrew\.local\bin\tmux-cli.exe</executable>
+      <status>Available</status>
+      <usage>
+        <pattern>Launch shell: tmux-cli launch "zsh"</pattern>
+        <pattern>Send command: tmux-cli send "command" --pane=2</pattern>
+        <pattern>Wait idle: tmux-cli wait_idle --pane=2 --idle-time=2.0</pattern>
+        <pattern>Capture output: tmux-cli capture --pane=2</pattern>
+      </usage>
+      <requirements>
+        <requirement>tmux-cli installed and in PATH</requirement>
+        <requirement>Shell session management</requirement>
+        <requirement>Output capture for test evidence</requirement>
+      </requirements>
+      <note>Required for TC-2.5-3.1-3-3 (CLI test execution validation)</note>
+    </integration>
+
+    <integration type="documentation">
+      <description>Documentation validation (tech-spec, CLAUDE.md)</description>
+      <requirements>
+        <requirement>Read access to docs/ directory</requirement>
+        <requirement>Markdown parsing and section extraction</requirement>
+        <requirement>Content validation against acceptance criteria</requirement>
+      </requirements>
+    </integration>
+  </integrationPoints>
+
+  <storyContext>
+    <note>No existing story-context.xml found for Story 2.5.3.1</note>
+    <note>Test context built from scratch using workflow discovery</note>
+    <relatedStories>
+      <story key="2.5.3" title="Quality Gate Automation and Documentation">
+        <relationship>Parent story - provides large document fixtures and testing infrastructure</relationship>
+        <artifacts>
+          <artifact>tests/fixtures/pdfs/large/audit-report-large.pdf (60 pages)</artifact>
+          <artifact>tests/fixtures/xlsx/large/audit-data-10k-rows.xlsx (10,240 rows)</artifact>
+          <artifact>tests/fixtures/pdfs/scanned/audit-scan.pdf (5 pages, OCR)</artifact>
+          <artifact>scripts/generate_large_pdf_fixture.py</artifact>
+          <artifact>scripts/generate_large_excel_fixture.py</artifact>
+          <artifact>scripts/generate_scanned_pdf_fixture.py</artifact>
+        </artifacts>
+      </story>
+    </relatedStories>
+  </storyContext>
+
+  <setupRequirements>
+    <prerequisites>
+      <prerequisite name="BMAD Framework" status="available">
+        <description>BMAD workflow framework with core task engine</description>
+        <location>bmad/core/tasks/workflow.xml</location>
+        <validation>SlashCommand tool can invoke /bmad:bmm:workflows:* commands</validation>
+      </prerequisite>
+
+      <prerequisite name="UAT Workflow Files" status="available">
+        <description>All 4 UAT workflows created in Story 2.5.3.1</description>
+        <files>
+          <file>bmad/bmm/workflows/4-implementation/create-test-cases/workflow.yaml</file>
+          <file>bmad/bmm/workflows/4-implementation/build-test-context/workflow.yaml</file>
+          <file>bmad/bmm/workflows/4-implementation/execute-tests/workflow.yaml</file>
+          <file>bmad/bmm/workflows/4-implementation/review-uat-results/workflow.yaml</file>
+        </files>
+        <validation>All workflow.yaml files exist and parse correctly</validation>
+      </prerequisite>
+
+      <prerequisite name="Story Files" status="available">
+        <description>Story markdown files for testing workflows</description>
+        <files>
+          <file>docs/stories/2.5-3-quality-gate-automation-and-documentation.md</file>
+          <file>docs/stories/2.5-3.1-uat-workflow-framework.md</file>
+        </files>
+        <validation>Story files contain acceptance criteria sections</validation>
+      </prerequisite>
+
+      <prerequisite name="Test Cases" status="available">
+        <description>Generated test cases from create-test-cases workflow</description>
+        <file>docs/uat/test-cases/2.5-3.1-test-cases.md</file>
+        <validation>27 test cases covering all 6 ACs</validation>
+      </prerequisite>
+
+      <prerequisite name="tmux-cli" status="available">
+        <description>CLI automation tool for execute-tests workflow</description>
+        <location>C:\Users\Andrew\.local\bin\tmux-cli.exe</location>
+        <validation>Run: tmux-cli --help</validation>
+      </prerequisite>
+
+      <prerequisite name="Documentation" status="available">
+        <description>Updated tech-spec and CLAUDE.md with UAT framework</description>
+        <files>
+          <file>docs/tech-spec-epic-2.5.md (with UAT section)</file>
+          <file>CLAUDE.md (with UAT workflow usage)</file>
+        </files>
+        <validation>Documentation contains UAT workflow references</validation>
+      </prerequisite>
+    </prerequisites>
+
+    <fixtureGeneration>
+      <note>No fixture generation required - all workflow files exist</note>
+      <note>All test data (story files, test cases) already created in Story 2.5.3.1</note>
+    </fixtureGeneration>
+
+    <environmentSetup>
+      <step n="1">Verify BMAD framework operational: SlashCommand tool available</step>
+      <step n="2">Verify all 4 UAT workflow directories exist with 5 files each (20 files total)</step>
+      <step n="3">Verify docs/uat/ directory structure exists (test-cases/, test-context/, test-results/, reviews/)</step>
+      <step n="4">Verify tmux-cli available in PATH: where tmux-cli</step>
+      <step n="5">Verify story files and test cases accessible</step>
+      <step n="6">Ready to execute tests - no additional setup required</step>
+    </environmentSetup>
+  </setupRequirements>
+
+  <nextSteps>
+    <step n="1">Review test context and verify all fixtures are available</step>
+    <step n="2">Generate missing fixtures using scripts or manual creation</step>
+    <step n="3">Run execute-tests workflow: workflow execute-tests</step>
+    <step n="4">Monitor test execution and capture results</step>
+    <step n="5">Run review-uat-results workflow for QA approval</step>
+  </nextSteps>
+</test-context>

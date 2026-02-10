@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testing-standards>
+
+<standards>
+Testing framework: pytest with markers (unit, integration, performance, chunking). All tests mirror src/ structure in tests/ directories. Fixtures in conftest.py and tests/fixtures/ with centralized model in pyproject.toml [tool.pytest.ini_options]. Coverage target: >90% for greenfield chunk/ module. Quality gates: black (100-char lines), ruff (E, F, I, N, W rules), mypy strict mode (must run from project root) before commit. Integration tests use Epic 2 ProcessingResult fixtures and real audit documents (COBIT, NIST, OWASP from tests/fixtures/real-world-files/). Performance tests validate NFR-P3 (<2 sec per 10k words) and NFR-P2-E3 (memory efficiency). Determinism tests: same input run 10 times with byte-for-byte comparison. Test data <100MB total (fixture size constraints enforced).
+</standards>
+
+<locations>
+tests/unit/test_chunk/ - Fast unit tests (milliseconds) for ChunkingEngine initialization, configuration validation, chunk_size edge cases, overlap calculation, sentence boundary preservation, section boundary detection, chunk_id generation, metadata population, determinism verification
+tests/unit/test_chunk/test_engine.py - ChunkingEngine core tests (initialization, happy path, streaming behavior, immutability)
+tests/unit/test_chunk/test_configuration.py - Config validation tests (chunk_size range 128-2048, overlap_pct range 0.0-0.5, warning generation, default values)
+tests/unit/test_chunk/test_sentence_boundaries.py - Edge case tests (very long sentences >512 tokens, micro-sentences <10 chars, mixed lengths, no punctuation fallback)
+tests/unit/test_chunk/test_determinism.py - Reproducibility tests (10-run comparison, chunk_id stability, configuration sensitivity)
+tests/integration/test_chunk/ - Multi-component tests with real fixtures
+tests/integration/test_chunk/test_chunking_pipeline.py - Epic 2 → Epic 3 integration (ProcessingResult input, Chunk output, section boundary preservation, entity tag flow, streaming semantics)
+tests/integration/test_chunk/test_spacy_integration.py - SentenceSegmenter integration (lazy loading verification, global caching, sentence accuracy with real docs, model version tracking, fallback behavior)
+tests/integration/test_chunk/test_large_documents.py - Large document handling (10k+ word documents, memory-constant streaming, very large PDFs >100MB, edge case fixtures)
+tests/performance/test_chunk/ - Performance validation
+tests/performance/test_chunk/test_chunking_latency.py - NFR-P3 verification (<2 sec per 10k words, sentence segmentation <0.5 sec, chunk generation <1.2 sec, per-document timing)
+tests/performance/test_chunk/test_memory_efficiency.py - NFR-P2-E3 validation (individual doc ≤500MB peak, batch memory constant, get_total_memory() from scripts/profile_pipeline.py, 10-doc to 100-doc batch profiling)
+tests/fixtures/normalized_results/ - ProcessingResult input fixtures for chunking (single-sentence docs, multi-sentence docs, with sections, with entities, with metadata)
+tests/fixtures/normalized_results/sentence_boundaries/ - Edge case test data (very_long_sentences.json, micro_sentences.json, no_punctuation.json, mixed_lengths.json)
+</locations>
+
+<ideas>
+AC-3.1-1 (Sentence boundaries - P0 Critical): Test chunking never splits mid-sentence using unit tests with edge cases (very long sentences >512 tokens becoming single chunks, micro-sentences <10 chars combined with adjacent), integration tests with real audit documents verifying no partial sentences in chunk boundaries. Mock SentenceSegmenter to verify algorithm respects boundaries. Test warning generation when sentence exceeds chunk_size.
+
+AC-3.1-2 (Section boundaries - P0): Test section detection from ContentBlocks in ProcessingResult.content_blocks (heading types, page breaks). Verify chunks align with section boundaries when chunk_size permits. Integration tests with multi-section documents (policy docs, risk registers, SOC2 reports). Verify section_context preserved in ChunkMetadata. Test section too large handled by splitting at sentence boundaries within section.
+
+AC-3.1-3 (Chunk size configurable - P1): Unit tests for initialization with various chunk_size values (128, 256, 512, 1024, 2048 tokens). Edge case tests: size=1, size=10000 with appropriate warnings. Verify configuration validated on init. Test default 512 tokens. Verify token count estimation formula (len(text) // 4).
+
+AC-3.1-4 (Chunk overlap configurable - P1): Unit tests for initialization with overlap_pct values (0.0, 0.1, 0.15, 0.2, 0.5). Sliding window tests: verify overlap_tokens = int(chunk_size * overlap_pct) calculation. Edge case tests: overlap=0.0 (no overlap), overlap=0.5 (50% overlap). Test no gaps and no excessive duplication in window. Verify default 0.15 (15%).
+
+AC-3.1-5 (spaCy integration - P0): Integration tests verify SentenceSegmenter dependency injection (fixture provides mock/real instance). Test lazy loading on first use (model loads once, cached globally). Test sentence boundary detection via spaCy nlp(text).sents iteration. Verify model version logged in ChunkMetadata.processing_version. Unit tests mock SentenceSegmenter for isolated chunking logic. Test en_core_web_md pinning in requirements.
+
+AC-3.1-6 (Edge cases - P0): Unit tests for each edge case: (1) very long sentences >chunk_size → single chunk with warning, (2) micro-sentences <10 chars → combined until chunk_size, (3) short sections <chunk_size → single chunk no splitting, (4) empty normalized documents → zero chunks returned, (5) no punctuation → spaCy statistical model handles, fallback if needed. Integration tests with real edge case fixtures. Error message clarity with actionable suggestions.
+
+AC-3.1-7 (Determinism - P0 Critical): Determinism tests run same ProcessingResult 10 times, verify byte-for-byte identical chunks (chunk_id, text, metadata). No timestamps in chunk_id (use source_file_stem + position instead). Configuration embedded in processing_version. spaCy model version frozen. No random number generators. Test configuration sensitivity: different config → different chunks. Verify chunk_id reproducibility across runs.
+</ideas>
+
+<fixtures>
+## Test Data Fixtures Required
+
+### ProcessingResult Input Fixtures (tests/fixtures/normalized_results/)
+
+**simple_single_sentence.json**
+- Content: Single paragraph, one sentence ("This is a test document.")
+- Purpose: Happy path baseline
+- Size: <1KB
+
+**multi_sentence_paragraph.json**
+- Content: Single paragraph, 5 sentences
+- Purpose: Basic chunking with sentence boundaries
+- Size: <1KB
+
+**with_sections.json**
+- Content: 3 sections (Heading1, Heading2, Heading3) with 2-3 paragraphs each
+- Purpose: Section boundary detection AC-3.1-2
+- Size: <5KB
+
+**with_entities.json**
+- Content: Text with embedded entity tags from Epic 2 normalization
+- Purpose: Entity tag flow from ProcessingResult to Chunk AC-3.1-5
+- Size: <2KB
+
+**audit_document_realistic.json**
+- Content: Real-world audit structure (Executive Summary, Risk Assessment, Recommendations)
+- Purpose: Integration test baseline
+- Size: <20KB
+
+### Edge Case Fixtures (tests/fixtures/normalized_results/sentence_boundaries/)
+
+**very_long_sentences.json**
+- Content: 3 sentences, each 800+ tokens (>512 chunk_size limit)
+- Purpose: AC-3.1-1, AC-3.1-6 very long sentence handling
+- Generation: Use synthetic sentence generator (repeat text segments)
+- Size: <10KB
+
+**micro_sentences.json**
+- Content: 10 sentences, each <10 chars ("Yes.", "No.", "Ok.", etc.)
+- Purpose: AC-3.1-6 micro-sentence combination testing
+- Size: <1KB
+
+**no_punctuation.json**
+- Content: Paragraph without periods (test spaCy statistical fallback)
+- Purpose: AC-3.1-6 punctuation edge case
+- Size: <2KB
+
+**mixed_lengths.json**
+- Content: Alternating long sentences (500 tokens) and micro-sentences (5 chars)
+- Purpose: AC-3.1-6 mixed edge cases
+- Size: <15KB
+
+**empty_document.json**
+- Content: Empty text field in ProcessingResult
+- Purpose: AC-3.1-6 empty document handling
+- Size: <1KB
+
+### Real Document Fixtures (existing: tests/fixtures/real-world-files/)
+
+- `COBIT-2019-Framework-*.pdf` - Multi-section governance framework
+- `NIST.SP.800-37r2.pdf` - Risk management standards (chapter structure)
+- `OWASP-*.pdf` - Security frameworks
+- `sp800-53ar5-assessment-procedures.xlsx` - Tabular audit data
+
+**Usage**: Extract → Normalize → use normalized ProcessingResult as input to chunking integration tests.
+
+### No New Large Fixtures Needed
+
+Chunking operates on ProcessingResult (Epic 2 output), not raw files. Reuse existing extraction fixtures via pipeline integration tests. Edge case JSON fixtures (<100KB total) sufficient.
+
+## Fixture Generation
+
+ProcessingResult fixtures: Create from normalized text samples in tests/fixtures/normalized_results/*.json (Pydantic model serialization).
+</fixtures>
+
+<marker-definitions>
+## pytest Markers for Story 3.1
+
+```python
+# Add to tests/conftest.py pytest_configure()
+config.addinivalue_line("markers", "chunking: Chunking engine tests (Story 3.1+)")
+config.addinivalue_line("markers", "sentence_boundaries: Sentence tokenization edge cases")
+config.addinivalue_line("markers", "determinism: Reproducibility validation tests")
+```
+
+**Marker Usage**:
+- `@pytest.mark.unit` - Fast unit tests (<10ms)
+- `@pytest.mark.integration` - Multi-component tests (chunking + spaCy)
+- `@pytest.mark.performance` - NFR validation (latency, memory)
+- `@pytest.mark.chunking` - All chunking-related tests
+- `@pytest.mark.sentence_boundaries` - Edge case tests (very long, micro, no punct)
+- `@pytest.mark.determinism` - 10-run comparison tests
+- `@pytest.mark.slow` - Performance tests >1 second
+
+**Run Examples**:
+- `pytest -m chunking` - All Story 3.1 tests
+- `pytest -m "chunking and unit"` - Fast unit tests only
+- `pytest -m "chunking and integration"` - Multi-component tests
+- `pytest tests/performance/test_chunk/ -v` - NFR validation
+</marker-definitions>
+
+<coverage-requirements>
+## Coverage Targets
+
+**Epic 3 (Story 3.1-3.7)**: >80% overall
+**Story 3.1 Chunk Module**: >90% target
+
+### Coverage by Component
+
+| Module | Target | Notes |
+|--------|--------|-------|
+| src/data_extract/chunk/engine.py | >90% | Core chunking logic |
+| src/data_extract/chunk/models.py | >85% | Data model immutability, serialization |
+| src/data_extract/chunk/config.py | >85% | Configuration validation |
+| src/data_extract/chunk/utils.py | >80% | Helper functions (token counting, etc.) |
+
+### Coverage Gaps to Avoid
+
+- Error paths untested (warning generation, edge case handling)
+- Streaming behavior not validated (memory profiling)
+- Integration with spaCy not verified
+- Configuration edge cases (size=1, size=10000) skipped
+- Determinism not validated
+</coverage-requirements>
+
+<quality-gates>
+## Pre-Commit Quality Gates (Epic 2 Lessons)
+
+**Must Pass Before Commit**:
+
+1. **Format**: `black src/ tests/` → 0 violations (100 char lines)
+2. **Lint**: `ruff check src/ tests/` → 0 violations
+3. **Type**: `mypy src/data_extract/` → 0 violations (strict mode, run from project root)
+4. **Tests**: `pytest tests/unit/test_chunk/ -m unit` → All pass
+5. **Coverage**: `pytest --cov=src/data_extract/chunk --cov-report=term-missing` → >90%
+
+**Pre-push Validation**:
+
+```bash
+# Full quality check
+black src/ tests/
+ruff check src/ tests/
+mypy src/data_extract/
+pytest -m "unit or integration" tests/unit/test_chunk tests/integration/test_chunk
+pytest --cov=src/data_extract/chunk --cov-report=term-missing
+
+# Performance baseline establishment
+pytest tests/performance/test_chunk/ -v
+```
+
+**Epic 2 Anti-Patterns to Avoid**:
+- ❌ Deferred mypy fixes (fix immediately, don't accumulate)
+- ❌ Skipping integration tests (verify multi-component behavior)
+- ❌ No performance baseline (establish NFR-P3 baseline in Task 7)
+- ❌ Missing docstrings (document architectural decisions as you go)
+</quality-gates>
+
+<spacy-considerations>
+## spaCy Integration Testing Patterns
+
+**From Test Spacy Integration (tests/integration/test_spacy_integration.py)**:
+
+1. **Model Loading Tests**:
+   - Verify model loads without errors
+   - Check required pipeline components (tok2vec, tagger, parser, ner)
+   - Validate metadata (version, lang, name)
+
+2. **Caching Verification**:
+   - Singleton pattern: First load caches model, second call reuses
+   - Use nlp_module._nlp_model to verify cached instance
+   - Test get_sentence_boundaries() from utils.nlp module
+
+3. **Error Handling**:
+   - Clear error message when model missing (python -m spacy download en_core_web_md)
+   - Graceful fallback if needed (AC-3.1-6)
+
+4. **Accuracy Validation**:
+   - Gold standard corpus: tests/fixtures/spacy_gold_standard.json
+   - Real document accuracy tests with audit documents
+   - Sentence boundary accuracy >95% expected
+
+5. **Performance**:
+   - Model loading time: <1.2 seconds
+   - Sentence segmentation per 10k words: <0.5 seconds
+   - Track in performance baseline
+
+**Story 3.1 spaCy Tests**:
+- Unit: Mock SentenceSegmenter in isolation
+- Integration: Real spaCy with en_core_web_md on real documents
+- Performance: Measure model load + segmentation time
+</spacy-considerations>
+
+<related-docs>
+## Documentation References
+
+- `CLAUDE.md`: Testing strategy, markers, CI/CD commands
+- `docs/architecture.md`: ADR-001 (Immutability), ADR-005 (Streaming), new ADR-011 (Semantic Chunking)
+- `docs/stories/3-1-semantic-boundary-aware-chunking-engine.md`: Acceptance criteria, tasks, trade-offs
+- `docs/performance-baselines-story-2.5.1.md`: NFR baseline patterns (reuse for Epic 3)
+- `tests/fixtures/README.md`: Fixture organization, sanitization, size constraints
+- `pyproject.toml`: [tool.pytest.ini_options], [tool.mypy] configuration
+- `tests/integration/test_spacy_integration.py`: Real spaCy integration test pattern
+- `tests/unit/test_normalize/test_normalizer.py`: Epic 2 unit test pattern (mirror this structure)
+</related-docs>
+
+</testing-standards>

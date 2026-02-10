@@ -1,0 +1,214 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-2</storyId>
+    <title>Configuration Management System</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-2-configuration-management-system.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>CLI user</asA>
+    <iWant>a 6-layer configuration cascade with environment variables and preset support</iWant>
+    <soThat>I can customize processing workflows without re-entering parameters and share configurations across teams</soThat>
+    <tasks>
+      <task id="1" title="Upgrade Configuration Models to Pydantic" acs="4">
+        <subtask>Create src/data_extract/cli/models.py with Pydantic BaseModel classes</subtask>
+        <subtask>Migrate SemanticCliConfig dataclass to Pydantic model with validators</subtask>
+        <subtask>Migrate ExportConfig dataclass to Pydantic model</subtask>
+        <subtask>Add type coercion for common conversions (str to int/float/bool)</subtask>
+        <subtask>Implement clear error messages for validation failures</subtask>
+        <subtask>Unit tests for validation edge cases</subtask>
+      </task>
+      <task id="2" title="Implement Environment Variable Layer" acs="2">
+        <subtask>Define DATA_EXTRACT_* environment variable mappings</subtask>
+        <subtask>Implement load_env_config() function</subtask>
+        <subtask>Map env vars: DATA_EXTRACT_OUTPUT_DIR, DATA_EXTRACT_CHUNK_SIZE, DATA_EXTRACT_FORMAT</subtask>
+        <subtask>Add env var loading to merge_config() cascade</subtask>
+        <subtask>Unit tests for env var override behavior</subtask>
+      </task>
+      <task id="3" title="Implement Preset System" acs="3,5">
+        <subtask>Create preset directory structure ~/.data-extract/presets/</subtask>
+        <subtask>Define built-in presets: audit-standard.yaml, rag-optimized.yaml, quick-scan.yaml</subtask>
+        <subtask>Implement load_preset(name) function</subtask>
+        <subtask>Implement save_preset(name, config) function</subtask>
+        <subtask>Add preset layer to merge_config() cascade</subtask>
+      </task>
+      <task id="4" title="Extend 6-Layer Cascade" acs="1">
+        <subtask>Refactor merge_config() for 6 layers: CLI > Env > Project > User > Preset > Default</subtask>
+        <subtask>Add source tracking for each configuration value</subtask>
+        <subtask>Unit tests verifying cascade precedence (6 test cases)</subtask>
+        <subtask>Integration test with all 6 layers active</subtask>
+      </task>
+      <task id="5" title="Implement config CLI Commands" acs="6,7,8">
+        <subtask>Add data-extract config init command to create default config</subtask>
+        <subtask>Generate config with commented examples</subtask>
+        <subtask>Add data-extract config show with source indicators</subtask>
+        <subtask>Add data-extract config validate with fix suggestions</subtask>
+      </task>
+      <task id="6" title="Implement config load/save Commands" acs="3,5">
+        <subtask>Add data-extract config load preset-name command</subtask>
+        <subtask>Add data-extract config save name command</subtask>
+        <subtask>Implement data-extract config presets to list available</subtask>
+        <subtask>Add --preset flag to processing commands</subtask>
+      </task>
+      <task id="7" title="Quality Gates and Testing" acs="9,10">
+        <subtask>Run Black on all modified files</subtask>
+        <subtask>Run Ruff on all modified files</subtask>
+        <subtask>Run Mypy on configuration module</subtask>
+        <subtask>Achieve >80% test coverage</subtask>
+        <subtask>Add edge case tests: missing files, invalid YAML, permissions</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.2-1">6-layer configuration cascade functional: CLI flags > Environment variables > Project config > User config > Presets > Defaults</criterion>
+    <criterion id="AC-5.2-2">Environment variables with DATA_EXTRACT_* prefix override file-based configuration</criterion>
+    <criterion id="AC-5.2-3">Preset loading/saving commands functional: config load and config save with ~/.data-extract/presets/</criterion>
+    <criterion id="AC-5.2-4">Configuration models upgraded to Pydantic BaseModel with runtime validation and clear error messages</criterion>
+    <criterion id="AC-5.2-5">Journey 5 (Preset Configuration) operational: list presets, create custom, apply via --preset flag</criterion>
+    <criterion id="AC-5.2-6">config init creates default configuration file with commented examples</criterion>
+    <criterion id="AC-5.2-7">config show displays merged configuration with source indicators</criterion>
+    <criterion id="AC-5.2-8">config validate checks configuration and reports issues with fix suggestions</criterion>
+    <criterion id="AC-5.2-9">All configuration changes pass quality gates (Black/Ruff/Mypy 0 violations)</criterion>
+    <criterion id="AC-5.2-10">Unit tests achieve >80% coverage with edge cases (missing files, invalid YAML, type mismatches)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Section 3.2 - Configuration Architecture</section>
+        <snippet>6-layer cascade: CLI arguments (highest) > Environment variables > Project config > User config > Preset config > Defaults (lowest). Environment prefix: DATA_EXTRACT_.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>Journey 5 - Preset Configuration</section>
+        <snippet>List presets -> Create custom -> Apply via --preset flag. Rich panel showing Built-in and Custom presets with descriptions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Definitions</title>
+        <section>Story 5.2</section>
+        <snippet>Configuration management with 6-layer cascade, environment variables, and preset system.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/data_extract/cli/config.py</path>
+        <kind>config_module</kind>
+        <symbol>SemanticCliConfig, load_config_file, merge_config</symbol>
+        <lines>1-171</lines>
+        <reason>Existing 3-layer cascade implementation - extend to 6 layers. Contains SemanticCliConfig dataclass to migrate to Pydantic.</reason>
+      </file>
+      <file>
+        <path>src/infrastructure/config_manager.py</path>
+        <kind>infrastructure</kind>
+        <symbol>ConfigManager</symbol>
+        <lines>1-501</lines>
+        <reason>Generic config manager with env var support (DATA_EXTRACTOR_ prefix). Reference for env var pattern and type coercion.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>config_example</kind>
+        <symbol>NormalizationConfig</symbol>
+        <lines>23-135</lines>
+        <reason>Example Pydantic v2 config model with Field validators - use as pattern for migration.</reason>
+      </file>
+      <file>
+        <path>src/data_extract/semantic/models.py</path>
+        <kind>models</kind>
+        <symbol>TfidfConfig</symbol>
+        <lines>76-129</lines>
+        <reason>Example Pydantic config with nested validation - reference for complex validators.</reason>
+      </file>
+      <file>
+        <path>tests/fixtures/cli_fixtures.py</path>
+        <kind>test_fixtures</kind>
+        <symbol>ConfigFactory, ConfigCascadeSetup, six_layer_cascade_fixture</symbol>
+        <lines>541-854</lines>
+        <reason>Test fixtures for configuration testing including 6-layer cascade support already scaffolded.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version=">=2.0.0">Model validation with BaseModel, Field, field_validator</package>
+        <package name="pyyaml" version=">=6.0">YAML config file loading</package>
+        <package name="typer" version=">=0.9.0">CLI framework (depends on Story 5-1)</package>
+        <package name="rich" version=">=13.0.0">Rich panel output for preset display</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="tech-spec">Environment variable prefix must be DATA_EXTRACT_</constraint>
+    <constraint source="tech-spec">Preset directory is ~/.data-extract/presets/</constraint>
+    <constraint source="tech-spec">Project config file is .data-extract.yaml in cwd</constraint>
+    <constraint source="tech-spec">User config is ~/.config/data-extract/config.yaml</constraint>
+    <constraint source="CLAUDE.md">Pydantic v2 with runtime validation required</constraint>
+    <constraint source="CLAUDE.md">Quality gates: Black/Ruff/Mypy must pass with 0 violations</constraint>
+    <constraint source="story">Coverage must be >80% for configuration module</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ConfigModel</name>
+      <kind>pydantic_model</kind>
+      <signature>class ConfigModel(BaseModel): model_config = ConfigDict(frozen=False); field: type = Field(default=..., ge=..., le=...)</signature>
+      <path>src/data_extract/cli/models.py (to create)</path>
+    </interface>
+    <interface>
+      <name>merge_config (extended)</name>
+      <kind>function_signature</kind>
+      <signature>def merge_config(cli_args: Dict, env_config: Dict, project_config: Dict, user_config: Dict, preset_config: Dict, defaults: Dict) -> ConfigModel</signature>
+      <path>src/data_extract/cli/config.py</path>
+    </interface>
+    <interface>
+      <name>load_env_config</name>
+      <kind>function_signature</kind>
+      <signature>def load_env_config(prefix: str = "DATA_EXTRACT_") -> Dict[str, Any]</signature>
+      <path>src/data_extract/cli/config.py</path>
+    </interface>
+    <interface>
+      <name>load_preset / save_preset</name>
+      <kind>function_signature</kind>
+      <signature>def load_preset(name: str) -> Dict[str, Any]; def save_preset(name: str, config: ConfigModel) -> Path</signature>
+      <path>src/data_extract/cli/config.py</path>
+    </interface>
+    <interface>
+      <name>config CLI group</name>
+      <kind>cli_commands</kind>
+      <signature>config init | config show | config validate | config load name | config save name | config presets</signature>
+      <path>src/data_extract/app.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest for unit and integration tests. Test each configuration layer in isolation and combined. Use fixtures from tests/fixtures/cli_fixtures.py including ConfigFactory, ConfigCascadeSetup, and six_layer_cascade_fixture. Minimum 80% coverage on src/data_extract/cli/config.py and src/data_extract/cli/models.py.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/test_config.py</location>
+      <location>tests/unit/test_cli/test_story_5_2/</location>
+      <location>tests/unit/test_cli/test_config_commands.py</location>
+      <location>tests/integration/test_config_cascade.py</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.2-1">Test 6-layer precedence: CLI overrides all, defaults used when nothing set</idea>
+      <idea ac="AC-5.2-2">Test DATA_EXTRACT_OUTPUT_DIR env var overrides file config</idea>
+      <idea ac="AC-5.2-3">Test preset save/load cycle: save -> load -> compare values</idea>
+      <idea ac="AC-5.2-4">Test Pydantic validation: invalid types, out-of-range, clear error messages</idea>
+      <idea ac="AC-5.2-5">Journey 5 UAT: list presets, --preset flag applies config</idea>
+      <idea ac="AC-5.2-6">Test config init creates file with comments</idea>
+      <idea ac="AC-5.2-7">Test config show displays source indicators [cli], [env], [file], [preset], [default]</idea>
+      <idea ac="AC-5.2-8">Test config validate reports errors with actionable suggestions</idea>
+      <idea ac="AC-5.2-9">Quality gate validation: Black/Ruff/Mypy pass</idea>
+      <idea ac="AC-5.2-10">Edge cases: missing files, invalid YAML, permission errors, type mismatches</idea>
+    </ideas>
+  </tests>
+</story-context>

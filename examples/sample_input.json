@@ -1,0 +1,200 @@
+{
+  "content_blocks": [
+    {
+      "block_id": "f3e566ed-d080-4e49-9cc3-0bdc3a45bd09",
+      "block_type": "heading",
+      "content": "Data Extraction System Overview",
+      "raw_content": "Data Extraction System Overview",
+      "position": {
+        "sequence_index": 0
+      },
+      "metadata": {
+        "char_count": 31,
+        "word_count": 4,
+        "depth": 0,
+        "document_path": [],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "dc26a62a-3669-4bd1-8046-a66ddd3fdda4",
+      "block_type": "paragraph",
+      "content": "The AI-Ready File Extraction Tool transforms enterprise documents into structured data optimized for large language models.",
+      "raw_content": "The AI-Ready File Extraction Tool transforms enterprise documents into structured data optimized for large language models.",
+      "position": {
+        "sequence_index": 1
+      },
+      "parent_id": "f3e566ed-d080-4e49-9cc3-0bdc3a45bd09",
+      "metadata": {
+        "char_count": 123,
+        "word_count": 16,
+        "depth": 1,
+        "document_path": [
+          "Data Extraction System Overview"
+        ],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "dcbaf23f-6146-4368-ac2b-f1187cf41023",
+      "block_type": "heading",
+      "content": "Core Architecture",
+      "raw_content": "Core Architecture",
+      "position": {
+        "sequence_index": 2
+      },
+      "metadata": {
+        "char_count": 17,
+        "word_count": 2,
+        "depth": 0,
+        "document_path": [],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "0e428884-5d4a-4f9c-8ad0-353d6a9a5612",
+      "block_type": "paragraph",
+      "content": "The system uses a three-stage pipeline architecture. First, format-specific extractors parse documents and produce ContentBlock objects. Second, processors enrich the extracted content with metadata and context linking. Finally, formatters convert the enriched data into AI-optimized output formats like JSON or Markdown.",
+      "raw_content": "The system uses a three-stage pipeline architecture. First, format-specific extractors parse documents and produce ContentBlock objects. Second, processors enrich the extracted content with metadata and context linking. Finally, formatters convert the enriched data into AI-optimized output formats like JSON or Markdown.",
+      "position": {
+        "sequence_index": 3
+      },
+      "parent_id": "dcbaf23f-6146-4368-ac2b-f1187cf41023",
+      "metadata": {
+        "char_count": 321,
+        "word_count": 41,
+        "depth": 1,
+        "document_path": [
+          "Core Architecture"
+        ],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "5c86a2ba-f890-4480-a905-35940483ab00",
+      "block_type": "heading",
+      "content": "Key Benefits",
+      "raw_content": "Key Benefits",
+      "position": {
+        "sequence_index": 4
+      },
+      "metadata": {
+        "char_count": 12,
+        "word_count": 2,
+        "depth": 0,
+        "document_path": [],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "911a7453-34a0-4df6-b239-8f53763d9d30",
+      "block_type": "paragraph",
+      "content": "This modular approach enables parallel development of components. Each stage is independent with clear interfaces. The immutable data models prevent accidental mutations and make the data flow easy to reason about.",
+      "raw_content": "This modular approach enables parallel development of components. Each stage is independent with clear interfaces. The immutable data models prevent accidental mutations and make the data flow easy to reason about.",
+      "position": {
+        "sequence_index": 5
+      },
+      "parent_id": "5c86a2ba-f890-4480-a905-35940483ab00",
+      "metadata": {
+        "char_count": 214,
+        "word_count": 31,
+        "depth": 1,
+        "document_path": [
+          "Key Benefits"
+        ],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "40deab2f-b19f-4371-b17b-3dbdd72ac2f1",
+      "block_type": "heading",
+      "content": "Technical Foundation",
+      "raw_content": "Technical Foundation",
+      "position": {
+        "sequence_index": 6
+      },
+      "metadata": {
+        "char_count": 20,
+        "word_count": 2,
+        "depth": 0,
+        "document_path": [],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "b3f9a635-cd1f-4d5c-94bc-14225d1966e1",
+      "block_type": "paragraph",
+      "content": "The foundation uses frozen dataclasses for all models ensuring type safety and immutability. Every ContentBlock carries rich metadata including position, relationships, and confidence scores. This enables sophisticated downstream processing and quality validation.",
+      "raw_content": "The foundation uses frozen dataclasses for all models ensuring type safety and immutability. Every ContentBlock carries rich metadata including position, relationships, and confidence scores. This enables sophisticated downstream processing and quality validation.",
+      "position": {
+        "sequence_index": 7
+      },
+      "parent_id": "40deab2f-b19f-4371-b17b-3dbdd72ac2f1",
+      "metadata": {
+        "char_count": 264,
+        "word_count": 32,
+        "depth": 1,
+        "document_path": [
+          "Technical Foundation"
+        ],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "28d0d6ff-59aa-4ae6-808e-97158245e646",
+      "block_type": "heading",
+      "content": "Future Enhancements",
+      "raw_content": "Future Enhancements",
+      "position": {
+        "sequence_index": 8
+      },
+      "metadata": {
+        "char_count": 19,
+        "word_count": 2,
+        "depth": 0,
+        "document_path": [],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    },
+    {
+      "block_id": "718a6d8a-870a-4c45-ac33-2164aec0c72f",
+      "block_type": "paragraph",
+      "content": "Planned improvements include OCR support for scanned documents, advanced table structure detection, and semantic chunking for optimal LLM consumption. The architecture supports easy extension through the BaseExtractor, BaseProcessor, and BaseFormatter interfaces.",
+      "raw_content": "Planned improvements include OCR support for scanned documents, advanced table structure detection, and semantic chunking for optimal LLM consumption. The architecture supports easy extension through the BaseExtractor, BaseProcessor, and BaseFormatter interfaces.",
+      "position": {
+        "sequence_index": 9
+      },
+      "parent_id": "28d0d6ff-59aa-4ae6-808e-97158245e646",
+      "metadata": {
+        "char_count": 263,
+        "word_count": 31,
+        "depth": 1,
+        "document_path": [
+          "Future Enhancements"
+        ],
+        "quality_checked": true
+      },
+      "confidence": 1.0
+    }
+  ],
+  "document_metadata": {
+    "source_file": "examples\\sample_input.txt",
+    "file_format": "text",
+    "file_size_bytes": 1303,
+    "word_count": 163,
+    "character_count": 1303,
+    "extracted_at": "2025-10-31T00:02:55.311243+00:00"
+  },
+  "processing_stage": "quality_validation",
+  "quality_score": 100.0,
+  "processing_success": true
+}

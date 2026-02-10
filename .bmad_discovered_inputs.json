@@ -1,0 +1,129 @@
+{
+  "architecture": {
+    "whole": [],
+    "sharded": [
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/architecture-decision-records-adrs.md",
+        "chars": 5581
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/consistency-rules.md",
+        "chars": 6344
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/data-architecture.md",
+        "chars": 12496
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/decision-summary.md",
+        "chars": 3473
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/deployment-architecture.md",
+        "chars": 883
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/development-environment.md",
+        "chars": 1432
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/epic-to-architecture-mapping.md",
+        "chars": 2754
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/executive-summary.md",
+        "chars": 870
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/implementation-patterns.md",
+        "chars": 5120
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/index.md",
+        "chars": 4669
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/performance-considerations.md",
+        "chars": 1349
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/project-initialization.md",
+        "chars": 829
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/project-structure.md",
+        "chars": 5074
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/security-architecture.md",
+        "chars": 1252
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/architecture/technology-stack-details.md",
+        "chars": 5061
+      }
+    ],
+    "sharded_index": [],
+    "load_strategy": "FULL_LOAD",
+    "note": ""
+  },
+  "ux_design": {
+    "whole": [
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/tmux-cli-instructions.md",
+        "chars": 5712
+      }
+    ],
+    "sharded": [],
+    "sharded_index": [],
+    "load_strategy": "FULL_LOAD",
+    "note": "whole-loaded"
+  },
+  "epics": {
+    "whole": [
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/epics.md",
+        "chars": 39190
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/performance-baselines-epic-3.md",
+        "chars": 12298
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/tech-spec-epic-1.md",
+        "chars": 31814
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/test-design-epic-3.md",
+        "chars": 24488
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/traceability-epic-1-foundation.md",
+        "chars": 36514
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/traceability-epic-2-extract-normalize.md",
+        "chars": 25787
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/traceability-epic-2.5-refinement-quality.md",
+        "chars": 31123
+      },
+      {
+        "path": "/home/andrew/dev/data-extraction-tool/docs/traceability-master-epic-1-2-consolidated.md",
+        "chars": 20733
+      }
+    ],
+    "sharded": [],
+    "sharded_index": [],
+    "load_strategy": "SELECTIVE_LOAD",
+    "note": "whole-loaded"
+  },
+  "document_project": {
+    "whole": [],
+    "sharded": [],
+    "sharded_index": [],
+    "load_strategy": "INDEX_GUIDED",
+    "note": ""
+  }
+}

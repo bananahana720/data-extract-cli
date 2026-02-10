@@ -1,0 +1,536 @@
+<test-context id="bmad/bmm/workflows/4-implementation/build-test-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3</storyId>
+    <storyKey>3-3</storyKey>
+    <title>Chunk Metadata and Quality Scoring</title>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Build Test Context Workflow</generator>
+    <testCasesFile>C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-cases\3-3-test-cases.md</testCasesFile>
+    <sourceStoryPath>C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.md</sourceStoryPath>
+  </metadata>
+
+  <testCases>
+    <summary>
+      <totalTests>16</totalTests>
+      <unitTests>0</unitTests>
+      <integrationTests>3</integrationTests>
+      <cliTests>0</cliTests>
+      <manualTests>13</manualTests>
+      <performanceTests>0</performanceTests>
+    </summary>
+    <testCaseList>
+      <!-- AC-3.3-4: Readability Scores Calculated (5 tests) -->
+      <testCase id="UAT-3.3-4-1" ac="AC-3.3-4" type="Manual" scenario="Happy Path">
+        <objective>Validate readability scores for standard complexity text match expected ranges</objective>
+        <expectedFK>8.0-10.0</expectedFK>
+        <expectedFog>10.0-12.0</expectedFog>
+      </testCase>
+      <testCase id="UAT-3.3-4-2" ac="AC-3.3-4" type="Manual" scenario="Edge Case - Simple Text">
+        <objective>Validate readability scores for simple text (children's book level)</objective>
+        <expectedFK>3.0-5.0</expectedFK>
+        <expectedFog>5.0-8.0</expectedFog>
+      </testCase>
+      <testCase id="UAT-3.3-4-3" ac="AC-3.3-4" type="Manual" scenario="Edge Case - Complex Technical Text">
+        <objective>Validate readability scores for highly complex technical text (PhD thesis level)</objective>
+        <expectedFK>&gt;=12.0</expectedFK>
+        <expectedFog>&gt;=15.0</expectedFog>
+      </testCase>
+      <testCase id="UAT-3.3-4-4" ac="AC-3.3-4" type="Manual" scenario="Edge Case - Very Short Text">
+        <objective>Validate readability calculation handles very short text (&lt;3 sentences) gracefully</objective>
+      </testCase>
+      <testCase id="UAT-3.3-4-5" ac="AC-3.3-4" type="Manual" scenario="Error Case - Empty Text">
+        <objective>Validate readability calculation handles empty text gracefully without crashing</objective>
+      </testCase>
+
+      <!-- AC-3.3-5: Composite Quality Score (5 tests) -->
+      <testCase id="UAT-3.3-5-1" ac="AC-3.3-5" type="Manual" scenario="Happy Path - High Quality Chunk">
+        <objective>Validate overall quality score for high-quality chunk matches expected composite calculation</objective>
+        <expectedOverall>0.90-0.95</expectedOverall>
+      </testCase>
+      <testCase id="UAT-3.3-5-2" ac="AC-3.3-5" type="Manual" scenario="Happy Path - Medium Quality Chunk">
+        <objective>Validate overall quality score for medium-quality chunk reflects intermediate values</objective>
+        <expectedOverall>0.80-0.85</expectedOverall>
+      </testCase>
+      <testCase id="UAT-3.3-5-3" ac="AC-3.3-5" type="Manual" scenario="Edge Case - Perfect Quality">
+        <objective>Validate perfect quality scores (all 1.0) produce overall score of 1.0</objective>
+        <expectedOverall>1.0</expectedOverall>
+      </testCase>
+      <testCase id="UAT-3.3-5-4" ac="AC-3.3-5" type="Manual" scenario="Edge Case - Low Quality Chunk">
+        <objective>Validate overall quality score for low-quality chunk accurately reflects poor quality</objective>
+        <expectedOverall>0.60-0.65</expectedOverall>
+      </testCase>
+      <testCase id="UAT-3.3-5-5" ac="AC-3.3-5" type="Integration" scenario="Integration - Weighted Formula Validation">
+        <objective>Validate weighted average formula is correctly implemented (40% OCR, 30% completeness, 20% coherence, 10% readability)</objective>
+        <formula>overall = (0.4 * ocr) + (0.3 * completeness) + (0.2 * coherence) + (0.1 * readability_norm)</formula>
+      </testCase>
+
+      <!-- AC-3.3-8: Quality Flags Detection (6 tests) -->
+      <testCase id="UAT-3.3-8-1" ac="AC-3.3-8" type="Manual" scenario="Happy Path - No Quality Issues">
+        <objective>Validate high-quality chunk produces empty flags list (no issues detected)</objective>
+        <expectedFlags>[]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-2" ac="AC-3.3-8" type="Manual" scenario="Edge Case - Low OCR Flag">
+        <objective>Validate low_ocr flag is correctly triggered when OCR confidence &lt; 0.95</objective>
+        <expectedFlags>["low_ocr"]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-3" ac="AC-3.3-8" type="Manual" scenario="Edge Case - Incomplete Extraction Flag">
+        <objective>Validate incomplete_extraction flag is correctly triggered when completeness &lt; 0.90</objective>
+        <expectedFlags>["incomplete_extraction"]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-4" ac="AC-3.3-8" type="Manual" scenario="Edge Case - High Complexity Flag">
+        <objective>Validate high_complexity flag is correctly triggered when Flesch-Kincaid grade level &gt; 15.0</objective>
+        <expectedFlags>["high_complexity"]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-5" ac="AC-3.3-8" type="Manual" scenario="Edge Case - Gibberish Flag">
+        <objective>Validate gibberish flag is correctly triggered when non-alphabetic character ratio &gt; 30%</objective>
+        <expectedFlags>["gibberish"]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-6" ac="AC-3.3-8" type="Manual" scenario="Edge Case - Multiple Flags">
+        <objective>Validate multiple quality flags can be detected simultaneously for a single chunk</objective>
+        <expectedFlags>["low_ocr", "incomplete_extraction", "gibberish"]</expectedFlags>
+      </testCase>
+      <testCase id="UAT-3.3-8-7" ac="AC-3.3-8" type="Integration" scenario="Integration - End-to-End Flag Detection">
+        <objective>Validate flag detection works correctly in full pipeline from ProcessingResult to enriched Chunk</objective>
+      </testCase>
+    </testCaseList>
+  </testCases>
+
+  <fixtures>
+    <fixtureFiles>
+      <!-- Existing Fixtures (Epic 2 Integration) -->
+      <fixture>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\normalization\expected_clean_outputs</path>
+        <type>ProcessingResult fixtures</type>
+        <purpose>Epic 2 normalized results for chunking input</purpose>
+      </fixture>
+      <fixture>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\entity_rich_documents</path>
+        <type>Document fixtures</type>
+        <purpose>Entity-aware chunking test documents (Story 3.2)</purpose>
+      </fixture>
+      <fixture>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\pdfs\large\audit-report-large.pdf</path>
+        <type>Large PDF (60+ pages, 0.03 MB)</type>
+        <purpose>Performance testing for large document quality enrichment</purpose>
+      </fixture>
+      <fixture>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\xlsx\large\audit-data-10k-rows.xlsx</path>
+        <type>Large Excel (10,240 rows, 0.67 MB)</type>
+        <purpose>Large spreadsheet processing with quality metrics</purpose>
+      </fixture>
+
+      <!-- Quality Test Documents (NEED TO CREATE) -->
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\simple_text.txt</path>
+        <type>Simple text (3rd-5th grade reading level)</type>
+        <purpose>UAT-3.3-4-2: Simple readability validation</purpose>
+        <content>"The cat sat on the mat. The dog ran in the yard. They played together all day. The sun was bright and warm."</content>
+      </fixture>
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\standard_text.txt</path>
+        <type>Standard text (8th-10th grade reading level)</type>
+        <purpose>UAT-3.3-4-1: Standard readability validation</purpose>
+        <content>"The risk management framework establishes clear guidelines for identifying and mitigating potential threats. Organizations must conduct regular assessments to ensure compliance with regulatory requirements. This systematic approach helps maintain operational resilience and protect stakeholder interests."</content>
+      </fixture>
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\complex_text.txt</path>
+        <type>Complex text (post-graduate reading level)</type>
+        <purpose>UAT-3.3-4-3: Complex readability validation</purpose>
+        <content>"The implementation of a comprehensive risk mitigation methodology necessitates the establishment of multifaceted governance frameworks that systematically integrate probabilistic assessment techniques with deterministic control mechanisms, thereby facilitating the optimization of organizational resilience through iterative refinement of procedural architectures and continuous evaluation of emerging threat vectors across heterogeneous operational environments."</content>
+      </fixture>
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\gibberish_text.txt</path>
+        <type>Gibberish text (&gt;30% non-alphabetic)</type>
+        <purpose>UAT-3.3-8-5: Gibberish flag validation</purpose>
+        <content>"R!$k-2024-001: ###CRITICAL### @@@ATTENTION@@@ 99% c0mpl!@nc3 r3qu!r3d $$$ 123-456-7890 %%% *** ~~~"</content>
+      </fixture>
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\short_text.txt</path>
+        <type>Very short text (1-2 sentences)</type>
+        <purpose>UAT-3.3-4-4: Short text edge case</purpose>
+        <content>"Risk assessment is critical."</content>
+      </fixture>
+      <fixture status="missing">
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\empty_text.txt</path>
+        <type>Empty text file</type>
+        <purpose>UAT-3.3-4-5: Empty text error case</purpose>
+        <content></content>
+      </fixture>
+    </fixtureFiles>
+
+    <generationScripts>
+      <script>
+        <path>scripts/generate_quality_test_fixtures.py</path>
+        <purpose>Generate quality_test_documents/ directory with varied quality sample texts</purpose>
+        <status>needs_creation</status>
+      </script>
+    </generationScripts>
+
+    <missingFixtures>
+      <missing count="6">
+        <description>Quality test documents directory (simple, standard, complex, gibberish, short, empty)</description>
+        <priority>High</priority>
+        <recommendation>Create tests/fixtures/quality_test_documents/ with 6 text files as defined above</recommendation>
+      </missing>
+    </missingFixtures>
+
+    <fixtureDocumentation>
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\README.md</path>
+      <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
+    </fixtureDocumentation>
+  </fixtures>
+
+  <helpers>
+    <globalFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\conftest.py</path>
+        <fixtures>
+          <fixture name="sample_content_block">Basic ContentBlock for testing</fixture>
+          <fixture name="sample_extraction_result">Successful ExtractionResult with sample data</fixture>
+          <fixture name="sample_processing_result">ProcessingResult with enriched content blocks</fixture>
+          <fixture name="fixture_dir">Path to tests/fixtures/ directory</fixture>
+          <fixture name="validate_extraction_result">Validation helper for ExtractionResult objects</fixture>
+          <fixture name="validate_processing_result">Validation helper for ProcessingResult objects</fixture>
+        </fixtures>
+      </conftest>
+    </globalFixtures>
+
+    <integrationFixtures>
+      <conftest>
+        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\integration\conftest.py</path>
+        <fixtures>
+          <fixture name="sample_docx_file">Generate valid DOCX with headings, paragraphs, tables</fixture>
+          <fixture name="sample_pdf_file">Generate simple PDF with text content</fixture>
+          <fixture name="sample_text_file">Generate simple text file</fixture>
+          <fixture name="large_docx_file">Generate large DOCX (100+ paragraphs, ~1MB)</fixture>
+          <fixture name="corrupted_docx_file">Corrupted DOCX for error testing</fixture>
+          <fixture name="output_directory">Temporary output directory for test results</fixture>
+          <fixture name="performance_timer">Simple timer for performance testing</fixture>
+        </fixtures>
+      </conftest>
+    </integrationFixtures>
+
+    <utilityFunctions>
+      <!-- Helper functions needed for UAT execution -->
+      <function status="needs_creation">
+        <name>create_test_chunk(text, ocr_conf, completeness)</name>
+        <purpose>Generate test Chunk with specified quality metrics</purpose>
+        <location>tests/uat/helpers/quality_helpers.py</location>
+      </function>
+      <function status="needs_creation">
+        <name>verify_readability_range(score, min_val, max_val)</name>
+        <purpose>Validate score within expected range (UAT-3.3-4 tests)</purpose>
+        <location>tests/uat/helpers/quality_helpers.py</location>
+      </function>
+      <function status="needs_creation">
+        <name>calculate_expected_overall(ocr, comp, coh, read)</name>
+        <purpose>Manual weighted calculation for validation (UAT-3.3-5-5)</purpose>
+        <formula>(0.4 * ocr) + (0.3 * comp) + (0.2 * coh) + (0.1 * read)</formula>
+        <location>tests/uat/helpers/quality_helpers.py</location>
+      </function>
+      <function status="needs_creation">
+        <name>count_non_alpha_chars(text)</name>
+        <purpose>Calculate gibberish ratio (UAT-3.3-8-5)</purpose>
+        <location>tests/uat/helpers/quality_helpers.py</location>
+      </function>
+    </utilityFunctions>
+  </helpers>
+
+  <configuration>
+    <pytest>
+      <configFile>C:\Users\Andrew\projects\data-extraction-tool-1\pytest.ini</configFile>
+      <markers>
+        <marker name="unit">Unit tests (fast, isolated)</marker>
+        <marker name="integration">Integration tests (slower, multiple components)</marker>
+        <marker name="performance">Performance and benchmarking tests</marker>
+        <marker name="chunking">Chunking module tests (Epic 3)</marker>
+        <marker name="quality">Quality scoring tests (Story 3.3)</marker>
+        <marker name="uat">UAT test cases (Story validation)</marker>
+      </markers>
+      <settings>
+        <setting name="testpaths">tests</setting>
+        <setting name="minversion">3.11</setting>
+        <setting name="coverage_fail_under">60</setting>
+        <setting name="strict_markers">true</setting>
+      </settings>
+    </pytest>
+
+    <environment>
+      <variable name="PYTEST_CURRENT_TEST">Set by pytest during execution</variable>
+      <variable name="CI">Not set (local execution)</variable>
+      <dependency name="textstat" version="0.7.x" required="true">
+        <purpose>Readability metrics calculation (Flesch-Kincaid, Gunning Fog)</purpose>
+      </dependency>
+      <dependency name="spacy" version="3.7.2+" required="true">
+        <purpose>Sentence segmentation for coherence calculation</purpose>
+        <model>en_core_web_md (43MB, one-time download)</model>
+      </dependency>
+    </environment>
+  </configuration>
+
+  <codeUnderTest>
+    <!-- Story 3.3 Implementation Files -->
+    <artifact type="primary">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\quality.py</path>
+      <component>QualityScore</component>
+      <lines>140</lines>
+      <purpose>Quality score dataclass (AC-3.3-4, AC-3.3-5, AC-3.3-8)</purpose>
+      <symbols>
+        <class name="QualityScore">Frozen dataclass with readability, OCR, completeness, coherence, overall, flags</class>
+        <method name="to_dict()">JSON serialization</method>
+        <method name="is_high_quality()">Threshold helper (overall &gt;= 0.75)</method>
+      </symbols>
+    </artifact>
+
+    <artifact type="primary">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\metadata_enricher.py</path>
+      <component>MetadataEnricher</component>
+      <lines>343</lines>
+      <purpose>Quality scoring and metadata enrichment (AC-3.3-1, AC-3.3-4, AC-3.3-5, AC-3.3-7, AC-3.3-8)</purpose>
+      <symbols>
+        <class name="MetadataEnricher">Main enrichment component</class>
+        <method name="enrich_chunk(chunk, source_metadata)">Primary entry point</method>
+        <method name="_calculate_readability(text)">Flesch-Kincaid and Gunning Fog</method>
+        <method name="_calculate_coherence(text)">Lexical overlap heuristic</method>
+        <method name="_calculate_overall_score(...)">Weighted average formula</method>
+        <method name="_detect_quality_flags(...)">Flag detection logic</method>
+        <method name="_calculate_word_token_counts(text)">Word/token counting</method>
+      </symbols>
+    </artifact>
+
+    <artifact type="extended">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\models.py</path>
+      <component>ChunkMetadata</component>
+      <purpose>Metadata model extended with quality fields (AC-3.3-1, AC-3.3-6, AC-3.3-7)</purpose>
+      <symbols>
+        <class name="ChunkMetadata">Extended with quality, source_hash, document_type, word_count, token_count, created_at, processing_version</class>
+      </symbols>
+    </artifact>
+
+    <artifact type="integration">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\engine.py</path>
+      <component>ChunkingEngine</component>
+      <purpose>Integrates MetadataEnricher into chunking pipeline (AC: all)</purpose>
+      <symbols>
+        <method name="chunk(result: ProcessingResult)">Unified entry point with quality enrichment</method>
+        <method name="_extract_ocr_confidence(metadata)">OCR confidence extraction helper</method>
+      </symbols>
+    </artifact>
+
+    <!-- Epic 2 Dependencies -->
+    <artifact type="dependency">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\core\models.py</path>
+      <component>ProcessingResult</component>
+      <purpose>Epic 2 output with source_metadata (OCR confidence, completeness)</purpose>
+    </artifact>
+
+    <!-- Story 3.2 Dependencies -->
+    <artifact type="dependency">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\entity_preserver.py</path>
+      <component>EntityPreserver</component>
+      <purpose>Entity preservation rate for completeness calculation (AC-3.3-5)</purpose>
+    </artifact>
+
+    <artifact type="dependency">
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\sentence_segmenter.py</path>
+      <component>SentenceSegmenter</component>
+      <purpose>Sentence segmentation for coherence calculation (AC-3.3-5)</purpose>
+    </artifact>
+  </codeUnderTest>
+
+  <integrationPoints>
+    <!-- External Dependencies -->
+    <integration type="library">
+      <name>textstat 0.7.x</name>
+      <purpose>Readability metrics calculation (AC-3.3-4)</purpose>
+      <methods>
+        <method>textstat.flesch_kincaid_grade(text)</method>
+        <method>textstat.gunning_fog(text)</method>
+      </methods>
+      <validation>pip list | grep textstat</validation>
+    </integration>
+
+    <integration type="library">
+      <name>spacy 3.7.2+</name>
+      <purpose>Sentence segmentation for coherence (AC-3.3-5)</purpose>
+      <model>en_core_web_md</model>
+      <validation>python -m spacy validate</validation>
+    </integration>
+
+    <!-- Epic 2 Integration -->
+    <integration type="pipeline">
+      <name>ProcessingResult → ChunkingEngine</name>
+      <purpose>Epic 2 normalized output feeds chunking pipeline</purpose>
+      <dataflow>ProcessingResult.metadata → MetadataEnricher.enrich_chunk()</dataflow>
+      <requiredFields>
+        <field>ocr_confidence (float 0.0-1.0 or Dict[int, float] per-page)</field>
+        <field>completeness (float 0.0-1.0)</field>
+        <field>source_hash (str SHA-256)</field>
+        <field>document_type (str: report, matrix, export, image)</field>
+      </requiredFields>
+    </integration>
+
+    <!-- Story 3.2 Integration -->
+    <integration type="component">
+      <name>EntityPreserver</name>
+      <purpose>Entity preservation rate for completeness quality score</purpose>
+      <method>analyze_entities(text, entities) → List[EntityReference]</method>
+    </integration>
+
+    <!-- File System -->
+    <integration type="filesystem">
+      <name>SHA-256 File Hashing</name>
+      <purpose>Source traceability (AC-3.3-1)</purpose>
+      <library>hashlib (Python standard library)</library>
+    </integration>
+
+    <!-- No External Services -->
+    <integration type="none">
+      <note>No network resources, APIs, or external services required</note>
+      <note>No database setup needed</note>
+      <note>All dependencies are local libraries or standard library</note>
+    </integration>
+  </integrationPoints>
+
+  <storyContext>
+    <reference>
+      <path>C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.context.xml</path>
+      <generated>2025-11-14</generated>
+      <sections>
+        <section>Story definition and acceptance criteria</section>
+        <section>Task breakdown (8 tasks with detailed subtasks)</section>
+        <section>Architecture patterns and constraints</section>
+        <section>Code artifacts (existing and new files)</section>
+        <section>Dependencies (Epic 2, Story 3.2, textstat library)</section>
+        <section>Test standards and ideas</section>
+      </sections>
+    </reference>
+
+    <implementationStatus>
+      <status>Implementation COMPLETE (2025-11-14)</status>
+      <phase>Phase 3: Pipeline Integration (FINAL)</phase>
+      <testResults>
+        <unit>97/97 passing (100%)</unit>
+        <integration>12/12 passing (enrichment tests), 13 pending (filtering fixtures)</integration>
+        <coverage>96% metadata_enricher.py, 100% quality.py, 97% overall chunk module</coverage>
+      </testResults>
+      <qualityGates>
+        <gate>black: 0 violations</gate>
+        <gate>ruff: 0 violations</gate>
+        <gate>mypy: 0 violations (strict mode, greenfield only)</gate>
+      </qualityGates>
+    </implementationStatus>
+
+    <codeReviewStatus>
+      <status>APPROVED (2025-11-14)</status>
+      <buckets>
+        <bucket name="Mandatory Changes">0 items</bucket>
+        <bucket name="Recommended Improvements">0 items</bucket>
+        <bucket name="Observations">3 items (token approximation, coherence heuristic, future enhancements)</bucket>
+      </buckets>
+      <recommendation>Story 3.3 APPROVED for UAT Phase 2 execution</recommendation>
+    </codeReviewStatus>
+  </storyContext>
+
+  <setupRequirements>
+    <prerequisites>
+      <requirement priority="critical">
+        <item>Python 3.12+ installed and activated</item>
+        <validation>python --version</validation>
+      </requirement>
+      <requirement priority="critical">
+        <item>textstat 0.7.x library installed</item>
+        <validation>pip list | grep textstat</validation>
+        <installation>pip install "textstat>=0.7.0,&lt;1.0"</installation>
+      </requirement>
+      <requirement priority="critical">
+        <item>spaCy 3.7.2+ with en_core_web_md model</item>
+        <validation>python -m spacy validate</validation>
+        <installation>
+          python -m pip install "spacy>=3.7.2"
+          python -m spacy download en_core_web_md
+        </installation>
+      </requirement>
+      <requirement priority="high">
+        <item>pytest and coverage tools installed</item>
+        <validation>pytest --version</validation>
+        <installation>pip install -e ".[dev]"</installation>
+      </requirement>
+      <requirement priority="medium">
+        <item>Quality test fixtures created</item>
+        <validation>ls tests/fixtures/quality_test_documents/</validation>
+        <status>MISSING - Need to create 6 text files</status>
+      </requirement>
+    </prerequisites>
+
+    <fixtureGeneration>
+      <step n="1">
+        <action>Create quality_test_documents directory</action>
+        <command>mkdir -p tests/fixtures/quality_test_documents</command>
+      </step>
+      <step n="2">
+        <action>Create simple_text.txt (elementary school level)</action>
+        <content>"The cat sat on the mat. The dog ran in the yard. They played together all day. The sun was bright and warm."</content>
+      </step>
+      <step n="3">
+        <action>Create standard_text.txt (8th-10th grade level)</action>
+        <content>"The risk management framework establishes clear guidelines for identifying and mitigating potential threats. Organizations must conduct regular assessments to ensure compliance with regulatory requirements. This systematic approach helps maintain operational resilience and protect stakeholder interests."</content>
+      </step>
+      <step n="4">
+        <action>Create complex_text.txt (post-graduate level)</action>
+        <content>"The implementation of a comprehensive risk mitigation methodology necessitates the establishment of multifaceted governance frameworks that systematically integrate probabilistic assessment techniques with deterministic control mechanisms, thereby facilitating the optimization of organizational resilience through iterative refinement of procedural architectures and continuous evaluation of emerging threat vectors across heterogeneous operational environments."</content>
+      </step>
+      <step n="5">
+        <action>Create gibberish_text.txt (&gt;30% non-alphabetic)</action>
+        <content>"R!$k-2024-001: ###CRITICAL### @@@ATTENTION@@@ 99% c0mpl!@nc3 r3qu!r3d $$$ 123-456-7890 %%% *** ~~~"</content>
+      </step>
+      <step n="6">
+        <action>Create short_text.txt (1-2 sentences)</action>
+        <content>"Risk assessment is critical."</content>
+      </step>
+      <step n="7">
+        <action>Create empty_text.txt (empty file)</action>
+        <command>touch tests/fixtures/quality_test_documents/empty_text.txt</command>
+      </step>
+      <step n="8">
+        <action>Verify fixture creation</action>
+        <command>ls -la tests/fixtures/quality_test_documents/</command>
+        <expected>6 files total</expected>
+      </step>
+    </fixtureGeneration>
+
+    <environmentSetup>
+      <step n="1">
+        <action>Activate virtual environment</action>
+        <command>source venv/bin/activate  # macOS/Linux</command>
+        <command>venv\Scripts\activate  # Windows</command>
+      </step>
+      <step n="2">
+        <action>Install project dependencies</action>
+        <command>pip install -e ".[dev]"</command>
+      </step>
+      <step n="3">
+        <action>Download spaCy model (if not cached)</action>
+        <command>python -m spacy download en_core_web_md</command>
+        <note>Model is cached in CI, transparent to developers</note>
+      </step>
+      <step n="4">
+        <action>Run pre-commit install (ensures quality gates)</action>
+        <command>pre-commit install</command>
+      </step>
+      <step n="5">
+        <action>Verify environment setup</action>
+        <command>pytest --version &amp;&amp; python -m spacy validate &amp;&amp; pip list | grep textstat</command>
+      </step>
+    </environmentSetup>
+  </setupRequirements>
+
+  <nextSteps>
+    <step n="1">Review test context and verify all fixtures are available</step>
+    <step n="2">Generate missing fixtures using scripts or manual creation</step>
+    <step n="3">Run execute-tests workflow: /bmad:bmm:workflows:execute-tests</step>
+    <step n="4">Monitor test execution and capture results</step>
+    <step n="5">Run review-uat-results workflow for QA approval</step>
+  </nextSteps>
+</test-context>

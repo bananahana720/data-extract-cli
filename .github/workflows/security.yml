@@ -1,0 +1,147 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git scanning
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+          uv pip install GitPython safety pip-audit
+
+      - name: Install GitLeaks
+        run: |
+          # Install latest GitLeaks
+          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_amd64.tar.gz
+          tar -xzf gitleaks_linux_amd64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+          rm gitleaks_linux_amd64.tar.gz
+          gitleaks version
+
+      - name: Run Security Scanner - Secrets
+        id: secrets-scan
+        run: |
+          python scripts/scan_security.py --secrets-only --format json --output security-report-secrets.json
+        continue-on-error: true
+
+      - name: Run Security Scanner - Dependencies
+        id: deps-scan
+        run: |
+          python scripts/scan_security.py --deps-only --format json --output security-report-deps.json
+        continue-on-error: true
+
+      - name: Run Security Scanner - Git History
+        id: history-scan
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          python scripts/scan_security.py --history --max-commits 500 --format json --output security-report-history.json
+        continue-on-error: true
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            security-report-*.json
+          retention-days: 30
+
+      - name: Generate Sprint Report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          python scripts/manage_sprint_status.py --report --format markdown --output sprint-report.md
+        continue-on-error: true
+
+      - name: Upload Sprint Report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint-report
+          path: sprint-report.md
+          retention-days: 7
+
+      - name: Comment on PR with Security Findings
+        if: github.event_name == 'pull_request' && (steps.secrets-scan.outcome == 'failure' || steps.deps-scan.outcome == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## 🔒 Security Scan Results\n\n';
+
+            // Parse results
+            let hasIssues = false;
+
+            try {
+              const secretsReport = JSON.parse(fs.readFileSync('security-report-secrets.json', 'utf8'));
+              if (secretsReport.statistics.secrets_found > 0) {
+                hasIssues = true;
+                comment += `⚠️ **${secretsReport.statistics.secrets_found} potential secrets found**\n\n`;
+              } else {
+                comment += '✅ No secrets detected\n\n';
+              }
+            } catch(e) {
+              comment += '⚠️ Secrets scan incomplete\n\n';
+            }
+
+            try {
+              const depsReport = JSON.parse(fs.readFileSync('security-report-deps.json', 'utf8'));
+              if (depsReport.statistics.vulnerabilities_found > 0) {
+                hasIssues = true;
+                comment += `⚠️ **${depsReport.statistics.vulnerabilities_found} vulnerable dependencies found**\n\n`;
+              } else {
+                comment += '✅ No vulnerable dependencies\n\n';
+              }
+            } catch(e) {
+              comment += '⚠️ Dependency scan incomplete\n\n';
+            }
+
+            if (hasIssues) {
+              comment += '**Action Required:** Please review and address security findings before merging.\n';
+              comment += 'Download the full reports from the workflow artifacts for details.\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Fail if critical findings
+        if: steps.secrets-scan.outcome == 'failure' || steps.deps-scan.outcome == 'failure'
+        run: |
+          echo "❌ Security scan failed - Critical/High security issues found"
+          exit 1

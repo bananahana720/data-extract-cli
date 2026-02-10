@@ -1,0 +1,62 @@
+```mermaid
+graph TB
+    subgraph core[Core Package]
+        core_models[models]
+        core_interfaces[interfaces]
+        core___init__[__init__]
+    end
+    subgraph infrastructure[Infrastructure Package]
+        infrastructure_error_handler[error_handler]
+        infrastructure_progress_tracker[progress_tracker]
+        infrastructure_logging_framework[logging_framework]
+        infrastructure_config_manager[config_manager]
+        infrastructure___init__[__init__]
+    end
+    subgraph formatters[Formatters Package]
+        formatters_chunked_text_formatter[chunked_text_formatter]
+        formatters_markdown_formatter[markdown_formatter]
+        formatters___init__[__init__]
+        formatters_json_formatter[json_formatter]
+    end
+    subgraph extractors[Extractors Package]
+        extractors_excel_extractor[excel_extractor]
+        extractors_txt_extractor[txt_extractor]
+        extractors_pptx_extractor[pptx_extractor]
+        extractors_pdf_extractor[pdf_extractor]
+        extractors_csv_extractor[csv_extractor]
+        extractors_more[...+2 more]
+    end
+    subgraph processors[Processors Package]
+        processors_quality_validator[quality_validator]
+        processors___init__[__init__]
+        processors_metadata_aggregator[metadata_aggregator]
+        processors_context_linker[context_linker]
+    end
+    subgraph pipeline[Pipeline Package]
+        pipeline_batch_processor[batch_processor]
+        pipeline_extraction_pipeline[extraction_pipeline]
+        pipeline___init__[__init__]
+    end
+    subgraph data_extract[Data_Extract Package]
+        data_extract___init__[__init__]
+        data_extract_cli[cli]
+        data_extract_models[models]
+        data_extract_exceptions[exceptions]
+        data_extract_pipeline[pipeline]
+        data_extract_more[...+39 more]
+    end
+    subgraph cli[Cli Package]
+        cli___main__[__main__]
+        cli_main[main]
+        cli_progress_display[progress_display]
+        cli___init__[__init__]
+        cli_commands[commands]
+    end
+    core --> infrastructure
+    infrastructure --> formatters
+    formatters --> extractors
+    extractors --> processors
+    processors --> pipeline
+    pipeline --> data_extract
+    data_extract --> cli
+```

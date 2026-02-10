@@ -1,0 +1,346 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>9</storyId>
+    <title>Environment Setup & Performance Validator Automation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-9-environment-performance-automation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer onboarding to the project or validating performance</asA>
+    <iWant>automated environment setup and performance baseline validation</iWant>
+    <soThat>I can start contributing immediately and prevent performance regressions</soThat>
+    <tasks>
+### Environment Setup Tasks
+
+- [ ] **Task 1: Core setup** (AC: 1-3)
+  - [ ] Create `scripts/setup_environment.py`
+  - [ ] Implement venv creation logic
+  - [ ] Add dependency installation with pip
+  - [ ] Download and validate spaCy models
+
+- [ ] **Task 2: Hook configuration** (AC: 4-6)
+  - [ ] Install pre-commit hooks
+  - [ ] Set up Claude Code hooks from templates
+  - [ ] Configure git settings
+
+- [ ] **Task 3: Validation** (AC: 7)
+  - [ ] Implement environment validation checks
+  - [ ] Create diagnostic output
+  - [ ] Add troubleshooting suggestions
+
+### Performance Validator Tasks
+
+- [ ] **Task 4: Test detection** (AC: 8-9)
+  - [ ] Create `scripts/validate_performance.py`
+  - [ ] Implement changed file detection
+  - [ ] Parse baseline documents
+  - [ ] Compare results with baselines
+
+- [ ] **Task 5: Reporting** (AC: 10-12)
+  - [ ] Generate regression reports
+  - [ ] Add baseline update functionality
+  - [ ] Implement NFR violation detection
+
+### Integration Tasks
+
+- [ ] **Task 6: Cross-platform & CI** (AC: 13-14)
+  - [ ] Add OS detection and adaptation
+  - [ ] Update CI/CD workflows
+  - [ ] Test on all platforms
+
+- [ ] **Task 7: Documentation & quality** (AC: 15-16)
+  - [ ] Write usage documentation
+  - [ ] Create troubleshooting guide
+  - [ ] Run quality gates
+  - [ ] Write comprehensive tests</tasks>
+  </story>
+
+  <acceptanceCriteria>
+### Environment Setup Script (P1 Script 6)
+
+1. **Virtual environment creation:** Creates Python 3.12+ virtual environment in project root as `venv/`.
+2. **Dependency installation:** Installs all dependencies from pyproject.toml including [dev] extras.
+3. **spaCy model download:** Downloads and validates `en_core_web_md` model installation.
+4. **Pre-commit setup:** Installs pre-commit hooks automatically with proper configuration.
+5. **Claude Code hooks:** Sets up `.claude/hooks/` directory with templates and configuration.
+6. **Git configuration:** Configures git user settings and recommended aliases for the project.
+7. **Environment validation:** Validates complete setup with checklist and diagnostic output.
+
+### Performance Baseline Validator (P1 Script 7)
+
+8. **Smart test detection:** Detects changed files and runs only relevant performance tests.
+9. **Baseline comparison:** Compares test results against baselines in `docs/performance-baselines-*.md`.
+10. **Regression reporting:** Generates detailed regression reports with specific metrics and deltas.
+11. **Baseline updates:** Option to update baseline documentation when improvements are intentional.
+12. **NFR validation:** Flags violations of non-functional requirements (NFR-P1, NFR-P2, NFR-P3).
+
+### Integration Requirements
+
+13. **Cross-platform support:** Both scripts work on Windows, macOS, and Linux with appropriate adaptations.
+14. **CI/CD integration:** Performance validator runs in CI pipeline to catch regressions before merge.
+15. **Documentation:** Clear usage documentation with troubleshooting guide for common issues.
+16. **Quality gates:** Scripts pass all quality checks (black/ruff/mypy) with >80% test coverage.</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification · Tooling & Semantic Prep (Bridge Epic)</title>
+        <section>Story/Review Template Generator</section>
+        <snippet>Jinja2-based story markdown generator with AC tables, wiring checklists, submission summaries. Pre-commit hook integration for template validation.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/research/script-automation-recommendations.md</path>
+        <title>Script Automation Recommendations for Story 3.5-1 Enhancement</title>
+        <section>P1: Important Scripts (Developer Productivity)</section>
+        <snippet>Environment Setup Script for one-command development environment setup. Performance Baseline Validator to check performance against established baselines.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/automation-guide.md</path>
+        <title>Development Automation Tools Guide</title>
+        <section>P0 Scripts (Priority Zero - Essential)</section>
+        <snippet>Production-ready automation scripts that enforce quality and accelerate development, achieving 60% token reduction and 75% faster development cycles.</snippet>
+      </artifact>
+      <artifact>
+        <path>CLAUDE.md</path>
+        <title>CLAUDE.md - Project Instructions</title>
+        <section>Development Commands</section>
+        <snippet>Setup instructions for Windows/macOS/Linux including venv creation, dependency installation, pre-commit setup, and spaCy model downloads.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/performance-baselines-epic-3.md</path>
+        <title>Performance Baselines - Epic 3 (Chunking & Output)</title>
+        <section>NFR Compliance Summary</section>
+        <snippet>Performance baselines for NFR-P1 (throughput), NFR-P2 (memory), NFR-P3 (latency) requirements. Used for regression testing.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>scripts/run_quality_gates.py</path>
+        <kind>script</kind>
+        <symbol>QualityGateRunner</symbol>
+        <lines>41-521</lines>
+        <reason>Existing quality gate runner that the new scripts can model patterns from. Shows subprocess usage, error handling, reporting structure.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/init_claude_session.py</path>
+        <kind>script</kind>
+        <symbol>SessionInitializer</symbol>
+        <lines>26-522</lines>
+        <reason>Existing session initializer that demonstrates git sync, dependency installation, spaCy model setup patterns relevant to environment setup script.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/generate_story_template.py</path>
+        <kind>script</kind>
+        <symbol>StoryTemplateGenerator</symbol>
+        <lines>1-600</lines>
+        <reason>P0 script already implemented, provides template for script structure and CLI patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/run_performance_suite.py</path>
+        <kind>script</kind>
+        <symbol>PerformanceSuite</symbol>
+        <lines>1-300</lines>
+        <reason>Existing performance test runner that can be referenced for performance baseline validation patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/validate_installation.py</path>
+        <kind>script</kind>
+        <symbol>validate_installation</symbol>
+        <lines>1-250</lines>
+        <reason>Installation validation patterns useful for environment setup validation checks.</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/test.yml</path>
+        <kind>config</kind>
+        <symbol>CI test workflow</symbol>
+        <lines>1-100</lines>
+        <reason>CI pipeline configuration where performance validator will integrate.</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows/performance.yml</path>
+        <kind>config</kind>
+        <symbol>Performance workflow</symbol>
+        <lines>1-100</lines>
+        <reason>Existing performance CI workflow that needs integration with new validator.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>subprocess</package>
+        <version>builtin</version>
+        <purpose>System command execution for environment setup</purpose>
+      </python>
+      <python>
+        <package>venv</package>
+        <version>builtin</version>
+        <purpose>Virtual environment creation</purpose>
+      </python>
+      <python>
+        <package>pathlib</package>
+        <version>builtin</version>
+        <purpose>Cross-platform path handling</purpose>
+      </python>
+      <python>
+        <package>argparse</package>
+        <version>builtin</version>
+        <purpose>CLI argument parsing</purpose>
+      </python>
+      <python>
+        <package>structlog</package>
+        <version>>=24.0.0,<25.0</version>
+        <purpose>Structured logging for script output</purpose>
+      </python>
+      <python>
+        <package>PyYAML</package>
+        <version>>=6.0.0,<7.0</version>
+        <purpose>Parsing sprint-status.yaml and performance baselines</purpose>
+      </python>
+      <python>
+        <package>psutil</package>
+        <version>>=5.9.0,<6.0</version>
+        <purpose>Performance monitoring and resource tracking</purpose>
+      </python>
+      <python>
+        <package>rich</package>
+        <version>>=13.0.0</version>
+        <purpose>Enhanced CLI output formatting</purpose>
+      </python>
+      <python>
+        <package>spacy</package>
+        <version>>=3.7.2,<4.0</version>
+        <purpose>NLP model validation in environment setup</purpose>
+      </python>
+      <dev-dependencies>
+        <package>pytest</package>
+        <version>>=8.0.0,<9.0</version>
+        <purpose>Test framework for script validation</purpose>
+      </dev-dependencies>
+      <dev-dependencies>
+        <package>black</package>
+        <version>>=24.0.0,<25.0</version>
+        <purpose>Code formatting validation</purpose>
+      </dev-dependencies>
+      <dev-dependencies>
+        <package>ruff</package>
+        <version>>=0.6.0,<0.7</version>
+        <purpose>Linting validation</purpose>
+      </dev-dependencies>
+      <dev-dependencies>
+        <package>mypy</package>
+        <version>>=1.11.0,<2.0</version>
+        <purpose>Type checking validation</purpose>
+      </dev-dependencies>
+      <dev-dependencies>
+        <package>pre-commit</package>
+        <version>>=3.0.0,<4.0</version>
+        <purpose>Git hook installation and management</purpose>
+      </dev-dependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>platform</type>
+      <description>Scripts must work on Windows, macOS, and Linux with appropriate path handling and command adaptations</description>
+      <source>Story AC-13: Cross-platform support</source>
+    </constraint>
+    <constraint>
+      <type>python-version</type>
+      <description>Must target Python 3.12+ as per enterprise requirements</description>
+      <source>pyproject.toml requires-python</source>
+    </constraint>
+    <constraint>
+      <type>quality-gates</type>
+      <description>All scripts must pass black, ruff, and mypy checks with zero violations</description>
+      <source>Story AC-16: Quality gates requirement</source>
+    </constraint>
+    <constraint>
+      <type>coverage</type>
+      <description>Script tests must achieve >80% code coverage</description>
+      <source>Story AC-16: Test coverage requirement</source>
+    </constraint>
+    <constraint>
+      <type>performance</type>
+      <description>Environment setup must complete in <10 minutes on standard hardware</description>
+      <source>Dev Notes: Target <10 minutes for new developer onboarding</source>
+    </constraint>
+    <constraint>
+      <type>ci-integration</type>
+      <description>Performance validator must integrate with existing GitHub Actions workflows</description>
+      <source>Story AC-14: CI/CD integration</source>
+    </constraint>
+    <constraint>
+      <type>dependency-management</type>
+      <description>Use subprocess module with proper error handling, avoid shell=True for security</description>
+      <source>Dev Notes: Implementation guidelines</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EnvironmentSetup CLI</name>
+      <kind>command-line interface</kind>
+      <signature>python scripts/setup_environment.py [--verbose] [--skip-git] [--force]</signature>
+      <path>scripts/setup_environment.py</path>
+    </interface>
+    <interface>
+      <name>PerformanceValidator CLI</name>
+      <kind>command-line interface</kind>
+      <signature>python scripts/validate_performance.py [--update-baseline] [--component COMPONENT] [--ci-mode]</signature>
+      <path>scripts/validate_performance.py</path>
+    </interface>
+    <interface>
+      <name>QualityGateRunner</name>
+      <kind>class interface</kind>
+      <signature>class QualityGateRunner(mode: str, changed_only: bool)</signature>
+      <path>scripts/run_quality_gates.py</path>
+    </interface>
+    <interface>
+      <name>SessionInitializer</name>
+      <kind>class interface</kind>
+      <signature>class SessionInitializer(quick: bool)</signature>
+      <path>scripts/init_claude_session.py</path>
+    </interface>
+    <interface>
+      <name>Performance Baseline Format</name>
+      <kind>markdown table</kind>
+      <signature>| Metric | Baseline | Actual | Pass/Fail |</signature>
+      <path>docs/performance-baselines-*.md</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Scripts should follow the existing test patterns established in tests/unit/test_scripts/. Use pytest fixtures for test data, mark tests with appropriate markers (@pytest.mark.unit, @pytest.mark.integration), and include both positive and negative test cases. Mock subprocess calls for unit tests, use actual subprocess for integration tests. Test cross-platform compatibility using parameterized tests with different OS configurations.</standards>
+
+    <locations>
+      <location>tests/unit/test_scripts/test_setup_environment.py</location>
+      <location>tests/unit/test_scripts/test_validate_performance.py</location>
+      <location>tests/integration/test_environment_setup_integration.py</location>
+      <location>tests/integration/test_performance_validation_integration.py</location>
+    </locations>
+
+    <ideas>
+      <test-idea ac="1">Test virtual environment creation with Python 3.12+</test-idea>
+      <test-idea ac="2">Test dependency installation from pyproject.toml</test-idea>
+      <test-idea ac="3">Test spaCy model download and validation</test-idea>
+      <test-idea ac="4">Test pre-commit hook installation</test-idea>
+      <test-idea ac="5">Test Claude Code hooks setup in .claude/hooks/</test-idea>
+      <test-idea ac="6">Test git configuration setup</test-idea>
+      <test-idea ac="7">Test environment validation checklist</test-idea>
+      <test-idea ac="8">Test changed file detection for performance tests</test-idea>
+      <test-idea ac="9">Test baseline comparison logic</test-idea>
+      <test-idea ac="10">Test regression report generation</test-idea>
+      <test-idea ac="11">Test baseline update functionality</test-idea>
+      <test-idea ac="12">Test NFR violation detection</test-idea>
+      <test-idea ac="13">Test cross-platform compatibility (Windows/macOS/Linux)</test-idea>
+      <test-idea ac="14">Test CI/CD workflow integration</test-idea>
+      <test-idea ac="15">Test documentation generation</test-idea>
+      <test-idea ac="16">Test quality gate compliance</test-idea>
+    </ideas>
+  </tests>
+</story-context>

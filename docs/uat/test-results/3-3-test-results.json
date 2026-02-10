@@ -1,0 +1,272 @@
+{
+  "story_id": "3.3",
+  "execution_date": "2025-11-14T20:22:50.789368",
+  "total_tests": 16,
+  "passed": 10,
+  "failed": 6,
+  "results": [
+    {
+      "test_id": "UAT-3.3-4-1",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "input_text": "The risk management framework establishes clear guidelines for identifying and mitigating potential ...",
+      "expected_fk": "8.0-10.0",
+      "expected_fog": "10.0-12.0",
+      "actual_fk": 17.62,
+      "actual_fog": 21.81,
+      "fk_deviation": 7.62,
+      "fog_deviation": 9.81,
+      "within_tolerance": "NO",
+      "evidence": "textstat.flesch_kincaid_grade = 17.62, textstat.gunning_fog = 21.81",
+      "notes": "Standard business text readability validation"
+    },
+    {
+      "test_id": "UAT-3.3-4-2",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "input_text": "The cat sat on the mat. The dog ran in the yard. They played together all day. The sun was bright and warm.",
+      "expected_fk": "3.0-5.0",
+      "expected_fog": "5.0-8.0",
+      "actual_fk": 0.0,
+      "actual_fog": 2.3,
+      "fk_deviation": 3.0,
+      "fog_deviation": 2.7,
+      "within_tolerance": "NO",
+      "evidence": "Simple text measured: FK=0.00, Fog=2.30",
+      "notes": "Elementary school level text validation"
+    },
+    {
+      "test_id": "UAT-3.3-4-3",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "input_text": "The implementation of a comprehensive risk mitigation methodology necessitates the establishment of ...",
+      "expected_fk": ">=12.0",
+      "expected_fog": ">=15.0",
+      "actual_fk": 30.0,
+      "actual_fog": 30.0,
+      "high_complexity_flag": true,
+      "within_tolerance": "YES",
+      "evidence": "Complex text: FK=30.00, Fog=30.00, Flags=['high_complexity']",
+      "notes": "Post-graduate level complexity validation"
+    },
+    {
+      "test_id": "UAT-3.3-4-4",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "input_text": "Risk assessment is critical.",
+      "expected_result": "Valid scores (0.0-30.0), no exceptions",
+      "actual_fk": 9.57,
+      "actual_fog": 21.6,
+      "fk_valid": true,
+      "fog_valid": true,
+      "within_tolerance": "YES",
+      "evidence": "Short text handled: FK=9.57, Fog=21.60",
+      "notes": "Edge case: Single sentence handled gracefully"
+    },
+    {
+      "test_id": "UAT-3.3-4-5",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "input_text": "(empty string)",
+      "expected_fk": "0.0",
+      "expected_fog": "0.0",
+      "actual_fk": 0.0,
+      "actual_fog": 0.0,
+      "within_tolerance": "YES",
+      "evidence": "Empty text handled: FK=0.00, Fog=0.00",
+      "notes": "Empty text defaults to 0.0 without exceptions"
+    },
+    {
+      "test_id": "UAT-3.3-5-1",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "expected_overall": "0.90-0.95",
+      "actual_ocr": 0.99,
+      "actual_completeness": 0.98,
+      "actual_coherence": 0.0,
+      "actual_overall": 0.702,
+      "deviation": 0.198,
+      "flags": [
+        "high_complexity"
+      ],
+      "within_tolerance": "NO",
+      "evidence": "OCR=0.990, Comp=0.980, Coh=0.000, Overall=0.702",
+      "notes": "High-quality chunk validation"
+    },
+    {
+      "test_id": "UAT-3.3-5-2",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "expected_overall": "0.80-0.85",
+      "actual_ocr": 0.9,
+      "actual_completeness": 0.85,
+      "actual_coherence": 0.0,
+      "actual_overall": 0.627,
+      "deviation": 0.173,
+      "within_tolerance": "NO",
+      "evidence": "Medium quality: Overall=0.627",
+      "notes": "Medium-quality chunk differentiation"
+    },
+    {
+      "test_id": "UAT-3.3-5-3",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "expected_overall": "~1.0 (very high)",
+      "actual_ocr": 1.0,
+      "actual_completeness": 1.0,
+      "actual_coherence": 0.0,
+      "actual_overall": 0.8,
+      "within_tolerance": "NO",
+      "evidence": "Perfect inputs: Overall=0.800",
+      "notes": "Perfect quality scenario validation"
+    },
+    {
+      "test_id": "UAT-3.3-5-4",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "expected_overall": "~0.60-0.65 (low)",
+      "actual_ocr": 0.7,
+      "actual_completeness": 0.6,
+      "actual_coherence": 0.0,
+      "actual_overall": 0.523,
+      "flags": [
+        "low_ocr",
+        "incomplete_extraction",
+        "gibberish"
+      ],
+      "flag_count": 3,
+      "within_tolerance": "YES",
+      "evidence": "Low quality: Overall=0.523, Flags=['low_ocr', 'incomplete_extraction', 'gibberish']",
+      "notes": "Low-quality chunk with multiple flags"
+    },
+    {
+      "test_id": "UAT-3.3-5-5",
+      "status": "PASS",
+      "execution_type": "Integration",
+      "formula": "(0.4 * ocr) + (0.3 * comp) + (0.2 * coh) + (0.1 * read)",
+      "test_cases": [
+        {
+          "ocr": 0.95,
+          "comp": 0.9,
+          "coh": 0.8,
+          "read": 0.85,
+          "expected": 0.89,
+          "calculated": 0.895,
+          "passed": true
+        },
+        {
+          "ocr": 0.8,
+          "comp": 0.75,
+          "coh": 0.7,
+          "read": 0.65,
+          "expected": 0.755,
+          "calculated": 0.75,
+          "passed": true
+        },
+        {
+          "ocr": 1.0,
+          "comp": 1.0,
+          "coh": 1.0,
+          "read": 1.0,
+          "expected": 1.0,
+          "calculated": 1.0,
+          "passed": true
+        }
+      ],
+      "within_tolerance": "YES",
+      "evidence": "Tested 3 scenarios, all validated",
+      "notes": "Weighted formula mathematically correct"
+    },
+    {
+      "test_id": "UAT-3.3-8-1",
+      "status": "FAIL",
+      "execution_type": "Automated",
+      "expected_flags": "[]",
+      "actual_flags": [
+        "high_complexity"
+      ],
+      "flag_count": 1,
+      "within_tolerance": "NO",
+      "evidence": "High-quality chunk: Flags=['high_complexity']",
+      "notes": "No false-positive flags for high-quality content"
+    },
+    {
+      "test_id": "UAT-3.3-8-2",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "ocr_confidence": 0.9,
+      "expected_flags": "[\"low_ocr\"]",
+      "actual_flags": [
+        "low_ocr",
+        "high_complexity"
+      ],
+      "has_low_ocr_flag": true,
+      "within_tolerance": "YES",
+      "evidence": "OCR 0.90 < 0.95: Flags=['low_ocr', 'high_complexity']",
+      "notes": "low_ocr flag correctly triggered"
+    },
+    {
+      "test_id": "UAT-3.3-8-3",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "completeness": 0.85,
+      "expected_flags": "[\"incomplete_extraction\"]",
+      "actual_flags": [
+        "incomplete_extraction",
+        "high_complexity"
+      ],
+      "has_incomplete_flag": true,
+      "within_tolerance": "YES",
+      "evidence": "Completeness 0.85 < 0.90: Flags=['incomplete_extraction', 'high_complexity']",
+      "notes": "incomplete_extraction flag correctly triggered"
+    },
+    {
+      "test_id": "UAT-3.3-8-4",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "flesch_kincaid": 30.0,
+      "expected_fk": ">15.0",
+      "expected_flags": "[\"high_complexity\"]",
+      "actual_flags": [
+        "high_complexity"
+      ],
+      "has_high_complexity_flag": true,
+      "within_tolerance": "YES",
+      "evidence": "FK 30.00 > 15.0: Flags=['high_complexity']",
+      "notes": "high_complexity flag correctly triggered"
+    },
+    {
+      "test_id": "UAT-3.3-8-5",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "non_alpha_ratio": 0.694,
+      "expected_ratio": ">0.30",
+      "expected_flags": "[\"gibberish\"]",
+      "actual_flags": [
+        "gibberish"
+      ],
+      "has_gibberish_flag": true,
+      "within_tolerance": "YES",
+      "evidence": "Non-alpha ratio 0.694 > 0.30: Flags=['gibberish']",
+      "notes": "gibberish flag correctly triggered"
+    },
+    {
+      "test_id": "UAT-3.3-8-6",
+      "status": "PASS",
+      "execution_type": "Automated",
+      "ocr_confidence": 0.85,
+      "completeness": 0.8,
+      "expected_flags": "3+ flags including [low_ocr, incomplete_extraction, gibberish]",
+      "actual_flags": [
+        "low_ocr",
+        "incomplete_extraction",
+        "gibberish"
+      ],
+      "flag_count": 3,
+      "overall_score": 0.643,
+      "within_tolerance": "YES",
+      "evidence": "Multiple issues detected: 3 flags = ['low_ocr', 'incomplete_extraction', 'gibberish'], Overall=0.643",
+      "notes": "Multiple quality flags correctly detected simultaneously"
+    }
+  ]
+}

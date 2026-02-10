@@ -1,0 +1,421 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2.5</epicId>
+    <storyId>2.1</storyId>
+    <title>Pipeline Throughput Optimization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2.5-2.1-pipeline-throughput-optimization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>audit professional and DevOps engineer</asA>
+    <iWant>the Extract & Normalize pipeline optimized to achieve NFR-P1 throughput target of 10 files/min (100 files in <10 minutes)</iWant>
+    <soThat>the system meets production performance requirements and eliminates the 41% throughput gap identified in Story 2.5.1</soThat>
+    <tasks>
+      <task id="1" ac="2.5-2.1-1">
+        <title>Profile Current Pipeline to Identify Bottlenecks</title>
+        <subtasks>
+          <subtask>Run cProfile on 100-file batch</subtask>
+          <subtask>Analyze profile with pstats: identify top 10 functions by cumulative time</subtask>
+          <subtask>Categorize bottlenecks: CPU-bound vs I/O-bound</subtask>
+          <subtask>Measure per-file average time by document type</subtask>
+          <subtask>Document findings in docs/performance-bottlenecks-story-2.5.1.md</subtask>
+          <subtask>Identify parallelization opportunities</subtask>
+          <subtask>Commit profile.stats to repository</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="2.5-2.1-2">
+        <title>Design Parallelization Strategy</title>
+        <subtasks>
+          <subtask>Review ProcessPoolExecutor for CPU-bound tasks</subtask>
+          <subtask>Design worker pool architecture: queue-based batch processing</subtask>
+          <subtask>Calculate optimal worker count: min(cpu_count, 4)</subtask>
+          <subtask>Design memory monitoring per worker</subtask>
+          <subtask>Design error handling: maintain continue-on-error</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="2.5-2.1-2">
+        <title>Implement ProcessPoolExecutor Parallelization</title>
+        <subtasks>
+          <subtask>Update scripts/profile_pipeline.py with ProcessPoolExecutor</subtask>
+          <subtask>Implement worker function: extract_single_file(file_path)</subtask>
+          <subtask>Implement queue management across workers</subtask>
+          <subtask>Add memory monitoring with psutil</subtask>
+          <subtask>Add worker pool shutdown/cleanup on errors</subtask>
+          <subtask>Test with small batch (10 files) first</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="2.5-2.1-3">
+        <title>Optimize Large Document Processing</title>
+        <subtasks>
+          <subtask>Review PyMuPDF streaming API for large PDFs</subtask>
+          <subtask>Implement chunked PDF page processing</subtask>
+          <subtask>Review openpyxl streaming for large Excel files</subtask>
+          <subtask>Implement chunked Excel row processing</subtask>
+          <subtask>Test with large fixtures from tests/performance/batch_100_files/</subtask>
+          <subtask>Validate memory spikes reduced</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="2.5-2.1-4">
+        <title>Run Optimized Performance Validation</title>
+        <subtasks>
+          <subtask>Run optimized pipeline on 100-file batch (3 consecutive runs)</subtask>
+          <subtask>Measure throughput: files/min, total time</subtask>
+          <subtask>Measure memory: peak usage, per-worker usage</subtask>
+          <subtask>Calculate improvement from baseline (5.87 files/min)</subtask>
+          <subtask>Verify NFR-P1 compliance: ≤10 minutes for 100 files</subtask>
+          <subtask>Verify reproducibility: &lt;5% variance across 3 runs</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="2.5-2.1-5">
+        <title>Validate Quality and Functionality</title>
+        <subtasks>
+          <subtask>Run full test suite: pytest (verify 0 regressions)</subtask>
+          <subtask>Run performance tests: pytest -m performance</subtask>
+          <subtask>Validate success rate: ≥99% on 100-file batch</subtask>
+          <subtask>Validate OCR quality: ≥95% average confidence</subtask>
+          <subtask>Run Black, Ruff, Mypy quality gates</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="2.5-2.1-6">
+        <title>Update Performance Baselines</title>
+        <subtasks>
+          <subtask>Update docs/performance-baselines-story-2.5.1.md with optimized metrics</subtask>
+          <subtask>Add before/after comparison table</subtask>
+          <subtask>Document optimization techniques</subtask>
+          <subtask>Update test_throughput.py docstrings</subtask>
+          <subtask>Update CI performance job thresholds</subtask>
+        </subtasks>
+      </task>
+      <task id="8" ac="2.5-2.1-2, 2.5-2.1-4">
+        <title>Update Performance Test Suite</title>
+        <subtasks>
+          <subtask>Update tests/performance/test_throughput.py with parallelization</subtask>
+          <subtask>Add test for worker pool functionality</subtask>
+          <subtask>Add test for memory usage across workers</subtask>
+          <subtask>Run performance suite: pytest -m performance</subtask>
+        </subtasks>
+      </task>
+      <task id="9" ac="all">
+        <title>Comprehensive Testing and Validation</title>
+        <subtasks>
+          <subtask>Run 3 consecutive full performance validations</subtask>
+          <subtask>Calculate statistics: mean, std dev, variance</subtask>
+          <subtask>Verify all 6 acceptance criteria met</subtask>
+          <subtask>Document trade-offs or limitations</subtask>
+        </subtasks>
+      </task>
+      <task id="10" ac="all">
+        <title>Documentation and Completion</title>
+        <subtasks>
+          <subtask>Update story file with Dev Agent Record</subtask>
+          <subtask>Document optimizations with rationale</subtask>
+          <subtask>Document before/after metrics</subtask>
+          <subtask>Update performance bottlenecks documentation</subtask>
+          <subtask>Mark story as ready for review</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="2.5-2.1-1">
+      <title>Pipeline Profiling Identifies Bottlenecks</title>
+      <requirements>
+        <requirement>cProfile analysis shows function-level timing breakdown with cumtime</requirement>
+        <requirement>Top 10 slowest functions identified with file:line references</requirement>
+        <requirement>Categorization: CPU-bound (extraction, OCR) vs I/O-bound (file reads, writes)</requirement>
+        <requirement>Bottleneck analysis documented in docs/performance-bottlenecks-story-2.5.1.md</requirement>
+        <requirement>Profile data (profile.stats) committed for reference</requirement>
+      </requirements>
+    </criterion>
+    <criterion id="2.5-2.1-2">
+      <title>Parallelization Strategy Implemented</title>
+      <requirements>
+        <requirement>ProcessPoolExecutor integrated for CPU-bound extraction tasks (PDF, DOCX, Excel)</requirement>
+        <requirement>Worker count configurable (default: 4 workers or cpu_count)</requirement>
+        <requirement>Batch processing maintains continue-on-error pattern (ADR-006)</requirement>
+        <requirement>Memory usage per worker monitored to stay within 2GB total limit</requirement>
+        <requirement>Implementation in scripts/profile_pipeline.py and tests/performance/test_throughput.py</requirement>
+      </requirements>
+    </criterion>
+    <criterion id="2.5-2.1-3">
+      <title>Streaming Optimization for Large Documents</title>
+      <requirements>
+        <requirement>Large PDF processing (&gt;50 pages) uses streaming/chunked reading</requirement>
+        <requirement>Large Excel processing (&gt;1000 rows) uses streaming/chunked reading</requirement>
+        <requirement>Memory spikes reduced for large documents</requirement>
+        <requirement>Validation: Large document tests from tests/performance/batch_100_files/ process without OOM</requirement>
+      </requirements>
+    </criterion>
+    <criterion id="2.5-2.1-4">
+      <title>NFR-P1 Throughput Target Achieved</title>
+      <requirements>
+        <requirement>100-file batch processes in ≤10 minutes (10+ files/min sustained throughput)</requirement>
+        <requirement>Measured with real timer on performance test batch</requirement>
+        <requirement>Performance improvement &gt;70% from baseline (5.87 → 10+ files/min)</requirement>
+        <requirement>Reproducible: 3 consecutive runs within 5% variance</requirement>
+      </requirements>
+    </criterion>
+    <criterion id="2.5-2.1-5">
+      <title>Quality and Functionality Preserved</title>
+      <requirements>
+        <requirement>All 307+ existing tests pass (0 regressions)</requirement>
+        <requirement>Success rate maintains ≥99% (99/100 files)</requirement>
+        <requirement>OCR confidence maintains ≥95% average</requirement>
+        <requirement>Memory usage stays &lt;2GB peak (NFR-P2 compliance)</requirement>
+        <requirement>Black, Ruff, Mypy quality gates pass with 0 violations</requirement>
+      </requirements>
+    </criterion>
+    <criterion id="2.5-2.1-6">
+      <title>Optimized Baseline Documented</title>
+      <requirements>
+        <requirement>Updated baseline metrics in docs/performance-baselines-story-2.5.1.md</requirement>
+        <requirement>Before/after comparison table with % improvement</requirement>
+        <requirement>Optimization techniques documented with rationale</requirement>
+        <requirement>Hardware specs and test conditions documented</requirement>
+        <requirement>CI performance tests updated to use optimized baseline</requirement>
+      </requirements>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.5.md</path>
+        <title>Technical Specification - Epic 2.5</title>
+        <section>NFR-P1: Batch Processing Throughput</section>
+        <snippet>Target: Process 100 diverse documents in under 10 minutes (10+ files/min sustained). Current baseline: 5.87 files/min (41% gap).</snippet>
+      </doc>
+      <doc>
+        <path>docs/performance-baselines-story-2.5.1.md</path>
+        <title>Performance Baselines - Story 2.5.1</title>
+        <section>Baseline Measurement - Greenfield Architecture</section>
+        <snippet>Throughput: 5.87 files/min (17.05 min for 100 files). Peak Memory: 1.69 GB. Success Rate: 99%. OCR Quality: 95.26% avg confidence. NFR-P1 FAILED (59% of target), NFR-P2 PASSED.</snippet>
+      </doc>
+      <doc>
+        <path>docs/performance-bottlenecks-story-2.5.1.md</path>
+        <title>Performance Bottleneck Analysis - Story 2.5.1</title>
+        <section>Identified Bottlenecks</section>
+        <snippet>Primary bottleneck: Sequential processing with ThreadPoolExecutor. GIL limits thread parallelism for CPU-bound extraction. Recommendation: ProcessPoolExecutor for 3-4x speedup.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Decision Records</title>
+        <section>ADR-005: Streaming Pipeline Architecture</section>
+        <snippet>Constant memory usage pattern validated at 1.69GB peak. Immutable dataclass design prevents memory leaks. Must maintain during parallelization.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Decision Records</title>
+        <section>ADR-006: Continue-On-Error Batch Processing</section>
+        <snippet>99% success rate with graceful degradation. Worker failures must not crash entire batch. Each worker handles errors independently.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2.5-1-large-document-validation-and-performance.md</path>
+        <title>Story 2.5.1 - Large Document Validation and Performance</title>
+        <section>Performance Baseline Results</section>
+        <snippet>Established baseline with 100-file batch. Greenfield architecture validated at 99% success. Throughput optimization deferred to Story 2.5.2.1.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-P1: Batch Processing Throughput</section>
+        <snippet>Production requirement: 100 files in under 10 minutes. Critical for audit professionals processing large document sets.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>scripts/profile_pipeline.py</path>
+        <kind>script</kind>
+        <symbol>main</symbol>
+        <lines>1-end</lines>
+        <reason>Primary profiling script - needs ProcessPoolExecutor integration for parallel extraction</reason>
+      </artifact>
+      <artifact>
+        <path>tests/performance/test_throughput.py</path>
+        <kind>test</kind>
+        <symbol>test_nfr_p1_batch_throughput</symbol>
+        <lines>1-end</lines>
+        <reason>NFR-P1 validation test - needs parallelization updates and baseline assertion adjustments</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/pdf.py</path>
+        <kind>extractor</kind>
+        <symbol>PdfExtractor</symbol>
+        <lines>1-end</lines>
+        <reason>PDF extraction - potential streaming optimization for large documents (&gt;50 pages)</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/excel.py</path>
+        <kind>extractor</kind>
+        <symbol>ExcelExtractor</symbol>
+        <lines>1-end</lines>
+        <reason>Excel extraction - potential streaming optimization for large spreadsheets (&gt;1000 rows)</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/docx.py</path>
+        <kind>extractor</kind>
+        <symbol>DocxExtractor</symbol>
+        <lines>1-end</lines>
+        <reason>DOCX extraction - CPU-bound task suitable for ProcessPoolExecutor parallelization</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/adapter.py</path>
+        <kind>adapter</kind>
+        <symbol>ExtractionOrchestrator</symbol>
+        <lines>1-end</lines>
+        <reason>Extraction orchestrator - may need updates to support parallel worker pool architecture</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="psutil" version="&gt;=5.9.0,&lt;6.0">Memory monitoring across worker processes</package>
+        <package name="memory-profiler" version="&gt;=0.61.0,&lt;1.0">Optional line-by-line profiling</package>
+        <package name="pypdf" version="&gt;=3.0.0">PDF extraction (consider streaming API)</package>
+        <package name="openpyxl" version="&gt;=3.0.10">Excel extraction (supports streaming mode)</package>
+        <package name="python-docx" version="&gt;=0.8.11">DOCX extraction</package>
+        <package name="pytesseract" version="&gt;=0.3.10">OCR processing (CPU-intensive)</package>
+      </python>
+      <builtin>
+        <package name="concurrent.futures">ProcessPoolExecutor for CPU-bound parallelization</package>
+        <package name="cProfile">Profiling tool for bottleneck analysis</package>
+        <package name="pstats">Profile statistics analysis</package>
+        <package name="multiprocessing">CPU count detection for worker pool sizing</package>
+      </builtin>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="ADR-005" source="architecture.md">
+      <title>Streaming Pipeline Architecture</title>
+      <description>Maintain constant memory usage pattern. Total memory across all workers must stay under 2GB. Monitor with psutil. Memory budget: 2GB / worker_count = ~500MB per worker (4 workers).</description>
+    </constraint>
+    <constraint id="ADR-006" source="architecture.md">
+      <title>Continue-On-Error Batch Processing</title>
+      <description>Worker failures must not crash entire batch. Each worker handles errors independently. Maintain 99% success rate with graceful degradation.</description>
+    </constraint>
+    <constraint id="NFR-P1" source="tech-spec-epic-2.5.md">
+      <title>Batch Processing Throughput</title>
+      <description>Process 100 files in under 10 minutes (10+ files/min sustained). Current gap: 41% below target (5.87 vs 10 files/min).</description>
+    </constraint>
+    <constraint id="NFR-P2" source="tech-spec-epic-2.5.md">
+      <title>Memory Efficiency</title>
+      <description>Peak memory usage must stay below 2GB. Currently at 1.69GB (18% headroom). Must monitor total across all ProcessPoolExecutor workers.</description>
+    </constraint>
+    <constraint id="QUALITY-GATES" source="CLAUDE.md">
+      <title>Code Quality Requirements</title>
+      <description>Black formatting (100 char lines), Ruff linting (0 errors), Mypy strict mode (0 errors for src/data_extract/). All 307+ existing tests must pass (0 regressions).</description>
+    </constraint>
+    <constraint id="PARALLELIZATION" source="Dev Notes">
+      <title>Parallelization Strategy</title>
+      <description>Use ProcessPoolExecutor (not ThreadPoolExecutor) to bypass GIL for CPU-bound extraction. Worker count: min(cpu_count, 4). Queue-based work distribution. Result collection maintains ordering.</description>
+    </constraint>
+    <constraint id="STREAMING" source="Dev Notes">
+      <title>Streaming Optimization</title>
+      <description>Large PDFs (&gt;50 pages): Process N pages at a time. Large Excel (&gt;1000 rows): Process N rows at a time. Target: 30% reduction in per-file peak memory.</description>
+    </constraint>
+    <constraint id="ERROR-HANDLING" source="Dev Notes">
+      <title>Error Handling with Parallelization</title>
+      <description>ProcessingError: Log, quarantine, worker continues. Worker crash: Restart worker, retry file once. Memory pressure: Reduce worker count dynamically. Timeout: 60s per file at worker level.</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ProcessPoolExecutor</name>
+      <kind>Python builtin</kind>
+      <signature>ProcessPoolExecutor(max_workers=None)</signature>
+      <path>concurrent.futures</path>
+      <usage>Replace ThreadPoolExecutor for CPU-bound extraction tasks to bypass GIL</usage>
+    </interface>
+    <interface>
+      <name>extract_single_file</name>
+      <kind>Worker function</kind>
+      <signature>extract_single_file(file_path: Path) -&gt; ExtractionResult</signature>
+      <path>scripts/profile_pipeline.py (to be implemented)</path>
+      <usage>Picklable worker function for ProcessPoolExecutor parallel extraction</usage>
+    </interface>
+    <interface>
+      <name>psutil.Process.memory_info</name>
+      <kind>Memory monitoring API</kind>
+      <signature>Process.memory_info() -&gt; pmem</signature>
+      <path>psutil</path>
+      <usage>Track memory usage across all worker processes for NFR-P2 compliance</usage>
+    </interface>
+    <interface>
+      <name>cProfile</name>
+      <kind>Profiling tool</kind>
+      <signature>python -m cProfile -o profile.stats script.py</signature>
+      <path>Python builtin</path>
+      <usage>Profile pipeline to identify top 10 bottleneck functions by cumulative time</usage>
+    </interface>
+    <interface>
+      <name>openpyxl.reader.excel.load_workbook</name>
+      <kind>Excel streaming API</kind>
+      <signature>load_workbook(filename, read_only=True, data_only=True)</signature>
+      <path>openpyxl</path>
+      <usage>Streaming mode for large Excel files (&gt;1000 rows) to reduce memory</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard>Performance tests in tests/performance/ with @pytest.mark.performance marker. Run with: pytest -m performance. Test execution time should reduce from ~17 min to ~10 min after optimization.</standard>
+      <standard>All 307+ existing tests must pass with 0 regressions. Run full suite: pytest. Includes unit tests (tests/unit/), integration tests (tests/integration/).</standard>
+      <standard>Code quality gates enforced by pre-commit: Black (100 char), Ruff (0 errors), Mypy strict (src/data_extract/). Coverage &gt;80% for modified files.</standard>
+      <standard>Performance validation requires 3 consecutive runs with &lt;5% variance to prove reproducibility. Document mean, std dev, variance.</standard>
+    </standards>
+    <locations>
+      <location>tests/performance/test_throughput.py - NFR-P1, NFR-P2 validation tests</location>
+      <location>tests/performance/batch_100_files/ - 100-file test batch (~2.4GB total)</location>
+      <location>scripts/profile_pipeline.py - Profiling script with memory monitoring</location>
+      <location>tests/unit/test_extract/ - Extractor unit tests (must not regress)</location>
+      <location>tests/integration/ - End-to-end pipeline tests (must not regress)</location>
+    </locations>
+    <ideas>
+      <idea ac="2.5-2.1-1">
+        <description>Test cProfile integration: Verify profile.stats generated with function-level timing</description>
+        <approach>Run profiling script, load profile.stats with pstats, verify top 10 functions captured</approach>
+      </idea>
+      <idea ac="2.5-2.1-2">
+        <description>Test ProcessPoolExecutor parallelization: Verify worker pool spawns correct number of processes</description>
+        <approach>Mock ProcessPoolExecutor, verify max_workers=min(cpu_count, 4), test error handling per worker</approach>
+      </idea>
+      <idea ac="2.5-2.1-2">
+        <description>Test memory monitoring across workers: Verify total memory stays under 2GB with 4 workers</description>
+        <approach>Use psutil to track all child processes, assert sum(worker_memory) + baseline &lt; 2GB</approach>
+      </idea>
+      <idea ac="2.5-2.1-3">
+        <description>Test streaming PDF optimization: Verify large PDFs (&gt;50 pages) process with reduced memory spike</description>
+        <approach>Profile memory during large PDF processing, compare before/after streaming implementation</approach>
+      </idea>
+      <idea ac="2.5-2.1-3">
+        <description>Test streaming Excel optimization: Verify large Excel files (&gt;1000 rows) process with reduced memory</description>
+        <approach>Test with large Excel fixture, monitor memory with openpyxl read_only=True mode</approach>
+      </idea>
+      <idea ac="2.5-2.1-4">
+        <description>Test NFR-P1 throughput: Verify 100-file batch completes in ≤10 minutes</description>
+        <approach>Update test_nfr_p1_batch_throughput with parallelized pipeline, assert duration ≤ 600 seconds</approach>
+      </idea>
+      <idea ac="2.5-2.1-4">
+        <description>Test reproducibility: Verify 3 consecutive runs within 5% variance</description>
+        <approach>Run throughput test 3 times, calculate std dev, assert variance &lt; 5%</approach>
+      </idea>
+      <idea ac="2.5-2.1-5">
+        <description>Regression test: Verify all 307+ tests pass after parallelization changes</description>
+        <approach>Run pytest with no markers, assert 0 failures, compare test count to baseline</approach>
+      </idea>
+      <idea ac="2.5-2.1-5">
+        <description>Test quality gates: Verify Black, Ruff, Mypy pass with 0 violations</description>
+        <approach>Run pre-commit hooks on all modified files, assert exit code 0</approach>
+      </idea>
+      <idea ac="2.5-2.1-6">
+        <description>Test baseline documentation: Verify performance-baselines-story-2.5.1.md updated with before/after metrics</description>
+        <approach>Parse markdown file, verify before/after table exists with % improvement column</approach>
+      </idea>
+    </ideas>
+  </tests>
+</story-context>

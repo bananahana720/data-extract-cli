@@ -1,0 +1,257 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Text Cleaning and Artifact Removal</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-1-text-cleaning-and-artifact-removal.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>knowledge engineer processing enterprise audit documents</asA>
+    <iWant>OCR artifacts, formatting noise, and header/footer repetition automatically removed from extracted text</iWant>
+    <soThat>downstream AI systems receive clean, distraction-free content that prevents hallucinations and improves RAG retrieval quality</soThat>
+    <tasks>
+      - Task 1: Define normalization configuration model (AC: 2.1.1, 2.1.2, 2.1.3, 2.1.4)
+      - Task 2: Create default cleaning rules YAML (AC: 2.1.1, 2.1.3)
+      - Task 3: Implement TextCleaner class (AC: 2.1.1, 2.1.2, 2.1.3, 2.1.4, 2.1.5)
+      - Task 4: Implement Normalizer orchestrator (All ACs, Pipeline Integration)
+      - Task 5: Create integration tests (AC: 2.1.6, 2.1.7, End-to-End)
+      - Task 6: Create comprehensive test fixtures (Test Infrastructure)
+      - Task 7: Documentation and examples (Developer Guidance)
+      - Task 8: Code quality and testing (Quality Gate)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC-2.1.1: OCR artifacts are removed (garbled characters, repeated symbols, noise patterns)
+      - Detection patterns: ^^^^^, ■■■■, ~~~, random character sequences
+      - Configurable regex patterns in YAML
+      - Artifact detection logged with locations
+
+    AC-2.1.2: Excessive whitespace is normalized (single spaces, max 2 consecutive newlines)
+      - Multiple spaces → single space (within lines)
+      - Multiple newlines → max 2 newlines (preserve paragraph breaks)
+      - Tabs normalized to spaces
+      - Leading/trailing whitespace trimmed per block
+
+    AC-2.1.3: Page numbers, headers, footers are removed when not content-relevant
+      - Pattern-based detection (e.g., "Page 1 of 10", "Confidential - Internal Use")
+      - Position-based detection (top/bottom 10% of page)
+      - User-configurable patterns in YAML
+
+    AC-2.1.4: Header/footer repetition is detected and cleaned across pages
+      - Multi-page repetition analysis (threshold: 3+ pages)
+      - Automatic detection of repeated text blocks at page boundaries
+      - Preserves unique content in headers/footers
+
+    AC-2.1.5: Intentional formatting is preserved (lists, emphasis, code blocks, paragraph breaks)
+      - Markdown-style lists preserved (-, *, 1., etc.)
+      - Paragraph breaks preserved (double newlines)
+      - Intentional indentation preserved (code blocks, nested lists)
+      - Emphasis markers preserved (**, *, _, etc.)
+
+    AC-2.1.6: Cleaning is deterministic (same input + config → same output, every time)
+      - No randomness in cleaning algorithms
+      - Consistent ordering of transformations
+      - Fixed regex patterns (no dynamic generation)
+      - Timestamps excluded from processing logic (metadata only)
+
+    AC-2.1.7: Cleaning decisions are logged for audit trail (transformations, before/after)
+      - CleaningResult model captures all transformations
+      - Before/after text snapshots (configurable, for debugging)
+      - Transformation types logged (artifact_removal, whitespace_normalization, header_removal)
+      - Structured logging via structlog with JSON output
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Story 2.1: Text Cleaning and Artifact Removal</section>
+        <snippet>Defines TextCleaner API, CleaningResult model, and normalization workflow (Steps 1-3). OCR artifact removal patterns, whitespace normalization, header/footer detection across pages.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Data Models: NormalizationConfig, CleaningResult</section>
+        <snippet>NormalizationConfig (L274-303): remove_ocr_artifacts, remove_headers_footers, header_repetition_threshold, whitespace_max_consecutive_newlines. CleaningResult (L250-260): audit log with transformations list.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Workflows and Sequencing: Step 3 (Text Cleaning)</section>
+        <snippet>Normalization workflow Step 3 (L562-571): For each ContentBlock - remove OCR artifacts, detect/remove headers/footers, normalize whitespace, log transformations in CleaningResult.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation</title>
+        <section>Pipeline Stage Pattern (pages 349-398)</section>
+        <snippet>PipelineStage protocol contract with Generic[Input, Output] typing. All stages implement process(input_data, context) method. Stateless, deterministic design required.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation</title>
+        <section>Error Handling Pattern (pages 412-433)</section>
+        <snippet>ProcessingError for recoverable errors (log, quarantine, continue batch). CriticalError for fatal errors (halt immediately). No silent failures - all issues logged.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation</title>
+        <section>Configuration Cascade (pages 486-508)</section>
+        <snippet>Four-tier precedence: CLI flags (highest) &gt; env vars &gt; YAML config &gt; hardcoded defaults. User-editable YAML in config/normalize/cleaning_rules.yaml.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD/index.md</path>
+        <title>Product Requirements Document</title>
+        <section>Success Criteria</section>
+        <snippet>OCR completeness &gt;95% accuracy, no silent data loss, RAG retrieval quality improvement through clean content delivery.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-4-core-pipeline-architecture-pattern.md</path>
+        <title>Story 1-4: Core Pipeline Architecture Pattern</title>
+        <section>Dev Agent Record - Learnings</section>
+        <snippet>PipelineStage Protocol defined at src/data_extract/core/pipeline.py:20-59. Data models in src/data_extract/core/models.py. Exception hierarchy in src/data_extract/core/exceptions.py. Path resolution pattern: Path(__file__).parent.parent / "fixtures".</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>module</kind>
+        <symbol>Document, Metadata, Entity</symbol>
+        <lines>1-145</lines>
+        <reason>Core Pydantic models for pipeline data flow. Document model (L81-105) contains text and entities. Metadata model (L46-78) for quality tracking. Story 2.1 will extend these.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>module</kind>
+        <symbol>PipelineStage, Pipeline</symbol>
+        <lines>1-80</lines>
+        <reason>Protocol defining pipeline stage contract. Normalizer must implement PipelineStage[Document, Document] with process(input_data, context) method.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/exceptions.py</path>
+        <kind>module</kind>
+        <symbol>ProcessingError, CriticalError, ConfigurationError</symbol>
+        <lines>1-145</lines>
+        <reason>Exception hierarchy for error handling. ProcessingError for recoverable errors (AC-2.1.7 audit logging). CriticalError for configuration failures.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/__init__.py</path>
+        <kind>module</kind>
+        <symbol>N/A</symbol>
+        <lines>1-463</lines>
+        <reason>Normalize module placeholder created in Epic 1. Ready for Story 2.1 implementation (config.py, cleaning.py, normalizer.py).</reason>
+      </artifact>
+      <artifact>
+        <path>tests/conftest.py</path>
+        <kind>test-infrastructure</kind>
+        <symbol>sample_content_block, temp fixtures</symbol>
+        <lines>1-50</lines>
+        <reason>Shared pytest fixtures for testing. Provides ContentBlock, ExtractionResult fixtures. Path resolution pattern established for test fixtures.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version="&gt;=2.0.0,&lt;3.0">Data models with runtime validation (NormalizationConfig, CleaningResult)</package>
+        <package name="PyYAML" version="&gt;=6.0.0,&lt;7.0">Configuration file parsing (config/normalize/cleaning_rules.yaml)</package>
+        <package name="structlog" version="&gt;=24.0.0,&lt;25.0">Structured logging for audit trail (AC-2.1.7)</package>
+        <package name="pytest" version="&gt;=8.0.0,&lt;9.0">Testing framework</package>
+        <package name="pytest-cov" version="&gt;=5.0.0,&lt;6.0">Coverage reporting (&gt;85% target)</package>
+        <package name="black" version="&gt;=24.0.0,&lt;25.0">Code formatter (100 char lines)</package>
+        <package name="ruff" version="&gt;=0.6.0,&lt;0.7">Linter (modern flake8 replacement)</package>
+        <package name="mypy" version="&gt;=1.11.0,&lt;2.0">Type checker (strict mode)</package>
+      </python>
+      <system>
+        <dependency>Python 3.12+ (mandatory enterprise requirement)</dependency>
+      </system>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MUST implement PipelineStage[Document, Document] protocol from src/data_extract/core/pipeline.py
+    - MUST use existing Pydantic models from src/data_extract/core/models.py (Document, Metadata, Entity)
+    - MUST use exception hierarchy from src/data_extract/core/exceptions.py (ProcessingError, CriticalError)
+    - MUST be deterministic: same input + config produces byte-identical output (AC-2.1.6)
+    - MUST log all cleaning decisions for audit trail using structlog (AC-2.1.7)
+    - MUST preserve intentional formatting (lists, emphasis, code blocks, paragraphs) - AC-2.1.5
+    - MUST support configuration cascade: CLI flags &gt; env vars &gt; YAML &gt; defaults
+    - MUST achieve &gt;85% test coverage overall, &gt;90% for cleaning.py
+    - MUST pass all pre-commit hooks: black, ruff, mypy
+    - MUST NOT break Epic 1 brownfield tests (zero regressions)
+    - MUST NOT use transformers or advanced NLP (classical approaches only per ADR-004)
+    - MUST create user-editable YAML config in config/normalize/cleaning_rules.yaml
+    - MUST use Path(__file__).parent.parent / "fixtures" pattern for test path resolution (from Story 1-4)
+    - MUST include type hints on all public functions (from Story 1-4 standard)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TextCleaner.clean_text</name>
+      <kind>function</kind>
+      <signature>def clean_text(self, text: str, doc_type: Optional[DocumentType] = None) -&gt; tuple[str, CleaningResult]</signature>
+      <path>src/data_extract/normalize/cleaning.py</path>
+      <description>Main entry point for text cleaning. Removes OCR artifacts, normalizes whitespace, returns cleaned text and audit log.</description>
+    </interface>
+    <interface>
+      <name>TextCleaner.detect_headers_footers</name>
+      <kind>function</kind>
+      <signature>def detect_headers_footers(self, pages: List[str]) -&gt; tuple[Optional[str], Optional[str]]</signature>
+      <path>src/data_extract/normalize/cleaning.py</path>
+      <description>Multi-page repetition analysis. Detects common headers/footers across &gt;=3 pages using top/bottom 10% analysis.</description>
+    </interface>
+    <interface>
+      <name>Normalizer.process</name>
+      <kind>function</kind>
+      <signature>def process(self, document: Document, context: ProcessingContext) -&gt; Document</signature>
+      <path>src/data_extract/normalize/normalizer.py</path>
+      <description>PipelineStage protocol implementation. Orchestrates text cleaning for all ContentBlocks, aggregates CleaningResults.</description>
+    </interface>
+    <interface>
+      <name>NormalizationConfig</name>
+      <kind>class</kind>
+      <signature>class NormalizationConfig(BaseModel)</signature>
+      <path>src/data_extract/normalize/config.py</path>
+      <description>Pydantic model for normalization configuration. Fields: remove_ocr_artifacts, remove_headers_footers, header_repetition_threshold, whitespace_max_consecutive_newlines.</description>
+    </interface>
+    <interface>
+      <name>CleaningResult</name>
+      <kind>class</kind>
+      <signature>class CleaningResult(BaseModel)</signature>
+      <path>src/data_extract/normalize/cleaning.py</path>
+      <description>Audit log model for text cleaning transformations. Fields: original_length, cleaned_length, artifacts_removed, headers_footers_removed, whitespace_normalized, transformations: List[Dict].</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows Epic 1 framework (Story 1.3). Test organization mirrors src/ structure exactly. Use pytest with markers for selective execution. Coverage enforced by pre-commit hooks. Path resolution uses Path(__file__).parent.parent / "fixtures" pattern. All fixtures use type hints. Cleanup via yield...finally pattern. Tests must be deterministic and reproducible.
+    </standards>
+    <locations>
+      - tests/unit/test_normalize/test_config.py (Configuration loading, cascade precedence)
+      - tests/unit/test_normalize/test_cleaning.py (TextCleaner unit tests, 25+ tests, &gt;90% coverage)
+      - tests/unit/test_normalize/test_normalizer.py (Normalizer orchestrator, 15+ tests)
+      - tests/integration/test_normalization_pipeline.py (End-to-end: Extract → Normalize)
+      - tests/integration/test_determinism.py (NFR-R1: Run same doc 10 times, assert identical output)
+      - tests/fixtures/normalization/ (Test data: dirty_text_samples/, expected_clean_outputs/)
+    </locations>
+    <ideas>
+      AC-2.1.1 (OCR artifacts): Test each artifact pattern (^^^^^, ■■■■, ~~~, long underscores). Verify artifact counting accuracy. Test control character removal.
+
+      AC-2.1.2 (Whitespace normalization): Multiple spaces → single space. Multiple newlines → max 2. Tab normalization. Leading/trailing trim. Edge cases: empty string, whitespace-only.
+
+      AC-2.1.3 &amp; AC-2.1.4 (Headers/footers): Multi-page documents with repeated headers. Test 3-page minimum threshold. Varying page counts (2, 3, 5, 10). Partial matches (page numbers). No detection when content varies.
+
+      AC-2.1.5 (Formatting preservation): Markdown lists (-, *, 1.). Code blocks (indented, fenced). Emphasis (**, *, _). Paragraph breaks (double newlines).
+
+      AC-2.1.6 (Determinism): Run same text through clean_text() 10 times. Assert byte-identical output. Test with dirty OCR, clean text, mixed inputs.
+
+      AC-2.1.7 (Audit logging): CleaningResult population. Transformation log entries. Before/after length tracking. Verify structlog events.
+
+      Integration: Brownfield PDF extractor → Normalizer. Verify output structure (Document with cleaned ContentBlocks). Verify metadata populated. SHA-256 hash equality test.
+    </ideas>
+  </tests>
+</story-context>

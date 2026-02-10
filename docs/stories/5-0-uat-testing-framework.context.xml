@@ -1,0 +1,248 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>0</storyId>
+    <title>Implement tmux-cli Based UAT Testing Framework for CLI Validation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-25</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-0-uat-testing-framework.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>QA engineer</asA>
+    <iWant>an automated UAT testing framework using tmux-cli that validates CLI user journeys against the UX Design Specification</iWant>
+    <soThat>every PR ensures the interactive CLI experience matches our design intent</soThat>
+    <tasks>
+      <taskGroup name="Infrastructure Setup">
+        <task>Create tests/uat/ directory structure</task>
+        <task>Create tests/uat/__init__.py and conftest.py with pytest fixtures</task>
+        <task>Create tests/uat/framework/__init__.py</task>
+        <task>Install tmux-cli dependency: uv tool install tmux-cli</task>
+        <task>Verify tmux available in CI environment (Ubuntu runner)</task>
+      </taskGroup>
+      <taskGroup name="TmuxSession Wrapper (AC-5.0-2)">
+        <task>Create tests/uat/framework/tmux_wrapper.py</task>
+        <task>Implement TmuxSession.launch(command: str) -> str</task>
+        <task>Implement TmuxSession.send(text: str, enter: bool = True) -> None</task>
+        <task>Implement TmuxSession.capture() -> str</task>
+        <task>Implement TmuxSession.wait_idle(idle_time: float, timeout: float) -> None</task>
+        <task>Implement TmuxSession.kill() -> None</task>
+        <task>Add context manager support (__enter__, __exit__) for auto-cleanup</task>
+        <task>Add error handling for tmux-cli failures</task>
+      </taskGroup>
+      <taskGroup name="UX Assertion Engine (AC-5.0-3)">
+        <task>Create tests/uat/framework/ux_assertions.py</task>
+        <task>Implement assert_panel_displayed(output: str, title: str)</task>
+        <task>Implement assert_progress_bar_shown(output: str)</task>
+        <task>Implement assert_table_rendered(output: str, headers: list)</task>
+        <task>Implement assert_color_present(output: str, color: str)</task>
+        <task>Implement assert_quality_distribution(output: str, categories: list)</task>
+        <task>Implement assert_error_guide_shown(output: str)</task>
+        <task>Implement assert_learning_tip(output: str)</task>
+        <task>Add ANSI escape code parsing utilities</task>
+      </taskGroup>
+      <taskGroup name="Journey Tests (AC-5.0-4 to AC-5.0-7)">
+        <task>Create tests/uat/journeys/test_journey_1_first_time_setup.py</task>
+        <task>Create tests/uat/journeys/test_journey_2_batch_processing.py</task>
+        <task>Create tests/uat/journeys/test_journey_3_semantic_analysis.py</task>
+        <task>Create tests/uat/journeys/test_journey_4_learning_mode.py</task>
+      </taskGroup>
+      <taskGroup name="Sample Corpus and CI (AC-5.0-8, AC-5.0-9)">
+        <task>Create tests/uat/fixtures/sample_corpus/ with 10+ test documents</task>
+        <task>Create tests/uat/fixtures/expected_outputs/ for golden outputs</task>
+        <task>Create or update .github/workflows/uat.yaml</task>
+        <task>Configure Ubuntu runner with tmux installed</task>
+      </taskGroup>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.0-1">UAT test scaffold created at tests/uat/ with tmux-cli integration and pytest configuration</criterion>
+    <criterion id="AC-5.0-2">TmuxSession wrapper class implements launch, send, capture, wait_idle, kill operations via subprocess</criterion>
+    <criterion id="AC-5.0-3">UXAssertion engine validates Rich components (panels, progress bars, tables, ANSI colors)</criterion>
+    <criterion id="AC-5.0-4">Journey 1 (First-Time Setup) test validates welcome panel, mode selection, tutorial prompts</criterion>
+    <criterion id="AC-5.0-5">Journey 2 (Batch Processing) test validates pre-flight, progress indicators, quality summary</criterion>
+    <criterion id="AC-5.0-6">Journey 3 (Semantic Analysis) test validates pipeline stages display, quality distribution, suggestions</criterion>
+    <criterion id="AC-5.0-7">Journey 4 (Learning Mode) test validates step-by-step explanations, prompts, insights summary</criterion>
+    <criterion id="AC-5.0-8">CI integration: UAT tests run on every PR via GitHub Actions with tmux available</criterion>
+    <criterion id="AC-5.0-9">Sample corpus created at tests/uat/fixtures/sample_corpus/ with 10+ test documents (PDF, DOCX, XLSX)</criterion>
+    <criterion id="AC-5.0-10">All UAT tests pass with 0 quality gate violations (Black/Ruff/Mypy)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>4.1 Story 5-0: UAT Testing Framework</section>
+        <snippet>Foundation story that enables automated validation of all subsequent CLI work. Key deliverables include tests/uat/ directory structure, TmuxSession wrapper, UXAssertion engine, journey tests for Journeys 1-4, and GitHub Actions CI integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>UX Design Specification</title>
+        <section>User Journeys and UAT Assertions</section>
+        <snippet>Defines 7 user journeys with UAT assertions: Journey 1 (First-Time Setup), Journey 2 (Batch Processing), Journey 3 (Semantic Analysis), Journey 4 (Learning Mode), Journey 5 (Preset Configuration), Journey 6 (Error Recovery), Journey 7 (Incremental Batch Updates).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tmux-cli-instructions.md</path>
+        <title>tmux-cli Instructions</title>
+        <section>Core Commands and Workflow</section>
+        <snippet>tmux-cli commands: launch, send, capture, wait_idle, kill, interrupt, escape. Always launch a shell first (zsh) to prevent losing output. Typical workflow: launch shell → send command → wait_idle → capture → kill.</snippet>
+      </doc>
+      <doc>
+        <path>docs/retrospectives/epic-4-retro-2025-11-25.md</path>
+        <title>Epic 4 Retrospective</title>
+        <section>Story 5-0 UAT Framework Strategy</section>
+        <snippet>Strategic decision to add UAT Testing Framework as Story 5-0 (P0 foundation). tmux-cli automation strategy defined for CLI journey validation on every PR.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/app.py</path>
+        <kind>CLI entry point</kind>
+        <symbol>app (Click group)</symbol>
+        <lines>1-303</lines>
+        <reason>Current CLI implementation using Click. UAT tests will validate this CLI's behavior. Note: Click-based, will migrate to Typer in Story 5-1.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/cli/semantic_commands.py</path>
+        <kind>CLI subcommand group</kind>
+        <symbol>semantic (Click group)</symbol>
+        <lines>1-941</lines>
+        <reason>Semantic analysis commands (analyze, deduplicate, cluster, topics). Journey 3 tests will validate these commands with Rich progress output.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/cli/cache_commands.py</path>
+        <kind>CLI subcommand group</kind>
+        <symbol>cache (Click group)</symbol>
+        <lines>1-334</lines>
+        <reason>Cache management commands. Example of existing CLI patterns with Rich formatting.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/test_cli/conftest.py</path>
+        <kind>test fixtures</kind>
+        <symbol>cli_runner, sample_docx_file, invoke_cli_with_flags</symbol>
+        <lines>1-281</lines>
+        <reason>Existing CLI test fixture patterns using Click CliRunner. UAT framework should follow similar fixture patterns but use tmux-cli instead.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/test_cli/test_semantic_commands.py</path>
+        <kind>test module</kind>
+        <symbol>Test* classes</symbol>
+        <reason>Existing semantic CLI tests. Pattern reference for new UAT journey tests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pytest" version=">=8.0.0,&lt;9.0" purpose="Test framework"/>
+        <package name="pytest-cov" version=">=5.0.0,&lt;6.0" purpose="Coverage reporting"/>
+        <package name="click" version=">=8.1.0" purpose="CLI framework (current)"/>
+        <package name="rich" version=">=13.0.0" purpose="Terminal formatting (panels, progress, tables)"/>
+      </python>
+      <system>
+        <tool name="tmux" purpose="Terminal multiplexer for UAT testing"/>
+        <tool name="tmux-cli" install="uv tool install tmux-cli" purpose="CLI control via tmux panes"/>
+      </system>
+      <ci>
+        <platform>GitHub Actions</platform>
+        <runner>ubuntu-latest</runner>
+        <requirement>tmux must be available (pre-installed on Ubuntu runners)</requirement>
+      </ci>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="platform">Windows requires WSL for tmux-cli - tmux is Unix/Linux only</constraint>
+    <constraint type="ci">Ubuntu runner required for GitHub Actions with tmux pre-installed</constraint>
+    <constraint type="framework">Must use tmux-cli via subprocess, not direct tmux API</constraint>
+    <constraint type="output">Must validate Rich component output (panels, progress bars, tables, ANSI colors)</constraint>
+    <constraint type="quality">Black/Ruff/Mypy with 0 violations required (quality gate enforcement)</constraint>
+    <constraint type="performance">Individual journey tests may take 10-30 seconds; use wait_idle not sleep</constraint>
+    <constraint type="timeout">30s default per test, 60s max; 5 minutes per journey in CI</constraint>
+    <constraint type="testing">PII-free fixtures required; deterministic test outputs</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TmuxSession</name>
+      <kind>Python class (context manager)</kind>
+      <signature>
+class TmuxSession:
+    pane_id: str | None = None
+
+    def __enter__(self) -> "TmuxSession": ...
+    def __exit__(self, *args) -> None: ...
+    def launch(self, command: str) -> str: ...
+    def send(self, text: str, enter: bool = True) -> None: ...
+    def capture(self) -> str: ...
+    def wait_idle(self, idle_time: float = 2.0, timeout: float = 60.0) -> None: ...
+    def kill(self) -> None: ...
+      </signature>
+      <path>tests/uat/framework/tmux_wrapper.py (to create)</path>
+    </interface>
+    <interface>
+      <name>UX Assertion Functions</name>
+      <kind>Python module with assertion functions</kind>
+      <signature>
+def assert_panel_displayed(output: str, title: str) -> None: ...
+def assert_progress_bar_shown(output: str) -> None: ...
+def assert_table_rendered(output: str, headers: list[str]) -> None: ...
+def assert_color_present(output: str, color: str) -> None: ...
+def assert_quality_distribution(output: str, categories: list[str]) -> None: ...
+def assert_error_guide_shown(output: str) -> None: ...
+def assert_learning_tip(output: str) -> None: ...
+      </signature>
+      <path>tests/uat/framework/ux_assertions.py (to create)</path>
+    </interface>
+    <interface>
+      <name>tmux-cli Commands</name>
+      <kind>Shell commands (subprocess)</kind>
+      <signature>
+tmux-cli launch "command" → Returns pane ID (e.g., "myapp:1.2")
+tmux-cli send "text" --pane=PANE_ID [--enter=False] [--delay-enter=0.5]
+tmux-cli capture --pane=PANE_ID → Returns pane output string
+tmux-cli wait_idle --pane=PANE_ID [--idle-time=3.0] [--timeout=60]
+tmux-cli kill --pane=PANE_ID
+      </signature>
+      <path>External tool: uv tool install tmux-cli</path>
+    </interface>
+    <interface>
+      <name>data-extract CLI</name>
+      <kind>CLI entry point</kind>
+      <signature>
+data-extract [OPTIONS] COMMAND [ARGS]...
+  process     Process documents to formatted output
+  semantic    Semantic analysis (analyze, deduplicate, cluster, topics)
+  cache       Cache management (status, clear, warm)
+  version     Display version information
+      </signature>
+      <path>src/data_extract/app.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      UAT tests use pytest framework with tmux-cli subprocess integration. Tests launch a zsh shell via tmux-cli, send CLI commands, wait for idle state, capture terminal output (including ANSI codes), and validate Rich components using regex patterns. Test fixtures should be PII-free and deterministic. Quality gates (Black/Ruff/Mypy) must pass with 0 violations. Coverage target >80%.
+    </standards>
+    <locations>
+      <location>tests/uat/ - New UAT test directory (to create)</location>
+      <location>tests/uat/framework/ - TmuxSession and UXAssertion modules</location>
+      <location>tests/uat/journeys/ - Journey test modules</location>
+      <location>tests/uat/fixtures/ - Sample corpus and expected outputs</location>
+      <location>.github/workflows/uat.yaml - CI workflow (to create or update)</location>
+    </locations>
+    <ideas>
+      <idea acRef="AC-5.0-1">Test that tests/uat/ directory structure is valid pytest package</idea>
+      <idea acRef="AC-5.0-2">Test TmuxSession launch returns valid pane ID; test send/capture round-trip; test wait_idle with timeout</idea>
+      <idea acRef="AC-5.0-3">Test assert_panel_displayed detects Rich panels; test ANSI color parsing for green/red/yellow</idea>
+      <idea acRef="AC-5.0-4">Test Journey 1: launch data-extract, verify welcome panel, simulate mode selection</idea>
+      <idea acRef="AC-5.0-5">Test Journey 2: run process command on sample corpus, verify pre-flight panel, progress bar, quality summary</idea>
+      <idea acRef="AC-5.0-6">Test Journey 3: run semantic analyze, verify pipeline stages with timing, quality distribution bars</idea>
+      <idea acRef="AC-5.0-7">Test Journey 4: run with --learn flag, verify educational panels, continue prompts</idea>
+      <idea acRef="AC-5.0-8">Test CI workflow triggers on PR; verify tmux available in runner</idea>
+      <idea acRef="AC-5.0-9">Test sample corpus has 10+ files; verify PDF, DOCX, XLSX present; verify PII-free</idea>
+      <idea acRef="AC-5.0-10">Run Black/Ruff/Mypy on tests/uat/ with 0 violations</idea>
+    </ideas>
+  </tests>
+</story-context>

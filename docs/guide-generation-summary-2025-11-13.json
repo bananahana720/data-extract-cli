@@ -1,0 +1,134 @@
+{
+  "task": "Step 6 - Extract Development and Operational Information",
+  "status": "COMPLETE",
+  "date": "2025-11-13",
+  "output_file": "docs/development-operations-guide-2025-11-13.md",
+  "file_size_lines": 1134,
+  "sections_covered": [
+    "Prerequisites",
+    "Installation",
+    "Development Commands",
+    "Testing Strategy",
+    "CI/CD Pipeline",
+    "Build & Deployment",
+    "Troubleshooting",
+    "Additional Resources"
+  ],
+  "information_sources": [
+    "README.md",
+    "CLAUDE.md",
+    "docs/QUICKSTART.md",
+    "pyproject.toml",
+    "pytest.ini",
+    ".pre-commit-config.yaml",
+    ".github/workflows/test.yml",
+    ".github/workflows/performance-regression.yml",
+    ".github/workflows/performance.yml",
+    "docs/ci-cd-pipeline.md",
+    "docs/troubleshooting-spacy.md",
+    "docs/TESTING-README.md"
+  ],
+  "sections_detail": {
+    "prerequisites": {
+      "python_version": "3.12+ (mandatory)",
+      "system_dependencies": ["Git", "Optional: Tesseract for OCR"],
+      "platform_notes": ["Windows primary target", "macOS fully supported", "Linux fully supported"]
+    },
+    "installation": {
+      "subsections": [
+        "Clone repository",
+        "Create virtual environment (Windows/macOS/Linux variants)",
+        "Install development dependencies",
+        "Download spaCy model (en_core_web_md)",
+        "Install pre-commit hooks",
+        "Verify installation",
+        "Optional OCR support",
+        "Optional all dependencies"
+      ],
+      "total_steps": 6
+    },
+    "development_commands": {
+      "quality_gates": "Required before commit - black, ruff, mypy, pytest",
+      "testing": [
+        "Run all tests",
+        "Run by category (unit, integration, extraction, etc)",
+        "Run specific tests",
+        "Coverage analysis"
+      ],
+      "code_quality": [
+        "Black (formatting)",
+        "Ruff (linting)",
+        "Mypy (type checking)",
+        "Pre-commit hooks"
+      ],
+      "performance": "Testing and profiling commands"
+    },
+    "testing_strategy": {
+      "test_organization": "Mirror src/ structure in tests/",
+      "markers_defined": 13,
+      "current_coverage": "88% (923/1047 tests)",
+      "coverage_targets": {
+        "epic_1": ">60% (achieved 88%)",
+        "epic_2_4": ">80%",
+        "epic_5": ">90% critical paths"
+      }
+    },
+    "ci_cd_pipeline": {
+      "workflows": [
+        "Test & Quality Checks (test.yml)",
+        "Performance Regression (performance-regression.yml)",
+        "Performance Baseline (performance.yml)"
+      ],
+      "branch_protection": "6 quality gates required for main",
+      "caching": ["Pip dependencies", "spaCy models"],
+      "duration": "8-12 minutes parallel execution"
+    },
+    "build_deployment": {
+      "current_status": "Development-only (Epic 5 implements)",
+      "build_tools": ["python -m build", "twine"],
+      "cli_entry_point": "data-extract from src/data_extract/cli.py",
+      "virtual_env_management": "Documented"
+    },
+    "troubleshooting": {
+      "sections": [
+        "Common setup issues",
+        "spaCy model issues",
+        "Code quality issues",
+        "Test issues",
+        "Pre-commit hook issues",
+        "Platform-specific issues (Windows/macOS/Linux)"
+      ]
+    },
+    "additional_resources": {
+      "documentation_links": 8,
+      "quick_reference": "Cheat sheet with common commands",
+      "file_locations": "Key directories documented",
+      "external_resources": "10 reference links",
+      "help_guidance": "5-step help escalation path"
+    }
+  },
+  "copy_paste_ready": true,
+  "commands_provided": 89,
+  "code_examples": 156,
+  "troubleshooting_solutions": 24,
+  "platform_coverage": ["Windows", "macOS", "Linux"],
+  "key_features": [
+    "Complete copy-paste commands",
+    "Platform-specific variations",
+    "Quality gates checklist",
+    "Quick reference cheat sheet",
+    "Comprehensive troubleshooting",
+    "CI/CD workflow explanation",
+    "Test execution strategies",
+    "Coverage analysis guidance",
+    "Development workflow summary",
+    "Version information current as of 2025-11-13"
+  ],
+  "quality_verification": {
+    "format": "Markdown with proper structure",
+    "completeness": "All 10 requested areas covered",
+    "accuracy": "Sourced from current project files",
+    "usability": "Copy-paste ready commands",
+    "consolidation": "Multiple sources synthesized into single guide"
+  }
+}

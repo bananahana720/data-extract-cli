@@ -1,0 +1,52 @@
+# Execute Tests Workflow
+name: execute-tests
+description: "AI-driven test execution with pass/fail/blocked status, tmux-cli integration for CLI tests, and structured result capture"
+author: "BMad"
+
+# Critical variables from config
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Workflow components
+installed_path: "{project-root}/bmad/bmm/workflows/4-implementation/execute-tests"
+template: "{installed_path}/template.md"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Variables and inputs
+variables:
+  test_cases_file: "" # Path to test cases file (from create-test-cases)
+  test_context_file: "" # Path to test context XML (from build-test-context)
+  story_path: "" # Path to story markdown file
+  story_dir: "{config_source}:dev_story_location"
+  test_execution_mode: "hybrid" # Options: automated, manual, hybrid
+  capture_screenshots: false # Whether to capture screenshots for CLI tests
+  continue_on_failure: true # Whether to continue after test failures
+
+# Test execution settings
+execution_settings:
+  pytest_args: "-v --tb=short" # Default pytest arguments
+  pytest_timeout: 300 # Test timeout in seconds (5 minutes)
+  tmux_idle_time: 2.0 # Seconds to wait for CLI idle state
+  tmux_timeout: 60 # Timeout for tmux operations in seconds
+
+# Output configuration
+# Creates test execution results file
+# Example: docs/uat/test-results/2.5-3.1-test-results.md
+default_output_file: "{output_folder}/uat/test-results/{{story_key}}-test-results.md"
+
+standalone: true
+
+# Web bundle configuration
+web_bundle:
+  path: "bmad/bmm/workflows/4-implementation/execute-tests"
+  files:
+    - "workflow.yaml"
+    - "instructions.md"
+    - "template.md"
+    - "checklist.md"
+    - "README.md"

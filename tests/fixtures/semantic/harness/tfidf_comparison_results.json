@@ -1,0 +1,159 @@
+{
+  "total_documents": 10,
+  "passed": 10,
+  "failed": 0,
+  "tolerance": 0.8,
+  "documents": {
+    "audit-report-0001": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0002": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0003": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0004": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0005": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0006": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0007": {
+      "similarity": 0.999857305697863,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 1.0,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0008": {
+      "similarity": 0.9998406011676112,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 0.999,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0009": {
+      "similarity": 0.9998406011676112,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 0.999,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    },
+    "audit-report-0010": {
+      "similarity": 0.9998406011676112,
+      "details": {
+        "overlap_ratio": 1.0,
+        "score_similarity": 0.999,
+        "combined_similarity": 1.0,
+        "common_terms": 10,
+        "gold_terms": 10,
+        "generated_terms": 10,
+        "unique_to_gold": [],
+        "unique_to_generated": [],
+        "passes_tolerance": true
+      },
+      "passed": true
+    }
+  },
+  "average_similarity": 1.0
+}

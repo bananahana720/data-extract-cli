@@ -1,0 +1,317 @@
+{
+  "corpus_name": "semantic-qa-fixtures",
+  "version": "1.0.0",
+  "created_date": "2025-11-18",
+  "story": "3.5-6-semantic-qa-fixtures",
+  "document_count": 55,
+  "total_words": 264025,
+  "average_words_per_doc": 4800,
+  "min_words_per_doc": 4751,
+  "max_words_per_doc": 4833,
+  "document_types": {
+    "audit-reports": {
+      "count": 20,
+      "total_words": 96660,
+      "average_words": 4833
+    },
+    "risk-matrices": {
+      "count": 18,
+      "total_words": 86598,
+      "average_words": 4811
+    },
+    "compliance-docs": {
+      "count": 17,
+      "total_words": 80767,
+      "average_words": 4751
+    }
+  },
+  "quality_attributes": {
+    "pii_sanitized": true,
+    "synthetic_data": true,
+    "entity_patterns": [
+      "RISK-XXX-XX",
+      "CTRL-XXX-XX",
+      "REQ-XXX-XX"
+    ],
+    "domain": "audit-compliance-risk",
+    "language": "English",
+    "readability_level": "Professional"
+  },
+  "documents": [
+    {
+      "id": "audit-report-0001",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0002",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0003",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0004",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0005",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0006",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0007",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0008",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0009",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0010",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0011",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0012",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0013",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0014",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0015",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0016",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0017",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0018",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0019",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "audit-report-0020",
+      "type": "audit",
+      "word_count": 4833
+    },
+    {
+      "id": "risk-matrix-0001",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0002",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0003",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0004",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0005",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0006",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0007",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0008",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0009",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0010",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0011",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0012",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0013",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0014",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0015",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0016",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0017",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "risk-matrix-0018",
+      "type": "risk",
+      "word_count": 4811
+    },
+    {
+      "id": "compliance-doc-0001",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0002",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0003",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0004",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0005",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0006",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0007",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0008",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0009",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0010",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0011",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0012",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0013",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0014",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0015",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0016",
+      "type": "compliance",
+      "word_count": 4751
+    },
+    {
+      "id": "compliance-doc-0017",
+      "type": "compliance",
+      "word_count": 4751
+    }
+  ]
+}

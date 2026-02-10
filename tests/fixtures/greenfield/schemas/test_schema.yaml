@@ -1,0 +1,291 @@
+# BMAD-Approved Test Structure Schema
+# Version: 1.0.0
+# Purpose: Validate test structure for comprehensive coverage
+
+test_structure:
+  metadata:
+    framework: "pytest"
+    python_version: "3.12+"
+    test_runner: "pytest"
+
+  file_organization:
+    location: "tests/"
+    subdirectories:
+      - unit: "Fast, isolated tests"
+      - integration: "Multi-component tests"
+      - performance: "Speed and memory benchmarks"
+      - fixtures: "Shared test data and utilities"
+
+    naming:
+      test_files: "test_*.py or *_test.py"
+      test_classes: "Test{ComponentName}"
+      test_functions: "test_{functionality}_{scenario}"
+
+  required_components:
+    imports:
+      standard:
+        - pytest
+        - unittest.mock
+        - pathlib.Path
+      project_specific:
+        - "Component under test"
+        - "Required dependencies"
+
+    fixtures:
+      scope_levels:
+        - function: "Per test isolation"
+        - class: "Shared within test class"
+        - module: "Shared within file"
+        - session: "Shared across all tests"
+
+      standard_fixtures:
+        - tmp_path: "Temporary directory"
+        - monkeypatch: "Monkey patching"
+        - caplog: "Capture logging"
+        - capsys: "Capture stdout/stderr"
+
+    test_classes:
+      organization:
+        - "Group related tests"
+        - "One class per component"
+        - "Nested classes for sub-components"
+
+      structure:
+        - setup_method: "Per-test setup"
+        - teardown_method: "Per-test cleanup"
+        - fixtures: "Class-scoped fixtures"
+        - test_methods: "Individual test cases"
+
+test_patterns:
+  unit_tests:
+    characteristics:
+      - isolated: "No external dependencies"
+      - fast: "< 100ms per test"
+      - deterministic: "Same result every run"
+      - focused: "Test one thing"
+
+    structure:
+      arrange: "Set up test data"
+      act: "Execute operation"
+      assert: "Verify results"
+
+    required_coverage:
+      - happy_path: "Normal operation"
+      - error_cases: "Exception handling"
+      - edge_cases: "Boundary conditions"
+      - invalid_input: "Validation logic"
+
+  integration_tests:
+    characteristics:
+      - realistic: "Use real components"
+      - end_to_end: "Full workflow"
+      - slower: "< 1s per test"
+
+    requirements:
+      - setup: "Initialize test environment"
+      - execution: "Run complete flow"
+      - validation: "Verify all outputs"
+      - cleanup: "Reset environment"
+
+  performance_tests:
+    metrics:
+      - execution_time: "Latency measurements"
+      - memory_usage: "Peak memory consumption"
+      - throughput: "Operations per second"
+      - scalability: "Performance vs load"
+
+    benchmarks:
+      small_data: "< 1MB processing"
+      medium_data: "1-10MB processing"
+      large_data: "10-100MB processing"
+
+naming_conventions:
+  test_methods:
+    pattern: "test_{method}_{scenario}_{expected}"
+    examples:
+      - test_extract_success
+      - test_extract_error_file_not_found
+      - test_extract_edge_empty_file
+
+  fixtures:
+    pattern: "{scope}_{purpose}"
+    examples:
+      - module_config
+      - session_database
+      - function_temp_file
+
+  markers:
+    categories:
+      - unit
+      - integration
+      - slow
+      - performance
+      - extraction
+      - processing
+      - formatting
+
+assertion_patterns:
+  equality:
+    - "assert result == expected"
+    - "assert actual is expected"
+
+  membership:
+    - "assert item in container"
+    - "assert item not in container"
+
+  truthiness:
+    - "assert condition"
+    - "assert not condition"
+
+  exceptions:
+    - "with pytest.raises(ExceptionType):"
+    - "with pytest.raises(Exception) as exc_info:"
+
+  comparisons:
+    - "assert value > threshold"
+    - "assert len(items) == count"
+
+  types:
+    - "assert isinstance(obj, Type)"
+    - "assert type(obj) is Type"
+
+  approximation:
+    - "assert value == pytest.approx(expected, rel=0.01)"
+
+mock_patterns:
+  creation:
+    - Mock: "Simple mock object"
+    - MagicMock: "Mock with magic methods"
+    - patch: "Replace during test"
+    - patch.object: "Replace object attribute"
+
+  assertions:
+    - assert_called: "Verify was called"
+    - assert_called_once: "Called exactly once"
+    - assert_called_with: "Verify arguments"
+    - assert_not_called: "Verify not called"
+
+  configuration:
+    - return_value: "Set return value"
+    - side_effect: "Set multiple returns or exception"
+    - spec: "Limit to specific interface"
+
+parametrization:
+  decorator: "@pytest.mark.parametrize"
+  patterns:
+    single_parameter:
+      decorator: '@pytest.mark.parametrize("value", [1, 2, 3])'
+      function: "def test_func(value):"
+
+    multiple_parameters:
+      decorator: '@pytest.mark.parametrize("input,expected", [(1, 2), (2, 4)])'
+      function: "def test_func(input, expected):"
+
+    ids:
+      decorator: '@pytest.mark.parametrize("val", [1, 2], ids=["one", "two"])'
+
+coverage_requirements:
+  targets:
+    unit_tests: 90
+    integration_tests: 80
+    overall: 85
+    critical_paths: 95
+
+  exclusions:
+    - "if __name__ == '__main__':"
+    - abstract_methods
+    - pass_statements
+    - type_checking_blocks
+
+  reporting:
+    formats:
+      - term: "Terminal output"
+      - html: "HTML report"
+      - xml: "XML for CI"
+      - json: "JSON for processing"
+
+test_data:
+  fixtures_directory: "tests/fixtures/"
+  organization:
+    - sample_files: "Example input files"
+    - expected_outputs: "Golden standard outputs"
+    - mock_responses: "API/service responses"
+    - test_configs: "Configuration files"
+
+  formats:
+    - json: "Structured data"
+    - yaml: "Configuration"
+    - txt: "Plain text"
+    - csv: "Tabular data"
+    - binary: "PDF, images, etc."
+
+quality_checks:
+  pre_test:
+    - lint: "ruff check tests/"
+    - format: "black tests/"
+    - type_check: "mypy tests/"
+
+  post_test:
+    - coverage: "pytest --cov"
+    - performance: "pytest -m performance"
+    - integration: "pytest -m integration"
+
+  markers:
+    usage: "pytest -m marker_name"
+    skip: "@pytest.mark.skip"
+    xfail: "@pytest.mark.xfail"
+    slow: "@pytest.mark.slow"
+
+common_fixtures:
+  temp_workspace:
+    scope: "function"
+    purpose: "Isolated temporary directory"
+    cleanup: "Automatic"
+
+  mock_config:
+    scope: "module"
+    purpose: "Shared configuration"
+    reset: "Per test"
+
+  sample_data:
+    scope: "session"
+    purpose: "Shared test data"
+    immutable: true
+
+debugging:
+  options:
+    - "-v": "Verbose output"
+    - "-vv": "Very verbose"
+    - "-s": "Show print statements"
+    - "--pdb": "Drop to debugger on failure"
+    - "--lf": "Run last failed"
+    - "--ff": "Run failed first"
+    - "-x": "Stop on first failure"
+    - "--showlocals": "Show local variables"
+
+  tools:
+    - pdb: "Python debugger"
+    - ipdb: "IPython debugger"
+    - pytest-timeout: "Timeout long tests"
+    - pytest-benchmark: "Benchmark performance"
+
+anti_patterns:
+  avoid:
+    - test_dependencies: "Tests depending on other tests"
+    - shared_state: "Mutable shared state between tests"
+    - real_io: "Actual file/network I/O in unit tests"
+    - sleep_calls: "time.sleep() in tests"
+    - random_data: "Non-deterministic test data"
+    - missing_assertions: "Tests without assertions"
+    - overmocking: "Mocking everything"
+    - testing_implementation: "Testing internal details"
+
+best_practices:
+  - one_assertion_per_test: "Or use subtests"
+  - descriptive_names: "Test name describes scenario"
+  - fast_tests: "Optimize for speed"
+  - independent_tests: "Order shouldn't matter"
+  - clean_state: "Reset between tests"
+  - meaningful_failures: "Clear error messages"
+  - test_behavior: "Not implementation"
+  - document_complex: "Add docstrings for complex tests"

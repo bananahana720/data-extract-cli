@@ -1,0 +1,248 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Entity-Aware Chunking with Section Boundary Detection</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-2-entity-aware-chunking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a data scientist preparing enterprise documents for RAG workflows</asA>
+    <iWant>chunks to preserve entity context and align with document sections</iWant>
+    <soThat>LLM retrievals maintain complete entity definitions and structural coherence without fragmenting critical information</soThat>
+    <tasks>
+      <task id="1" title="Create EntityPreserver Component" acs="3.2-1,3.2-4,3.2-5,3.2-6">
+        - Create src/data_extract/chunk/entity_preserver.py
+        - Implement EntityReference dataclass (frozen, Pydantic v2 validated)
+        - Implement EntityPreserver class with analyze_entities(), find_entity_gaps(), detect_entity_relationships()
+        - Type hints and comprehensive docstrings required
+      </task>
+      <task id="2" title="Implement Section Boundary Detection" acs="3.2-7">
+        - Update ChunkingEngine._detect_section_boundaries() in src/data_extract/chunk/engine.py
+        - Remove placeholder implementation
+        - Parse ContentBlocks for type="heading", detect page breaks, regex patterns for structural headings
+        - Build section hierarchy and populate section_context strings
+        - Add fallback for graceful degradation
+      </task>
+      <task id="3" title="Integrate EntityPreserver into ChunkingEngine" acs="3.2-1,3.2-2,3.2-3,3.2-4,3.2-8">
+        - Update ChunkingEngine.__init__ to accept entity_aware parameter (default=True)
+        - Update chunk_document() to use EntityPreserver
+        - Update _generate_chunks() to respect entity boundaries
+        - Maintain streaming generator pattern, ensure determinism
+      </task>
+      <task id="4" title="Update ChunkMetadata with Entity Information" acs="3.2-5,3.2-6,3.2-7">
+        - Add fields to ChunkMetadata: entity_tags, section_context, entity_relationships
+        - Update Chunk.to_dict() to serialize entity_tags
+        - Ensure Pydantic v2 validation handles nested models
+      </task>
+      <task id="5" title="Unit Testing - EntityPreserver" acs="3.2-1,3.2-4,3.2-5,3.2-6">
+        - Create tests/unit/test_chunk/test_entity_preserver.py
+        - Test EntityReference creation, analyze_entities(), find_entity_gaps(), detect_entity_relationships()
+        - Test determinism, edge cases (overlapping entities, document boundaries)
+        - Achieve &gt;90% coverage for entity_preserver.py
+      </task>
+      <task id="6" title="Unit Testing - Section Boundary Detection" acs="3.2-7">
+        - Create tests/unit/test_chunk/test_section_detection.py
+        - Test _detect_section_boundaries() with various section types
+        - Test section hierarchy, breadcrumb generation, graceful degradation
+        - Use synthetic fixtures with various section patterns
+      </task>
+      <task id="7" title="Integration Testing - Entity-Aware Chunking" acs="3.2-1,3.2-2,3.2-3,3.2-4,3.2-7">
+        - Create tests/integration/test_chunk/test_entity_aware_chunking.py
+        - Create tests/integration/test_chunk/test_section_boundaries.py
+        - Test end-to-end entity preservation (&gt;95% rate), partial entity flagging, relationship preservation
+        - Test section-aware chunking with real multi-section documents
+        - Use fixtures from tests/fixtures/entity_rich_documents/
+      </task>
+      <task id="8" title="Integration Testing - Determinism" acs="3.2-8">
+        - Update tests/unit/test_chunk/test_determinism.py
+        - Test entity-aware chunking determinism (10 runs, byte-for-byte comparison)
+        - Test entity analysis order, relationship detection order, section detection determinism
+        - Ensure 100% reproducibility
+      </task>
+      <task id="9" title="Documentation and Validation" acs="all">
+        - Update CLAUDE.md with EntityPreserver usage patterns, entity-aware chunking config
+        - Update docs/architecture.md: Amend ADR-011 with entity-aware and section detection decisions
+        - Update docs/performance-baselines-epic-3.md with entity/section overhead baselines
+        - Run all quality gates (black, ruff, mypy, pytest)
+        - Validate all 8 ACs end-to-end
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="3.2-1" priority="P0" uatRequired="true">
+      <title>Entity Mentions Kept Within Single Chunks When Possible</title>
+      <description>EntityPreserver analyzes entity boundaries before chunk generation. Chunk splits prefer gaps between entities rather than within entity text spans. Target: &gt;95% of entities remain intact within single chunks (not split). If entity too large (&gt;chunk_size), handled gracefully (entire entity definition becomes single chunk, flagged).</description>
+      <validation>Integration tests with entity-rich documents (risk registers, policy documents, control catalogs)</validation>
+    </ac>
+    <ac id="3.2-2" priority="P0" uatRequired="true">
+      <title>Entities Split Across Chunks Noted in Metadata</title>
+      <description>When entity span exceeds chunk boundary, both chunks receive partial entity flag. ChunkMetadata.entity_tags includes is_partial=True for split entities. Partial entity includes continuation flag: "entity_continued_from_previous" or "entity_continues_in_next". Cross-reference to adjacent chunk IDs in metadata.</description>
+      <validation>Unit tests with forced entity splits, integration tests with very long entity definitions</validation>
+    </ac>
+    <ac id="3.2-3" priority="P0" uatRequired="true">
+      <title>Relationship Context Preserved</title>
+      <description>Entity relationship patterns detected (e.g., "RISK-001 mitigated by CTRL-042"). Chunks include both entities when relationship span &lt; chunk_size. Relationship triples (entity1, relation, entity2) tracked in chunk metadata. If relationship spans multiple chunks, relationship context preserved via metadata links.</description>
+      <validation>Integration tests with relationship-rich documents (risk-control mappings, policy-requirement links)</validation>
+    </ac>
+    <ac id="3.2-4" priority="P0" uatRequired="true">
+      <title>Chunk Boundaries Avoid Splitting Entity Definitions</title>
+      <description>Entity definition detection: Multi-sentence entities (e.g., "Risk X: Description spanning 3 sentences"). Chunk boundaries placed after entity definitions complete (before next entity starts). If entity definition &gt; chunk_size, definition becomes single chunk with warning logged.</description>
+      <validation>Unit tests with multi-sentence entity definitions, integration tests with audit documents</validation>
+    </ac>
+    <ac id="3.2-5" priority="P1" uatRequired="false">
+      <title>Cross-References Maintained with Entity IDs</title>
+      <description>All entity mentions include entity_id from Epic 2 normalization. Entity IDs enable cross-chunk lookups (find all chunks mentioning "RISK-2024-001"). ChunkMetadata.entity_tags includes entity_id, entity_type, start_pos, end_pos. Duplicate entity mentions within same chunk deduplicated (one entry per unique entity_id).</description>
+      <validation>Unit tests for entity ID propagation, integration tests for cross-chunk entity search</validation>
+    </ac>
+    <ac id="3.2-6" priority="P1" uatRequired="false">
+      <title>Entity Tags in Chunk Metadata</title>
+      <description>ChunkMetadata.entity_tags populated with EntityReference objects for all entities in chunk. EntityReference fields: entity_type (str), entity_id (str), start_pos (int), end_pos (int), is_partial (bool), context_snippet (str). Entity tags serializable to JSON for output formats (Story 3.4). Empty entity_tags list if no entities in chunk (not null).</description>
+      <validation>Unit tests for metadata population, schema validation</validation>
+    </ac>
+    <ac id="3.2-7" priority="P0" uatRequired="true">
+      <title>Section Boundaries Respected (Deferred from AC-3.1-2)</title>
+      <description>IMPLEMENTS DEFERRED AC-3.1-2 FROM STORY 3.1. Chunking algorithm detects section markers (headings, page breaks, structural boundaries). Section detection sources: 1) ContentBlocks with type="heading" from Epic 2 extraction, 2) Page break markers from PDF extraction, 3) Structural patterns (e.g., "### Section Title", "1.2.3 Heading"). Chunks align with section boundaries when chunk_size permits. If section too large, split at sentence boundaries within section (maintain AC-3.1-1). Section context preserved in ChunkMetadata.section_context (e.g., "Risk Assessment &gt; Identified Risks").</description>
+      <validation>Integration tests with multi-section documents (policies, SOC2 reports, risk registers with sections)</validation>
+    </ac>
+    <ac id="3.2-8" priority="P0" uatRequired="true">
+      <title>Determinism Maintained</title>
+      <description>Same ProcessingResult input always produces identical chunks (byte-for-byte comparison). Entity-aware chunking is deterministic (no randomness in boundary decisions). Entity analysis performed in consistent order (sorted by start_pos). Reproducibility validated via automated tests (10 runs, diffs outputs).</description>
+      <validation>Determinism test runs same entity-rich document 10 times, diffs outputs</validation>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-3.md" title="Epic 3 Technical Specification" section="Section 2.2 - Core Services and Modules">
+        ChunkingEngine design with semantic boundary-aware chunking using spaCy sentence segmentation. Generator-based streaming for memory efficiency. EntityPreserver component for entity-aware boundary detection.
+      </doc>
+      <doc path="docs/tech-spec-epic-3.md" title="Epic 3 Technical Specification" section="Section 2.3 - Data Models">
+        Chunk data model (frozen dataclass): text, metadata, position, token_count, source_block_id. EntityReference model for tracking entity mentions within chunks. Section context breadcrumb format.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Overview" section="ADR-011 - Semantic Boundary-Aware Chunking">
+        ChunkingEngine respects sentence boundaries (never splits mid-sentence). Uses SentenceSegmenter with spaCy en_core_web_md model. Generator-based streaming for constant memory usage. Story 3.2 extends with entity-aware chunking and section detection.
+      </doc>
+      <doc path="docs/stories/3-1-semantic-boundary-aware-chunking-engine.md" title="Story 3.1" section="Dev Notes - Learnings">
+        ChunkingEngine operational with 81/81 tests passing. AC-3.1-2 (section boundary detection) deferred to Story 3.2. Placeholder at engine.py:252-281 returns empty list. Streaming generator pattern, dependency injection, deterministic chunk IDs established.
+      </doc>
+      <doc path="docs/performance-baselines-epic-3.md" title="Epic 3 Performance Baselines" section="Story 3.1 Baselines">
+        Chunking latency: ~0.19s per 1,000 words (linear scaling, 3.0s for 10k words). Memory: 255 MB peak for 10k-word document. spaCy model load: &lt;0.005s cached. Story 3.2 targets: entity analysis overhead &lt;0.3s per 10k words, section detection &lt;0.1s per document.
+      </doc>
+      <doc path="CLAUDE.md" title="Project Development Guide" section="Epic 3: Chunking Engine">
+        ChunkingEngine usage patterns, configuration options (chunk_size, overlap_pct), streaming generator pattern. Quality gates workflow (black, ruff, mypy from project root). Key anti-patterns from Epic 2 learnings.
+      </doc>
+      <doc path="docs/index.md" title="Documentation Master Index" section="Testing &amp; Validation">
+        Test infrastructure organization, markers (unit, integration, performance, chunking), UAT framework (4-stage pipeline: create-test-cases → build-test-context → execute-tests → review-uat-results).
+      </doc>
+    </docs>
+    <code>
+      <artifact path="src/data_extract/chunk/engine.py" kind="module" symbol="ChunkingEngine" lines="1-500" reason="Core chunking engine to be extended with EntityPreserver integration and section detection (Task 2, 3)">
+        ChunkingEngine class with chunk_document() method (streaming generator), _detect_section_boundaries() placeholder (line 252-281) to be implemented, _generate_chunks() to be updated for entity boundaries.
+      </artifact>
+      <artifact path="src/data_extract/chunk/models.py" kind="module" symbol="ChunkMetadata" lines="all" reason="ChunkMetadata model to be extended with entity_tags, section_context, entity_relationships fields (Task 4)">
+        Currently re-exports Chunk and Metadata from core. ChunkMetadata is temporary alias for Metadata. Will be implemented in Story 3.2 for entity metadata enrichment.
+      </artifact>
+      <artifact path="src/data_extract/chunk/sentence_segmenter.py" kind="module" symbol="SentenceSegmenter" lines="all" reason="Sentence boundary detection reused from Story 2.5.2, integrated in ChunkingEngine">
+        SentenceSegmenter wraps spaCy en_core_web_md model for sentence segmentation. Lazy-loaded, cached globally. Used by ChunkingEngine for semantic boundary detection.
+      </artifact>
+      <artifact path="src/data_extract/core/models.py" kind="module" symbol="Entity" lines="88-117" reason="Entity model from Epic 2 normalization, source for EntityPreserver analysis">
+        Entity model: type (EntityType enum), id (canonical identifier), text (content), confidence (0.0-1.0), location (start/end character indices). Provided by Epic 2 ProcessingResult.
+      </artifact>
+      <artifact path="src/data_extract/core/models.py" kind="module" symbol="Metadata" lines="119-180" reason="Metadata model with entity_tags field, template for ChunkMetadata extension">
+        Metadata includes entity_tags (canonical entity IDs), entity_counts (by type), quality_scores, quality_flags. ChunkMetadata will extend this for chunk-specific metadata.
+      </artifact>
+      <artifact path="tests/unit/test_chunk/test_determinism.py" kind="test" symbol="test_determinism" lines="all" reason="Determinism tests to be extended with entity-aware chunking (Task 8)">
+        Existing determinism tests for Story 3.1 chunking. Need to add entity-aware chunking determinism (10 runs, byte-for-byte comparison), entity analysis order tests.
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="spacy" version="&gt;=3.7.2,&lt;4.0" reason="Sentence boundary detection (Story 2.5.2), en_core_web_md model required" />
+        <package name="pydantic" version="&gt;=2.0.0,&lt;3.0" reason="Data models with validation (EntityReference, ChunkMetadata)" />
+        <package name="pytest" version="&gt;=8.0.0,&lt;9.0" reason="Testing framework with markers (unit, integration, performance)" />
+        <package name="black" version="&gt;=24.0.0,&lt;25.0" reason="Code formatting (100 char lines, Python 3.12 target)" />
+        <package name="ruff" version="&gt;=0.6.0,&lt;0.7" reason="Linting and import sorting" />
+        <package name="mypy" version="&gt;=1.11.0,&lt;2.0" reason="Static type checking (strict mode, run from project root)" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Maintain streaming generator pattern from Story 3.1 - ChunkingEngine.chunk_document() returns Iterator[Chunk], not List[Chunk]. No buffering entire document in memory.</constraint>
+    <constraint type="architecture">Immutable data models - EntityReference must be @dataclass(frozen=True) consistent with Chunk, ChunkMetadata pattern established in Epic 2.</constraint>
+    <constraint type="architecture">Dependency injection pattern - EntityPreserver injected via ChunkingEngine constructor, same pattern as SentenceSegmenter in Story 3.1.</constraint>
+    <constraint type="performance">Entity analysis overhead must be &lt;0.3s per 10,000 words to meet NFR-P3 total chunking latency &lt;3.3s (Story 3.1 baseline 3.0s + 0.3s entity overhead).</constraint>
+    <constraint type="performance">Section detection overhead must be &lt;0.1s per document. Use cached regex patterns, avoid repeated spaCy processing.</constraint>
+    <constraint type="performance">Memory usage must remain &lt;500MB for individual documents (Story 3.1 baseline 255MB, allow headroom for entity analysis).</constraint>
+    <constraint type="quality">All code must pass quality gates with 0 violations: black (100 char lines), ruff (all rules), mypy strict mode (run from project root, not subdirectory).</constraint>
+    <constraint type="quality">Coverage target &gt;90% for entity_preserver.py module, &gt;80% for Epic 3 overall (updated from Story 3.1 baseline).</constraint>
+    <constraint type="testing">Mirror src/ structure exactly - tests/unit/test_chunk/ matches src/data_extract/chunk/, tests/integration/test_chunk/ for end-to-end.</constraint>
+    <constraint type="testing">Use pytest markers consistently: -m unit (fast isolated), -m integration (multi-component), -m performance (NFR validation), -m chunking (all chunk tests), -m entity_aware (new for Story 3.2).</constraint>
+    <constraint type="determinism">100% reproducibility required - same ProcessingResult input must produce identical chunks (byte-for-byte). Entity analysis sorted by start_pos, relationship detection uses fixed pattern order, section detection deterministic regex.</constraint>
+    <constraint type="compatibility">Files to MODIFY (not recreate): engine.py, models.py, test_determinism.py. Files to CREATE: entity_preserver.py, test_entity_preserver.py, test_section_detection.py, test_entity_aware_chunking.py, test_section_boundaries.py.</constraint>
+    <constraint type="deferral">AC-3.1-2 from Story 3.1 deferred to this story - section boundary detection must be implemented, placeholder at engine.py:252-281 must be replaced with full implementation.</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="EntityPreserver.analyze_entities" kind="method" signature="analyze_entities(text: str, entities: List[Entity]) -&gt; List[EntityReference]">
+      <path>src/data_extract/chunk/entity_preserver.py</path>
+      <description>Analyzes entity boundaries from Epic 2 Entity list, builds EntityReference map sorted by start_pos for determinism, extracts context snippets.</description>
+    </interface>
+    <interface name="EntityPreserver.find_entity_gaps" kind="method" signature="find_entity_gaps(entities: List[EntityReference], text: str) -&gt; List[int]">
+      <path>src/data_extract/chunk/entity_preserver.py</path>
+      <description>Identifies text positions between entities (safe split zones) for chunk boundary planning. Returns list of character offsets.</description>
+    </interface>
+    <interface name="EntityPreserver.detect_entity_relationships" kind="method" signature="detect_entity_relationships(text: str, entities: List[EntityReference]) -&gt; List[Tuple[str, str, str]]">
+      <path>src/data_extract/chunk/entity_preserver.py</path>
+      <description>Pattern matching for relationship keywords (mitigated by, maps to, implements, addresses). Returns triples: (entity1_id, relation_type, entity2_id).</description>
+    </interface>
+    <interface name="ChunkingEngine._detect_section_boundaries" kind="method" signature="_detect_section_boundaries(document: ProcessingResult) -&gt; List[int]">
+      <path>src/data_extract/chunk/engine.py</path>
+      <description>Detects section markers (ContentBlocks type=heading, page breaks, structural patterns). Maps section start positions to sentence indices. Returns list of sentence indices where sections begin. Currently placeholder (returns empty list), must be implemented in Task 2.</description>
+    </interface>
+    <interface name="EntityReference" kind="dataclass" signature="@dataclass(frozen=True) EntityReference">
+      <path>src/data_extract/chunk/entity_preserver.py</path>
+      <description>Immutable entity reference with fields: entity_type (str), entity_id (str), start_pos (int), end_pos (int), is_partial (bool), context_snippet (str). Includes to_dict() for JSON serialization. Pydantic v2 validated.</description>
+    </interface>
+    <interface name="ChunkMetadata.entity_tags" kind="field" signature="entity_tags: List[EntityReference] = field(default_factory=list)">
+      <path>src/data_extract/chunk/models.py</path>
+      <description>List of EntityReference objects for all entities in chunk. Empty list if no entities (not null). Must be serializable to JSON via Chunk.to_dict().</description>
+    </interface>
+    <interface name="ChunkMetadata.section_context" kind="field" signature="section_context: str = ''">
+      <path>src/data_extract/chunk/models.py</path>
+      <description>Section hierarchy breadcrumb (e.g., 'Risk Assessment &gt; Identified Risks'). Empty string if no section context. Deferred from AC-3.1-2, implemented in Story 3.2.</description>
+    </interface>
+    <interface name="ChunkMetadata.entity_relationships" kind="field" signature="entity_relationships: List[Tuple[str, str, str]] = field(default_factory=list)">
+      <path>src/data_extract/chunk/models.py</path>
+      <description>Relationship triples from EntityPreserver.detect_entity_relationships(). Format: (entity1_id, relation_type, entity2_id). Empty list if no relationships.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Testing follows pytest framework with markers for selective execution. All tests mirror src/ structure exactly (tests/unit/test_chunk/ matches src/data_extract/chunk/). Use frozen dataclasses for test fixtures to ensure immutability. Pydantic v2 validation tested for all models. Quality gates enforced: black (100 char), ruff (all rules), mypy strict mode (from project root). Coverage: &gt;90% for entity_preserver.py, &gt;80% Epic 3 overall. Integration tests use real ProcessingResult fixtures from tests/fixtures/normalized_results/. Performance tests validate NFR-P3 (chunking latency &lt;3.3s per 10k words with entity overhead). Determinism tests run 10 iterations with byte-for-byte diff comparison.
+    </standards>
+    <locations>
+      <location>tests/unit/test_chunk/ - Unit tests mirroring src/data_extract/chunk/ structure</location>
+      <location>tests/integration/test_chunk/ - Integration tests for end-to-end chunking workflows</location>
+      <location>tests/performance/test_chunk/ - Performance benchmarks for NFR validation</location>
+      <location>tests/fixtures/normalized_results/ - ProcessingResult fixtures from Epic 2</location>
+      <location>tests/fixtures/entity_rich_documents/ - NEW: Entity-rich fixtures (risk registers, policies) for Story 3.2</location>
+    </locations>
+    <ideas>
+      <idea ac="3.2-1">Test EntityReference creation with various entity types (risk, control, policy, process). Test analyze_entities() sorts by start_pos for determinism. Test context snippet extraction (±20 chars around entity).</idea>
+      <idea ac="3.2-1">Integration test: Entity preservation rate &gt;95% with real risk register document (100+ entities). Measure entities intact vs. split across chunks.</idea>
+      <idea ac="3.2-2">Test partial entity flagging: Force entity split by using very small chunk_size, verify is_partial=True in metadata, check continuation flags (entity_continued_from_previous, entity_continues_in_next).</idea>
+      <idea ac="3.2-3">Test relationship detection: Create fixture with 'RISK-001 mitigated by CTRL-042' pattern, verify relationship triple captured in metadata. Test multiple relationship types (mitigated by, maps to, implements, addresses).</idea>
+      <idea ac="3.2-4">Test multi-sentence entity definitions: Entity with 3-sentence description, verify chunk boundary placed after complete definition. Test entity definition &gt; chunk_size becomes single chunk with warning logged.</idea>
+      <idea ac="3.2-5">Test entity ID propagation: ProcessingResult with entities → Chunks with entity_tags containing entity_ids. Test cross-chunk entity search (find all chunks mentioning RISK-2024-001).</idea>
+      <idea ac="3.2-6">Test ChunkMetadata.entity_tags schema validation: EntityReference with all fields populated, test to_dict() serialization, test Pydantic validation catches invalid entity_type.</idea>
+      <idea ac="3.2-7">Test section detection with ContentBlocks type=heading. Test regex patterns (### Title, 1.2.3 Heading). Test section hierarchy breadcrumbs (Parent &gt; Child &gt; Grandchild). Test graceful degradation (no sections → empty list).</idea>
+      <idea ac="3.2-8">Determinism test: Same ProcessingResult with entities → run chunk_document() 10 times → byte-for-byte diff all outputs → assert 0 differences. Test entity analysis order (sorted start_pos), relationship detection order (fixed patterns).</idea>
+      <idea ac="all">Performance test: 10k-word document with 50 entities → measure entity analysis overhead (target &lt;0.3s), section detection overhead (target &lt;0.1s), total latency (target &lt;3.3s).</idea>
+    </ideas>
+  </tests>
+</story-context>

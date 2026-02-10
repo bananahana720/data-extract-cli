@@ -1,0 +1,214 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>3.5-8</storyId>
+    <title>Dependency Auditor &amp; Test Generator Automation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-8-dependency-test-automation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer working with complex test suites</asA>
+    <iWant>automated dependency auditing and test generation from story specifications</iWant>
+    <soThat>test dependencies are always accurate and test coverage is comprehensive from the start</soThat>
+    <tasks>
+      - Task 1: Core implementation (AC: 1-3) - Create scripts/audit_dependencies.py with argparse CLI
+      - Task 2: Reporting &amp; caching (AC: 4-6) - Generate JSON and markdown reports
+      - Task 3: Story parsing (AC: 7-8) - Create scripts/generate_tests.py
+      - Task 4: Fixtures &amp; markers (AC: 9-11) - Create fixture generation logic
+      - Task 5: Hook integration (AC: 12-13) - Add pre-commit hook configurations
+      - Task 6: Quality &amp; documentation (AC: 14) - Write comprehensive unit tests
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criteria id="AC-1">Import scanning: Script scans all test files in tests/ for import statements and extracts package dependencies</criteria>
+    <criteria id="AC-2">Cross-reference validation: Compares discovered imports with dependencies in pyproject.toml [test] section</criteria>
+    <criteria id="AC-3">Missing dependency detection: Identifies and reports packages used in tests but not declared in pyproject.toml</criteria>
+    <criteria id="AC-4">Report generation: Creates dependency audit report in JSON/markdown format with recommendations</criteria>
+    <criteria id="AC-5">Documentation updates: Automatically updates test dependency documentation in appropriate location</criteria>
+    <criteria id="AC-6">Performance optimization: Caches dependency analysis for files that haven't changed (mtime-based)</criteria>
+    <criteria id="AC-7">Story parsing: Parses story markdown files to extract acceptance criteria using regex/markdown parser</criteria>
+    <criteria id="AC-8">Test stub generation: Creates test file with one test function per AC, properly named and documented</criteria>
+    <criteria id="AC-9">Fixture creation: Generates fixture files in tests/fixtures/ with sample data structures based on story</criteria>
+    <criteria id="AC-10">Performance test templates: Includes performance test template when NFR requirements detected in story</criteria>
+    <criteria id="AC-11">Test markers: Adds appropriate pytest markers (unit, integration, etc.) based on AC type</criteria>
+    <criteria id="AC-12">Pre-commit integration: Both scripts integrate with pre-commit hooks for validation on commit</criteria>
+    <criteria id="AC-13">CI/CD integration: Scripts run in CI pipeline to validate dependencies and test coverage</criteria>
+    <criteria id="AC-14">Quality gates: All scripts pass black/ruff/mypy with 0 violations, &gt;80% test coverage</criteria>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <document>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification</title>
+        <section>Story 3.5.1, 3.5.3</section>
+        <snippet>Story/Review Template Generator and Test Dependency Audit Documentation are related work in Epic 3.5</snippet>
+      </document>
+      <document>
+        <path>docs/research/script-automation-recommendations.md</path>
+        <title>Script Automation Recommendations</title>
+        <section>P1 Scripts #4 and #5</section>
+        <snippet>Detailed specifications for Dependency Auditor and Test Generator scripts with implementation guidance</snippet>
+      </document>
+      <document>
+        <path>docs/processes/test-dependency-audit.md</path>
+        <title>Test Dependency Audit Process</title>
+        <section>Full document</section>
+        <snippet>Comprehensive process for dependency auditing including checklist, smoke tests, and CI/CD integration patterns</snippet>
+      </document>
+      <document>
+        <path>docs/automation-guide.md</path>
+        <title>Development Automation Guide</title>
+        <section>P0 Scripts</section>
+        <snippet>Existing automation scripts including quality gates runner, story template generator, and session initializer</snippet>
+      </document>
+    </docs>
+    <code>
+      <artifact>
+        <path>scripts/check_dependency_changes.py</path>
+        <kind>script</kind>
+        <symbol>check_dependency_changes</symbol>
+        <lines>1-120</lines>
+        <reason>Existing pre-commit hook for dependency change detection - good reference for new auditor</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/generate_story_template.py</path>
+        <kind>script</kind>
+        <symbol>generate_story_template</symbol>
+        <lines>full</lines>
+        <reason>P0 script for story generation - reference for test generator's story parsing logic</reason>
+      </artifact>
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>config</kind>
+        <symbol>dependencies, dev dependencies</symbol>
+        <lines>36-92</lines>
+        <reason>Current dependency configuration that auditor will cross-reference</reason>
+      </artifact>
+      <artifact>
+        <path>tests/conftest.py</path>
+        <kind>test</kind>
+        <symbol>pytest fixtures</symbol>
+        <lines>full</lines>
+        <reason>Existing test fixture patterns to follow for fixture generation</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/extract/adapter.py</path>
+        <kind>module</kind>
+        <symbol>ExtractorAdapter</symbol>
+        <lines>71-end</lines>
+        <reason>Base adapter pattern for understanding project architecture</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>ast</package>
+        <version>stdlib</version>
+        <reason>For parsing Python import statements in dependency auditor</reason>
+      </python>
+      <python>
+        <package>argparse</package>
+        <version>stdlib</version>
+        <reason>CLI interface for both scripts</reason>
+      </python>
+      <python>
+        <package>pathlib</package>
+        <version>stdlib</version>
+        <reason>File system operations and path handling</reason>
+      </python>
+      <python>
+        <package>json</package>
+        <version>stdlib</version>
+        <reason>JSON report generation</reason>
+      </python>
+      <python>
+        <package>re</package>
+        <version>stdlib</version>
+        <reason>Regex for story parsing and AC extraction</reason>
+      </python>
+      <python>
+        <package>toml</package>
+        <version>&gt;=0.10.0</version>
+        <reason>Parsing pyproject.toml for dependency comparison</reason>
+      </python>
+      <python>
+        <package>pytest</package>
+        <version>&gt;=8.0.0</version>
+        <reason>Testing framework - for markers and fixture patterns</reason>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must follow existing script patterns from P0 scripts (quality gates, story generator)</constraint>
+    <constraint>Scripts must pass black/ruff/mypy with 0 violations per Epic 3.5 quality standards</constraint>
+    <constraint>Must integrate with existing pre-commit hooks without breaking current workflow</constraint>
+    <constraint>Cache implementation must be file-based using mtime for change detection</constraint>
+    <constraint>Generated tests must follow existing test structure mirroring src/ layout</constraint>
+    <constraint>Must maintain &gt;80% test coverage for new code</constraint>
+    <constraint>Performance: Dependency audit should complete in &lt;5 seconds for entire test suite</constraint>
+    <constraint>Generated fixtures must follow patterns from tests/fixtures/</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>scripts/audit_dependencies.py</name>
+      <kind>CLI script</kind>
+      <signature>python scripts/audit_dependencies.py [--output json|markdown] [--cache-dir .cache] [--update-docs]</signature>
+      <path>scripts/audit_dependencies.py</path>
+    </interface>
+    <interface>
+      <name>scripts/generate_tests.py</name>
+      <kind>CLI script</kind>
+      <signature>python scripts/generate_tests.py --story docs/stories/X-Y-Z.md [--output tests/] [--markers auto]</signature>
+      <path>scripts/generate_tests.py</path>
+    </interface>
+    <interface>
+      <name>Pre-commit hook</name>
+      <kind>Git hook</kind>
+      <signature>.pre-commit-config.yaml entry for dependency audit</signature>
+      <path>.pre-commit-config.yaml</path>
+    </interface>
+    <interface>
+      <name>CI/CD workflow</name>
+      <kind>GitHub Actions</kind>
+      <signature>.github/workflows/test.yml step for dependency validation</signature>
+      <path>.github/workflows/test.yml</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Follow pytest conventions with descriptive test names. Use pytest markers (unit, integration) appropriately.
+      Include parametrized tests for different scenarios. Mock file system operations in unit tests.
+      Integration tests should use real test files from tests/ directory. Performance tests should validate
+      that audit completes in &lt;5 seconds. All tests must pass black/ruff/mypy validation.
+    </standards>
+    <locations>
+      <location>tests/test_audit_dependencies.py</location>
+      <location>tests/test_generate_tests.py</location>
+      <location>tests/integration/test_dependency_audit_integration.py</location>
+      <location>tests/integration/test_test_generator_integration.py</location>
+    </locations>
+    <ideas>
+      <idea criteria="AC-1">Test that import scanner correctly identifies all import types (import X, from X import Y, etc.)</idea>
+      <idea criteria="AC-2">Test cross-reference with mock pyproject.toml containing various dependency formats</idea>
+      <idea criteria="AC-3">Test detection of missing dependencies with known test case</idea>
+      <idea criteria="AC-4">Test JSON and markdown report generation formats are valid and complete</idea>
+      <idea criteria="AC-5">Test documentation update mechanism with mock file writes</idea>
+      <idea criteria="AC-6">Test cache hit/miss scenarios based on file mtime changes</idea>
+      <idea criteria="AC-7">Test story parsing with various markdown formats and edge cases</idea>
+      <idea criteria="AC-8">Test generated test stub has correct structure and naming</idea>
+      <idea criteria="AC-9">Test fixture generation creates valid Python data structures</idea>
+      <idea criteria="AC-10">Test NFR detection triggers performance test template inclusion</idea>
+      <idea criteria="AC-11">Test correct pytest markers are applied based on AC keywords</idea>
+      <idea criteria="AC-12">Test pre-commit hook configuration is valid YAML</idea>
+      <idea criteria="AC-13">Test CI/CD workflow integration doesn't break existing pipeline</idea>
+      <idea criteria="AC-14">Test that generated scripts pass quality gates</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,378 @@
+# Entity Recognition Patterns Configuration
+# ==========================================
+# This file defines patterns for recognizing audit domain entities.
+# Used by EntityNormalizer class in src/data_extract/normalize/entities.py
+#
+# Schema Version: 1.0
+# Story: 2.2 - Entity Normalization for Audit Domain
+# AC: 2.2.1 (entity recognition), 2.2.7 (configurable rules)
+
+# Entity Types (6 audit domain types per AC-2.2.1)
+# ------------------------------------------------
+# - process: Business or operational processes
+# - risk: Identified risks or risk factors
+# - control: Control measures or procedures
+# - regulation: Regulatory requirements or standards
+# - policy: Organizational policies or guidelines
+# - issue: Identified issues, findings, or audit observations
+
+# Pattern Structure:
+# ------------------
+# Each pattern includes:
+# - pattern: Regex pattern for matching (Python regex syntax)
+# - description: Human-readable description
+# - priority: Matching priority (1 = highest, lower numbers match first)
+# - context_required: Whether surrounding context is needed for disambiguation
+# - context_keywords: Keywords that must appear within ±5 words for match
+# - id_formats: Supported ID format patterns for this entity type
+
+# Process Entity Patterns (AC-2.2.1)
+# -----------------------------------
+processes:
+  - pattern: '\b(process|Process|PROCESS)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Process with ID (Process #123, process-456, PROCESS: 789)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'PROC-\d{1,5}'
+      - 'P-\d{1,5}'
+      - 'Process-\d{1,5}'
+
+  - pattern: '\b(business\s+process|operational\s+process)\b'
+    description: "Descriptive process mentions"
+    priority: 2
+    context_required: true
+    context_keywords: ['manage', 'execute', 'perform', 'workflow', 'procedure', 'step']
+
+  - pattern: '\b(workflow|procedure)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Process aliases (workflow, procedure)"
+    priority: 3
+    context_required: false
+    id_formats:
+      - 'WF-\d{1,5}'
+      - 'PROC-\d{1,5}'
+
+  # Archer-specific process patterns
+  - pattern: '\b(Archer\s+)?Process\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform process IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-PROC-\d{1,6}'
+
+# Risk Entity Patterns (AC-2.2.1)
+# --------------------------------
+risks:
+  - pattern: '\b(risk|Risk|RISK)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Risk with ID (Risk #123, risk-456, RISK: 789)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'RISK-\d{1,5}'
+      - 'R-\d{1,5}'
+      - 'Risk-\d{1,5}'
+
+  - pattern: '\b(inherent\s+risk|residual\s+risk|operational\s+risk|strategic\s+risk|compliance\s+risk|financial\s+risk)\b'
+    description: "Risk type descriptors"
+    priority: 2
+    context_required: true
+    context_keywords: ['assess', 'identify', 'mitigate', 'manage', 'exposure', 'threat', 'impact', 'likelihood']
+
+  - pattern: '\b(high|medium|low|critical)\s+risk\b'
+    description: "Risk severity mentions"
+    priority: 3
+    context_required: false
+
+  # Archer-specific risk patterns
+  - pattern: '\b(Archer\s+)?Risk\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform risk IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-RISK-\d{1,6}'
+
+  - pattern: '\b(R|RISK)[-_](\d{4,6})\b'
+    description: "Archer compressed risk format (R-123456)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-RISK-\d{4,6}'
+
+# Control Entity Patterns (AC-2.2.1)
+# -----------------------------------
+controls:
+  - pattern: '\b(control|Control|CONTROL)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Control with ID (Control #123, control-456, CONTROL: 789)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'CTRL-\d{1,5}'
+      - 'C-\d{1,5}'
+      - 'Control-\d{1,5}'
+
+  - pattern: '\b(preventive|detective|corrective)\s+control\b'
+    description: "Control type descriptors"
+    priority: 2
+    context_required: false
+
+  - pattern: '\b(access\s+control|security\s+control|internal\s+control|compensating\s+control)\b'
+    description: "Control category mentions"
+    priority: 2
+    context_required: true
+    context_keywords: ['implement', 'test', 'validate', 'design', 'operate', 'effectiveness', 'deficiency']
+
+  # Archer-specific control patterns
+  - pattern: '\b(Archer\s+)?Control\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform control IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-CTRL-\d{1,6}'
+
+  - pattern: '\b(C|CTRL|CTL)[-_](\d{4,6})\b'
+    description: "Archer compressed control format (C-123456)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-CTRL-\d{4,6}'
+
+# Regulation Entity Patterns (AC-2.2.1)
+# --------------------------------------
+regulations:
+  - pattern: '\b(SOX|Sarbanes-Oxley)\b'
+    description: "SOX regulation"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-SOX'
+
+  - pattern: '\b(GDPR|General\s+Data\s+Protection\s+Regulation)\b'
+    description: "GDPR regulation"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-GDPR'
+
+  - pattern: '\b(HIPAA|Health\s+Insurance\s+Portability)\b'
+    description: "HIPAA regulation"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-HIPAA'
+
+  - pattern: '\b(PCI\s*-?\s*DSS|Payment\s+Card\s+Industry)\b'
+    description: "PCI-DSS regulation"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-PCI-DSS'
+
+  - pattern: '\b(NIST\s+CSF|NIST\s+Cybersecurity\s+Framework)\b'
+    description: "NIST CSF framework"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-NIST-CSF'
+
+  - pattern: '\b(ISO\s+27001|ISO\s+27002|ISO\s+31000)\b'
+    description: "ISO standards"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-ISO-27001'
+      - 'REG-ISO-27002'
+      - 'REG-ISO-31000'
+
+  - pattern: '\b(COBIT|Control\s+Objectives\s+for\s+Information)\b'
+    description: "COBIT framework"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-COBIT'
+
+  - pattern: '\b(COSO|Committee\s+of\s+Sponsoring\s+Organizations)\b'
+    description: "COSO framework"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'REG-COSO'
+
+  - pattern: '\b(regulation|Regulation|REGULATION)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Generic regulation with ID"
+    priority: 3
+    context_required: false
+    id_formats:
+      - 'REG-\d{1,5}'
+
+  # Archer-specific regulation patterns
+  - pattern: '\b(Archer\s+)?Regulation\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform regulation IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-REG-\d{1,6}'
+
+# Policy Entity Patterns (AC-2.2.1)
+# ----------------------------------
+policies:
+  - pattern: '\b(policy|Policy|POLICY)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Policy with ID (Policy #123, policy-456, POLICY: 789)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'POL-\d{1,5}'
+      - 'P-\d{1,5}'
+      - 'Policy-\d{1,5}'
+
+  - pattern: '\b(security\s+policy|data\s+policy|access\s+policy|privacy\s+policy|IT\s+policy)\b'
+    description: "Policy type descriptors"
+    priority: 2
+    context_required: false
+
+  - pattern: '\b(acceptable\s+use\s+policy|password\s+policy|retention\s+policy)\b'
+    description: "Common policy names"
+    priority: 2
+    context_required: false
+
+  # Archer-specific policy patterns
+  - pattern: '\b(Archer\s+)?Policy\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform policy IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-POL-\d{1,6}'
+
+# Issue Entity Patterns (AC-2.2.1)
+# ---------------------------------
+issues:
+  - pattern: '\b(issue|Issue|ISSUE)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Issue with ID (Issue #123, issue-456, ISSUE: 789)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ISS-\d{1,5}'
+      - 'I-\d{1,5}'
+      - 'Issue-\d{1,5}'
+
+  - pattern: '\b(finding|Finding|FINDING)\s*[#:\-]?\s*(\d{1,5})\b'
+    description: "Finding (audit issue synonym)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'FIND-\d{1,5}'
+      - 'ISS-\d{1,5}'
+
+  - pattern: '\b(audit\s+finding|control\s+deficiency|material\s+weakness|significant\s+deficiency)\b'
+    description: "Audit issue type descriptors"
+    priority: 2
+    context_required: false
+
+  - pattern: '\b(high|medium|low|critical)\s+(issue|finding)\b'
+    description: "Issue severity mentions"
+    priority: 2
+    context_required: false
+
+  # Archer-specific issue patterns
+  - pattern: '\b(Archer\s+)?Issue\s+ID[:\s]+(\d{1,6})\b'
+    description: "Archer GRC platform issue IDs"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-ISS-\d{1,6}'
+
+  - pattern: '\b(I|ISS)[-_](\d{4,6})\b'
+    description: "Archer compressed issue format (I-123456)"
+    priority: 1
+    context_required: false
+    id_formats:
+      - 'ARCH-ISS-\d{4,6}'
+
+# Context Analysis Settings (AC-2.2.1)
+# -------------------------------------
+context_analysis:
+  # Context window size (words before and after entity mention)
+  window_size: 5
+
+  # Minimum confidence for context-based matches
+  min_confidence: 0.7
+
+  # Require context keywords for ambiguous matches
+  require_context_for_ambiguous: true
+
+# Entity ID Normalization Rules (AC-2.2.2)
+# -----------------------------------------
+id_normalization:
+  # Canonical separator (all IDs normalized to use this)
+  canonical_separator: "-"
+
+  # Strip these characters from IDs
+  strip_characters: ["#", ":", "_", " "]
+
+  # Capitalization rules for entity type prefix
+  capitalize_type: true  # "risk" -> "Risk" in normalized ID
+
+  # Preserve leading zeros in numeric IDs
+  preserve_leading_zeros: false
+
+# Pattern Matching Settings (AC-2.2.7)
+# -------------------------------------
+pattern_matching:
+  # Enable case-insensitive matching (except where explicitly case-sensitive)
+  case_insensitive: true
+
+  # Precompile all patterns for performance (determinism AC-2.2.7)
+  precompile_patterns: true
+
+  # Maximum matches per document (0 = unlimited)
+  max_matches_per_document: 0
+
+  # Enable entity location tracking (character positions)
+  track_locations: true
+
+  # Log all entity detections for audit trail
+  enable_audit_log: true
+
+# Priority Ordering (AC-2.2.7)
+# -----------------------------
+# Patterns matched in this order (highest priority first):
+# 1. Archer-specific patterns (priority 1)
+# 2. Explicit ID patterns (priority 1)
+# 3. Type-specific descriptors (priority 2)
+# 4. Generic patterns (priority 3)
+priority_order:
+  - 1  # Highest - specific IDs and Archer patterns
+  - 2  # Medium - type descriptors with context
+  - 3  # Lowest - generic patterns
+
+# Disambiguation Rules (AC-2.2.1)
+# --------------------------------
+disambiguation:
+  # Words that indicate entity is NOT an audit entity (false positive prevention)
+  exclusion_keywords:
+    # Generic terms that aren't entities
+    - "at risk"  # "at risk" != risk entity
+    - "in control"  # "in control" != control entity
+    - "process of"  # "process of doing" != process entity
+    - "issue with"  # "issue with" as problem vs entity
+
+  # Require at least one of these indicators for low-confidence matches
+  entity_indicators:
+    - "ID"
+    - "identifier"
+    - "number"
+    - "ref"
+    - "reference"
+    - "documented"
+    - "assigned"
+
+# Determinism Settings (AC-2.2.7)
+# --------------------------------
+determinism:
+  # Ensure same input always produces same entity list
+  disable_randomness: true
+
+  # Sort entities by position in document (deterministic ordering)
+  sort_by_position: true
+
+  # Fixed pattern compilation order
+  fixed_pattern_order: true

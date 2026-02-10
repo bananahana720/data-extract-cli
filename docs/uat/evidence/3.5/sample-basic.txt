@@ -1,0 +1,12 @@
+━━━ CHUNK 001 ━━━
+This is a sample document demonstrating the plain text output format. The text has been cleaned of all markdown and HTML artifacts, making it ready for direct upload to LLM chat interfaces.
+
+This paragraph shows that double-newline paragraph breaks are preserved for readability. The output is deterministic and artifact-free.
+
+━━━ CHUNK 002 ━━━
+This second chunk demonstrates sequential numbering with zero-padding. Unicode characters like Café, résumé, and emoji 🚀 are perfectly preserved.
+
+The delimiter pattern uses Unicode box-drawing characters for visual clarity.
+
+━━━ CHUNK 003 ━━━
+This final chunk shows the complete workflow: extract → normalize → chunk → format → upload. No manual cleanup required when pasting into ChatGPT or Claude.

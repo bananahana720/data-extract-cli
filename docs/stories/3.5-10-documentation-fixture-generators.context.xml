@@ -1,0 +1,332 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>10</storyId>
+    <title>Documentation & Fixture Generator Automation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-10-documentation-fixture-generators.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer maintaining project documentation and test fixtures</asA>
+    <iWant>automated documentation generation from code and intelligent fixture data creation</iWant>
+    <soThat>documentation stays current and test data covers all edge cases automatically</soThat>
+    <tasks>
+      <!-- Task 1: Code analysis (AC: 1-2) -->
+      - Create scripts/generate_docs.py
+      - Implement AST-based docstring extraction
+      - Extract and format type hints
+
+      <!-- Task 2: Documentation generation (AC: 3-6) -->
+      - Generate markdown API docs
+      - Create coverage reports with visualization
+      - Implement README section updates
+      - Generate architecture diagrams
+
+      <!-- Task 3: Document creation (AC: 7-8) -->
+      - Create scripts/generate_fixtures.py
+      - Implement PDF/DOCX/XLSX generators
+      - Add semantic corpus generation
+
+      <!-- Task 4: Test data (AC: 9-10) -->
+      - Generate PII-free test data
+      - Create edge case documents
+      - Add validation for generated fixtures
+
+      <!-- Task 5: Quality assurance (AC: 11-14) -->
+      - Ensure deterministic generation
+      - Optimize performance
+      - Add configuration support
+      - Integrate with CI/CD
+
+      <!-- Task 6: Testing & documentation -->
+      - Write comprehensive tests
+      - Create usage documentation
+      - Run quality gates
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <!-- Documentation Generator (P2 Script 8) -->
+    <criterion id="AC-3.5-10-1">Docstring extraction: Extracts docstrings from all Python modules using AST parsing.</criterion>
+    <criterion id="AC-3.5-10-2">Type hint analysis: Extracts and documents type hints for function signatures and classes.</criterion>
+    <criterion id="AC-3.5-10-3">API documentation: Generates markdown API documentation with module, class, and function details.</criterion>
+    <criterion id="AC-3.5-10-4">Coverage reports: Creates visual test coverage reports with module breakdown and trends.</criterion>
+    <criterion id="AC-3.5-10-5">README updates: Automatically updates specific sections in README.md (API, Coverage, etc.).</criterion>
+    <criterion id="AC-3.5-10-6">Architecture diagrams: Generates mermaid/graphviz diagrams from code structure analysis.</criterion>
+
+    <!-- Fixture Data Generator (P2 Script 9) -->
+    <criterion id="AC-3.5-10-7">Document generation: Creates sample PDFs, DOCX, XLSX files with configurable content.</criterion>
+    <criterion id="AC-3.5-10-8">Semantic corpus: Generates documents with specific semantic patterns for NLP testing.</criterion>
+    <criterion id="AC-3.5-10-9">PII-free data: Creates realistic test data without actual personal information.</criterion>
+    <criterion id="AC-3.5-10-10">Edge cases: Generates documents with edge cases (empty, huge, corrupted, special chars).</criterion>
+
+    <!-- Quality Requirements -->
+    <criterion id="AC-3.5-10-11">Deterministic output: Same input parameters produce identical fixtures for reproducibility.</criterion>
+    <criterion id="AC-3.5-10-12">Performance: Documentation generation completes in &lt;30 seconds for full codebase.</criterion>
+    <criterion id="AC-3.5-10-13">Customization: Both generators accept configuration files for customization.</criterion>
+    <criterion id="AC-3.5-10-14">Integration: Outputs integrate with existing project structure and CI/CD.</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 3.5 Tech Spec -->
+      <doc>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification</title>
+        <section>Process/Tooling Improvements</section>
+        <snippet>Story/Review Template Generator with Jinja2-based markdown generation, pre-commit hook integration, and CLI interface.</snippet>
+      </doc>
+
+      <!-- Script Automation Recommendations -->
+      <doc>
+        <path>docs/research/script-automation-recommendations.md</path>
+        <title>Script Automation Recommendations</title>
+        <section>P2 Scripts (lines 122-155)</section>
+        <snippet>Documentation Generator (Script 8) and Fixture Data Generator (Script 9) specifications with detailed feature requirements.</snippet>
+      </doc>
+
+      <!-- Automation Guide -->
+      <doc>
+        <path>docs/automation-guide.md</path>
+        <title>Development Automation Tools Guide</title>
+        <section>P0 Scripts</section>
+        <snippet>Production-ready automation achieving 60% token reduction and 75% faster development with template generation and quality gates.</snippet>
+      </doc>
+
+      <!-- Epic 3 Reference -->
+      <doc>
+        <path>docs/epic-3-reference.md</path>
+        <title>Epic 3 Reference Implementation</title>
+        <section>Output Formatters</section>
+        <snippet>JSON/TXT/CSV output formatters with full metadata preservation and configurable organization strategies.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing P0 Script Templates -->
+      <artifact>
+        <path>scripts/generate_story_template.py</path>
+        <kind>script</kind>
+        <symbol>generate_story_markdown</symbol>
+        <lines>full</lines>
+        <reason>P0 script template - reference for structure, argument parsing, and BMAD patterns</reason>
+      </artifact>
+
+      <artifact>
+        <path>scripts/run_quality_gates.py</path>
+        <kind>script</kind>
+        <symbol>QualityGateRunner</symbol>
+        <lines>full</lines>
+        <reason>P0 script with deterministic execution and comprehensive reporting</reason>
+      </artifact>
+
+      <!-- Fixture Generation Examples -->
+      <artifact>
+        <path>scripts/create_fixtures.py</path>
+        <kind>script</kind>
+        <symbol>PDF/Image generation</symbol>
+        <lines>1-36</lines>
+        <reason>Existing fixture generator using reportlab and PIL for basic document creation</reason>
+      </artifact>
+
+      <artifact>
+        <path>tests/fixtures/greenfield/script_fixtures.py</path>
+        <kind>fixture</kind>
+        <symbol>standard_script_scaffold</symbol>
+        <lines>16-50</lines>
+        <reason>BMAD-approved script structure with embedded quality checks</reason>
+      </artifact>
+
+      <!-- Test Fixtures Infrastructure -->
+      <artifact>
+        <path>tests/fixtures/greenfield/test_fixtures.py</path>
+        <kind>fixture</kind>
+        <symbol>greenfield fixtures</symbol>
+        <lines>full</lines>
+        <reason>Greenfield test fixtures framework for AI instructions and validation</reason>
+      </artifact>
+
+      <artifact>
+        <path>tests/fixtures/semantic_corpus.py</path>
+        <kind>fixture</kind>
+        <symbol>create_semantic_corpus</symbol>
+        <lines>full</lines>
+        <reason>Semantic corpus generation patterns for NLP testing</reason>
+      </artifact>
+
+      <!-- PII Scanner -->
+      <artifact>
+        <path>tests/fixtures/greenfield/pii_scanner.py</path>
+        <kind>utility</kind>
+        <symbol>scan_for_pii</symbol>
+        <lines>full</lines>
+        <reason>PII detection utility to ensure test data is safe</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <!-- Python AST for Documentation -->
+      <python>
+        <package>ast</package>
+        <version>stdlib</version>
+        <purpose>Parse Python code for docstring and type hint extraction</purpose>
+      </python>
+
+      <!-- Documentation Generation -->
+      <python>
+        <package>jinja2</package>
+        <version>>=3.0.0</version>
+        <purpose>Template engine for documentation generation</purpose>
+      </python>
+
+      <!-- Document Generation Libraries -->
+      <python>
+        <package>reportlab</package>
+        <version>>=3.5.0,&lt;5.0</version>
+        <purpose>PDF generation (already in dev dependencies)</purpose>
+      </python>
+
+      <python>
+        <package>python-docx</package>
+        <version>>=0.8.11</version>
+        <purpose>DOCX generation (already in dependencies)</purpose>
+      </python>
+
+      <python>
+        <package>openpyxl</package>
+        <version>>=3.0.10</version>
+        <purpose>XLSX generation (already in dependencies)</purpose>
+      </python>
+
+      <!-- Test Data Generation -->
+      <python>
+        <package>faker</package>
+        <version>>=20.0.0</version>
+        <purpose>Generate realistic PII-free test data</purpose>
+      </python>
+
+      <!-- Diagramming -->
+      <python>
+        <package>graphviz</package>
+        <version>>=0.20</version>
+        <purpose>Generate architecture diagrams (optional)</purpose>
+      </python>
+
+      <!-- Coverage Visualization -->
+      <python>
+        <package>coverage</package>
+        <version>>=7.0</version>
+        <purpose>Coverage report generation with HTML output</purpose>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Quality Gates Enforcement -->
+    <constraint>All scripts MUST pass Black, Ruff, and Mypy with 0 violations</constraint>
+    <constraint>Scripts MUST use BMAD-approved structure from script_fixtures.py</constraint>
+    <constraint>Documentation generation MUST complete in &lt;30 seconds for full codebase</constraint>
+    <constraint>Generated fixtures MUST be deterministic (same input = same output)</constraint>
+    <constraint>PII-free requirement: All generated test data MUST pass pii_scanner.py validation</constraint>
+
+    <!-- Pattern Requirements -->
+    <constraint>Follow P0 script patterns from generate_story_template.py and run_quality_gates.py</constraint>
+    <constraint>Use argparse for CLI with comprehensive help text</constraint>
+    <constraint>Include --dry-run option for preview without file changes</constraint>
+    <constraint>Use structlog for structured logging</constraint>
+    <constraint>Scripts MUST be idempotent - can run multiple times safely</constraint>
+
+    <!-- Integration Requirements -->
+    <constraint>Output MUST integrate with existing project structure (docs/, tests/fixtures/)</constraint>
+    <constraint>Configuration MUST support YAML/JSON format</constraint>
+    <constraint>Scripts MUST work with CI/CD (exit codes, clear output)</constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- Script CLI Patterns to Reuse -->
+    <interface>
+      <name>ArgumentParser pattern</name>
+      <kind>CLI interface</kind>
+      <signature>argparse.ArgumentParser with subcommands and comprehensive help</signature>
+      <path>scripts/generate_story_template.py</path>
+    </interface>
+
+    <interface>
+      <name>ScriptProcessor base class</name>
+      <kind>class interface</kind>
+      <signature>class ScriptProcessor(config: Dict[str, Any])</signature>
+      <path>tests/fixtures/greenfield/script_fixtures.py</path>
+    </interface>
+
+    <interface>
+      <name>File generation pattern</name>
+      <kind>function signature</kind>
+      <signature>def generate_file(template: str, context: Dict, output_path: Path, dry_run: bool = False)</signature>
+      <path>scripts/generate_story_template.py</path>
+    </interface>
+
+    <!-- Document Generation APIs -->
+    <interface>
+      <name>reportlab Canvas</name>
+      <kind>PDF generation API</kind>
+      <signature>canvas.Canvas(filename, pagesize)</signature>
+      <path>scripts/create_fixtures.py</path>
+    </interface>
+
+    <interface>
+      <name>python-docx Document</name>
+      <kind>DOCX generation API</kind>
+      <signature>Document() for creating Word documents</signature>
+      <path>src/data_extract/extract/docx_extractor.py</path>
+    </interface>
+
+    <interface>
+      <name>openpyxl Workbook</name>
+      <kind>XLSX generation API</kind>
+      <signature>Workbook() for creating Excel files</signature>
+      <path>src/data_extract/extract/xlsx_extractor.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All scripts MUST have comprehensive unit tests following the patterns in tests/unit/test_scripts/.
+      Use pytest with fixtures from tests/fixtures/greenfield/ for standardized test infrastructure.
+      Tests MUST achieve &gt;80% code coverage and include edge cases, error handling, and integration tests.
+      Follow BMAD testing patterns: mock external dependencies, use deterministic fixtures, validate all outputs.
+    </standards>
+
+    <locations>
+      <!-- Test Locations -->
+      <location>tests/unit/test_scripts/test_generate_docs.py</location>
+      <location>tests/unit/test_scripts/test_generate_fixtures.py</location>
+      <location>tests/fixtures/generated/</location>
+      <location>tests/integration/test_automation_scripts.py</location>
+    </locations>
+
+    <ideas>
+      <!-- Documentation Generator Test Ideas -->
+      <idea for="AC-3.5-10-1">Test AST parsing of various Python constructs (functions, classes, methods, async)</idea>
+      <idea for="AC-3.5-10-2">Verify type hint extraction for complex types (Union, Optional, Generic)</idea>
+      <idea for="AC-3.5-10-3">Test markdown generation with proper escaping and formatting</idea>
+      <idea for="AC-3.5-10-4">Validate coverage report HTML generation and accuracy</idea>
+      <idea for="AC-3.5-10-5">Test README update preserves existing content outside target sections</idea>
+      <idea for="AC-3.5-10-6">Verify mermaid diagram syntax for architecture visualizations</idea>
+
+      <!-- Fixture Generator Test Ideas -->
+      <idea for="AC-3.5-10-7">Test PDF/DOCX/XLSX generation with various content sizes</idea>
+      <idea for="AC-3.5-10-8">Validate semantic patterns in generated corpus (TF-IDF validation)</idea>
+      <idea for="AC-3.5-10-9">Run PII scanner on all generated test data</idea>
+      <idea for="AC-3.5-10-10">Test edge cases: empty files, huge files (1GB+), special characters</idea>
+
+      <!-- Quality Test Ideas -->
+      <idea for="AC-3.5-10-11">Verify deterministic output with hash comparison</idea>
+      <idea for="AC-3.5-10-12">Performance test: time full codebase documentation generation</idea>
+      <idea for="AC-3.5-10-13">Test configuration file parsing and validation</idea>
+      <idea for="AC-3.5-10-14">Integration test with CI/CD: verify exit codes and output formats</idea>
+    </ideas>
+  </tests>
+</story-context>

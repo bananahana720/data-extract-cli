@@ -1,0 +1,19 @@
+This is a document with OCR artifacts.
+
+The header contains ^^^^^ strange symbols.
+
+There are also ■■■■ filled squares throughout.
+
+Some sections have ~~~ tildes repeating.
+
+Long underscores __________ separate sections.
+
+And dashes ---------- also appear frequently.
+
+Equal signs ========== mark divisions.
+
+There may be control characters embedded in the text.
+
+Multiple artifact types ^^^^^ and ■■■■ and ~~~ appear together.
+
+This concludes the OCR artifact sample.

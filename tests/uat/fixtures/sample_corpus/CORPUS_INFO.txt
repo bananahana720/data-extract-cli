@@ -1,0 +1,24 @@
+UAT Test Corpus
+==================================================
+
+Generated: 2025-11-25T19:37:34.337477
+Total files: 10
+
+File Details:
+--------------------------------------------------
+audit-financial-controls-q3-2024.pdf                    2.2 KB
+audit-findings-control-testing.xlsx                     5.8 KB
+board-meeting-minutes-2024-11.pdf                       2.2 KB
+compliance-data-privacy-review.pdf                      2.2 KB
+financial-analysis-budget-variance.pdf                  2.2 KB
+financial-summary-q3-2024.xlsx                          5.7 KB
+policy-remote-work-guidelines.docx                     36.2 KB
+procedure-expense-reimbursement.docx                   36.3 KB
+project-summary-system-modernization.docx              36.3 KB
+risk-assessment-operational.pdf                         2.2 KB
+
+Content Notes:
+--------------------------------------------------
+All content is synthetic and PII-free.
+Topics: audit, compliance, financial, risk, policy, procedures.
+Designed for deterministic UAT testing.

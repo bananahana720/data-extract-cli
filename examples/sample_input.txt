@@ -1,0 +1,19 @@
+Data Extraction System Overview
+
+The AI-Ready File Extraction Tool transforms enterprise documents into structured data optimized for large language models.
+
+Core Architecture
+
+The system uses a three-stage pipeline architecture. First, format-specific extractors parse documents and produce ContentBlock objects. Second, processors enrich the extracted content with metadata and context linking. Finally, formatters convert the enriched data into AI-optimized output formats like JSON or Markdown.
+
+Key Benefits
+
+This modular approach enables parallel development of components. Each stage is independent with clear interfaces. The immutable data models prevent accidental mutations and make the data flow easy to reason about.
+
+Technical Foundation
+
+The foundation uses frozen dataclasses for all models ensuring type safety and immutability. Every ContentBlock carries rich metadata including position, relationships, and confidence scores. This enables sophisticated downstream processing and quality validation.
+
+Future Enhancements
+
+Planned improvements include OCR support for scanned documents, advanced table structure detection, and semantic chunking for optimal LLM consumption. The architecture supports easy extension through the BaseExtractor, BaseProcessor, and BaseFormatter interfaces.

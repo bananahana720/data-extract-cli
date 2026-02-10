@@ -1,0 +1,22 @@
+# Claude Code Configuration Template
+# Copy to .claude/config.yaml and customize
+
+# Project settings
+project_name: data-extraction-tool
+python_version: "3.12"
+
+# Session initialization
+auto_init: true
+quick_mode: false
+
+# Quality gates
+run_quality_checks: true
+quality_tools:
+  - black
+  - ruff
+  - mypy
+  - pytest
+
+# Sprint tracking
+track_sprint_status: true
+sprint_file: docs/sprint-status.yaml

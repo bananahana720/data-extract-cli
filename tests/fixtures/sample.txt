@@ -1,0 +1,27 @@
+Sample Test Document
+
+Introduction
+This is a sample document for testing the text extraction functionality.
+It contains multiple paragraphs, headings, and different types of content.
+
+Background
+The document extraction tool processes various file formats including
+DOCX, PDF, PPTX, and XLSX files. This simple text file serves as a
+basic fixture for testing core extraction logic.
+
+Testing Approach
+When testing extractors, we follow these patterns:
+1. Test successful extraction with valid files
+2. Test error handling with invalid files
+3. Test format-specific features
+4. Test edge cases like empty or very large files
+
+Expected Results
+This file should be extracted as:
+- A heading block for each section title
+- Paragraph blocks for each text section
+- Proper sequence ordering maintained
+
+Conclusion
+This fixture file provides a baseline for testing text extraction
+capabilities of the system.

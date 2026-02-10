@@ -1,0 +1,49 @@
+# Review UAT Results Workflow
+name: review-uat-results
+description: "AI-assisted QA review of test execution results with gap analysis, approval/changes-requested decision, and stakeholder summary"
+author: "BMad"
+
+# Critical variables from config
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Workflow components
+installed_path: "{project-root}/bmad/bmm/workflows/4-implementation/review-uat-results"
+template: "{installed_path}/template.md"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Variables and inputs
+variables:
+  test_results_file: "" # Path to test execution results (from execute-tests)
+  test_cases_file: "" # Path to test cases (for reference)
+  story_path: "" # Path to story markdown file
+  reviewer_name: "{config_source}:user_name" # QA reviewer name
+  quality_gate_level: "standard" # Options: minimal, standard, strict
+  auto_approve_if_all_pass: false # Auto-approve if all tests passed (default: false, requires human review)
+
+# Quality gate thresholds
+quality_thresholds:
+  minimal:
+    pass_rate: 0.80 # 80% tests must pass
+    critical_ac_pass_rate: 1.0 # 100% critical ACs must pass
+  standard:
+    pass_rate: 0.90 # 90% tests must pass
+    critical_ac_pass_rate: 1.0 # 100% critical ACs must pass
+    edge_case_coverage: 0.70 # 70% edge cases covered
+  strict:
+    pass_rate: 0.95 # 95% tests must pass
+    critical_ac_pass_rate: 1.0 # 100% critical ACs must pass
+    edge_case_coverage: 0.85 # 85% edge cases covered
+    evidence_quality: "high" # All failures must have high-quality evidence
+
+# Output configuration
+# Creates UAT review report
+# Example: docs/uat/reviews/2.5-3.1-uat-review.md
+default_output_file: "{output_folder}/uat/reviews/{{story_key}}-uat-review.md"
+
+standalone: true

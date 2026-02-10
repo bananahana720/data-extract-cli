@@ -1,0 +1,238 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>Implement Latent Semantic Analysis for Dimensionality Reduction and Topic Extraction</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-3-latent-semantic-analysis-lsa-implementation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>data scientist analyzing large document collections</asA>
+    <iWant>to reduce the dimensionality of TF-IDF vectors using LSA to extract latent topics and enable semantic clustering</iWant>
+    <soThat>I can group similar documents into coherent clusters and achieve 10x reduction in LLM processing costs</soThat>
+    <tasks>
+      <!-- LSA Implementation -->
+      <task>Create src/data_extract/semantic/lsa.py module</task>
+      <task>Implement LsaReductionStage class with PipelineStage protocol</task>
+      <task>Add TruncatedSVD from sklearn.decomposition</task>
+      <task>Implement Normalizer for L2 normalization of LSA vectors</task>
+      <task>Create variance explained calculator and threshold checker</task>
+      <!-- Topic Extraction -->
+      <task>Implement extract_topics() method to get top terms per component</task>
+      <task>Create topic coherence scorer using term co-occurrence</task>
+      <task>Add topic naming heuristics based on dominant terms</task>
+      <task>Generate topic distribution for each document</task>
+      <task>Create topic summary report with examples</task>
+      <!-- Document Clustering -->
+      <task>Implement K-means clustering on LSA vectors</task>
+      <task>Add optimal K selection using elbow method</task>
+      <task>Calculate silhouette scores for cluster quality</task>
+      <task>Identify cluster representatives (centroids)</task>
+      <task>Generate cluster membership assignments</task>
+      <!-- Performance Optimization -->
+      <task>Profile SVD performance with various n_components</task>
+      <task>Implement randomized SVD for large matrices</task>
+      <task>Add batch processing for streaming mode</task>
+      <task>Optimize memory usage with in-place operations</task>
+      <task>Benchmark against performance targets</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.3-1">LsaReductionStage implements PipelineStage protocol accepting ProcessingResult from similarity stage and returning enriched ProcessingResult</criterion>
+    <criterion id="AC-4.3-2">TruncatedSVD reduces TF-IDF vectors to configurable components (default 100, range 50-300) preserving 80%+ variance</criterion>
+    <criterion id="AC-4.3-3">Extract interpretable topics with top N terms per component (default top 10 terms)</criterion>
+    <criterion id="AC-4.3-4">K-means clustering on LSA vectors achieves silhouette score ≥0.65 for document grouping</criterion>
+    <criterion id="AC-4.3-5">Performance meets NFR: &lt;300ms for 1000 documents, &lt;3s for 10k documents, &lt;500MB memory</criterion>
+    <criterion id="AC-4.3-6">Cache LSA models and transformed vectors using content-based keys with joblib</criterion>
+    <criterion id="AC-4.3-7">Output includes lsa_vectors, topics dict, clusters, explained_variance_ratio</criterion>
+    <criterion id="AC-4.3-8">Deterministic results with fixed random_state=42 for SVD and clustering</criterion>
+    <criterion id="AC-4.3-9">Support incremental/partial fit for streaming large corpora</criterion>
+    <criterion id="AC-4.3-10">All code passes mypy with zero errors and black/ruff with zero violations</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture/epic-4-knowledge-curation-architecture.md</path>
+        <title>Epic 4 Knowledge Curation Architecture</title>
+        <section>Story 4.3: Latent Semantic Analysis Implementation</section>
+        <snippet>Dimensionality reduction via TruncatedSVD, topic extraction, document clustering with K-means, explained variance tracking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation/epic-4-implementation-patterns.md</path>
+        <title>Epic 4 Implementation Patterns</title>
+        <section>3.3 LSA Dimensionality Reduction Pattern</section>
+        <snippet>TruncatedSVD for memory-efficient LSA, Normalizer for L2 normalization, configurable components (100-300 typical), K-means clustering on reduced space.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/epic-4-behavioral-test-strategy.md</path>
+        <title>Behavioral Test Strategy</title>
+        <section>Test 2: Cluster Coherence</section>
+        <snippet>Cluster documents using LSA + K-means, calculate silhouette score, assert score ≥0.65 for good separation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>LSA Topic Extraction (Story 4.3)</section>
+        <snippet>TruncatedSVD dimensionality reduction, topic modeling (100-300 components), document clustering with K-means, explained variance tracking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/epic-4-performance-baselines.md</path>
+        <title>Performance Baselines</title>
+        <section>LSA Performance</section>
+        <snippet>LSA decomposition: 3.3ms for 100 documents (target: 200ms), massive headroom for scale, 1.65% utilization.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3.5-7-tfidf-lsa-playbook.md</path>
+        <title>TF-IDF and LSA Playbook</title>
+        <section>LSA Implementation</section>
+        <snippet>Reference implementation and best practices for LSA, including notebook examples and performance tuning.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage</symbol>
+        <lines>20</lines>
+        <reason>Base protocol that LsaReductionStage must implement</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingResult</symbol>
+        <lines>434</lines>
+        <reason>Input and output type for LSA stage (chaining from similarity)</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/similarity.py</path>
+        <kind>stage</kind>
+        <symbol>SimilarityAnalysisStage</symbol>
+        <lines>to be created</lines>
+        <reason>Previous stage that provides similarity matrix and TF-IDF vectors</reason>
+      </artifact>
+      <artifact>
+        <path>tests/fixtures/semantic_corpus_264k.json</path>
+        <kind>fixture</kind>
+        <symbol>semantic_corpus</symbol>
+        <lines>all</lines>
+        <reason>264K word corpus for LSA testing and validation</reason>
+      </artifact>
+      <artifact>
+        <path>tests/behavioral/epic_4/test_cluster_coherence.py</path>
+        <kind>test</kind>
+        <symbol>test_cluster_coherence_validation</symbol>
+        <lines>to be created</lines>
+        <reason>Behavioral test for cluster quality using silhouette score</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/notebooks/tfidf_lsa_exploration.ipynb</path>
+        <kind>notebook</kind>
+        <symbol>lsa_exploration</symbol>
+        <lines>all</lines>
+        <reason>Reference notebook for LSA implementation and tuning</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>scikit-learn</package>
+        <version>>=1.3.0</version>
+        <purpose>TruncatedSVD, KMeans, silhouette_score, Normalizer</purpose>
+      </python>
+      <python>
+        <package>numpy</package>
+        <version>>=1.24.3</version>
+        <purpose>Array operations for LSA vectors and topic extraction</purpose>
+      </python>
+      <python>
+        <package>scipy</package>
+        <version>>=1.11.1</version>
+        <purpose>Sparse matrix support for efficient SVD</purpose>
+      </python>
+      <python>
+        <package>joblib</package>
+        <version>>=1.3.0</version>
+        <purpose>Model and vector caching</purpose>
+      </python>
+      <python>
+        <package>pandas</package>
+        <version>>=2.0.3</version>
+        <purpose>Topic and cluster analysis reporting</purpose>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must chain with similarity stage output containing TF-IDF matrix</constraint>
+    <constraint>Number of components must be less than min(n_samples, n_features)</constraint>
+    <constraint>Random state must be fixed at 42 for reproducibility</constraint>
+    <constraint>Explained variance ratio should exceed 80% for chosen components</constraint>
+    <constraint>Silhouette score must be ≥0.65 for acceptable cluster quality</constraint>
+    <constraint>Memory usage must stay under 500MB for 10k documents</constraint>
+    <constraint>Processing time must be under 300ms for 1000 documents</constraint>
+    <constraint>Topics must be interpretable with coherent term groupings</constraint>
+    <constraint>Cache keys must be deterministic based on input matrix</constraint>
+    <constraint>All code must pass mypy, black, and ruff with zero violations</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>LsaReductionStage</name>
+      <kind>class</kind>
+      <signature>class LsaReductionStage: def process(self, input_result: ProcessingResult, context: ProcessingContext) -> ProcessingResult</signature>
+      <path>src/data_extract/semantic/lsa.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>TruncatedSVD</name>
+      <kind>class</kind>
+      <signature>from sklearn.decomposition import TruncatedSVD</signature>
+      <path>sklearn.decomposition</path>
+    </interface>
+    <interface>
+      <name>KMeans</name>
+      <kind>class</kind>
+      <signature>from sklearn.cluster import KMeans</signature>
+      <path>sklearn.cluster</path>
+    </interface>
+    <interface>
+      <name>LsaConfig</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass class LsaConfig: n_components: int = 100; n_clusters: Optional[int] = None; random_state: int = 42; use_cache: bool = True</signature>
+      <path>src/data_extract/semantic/lsa.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>LSAResult</name>
+      <kind>model</kind>
+      <signature>vectors: np.ndarray; topics: Dict[int, List[str]]; clusters: np.ndarray; explained_variance: np.ndarray; silhouette_score: float</signature>
+      <path>src/data_extract/semantic/lsa.py (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>The project uses pytest as the test framework with pytest-benchmark for performance testing. Tests must be organized in tests/unit/ mirroring the src/ structure. All greenfield code requires 80% coverage minimum, with 90% target for LSA modules. Behavioral tests validate cluster coherence using silhouette scores. Performance tests validate SVD timing and memory usage. Mathematical properties like orthogonality of components must be verified.</standards>
+    <locations>
+      <location>tests/unit/test_semantic/test_lsa_stage.py (unit tests)</location>
+      <location>tests/behavioral/epic_4/test_cluster_coherence.py (behavioral)</location>
+      <location>tests/behavioral/epic_4/test_topic_extraction.py (topic quality)</location>
+      <location>tests/performance/test_lsa_benchmarks.py (performance)</location>
+      <location>tests/fixtures/semantic/labeled_clusters.yaml (test data)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.3-1">Test LsaReductionStage accepts ProcessingResult and returns enriched ProcessingResult</idea>
+      <idea ac="AC-4.3-2">Test variance explained ratio exceeds 80% with default components</idea>
+      <idea ac="AC-4.3-3">Test topic extraction returns top N terms for each component</idea>
+      <idea ac="AC-4.3-4">Test clustering achieves silhouette score ≥0.65 on test corpus</idea>
+      <idea ac="AC-4.3-5">Benchmark LSA performance with 100, 1000, 10000 documents</idea>
+      <idea ac="AC-4.3-6">Test cache retrieval returns identical LSA model and vectors</idea>
+      <idea ac="AC-4.3-7">Test output contains all required fields (vectors, topics, clusters, variance)</idea>
+      <idea ac="AC-4.3-8">Test determinism by running LSA 3 times with same input</idea>
+      <idea ac="AC-4.3-9">Test incremental fit produces similar results to batch fit</idea>
+      <idea ac="AC-4.3-2">Test components are orthogonal (dot product near zero)</idea>
+      <idea ac="AC-4.3-4">Test no singleton clusters (all clusters have >1 document)</idea>
+    </ideas>
+  </tests>
+</story-context>

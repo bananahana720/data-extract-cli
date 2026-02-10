@@ -1,0 +1,121 @@
+# Schema standardization field mapping templates
+#
+# Maps source-specific field names to standardized output field names for consistent
+# schema across Word reports, Excel matrices, PDF documents, and Archer GRC exports.
+#
+# Usage: SchemaStandardizer loads these templates and applies mappings during
+# document processing to ensure uniform field names across all source systems.
+
+# Archer GRC field mappings
+archer:
+  # Risk Management module
+  risk_management:
+    "Risk ID": "id"
+    "Risk Description": "description"
+    "Risk Owner": "owner"
+    "Inherent Risk": "inherent_risk_level"
+    "Residual Risk": "residual_risk_level"
+    "Risk Category": "category"
+    "Risk Status": "status"
+    "Mitigation Strategy": "mitigation_strategy"
+    "Related Controls": "related_controls"
+    "Last Assessment Date": "last_assessed"
+
+  # Compliance module
+  compliance:
+    "Regulation ID": "id"
+    "Regulation Name": "name"
+    "Requirement": "description"
+    "Compliance Status": "status"
+    "Owner": "owner"
+    "Due Date": "due_date"
+    "Evidence": "evidence"
+    "Assessment Frequency": "frequency"
+
+  # Issues Management module
+  issues:
+    "Issue ID": "id"
+    "Issue Description": "description"
+    "Issue Type": "type"
+    "Priority": "priority"
+    "Status": "status"
+    "Owner": "owner"
+    "Due Date": "due_date"
+    "Remediation Plan": "remediation_plan"
+    "Root Cause": "root_cause"
+
+# Excel field mappings (common column names in control matrices and risk registers)
+excel:
+  # Control Matrix
+  control_matrix:
+    "Control ID": "id"
+    "Control Name": "name"
+    "Control Description": "description"
+    "Control Owner": "owner"
+    "Control Type": "type"
+    "Control Frequency": "frequency"
+    "Effectiveness Rating": "effectiveness"
+    "Last Test Date": "last_tested"
+    "Test Results": "test_results"
+
+  # Risk Register
+  risk_register:
+    "Risk ID": "id"
+    "Risk Name": "name"
+    "Risk Description": "description"
+    "Risk Owner": "owner"
+    "Likelihood": "likelihood"
+    "Impact": "impact"
+    "Risk Score": "risk_score"
+    "Mitigation Plan": "mitigation_plan"
+    "Status": "status"
+
+# Word document field mappings (common section headers)
+word:
+  # Report sections
+  report_sections:
+    "Executive Summary": "executive_summary"
+    "Introduction": "introduction"
+    "Background": "background"
+    "Methodology": "methodology"
+    "Findings": "findings"
+    "Analysis": "analysis"
+    "Recommendations": "recommendations"
+    "Conclusion": "conclusion"
+    "Appendix": "appendix"
+    "References": "references"
+
+  # Common metadata fields
+  metadata:
+    "Document Title": "title"
+    "Author": "author"
+    "Department": "department"
+    "Date": "date"
+    "Version": "version"
+    "Status": "status"
+    "Classification": "classification"
+
+# PDF field mappings (form fields and metadata)
+pdf:
+  # Common form fields
+  form_fields:
+    "Name": "name"
+    "Date": "date"
+    "Signature": "signature"
+    "Department": "department"
+    "Title": "title"
+    "Comments": "comments"
+    "Approval": "approval_status"
+
+# Common field aliases (apply across all document types)
+common_aliases:
+  "ID": "id"
+  "Name": "name"
+  "Description": "description"
+  "Owner": "owner"
+  "Status": "status"
+  "Date": "date"
+  "Type": "type"
+  "Category": "category"
+  "Priority": "priority"
+  "Comments": "comments"

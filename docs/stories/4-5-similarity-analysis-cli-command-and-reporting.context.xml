@@ -1,0 +1,255 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>5</storyId>
+    <title>Implement CLI Integration and Reporting for Semantic Analysis</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-5-similarity-analysis-cli-command-and-reporting.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>data engineer using the extraction tool</asA>
+    <iWant>to execute semantic analysis operations via CLI commands and generate comprehensive reports</iWant>
+    <soThat>I can integrate knowledge curation into my data pipelines and share insights with stakeholders through actionable reports</soThat>
+    <tasks>
+      <!-- CLI Command Structure -->
+      <task>Design semantic command group structure in Click</task>
+      <task>Add analyze subcommand with full pipeline execution</task>
+      <task>Implement deduplicate subcommand for duplicate removal</task>
+      <task>Create cluster subcommand for document grouping</task>
+      <task>Add topics subcommand for LSA topic extraction</task>
+      <!-- Configuration Management -->
+      <task>Parse semantic section from .data-extract.yaml</task>
+      <task>Add CLI flags for all configurable parameters</task>
+      <task>Implement flag precedence (CLI > config file > defaults)</task>
+      <task>Validate parameter ranges and combinations</task>
+      <task>Create configuration export command</task>
+      <!-- Report Generation -->
+      <task>Design HTML report template with CSS styling</task>
+      <task>Create similarity matrix heatmap visualizer</task>
+      <task>Implement cluster membership tables</task>
+      <task>Add quality score distribution charts</task>
+      <task>Generate duplicate savings summary</task>
+      <!-- Progress and Feedback -->
+      <task>Implement progress bars with tqdm or rich</task>
+      <task>Add verbose logging with structlog</task>
+      <task>Create summary statistics output</task>
+      <task>Show memory usage and performance metrics</task>
+      <task>Add dry-run mode for configuration validation</task>
+      <!-- Cache Management -->
+      <task>Implement cache status command showing size/hits/misses</task>
+      <task>Add cache clear with pattern matching</task>
+      <task>Create cache warm command for precomputation</task>
+      <task>Show cache effectiveness metrics</task>
+      <task>Add cache export/import functionality</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.5-1">Add `data-extract semantic analyze` command accepting input path, output path, and configuration options</criterion>
+    <criterion id="AC-4.5-2">Implement `data-extract semantic deduplicate` command with threshold parameter and savings report</criterion>
+    <criterion id="AC-4.5-3">Add `data-extract semantic cluster` command with configurable K and output format options</criterion>
+    <criterion id="AC-4.5-4">Create `data-extract cache` subcommands for status, clear, warm operations</criterion>
+    <criterion id="AC-4.5-5">Generate HTML/JSON reports with similarity matrices, cluster visualizations, quality distributions</criterion>
+    <criterion id="AC-4.5-6">Progress indicators show real-time status for long-running operations (&gt;1000 documents)</criterion>
+    <criterion id="AC-4.5-7">Configuration via CLI flags or .data-extract.yaml for all semantic parameters</criterion>
+    <criterion id="AC-4.5-8">Export results in multiple formats (JSON, CSV, HTML report, similarity graph)</criterion>
+    <criterion id="AC-4.5-9">Validate all inputs and provide helpful error messages for invalid configurations</criterion>
+    <criterion id="AC-4.5-10">All code passes mypy with zero errors and black/ruff with zero violations</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture/epic-4-knowledge-curation-architecture.md</path>
+        <title>Epic 4 Knowledge Curation Architecture</title>
+        <section>Story 4.5: CLI Integration and Reporting</section>
+        <snippet>CLI commands for semantic analysis, report generation with visualizations, cache management commands.</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation/epic-4-implementation-patterns.md</path>
+        <title>Epic 4 Implementation Patterns</title>
+        <section>5.2 CLI Integration Points</section>
+        <snippet>New CLI commands for Epic 4: semantic analyze, similarity, topics, quality; cache management: status, clear, warm.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>CLI Integration (Story 4.5)</section>
+        <snippet>semantic analyze command, semantic deduplicate command, semantic cluster command, report generation and export.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/adr-012-semantic-model-cache.md</path>
+        <title>ADR-012: Semantic Model Cache</title>
+        <section>CLI Integration</section>
+        <snippet>Cache management CLI commands, status reporting, warming strategies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/cli/commands.md</path>
+        <title>CLI Commands Documentation</title>
+        <section>Data Extract Commands</section>
+        <snippet>Existing CLI structure using Click framework, command groups and subcommands.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/cli.py</path>
+        <kind>cli</kind>
+        <symbol>cli</symbol>
+        <lines>all</lines>
+        <reason>Main CLI entry point to extend with semantic commands</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/tfidf.py</path>
+        <kind>stage</kind>
+        <symbol>TfidfVectorizationStage</symbol>
+        <lines>to be created</lines>
+        <reason>TF-IDF stage to integrate into CLI pipeline</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/similarity.py</path>
+        <kind>stage</kind>
+        <symbol>SimilarityAnalysisStage</symbol>
+        <lines>to be created</lines>
+        <reason>Similarity stage to integrate into CLI pipeline</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/lsa.py</path>
+        <kind>stage</kind>
+        <symbol>LsaReductionStage</symbol>
+        <lines>to be created</lines>
+        <reason>LSA stage to integrate into CLI pipeline</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/quality.py</path>
+        <kind>stage</kind>
+        <symbol>QualityMetricsStage</symbol>
+        <lines>to be created</lines>
+        <reason>Quality metrics stage to integrate into CLI pipeline</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/semantic/cache.py</path>
+        <kind>manager</kind>
+        <symbol>CacheManager</symbol>
+        <lines>to be created</lines>
+        <reason>Cache manager for CLI cache commands</reason>
+      </artifact>
+      <artifact>
+        <path>tests/cli/test_semantic_commands.py</path>
+        <kind>test</kind>
+        <symbol>test_semantic_analyze_command</symbol>
+        <lines>to be created</lines>
+        <reason>CLI command tests for semantic operations</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>click</package>
+        <version>>=8.0.0</version>
+        <purpose>CLI framework for commands and options</purpose>
+      </python>
+      <python>
+        <package>rich</package>
+        <version>>=13.0.0</version>
+        <purpose>Progress bars and formatted console output</purpose>
+      </python>
+      <python>
+        <package>jinja2</package>
+        <version>>=3.0.0</version>
+        <purpose>HTML report template rendering</purpose>
+      </python>
+      <python>
+        <package>matplotlib</package>
+        <version>optional</version>
+        <purpose>Visualization for similarity heatmaps</purpose>
+      </python>
+      <python>
+        <package>plotly</package>
+        <version>optional</version>
+        <purpose>Interactive visualizations for reports</purpose>
+      </python>
+      <python>
+        <package>pandas</package>
+        <version>>=2.0.3</version>
+        <purpose>Data manipulation for report generation</purpose>
+      </python>
+      <python>
+        <package>pyyaml</package>
+        <version>>=6.0</version>
+        <purpose>Configuration file parsing</purpose>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>CLI commands must follow existing Click patterns in the codebase</constraint>
+    <constraint>Configuration must support both CLI flags and config file with proper precedence</constraint>
+    <constraint>Progress indicators required for operations taking more than 2 seconds</constraint>
+    <constraint>Reports must be self-contained (inline CSS/JS for portability)</constraint>
+    <constraint>Error messages must be actionable with suggested fixes</constraint>
+    <constraint>Cache operations must be safe and atomic (no corruption)</constraint>
+    <constraint>Memory usage must be monitored and reported for large operations</constraint>
+    <constraint>Dry-run mode must not modify any files or cache</constraint>
+    <constraint>Export formats must be standard (JSON schema, CSV RFC 4180)</constraint>
+    <constraint>All code must pass mypy, black, and ruff with zero violations</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>semantic command group</name>
+      <kind>cli</kind>
+      <signature>@cli.group() def semantic(): """Semantic analysis commands."""</signature>
+      <path>src/data_extract/cli.py (to be extended)</path>
+    </interface>
+    <interface>
+      <name>analyze command</name>
+      <kind>cli</kind>
+      <signature>@semantic.command() def analyze(input_path, output_path, config, deduplicate, cluster)</signature>
+      <path>src/data_extract/cli/semantic_commands.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>cache command group</name>
+      <kind>cli</kind>
+      <signature>@cli.group() def cache(): """Cache management commands."""</signature>
+      <path>src/data_extract/cli.py (to be extended)</path>
+    </interface>
+    <interface>
+      <name>SemanticConfig</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass class SemanticConfig: tfidf: TfidfConfig; similarity: SimilarityConfig; lsa: LsaConfig; quality: QualityConfig</signature>
+      <path>src/data_extract/semantic/config.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>ReportGenerator</name>
+      <kind>class</kind>
+      <signature>class ReportGenerator: def generate_html(results: ProcessingResult) -> str</signature>
+      <path>src/data_extract/semantic/reporting.py (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>The project uses pytest for testing with click.testing.CliRunner for CLI tests. Tests must verify command execution, configuration parsing, report generation, and error handling. Integration tests validate end-to-end semantic pipeline through CLI. Performance tests ensure progress indicators and memory reporting work correctly.</standards>
+    <locations>
+      <location>tests/cli/test_semantic_commands.py (CLI command tests)</location>
+      <location>tests/cli/test_cache_commands.py (cache management tests)</location>
+      <location>tests/integration/test_semantic_cli_pipeline.py (end-to-end)</location>
+      <location>tests/unit/test_semantic/test_reporting.py (report generation)</location>
+      <location>tests/fixtures/configs/semantic_config.yaml (test configs)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.5-1">Test semantic analyze command with various input/output paths and configs</idea>
+      <idea ac="AC-4.5-2">Test deduplicate command produces correct savings report</idea>
+      <idea ac="AC-4.5-3">Test cluster command with different K values and formats</idea>
+      <idea ac="AC-4.5-4">Test cache commands (status, clear, warm) work correctly</idea>
+      <idea ac="AC-4.5-5">Test HTML report generation contains all required sections</idea>
+      <idea ac="AC-4.5-6">Test progress indicators appear for large operations</idea>
+      <idea ac="AC-4.5-7">Test configuration precedence (CLI > file > defaults)</idea>
+      <idea ac="AC-4.5-8">Test export formats are valid (JSON parseable, CSV readable)</idea>
+      <idea ac="AC-4.5-9">Test error messages for invalid inputs are helpful</idea>
+      <idea ac="AC-4.5-1">Test dry-run mode doesn't modify files</idea>
+      <idea ac="AC-4.5-4">Test concurrent cache operations don't corrupt data</idea>
+    </ideas>
+  </tests>
+</story-context>

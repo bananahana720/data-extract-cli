@@ -1,0 +1,225 @@
+{
+  "baselines": {
+    "pdf_small": {
+      "operation": "pdf_small",
+      "duration_ms": 64943.57740000123,
+      "memory_mb": 304.2716484069824,
+      "file_size_kb": 807.28515625,
+      "throughput": 12.430561859531696,
+      "timestamp": "2025-11-12T12:26:23.825486",
+      "metadata": {
+        "file_name": "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf",
+        "pages": 64
+      }
+    },
+    "pdf_medium": {
+      "operation": "pdf_medium",
+      "duration_ms": 135117.52780000097,
+      "memory_mb": 1234.3601274490356,
+      "file_size_kb": 2217.1162109375,
+      "throughput": 16.408797933449787,
+      "timestamp": "2025-11-12T12:28:41.139010",
+      "metadata": {
+        "file_name": "NIST.SP.800-37r2.pdf",
+        "pages": 183
+      }
+    },
+    "pdf_large": {
+      "operation": "pdf_large",
+      "duration_ms": 341898.1691000008,
+      "memory_mb": 1211.679370880127,
+      "file_size_kb": 11633.4384765625,
+      "throughput": 34.026033269455354,
+      "timestamp": "2025-11-12T12:34:25.417871",
+      "metadata": {
+        "file_name": "COBIT-2019-Design-Guide_res_eng_1218.pdf",
+        "pages": 150
+      }
+    },
+    "excel_small": {
+      "operation": "excel_small",
+      "duration_ms": 25.56106800057023,
+      "memory_mb": 890.4277124404907,
+      "file_size_kb": 4.76171875,
+      "throughput": 186.2879418768329,
+      "timestamp": "2025-11-30T21:58:19.133394",
+      "metadata": {
+        "file_name": "simple_single_sheet.xlsx"
+      }
+    },
+    "excel_medium": {
+      "operation": "excel_medium",
+      "duration_ms": 6577.966600001673,
+      "memory_mb": 115.67797565460205,
+      "file_size_kb": 113.234375,
+      "throughput": 17.214191236539754,
+      "timestamp": "2025-11-12T12:34:32.208850",
+      "metadata": {
+        "file_name": "NIST-Privacy-Framework-V1.0-Core.xlsx"
+      }
+    },
+    "excel_large": {
+      "operation": "excel_large",
+      "duration_ms": 3363.7218000003486,
+      "memory_mb": 38.96723747253418,
+      "file_size_kb": 457.57421875,
+      "throughput": 136.0321233313506,
+      "timestamp": "2025-11-12T12:34:35.656664",
+      "metadata": {
+        "file_name": "sp800-53ar5-assessment-procedures.xlsx"
+      }
+    },
+    "txt_small": {
+      "operation": "txt_small",
+      "duration_ms": 0.7087020003382349,
+      "memory_mb": 0.01172637939453125,
+      "file_size_kb": 0.87890625,
+      "throughput": 1240.1633543866583,
+      "timestamp": "2025-11-30T21:58:19.142507",
+      "metadata": {
+        "file_name": "sample.txt"
+      }
+    },
+    "txt_medium": {
+      "operation": "txt_medium",
+      "duration_ms": 2.179499999328982,
+      "memory_mb": 0.07491779327392578,
+      "file_size_kb": 14.3134765625,
+      "throughput": 6567.321205279555,
+      "timestamp": "2025-11-06T19:06:06.171952",
+      "metadata": {
+        "file_name": "test_case_03_nested_structure.txt"
+      }
+    },
+    "processor_context": {
+      "operation": "processor_context",
+      "duration_ms": 1.70795200028806,
+      "memory_mb": 0.036224365234375,
+      "file_size_kb": 0,
+      "throughput": 58549.65478136048,
+      "timestamp": "2025-11-30T21:58:19.146743",
+      "metadata": {
+        "num_blocks": 100
+      }
+    },
+    "processor_metadata": {
+      "operation": "processor_metadata",
+      "duration_ms": 1.4911149992258288,
+      "memory_mb": 0.03564453125,
+      "file_size_kb": 0,
+      "throughput": 67063.90858647318,
+      "timestamp": "2025-11-30T21:58:19.148326",
+      "metadata": {
+        "num_blocks": 100
+      }
+    },
+    "processor_quality": {
+      "operation": "processor_quality",
+      "duration_ms": 1.5351649999502115,
+      "memory_mb": 0.02984333038330078,
+      "file_size_kb": 0,
+      "throughput": 65139.57783250869,
+      "timestamp": "2025-11-30T21:58:19.149930",
+      "metadata": {
+        "num_blocks": 100
+      }
+    },
+    "txt_extract_small": {
+      "operation": "txt_extract_small",
+      "duration_ms": 1.4193599999998696,
+      "memory_mb": 0.01210784912109375,
+      "file_size_kb": 0.87890625,
+      "throughput": 619.2271516740508,
+      "timestamp": "2025-11-30T19:23:39.413031",
+      "metadata": {
+        "file_name": "sample.txt",
+        "file_category": "small"
+      }
+    },
+    "txt_extract_medium": {
+      "operation": "txt_extract_medium",
+      "duration_ms": 80.75751299838885,
+      "memory_mb": 1.2118663787841797,
+      "file_size_kb": 96.572265625,
+      "throughput": 1195.830109663316,
+      "timestamp": "2025-11-30T19:23:39.499885",
+      "metadata": {
+        "file_name": "many_lines.txt",
+        "file_category": "small"
+      }
+    },
+    "excel_extract_small": {
+      "operation": "excel_extract_small",
+      "duration_ms": 137.7721989993006,
+      "memory_mb": 0.18445587158203125,
+      "file_size_kb": 4.76171875,
+      "throughput": 34.56226136032112,
+      "timestamp": "2025-11-30T19:22:32.467828",
+      "metadata": {
+        "file_name": "simple_single_sheet.xlsx",
+        "file_category": "small"
+      }
+    },
+    "processor_context_linking": {
+      "operation": "processor_context_linking",
+      "duration_ms": 11.718390000169165,
+      "memory_mb": 0.040248870849609375,
+      "file_size_kb": 0,
+      "throughput": 8533.595485263455,
+      "timestamp": "2025-11-30T19:23:50.069737",
+      "metadata": {
+        "num_blocks": 100
+      }
+    },
+    "processor_metadata_aggregation": {
+      "operation": "processor_metadata_aggregation",
+      "duration_ms": 8.77231800041045,
+      "memory_mb": 0.036418914794921875,
+      "file_size_kb": 0,
+      "throughput": 11399.495548989567,
+      "timestamp": "2025-11-30T19:23:50.093354",
+      "metadata": {
+        "num_blocks": 100
+      }
+    },
+    "cli_progress_overhead": {
+      "operation": "cli_progress_overhead",
+      "duration_ms": -0.17475899585406296,
+      "memory_mb": 0.0,
+      "file_size_kb": 0.87890625,
+      "throughput": 0.0,
+      "timestamp": "2025-12-01T00:20:57.214901",
+      "metadata": {
+        "with_progress_ms": 102.02888000276289,
+        "quiet_ms": 102.20363899861695,
+        "overhead_pct": -0.1709909721085644
+      }
+    },
+    "processor_quality_validation": {
+      "operation": "processor_quality_validation",
+      "duration_ms": 22.978990000410704,
+      "memory_mb": 0.035622596740722656,
+      "file_size_kb": 0,
+      "throughput": 4351.801362819371,
+      "timestamp": "2025-11-30T19:23:50.127410",
+      "metadata": {
+        "num_blocks": 100,
+        "quality_score": 66.66666666666667
+      }
+    },
+    "processor_chain_full": {
+      "operation": "processor_chain_full",
+      "duration_ms": 25.590290999389254,
+      "memory_mb": 0.09220218658447266,
+      "file_size_kb": 0,
+      "throughput": 3907.732037997795,
+      "timestamp": "2025-11-30T19:23:50.160712",
+      "metadata": {
+        "num_blocks": 100,
+        "num_processors": 3,
+        "quality_score": 66.66666666666667
+      }
+    }
+  },
+  "updated_at": "2025-12-01T00:20:57.215688"
+}

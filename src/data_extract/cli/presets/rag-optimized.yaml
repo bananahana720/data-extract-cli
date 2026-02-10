@@ -1,0 +1,17 @@
+# RAG Optimized Preset
+# RAG-ready output with smaller chunks for embedding models
+
+semantic:
+  tfidf:
+    max_features: 3000
+    ngram_range: [1, 1]
+  similarity:
+    duplicate_threshold: 0.95
+    related_threshold: 0.7
+
+chunk:
+  max_tokens: 256
+  overlap: 64
+
+quality:
+  min_score: 0.5

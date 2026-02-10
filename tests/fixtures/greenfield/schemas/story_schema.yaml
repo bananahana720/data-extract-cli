@@ -1,0 +1,265 @@
+# BMAD Story Requirements Schema
+# Version: 1.0.0
+# Purpose: Validate story structure and requirements for Epic development
+
+story_structure:
+  metadata:
+    method: "BMAD (Business Method for AI Development)"
+    format: "Markdown"
+    version: "6.0"
+
+  required_sections:
+    - header:
+        title: "Story {number}: {title}"
+        status: ["backlog", "in_progress", "review", "done"]
+
+    - story_statement:
+        pattern: |
+          As a [role],
+          I want [feature/capability],
+          So that [benefit/value].
+
+    - story_header:
+        required_fields:
+          - story_key: "{epic}-{story}-{title-slug}"
+          - context: "Background and rationale"
+          - dependencies: "List or None"
+          - estimate: "Hours (integer)"
+          - owner: "Team or individual"
+
+    - story_body:
+        content: "Implementation details and approach"
+        min_length: 100
+        includes:
+          - technical_approach
+          - key_considerations
+          - integration_points
+
+    - acceptance_criteria:
+        min_count: 3
+        max_count: 10
+        format:
+          - id: "Sequential number"
+          - description: "Verifiable criterion"
+          - evidence: "How to verify"
+
+    - tasks_subtasks:
+        organization:
+          - grouped_by_ac: "Tasks reference AC numbers"
+          - checkbox_format: "- [ ] Task description"
+          - subtasks_indented: "  - [ ] Subtask"
+
+    - dev_notes:
+        optional_subsections:
+          - requirements_context
+          - structure_alignment
+          - references
+          - technical_considerations
+
+    - dev_agent_record:
+        fields:
+          - context_reference: "Related documents"
+          - agent_model_used: "AI model ID"
+          - debug_log_references: "Session info"
+          - completion_notes: "Dated entries"
+          - file_list: "Created/modified files"
+
+acceptance_criteria:
+  characteristics:
+    - specific: "Clear and unambiguous"
+    - measurable: "Quantifiable success"
+    - achievable: "Realistic given constraints"
+    - relevant: "Aligned with story goal"
+    - testable: "Can be verified"
+
+  format:
+    structure: "{number}. **{title}:** {description} [Source: {reference}]"
+    evidence_required: true
+    source_tracking: true
+
+  types:
+    functional: "Feature behavior"
+    performance: "Speed/resource metrics"
+    quality: "Code quality gates"
+    integration: "System interactions"
+    documentation: "Required docs"
+
+wiring_checklist:
+  required_categories:
+    - bom:
+        description: "Bill of Materials"
+        items:
+          - dependencies: "New packages/libraries"
+          - versions: "Version constraints"
+          - licenses: "License compatibility"
+
+    - logging:
+        description: "Structured logging points"
+        items:
+          - entry_points: "Function entry"
+          - exit_points: "Function exit"
+          - error_conditions: "Exception handling"
+          - performance_metrics: "Timing/counts"
+
+    - cli:
+        description: "Command-line interface"
+        items:
+          - commands: "New CLI commands"
+          - flags: "New CLI flags"
+          - help_text: "Documentation"
+          - examples: "Usage examples"
+
+    - testing:
+        description: "Test requirements"
+        items:
+          - unit_tests: "Component tests"
+          - integration_tests: "System tests"
+          - performance_tests: "Benchmarks"
+          - coverage_target: "Minimum %"
+
+submission_summary:
+  required_evidence:
+    - files_created:
+        format: "List of paths"
+        validation: "Files must exist"
+
+    - files_modified:
+        format: "List of paths"
+        include_diff_stats: true
+
+    - tests_added:
+        format: "List of test files"
+        must_pass: true
+
+    - coverage:
+        format: "XX.X%"
+        minimum: 90
+
+    - quality_gates:
+        black: "PASS"
+        ruff: "PASS"
+        mypy: "PASS"
+
+    - performance:
+        benchmarks_met: true
+        regression_check: "No degradation"
+
+task_organization:
+  structure:
+    task_groups:
+      pattern: "**Task {number}: {title} (AC: {criteria})**"
+      subtasks:
+        format: "- [ ] {description}"
+        indentation: 2_spaces
+
+  estimation:
+    granularity: "0.5-4 hours per task"
+    total_alignment: "Sum should approximate story estimate"
+
+  completion:
+    definition_of_done:
+      - code_complete: "All code written"
+      - tests_passing: "All tests green"
+      - coverage_met: "Coverage target achieved"
+      - quality_passed: "All quality gates green"
+      - documented: "Code and API documented"
+      - reviewed: "Code review approved"
+
+references:
+  required_links:
+    - epic_spec: "docs/tech-spec-epic-*.md"
+    - related_stories: "docs/stories/*.md"
+    - architecture: "docs/architecture.md"
+    - retrospectives: "docs/retrospectives/*.md"
+
+  format:
+    inline: "[Source: {path}#L{line}]"
+    section: "### References\n- `{path}` – {description}"
+
+validation_rules:
+  structure:
+    - all_required_sections_present
+    - sections_in_correct_order
+    - proper_markdown_formatting
+
+  content:
+    - story_number_unique
+    - acceptance_criteria_verifiable
+    - tasks_reference_valid_acs
+    - estimates_reasonable
+    - dependencies_exist
+
+  quality:
+    - no_todo_without_owner
+    - no_broken_links
+    - no_placeholder_text
+    - consistent_formatting
+
+anti_patterns:
+  avoid:
+    - vague_criteria: "AC like 'works correctly'"
+    - missing_evidence: "AC without verification"
+    - orphan_tasks: "Tasks not linked to AC"
+    - missing_estimates: "No time estimates"
+    - generic_descriptions: "Copy-paste content"
+    - missing_context: "No background/rationale"
+    - unrealistic_scope: ">40 hour stories"
+
+best_practices:
+  story_writing:
+    - start_with_why: "Explain the business value"
+    - be_specific: "Avoid ambiguity"
+    - include_examples: "Provide concrete examples"
+    - consider_edge_cases: "Document special scenarios"
+    - track_decisions: "Document architectural choices"
+
+  acceptance_criteria:
+    - user_focused: "From user perspective"
+    - testable: "Can write test for it"
+    - independent: "Not dependent on other ACs"
+    - complete: "Covers all requirements"
+
+  task_breakdown:
+    - logical_grouping: "Related tasks together"
+    - dependency_order: "Prerequisites first"
+    - parallel_work: "Identify parallelizable tasks"
+    - clear_outcomes: "Each task has clear result"
+
+epic_integration:
+  story_numbering:
+    pattern: "{epic}.{story_number}"
+    examples:
+      - "3.1": "Epic 3, Story 1"
+      - "3.5.1": "Epic 3.5, Story 1"
+      - "4.1": "Epic 4, Story 1"
+
+  story_types:
+    foundation: "Core infrastructure"
+    feature: "New functionality"
+    enhancement: "Improvements"
+    bugfix: "Defect resolution"
+    technical_debt: "Refactoring/cleanup"
+    documentation: "Docs only"
+
+  dependencies:
+    internal: "Other stories in epic"
+    external: "Cross-epic dependencies"
+    infrastructure: "Tools/environment"
+    knowledge: "Required expertise"
+
+templates:
+  locations:
+    generator: "scripts/generate_story_template.py"
+    template_files: "scripts/templates/*.j2"
+
+  customization:
+    variables:
+      - story_number
+      - epic
+      - title
+      - owner
+      - estimate
+
+  validation:
+    pre_commit: "Check story structure"
+    ci_pipeline: "Validate on PR"

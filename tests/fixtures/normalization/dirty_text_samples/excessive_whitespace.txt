@@ -1,0 +1,21 @@
+This  document   has    excessive     whitespace.
+
+Multiple   spaces    between     words.
+
+
+
+Too many
+
+
+
+newlines
+
+
+
+between paragraphs.
+
+	Tabs	are	also	present.
+
+   Leading and trailing spaces
+
+Should all be normalized.

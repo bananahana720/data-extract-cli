@@ -1,0 +1,11 @@
+# Quick Scan Preset
+# Fast preview mode with minimal processing
+
+semantic:
+  tfidf:
+    max_features: 1000
+  cache:
+    enabled: false
+
+quality:
+  skip_readability: true

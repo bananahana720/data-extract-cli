@@ -1,0 +1,446 @@
+# Golden Dataset for Epic 4 Behavioral Tests
+# Generated: 2025-11-20
+# Purpose: Verified test data for semantic analysis behavioral validation
+
+golden_dataset:
+  duplicate_pairs:
+    # IT Security domain duplicates
+    - doc1: "access_control_policy_2024.txt"
+      doc2: "access_control_policy_2024_v2.txt"
+      similarity: 0.95
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "password_standards_q1.txt"
+      doc2: "password_policy_q1_update.txt"
+      similarity: 0.88
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "it_security"
+
+    - doc1: "encryption_guidelines.txt"
+      doc2: "data_encryption_standards.txt"
+      similarity: 0.92
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "it_security"
+
+    # Financial Controls duplicates
+    - doc1: "sox_compliance_checklist.txt"
+      doc2: "sox_compliance_checklist_revised.txt"
+      similarity: 0.97
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "financial_controls"
+
+    - doc1: "internal_audit_procedures.txt"
+      doc2: "audit_procedures_internal.txt"
+      similarity: 0.91
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "financial_reporting_controls.txt"
+      doc2: "controls_financial_reporting.txt"
+      similarity: 0.89
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "financial_controls"
+
+    # Compliance domain duplicates
+    - doc1: "gdpr_compliance_guide.txt"
+      doc2: "gdpr_compliance_manual.txt"
+      similarity: 0.93
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "compliance"
+
+    - doc1: "data_retention_policy.txt"
+      doc2: "policy_data_retention.txt"
+      similarity: 0.90
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "privacy_impact_assessment.txt"
+      doc2: "pia_assessment_template.txt"
+      similarity: 0.87
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    # Risk Assessment duplicates
+    - doc1: "risk_assessment_q1_2024.txt"
+      doc2: "risk_assessment_q1_2024_draft.txt"
+      similarity: 0.94
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "risk_assessment"
+
+    - doc1: "vendor_risk_evaluation.txt"
+      doc2: "third_party_risk_assessment.txt"
+      similarity: 0.86
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "risk_assessment"
+
+    - doc1: "operational_risk_matrix.txt"
+      doc2: "risk_matrix_operational.txt"
+      similarity: 0.91
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "risk_assessment"
+
+    # Business Continuity duplicates
+    - doc1: "disaster_recovery_plan.txt"
+      doc2: "drp_plan_2024.txt"
+      similarity: 0.92
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "business_continuity"
+
+    - doc1: "incident_response_procedures.txt"
+      doc2: "procedures_incident_response.txt"
+      similarity: 0.88
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "business_continuity"
+
+    - doc1: "backup_strategy_document.txt"
+      doc2: "data_backup_strategy.txt"
+      similarity: 0.90
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "business_continuity"
+
+    # Additional pairs to reach 45 total
+    - doc1: "network_security_baseline.txt"
+      doc2: "baseline_network_security.txt"
+      similarity: 0.93
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "change_management_process.txt"
+      doc2: "process_change_management.txt"
+      similarity: 0.89
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "it_operations"
+
+    - doc1: "audit_trail_requirements.txt"
+      doc2: "requirements_audit_logging.txt"
+      similarity: 0.87
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "vulnerability_assessment_report.txt"
+      doc2: "report_vulnerability_scan.txt"
+      similarity: 0.91
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "segregation_of_duties.txt"
+      doc2: "sod_policy_document.txt"
+      similarity: 0.88
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "data_classification_policy.txt"
+      doc2: "policy_data_classification.txt"
+      similarity: 0.92
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "security_awareness_training.txt"
+      doc2: "training_security_awareness.txt"
+      similarity: 0.90
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "budget_control_procedures.txt"
+      doc2: "procedures_budget_control.txt"
+      similarity: 0.89
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "compliance_monitoring_plan.txt"
+      doc2: "plan_compliance_monitoring.txt"
+      similarity: 0.91
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "system_access_reviews.txt"
+      doc2: "access_review_procedures.txt"
+      similarity: 0.87
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "procurement_controls.txt"
+      doc2: "controls_procurement_process.txt"
+      similarity: 0.88
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "regulatory_compliance_matrix.txt"
+      doc2: "matrix_regulatory_compliance.txt"
+      similarity: 0.93
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "penetration_testing_report.txt"
+      doc2: "pentest_report_q1.txt"
+      similarity: 0.90
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "fraud_detection_controls.txt"
+      doc2: "controls_fraud_prevention.txt"
+      similarity: 0.86
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "third_party_compliance.txt"
+      doc2: "vendor_compliance_requirements.txt"
+      similarity: 0.89
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "security_incident_log.txt"
+      doc2: "incident_log_security.txt"
+      similarity: 0.91
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "expense_approval_matrix.txt"
+      doc2: "matrix_expense_approval.txt"
+      similarity: 0.92
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "data_privacy_requirements.txt"
+      doc2: "requirements_data_privacy.txt"
+      similarity: 0.88
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "firewall_configuration_standard.txt"
+      doc2: "standard_firewall_config.txt"
+      similarity: 0.90
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "journal_entry_controls.txt"
+      doc2: "controls_journal_entries.txt"
+      similarity: 0.87
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "legal_hold_procedures.txt"
+      doc2: "procedures_legal_hold.txt"
+      similarity: 0.89
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "malware_protection_policy.txt"
+      doc2: "policy_antimalware.txt"
+      similarity: 0.91
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "reconciliation_procedures.txt"
+      doc2: "procedures_account_reconciliation.txt"
+      similarity: 0.88
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "records_retention_schedule.txt"
+      doc2: "schedule_records_retention.txt"
+      similarity: 0.92
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "patch_management_process.txt"
+      doc2: "process_patch_management.txt"
+      similarity: 0.90
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+    - doc1: "capital_expenditure_controls.txt"
+      doc2: "capex_control_procedures.txt"
+      similarity: 0.86
+      verified_by: ["reviewer1", "reviewer3"]
+      domain: "financial_controls"
+
+    - doc1: "audit_committee_charter.txt"
+      doc2: "charter_audit_committee.txt"
+      similarity: 0.93
+      verified_by: ["reviewer2", "reviewer3"]
+      domain: "compliance"
+
+    - doc1: "identity_management_policy.txt"
+      doc2: "policy_identity_access.txt"
+      similarity: 0.89
+      verified_by: ["reviewer1", "reviewer2"]
+      domain: "it_security"
+
+  labeled_clusters:
+    it_security:
+      documents:
+        - "access_control_policy.txt"
+        - "password_standards.txt"
+        - "encryption_guidelines.txt"
+        - "network_security_baseline.txt"
+        - "vulnerability_assessment_report.txt"
+        - "security_awareness_training.txt"
+        - "system_access_reviews.txt"
+        - "penetration_testing_report.txt"
+        - "security_incident_log.txt"
+        - "firewall_configuration_standard.txt"
+        - "malware_protection_policy.txt"
+        - "patch_management_process.txt"
+        - "identity_management_policy.txt"
+      label: "Information Technology Security"
+      expected_coherence: 0.75
+
+    financial_controls:
+      documents:
+        - "sox_compliance_checklist.txt"
+        - "internal_audit_procedures.txt"
+        - "financial_reporting_controls.txt"
+        - "segregation_of_duties.txt"
+        - "budget_control_procedures.txt"
+        - "procurement_controls.txt"
+        - "fraud_detection_controls.txt"
+        - "expense_approval_matrix.txt"
+        - "journal_entry_controls.txt"
+        - "reconciliation_procedures.txt"
+        - "capital_expenditure_controls.txt"
+      label: "Financial Controls and Audit"
+      expected_coherence: 0.72
+
+    compliance:
+      documents:
+        - "gdpr_compliance_guide.txt"
+        - "data_retention_policy.txt"
+        - "privacy_impact_assessment.txt"
+        - "audit_trail_requirements.txt"
+        - "data_classification_policy.txt"
+        - "compliance_monitoring_plan.txt"
+        - "regulatory_compliance_matrix.txt"
+        - "third_party_compliance.txt"
+        - "data_privacy_requirements.txt"
+        - "legal_hold_procedures.txt"
+        - "records_retention_schedule.txt"
+        - "audit_committee_charter.txt"
+      label: "Regulatory Compliance"
+      expected_coherence: 0.70
+
+    risk_assessment:
+      documents:
+        - "risk_assessment_q1_2024.txt"
+        - "vendor_risk_evaluation.txt"
+        - "operational_risk_matrix.txt"
+        - "risk_appetite_statement.txt"
+        - "risk_register.txt"
+        - "risk_mitigation_plans.txt"
+      label: "Risk Management"
+      expected_coherence: 0.73
+
+    business_continuity:
+      documents:
+        - "disaster_recovery_plan.txt"
+        - "incident_response_procedures.txt"
+        - "backup_strategy_document.txt"
+        - "crisis_communication_plan.txt"
+        - "business_impact_analysis.txt"
+      label: "Business Continuity Planning"
+      expected_coherence: 0.71
+
+    it_operations:
+      documents:
+        - "change_management_process.txt"
+        - "service_level_agreements.txt"
+        - "capacity_planning_guide.txt"
+        - "monitoring_procedures.txt"
+        - "configuration_management.txt"
+      label: "IT Operations Management"
+      expected_coherence: 0.69
+
+    hr_policies:
+      documents:
+        - "employee_handbook.txt"
+        - "code_of_conduct.txt"
+        - "training_requirements.txt"
+        - "performance_review_process.txt"
+        - "onboarding_checklist.txt"
+      label: "Human Resources Policies"
+      expected_coherence: 0.68
+
+    vendor_management:
+      documents:
+        - "vendor_onboarding_process.txt"
+        - "supplier_evaluation_criteria.txt"
+        - "contract_management_procedures.txt"
+        - "vendor_performance_metrics.txt"
+      label: "Vendor and Supplier Management"
+      expected_coherence: 0.67
+
+    quality_assurance:
+      documents:
+        - "qa_testing_procedures.txt"
+        - "defect_management_process.txt"
+        - "release_management_policy.txt"
+        - "code_review_standards.txt"
+      label: "Quality Assurance"
+      expected_coherence: 0.66
+
+    data_governance:
+      documents:
+        - "data_quality_standards.txt"
+        - "master_data_management.txt"
+        - "data_lineage_documentation.txt"
+        - "metadata_management_policy.txt"
+      label: "Data Governance"
+      expected_coherence: 0.65
+
+  rag_relevance:
+    queries:
+      - query: "SOX compliance requirements for financial reporting"
+        relevant_docs:
+          - doc: "sox_compliance_checklist.txt"
+            relevance: 1.0
+          - doc: "internal_audit_procedures.txt"
+            relevance: 0.8
+          - doc: "financial_reporting_controls.txt"
+            relevance: 0.9
+          - doc: "segregation_of_duties.txt"
+            relevance: 0.7
+
+      - query: "data breach incident response procedures"
+        relevant_docs:
+          - doc: "incident_response_procedures.txt"
+            relevance: 1.0
+          - doc: "security_incident_log.txt"
+            relevance: 0.8
+          - doc: "data_privacy_requirements.txt"
+            relevance: 0.7
+          - doc: "crisis_communication_plan.txt"
+            relevance: 0.6
+
+      - query: "password policy and access control standards"
+        relevant_docs:
+          - doc: "password_standards.txt"
+            relevance: 1.0
+          - doc: "access_control_policy.txt"
+            relevance: 0.9
+          - doc: "identity_management_policy.txt"
+            relevance: 0.8
+          - doc: "system_access_reviews.txt"
+            relevance: 0.7
+
+      - query: "vendor risk assessment and third party compliance"
+        relevant_docs:
+          - doc: "vendor_risk_evaluation.txt"
+            relevance: 1.0
+          - doc: "third_party_compliance.txt"
+            relevance: 0.9
+          - doc: "vendor_onboarding_process.txt"
+            relevance: 0.7
+          - doc: "supplier_evaluation_criteria.txt"
+            relevance: 0.6
+
+      - query: "GDPR data retention and privacy requirements"
+        relevant_docs:
+          - doc: "gdpr_compliance_guide.txt"
+            relevance: 1.0
+          - doc: "data_retention_policy.txt"
+            relevance: 0.9
+          - doc: "privacy_impact_assessment.txt"
+            relevance: 0.8
+          - doc: "data_privacy_requirements.txt"
+            relevance: 0.9

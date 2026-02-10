@@ -1,0 +1,285 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.7</storyId>
+    <title>Configurable Output Organization Strategies</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-7-configurable-output-organization-strategies.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>compliance engineer responsible for delivering audited chunk exports</asA>
+    <iWant>JSON/TXT/CSV formats to be organized by document, by entity, or flat with manifest-level metadata</iWant>
+    <soThat>downstream analysts and auditors can consume the same chunk set in the layout that matches their workflow while preserving traceability and quality signals</soThat>
+    <tasks>
+- [ ] **Task 1: Extend Organizer + manifest metadata (AC: 1-7)**
+  - [ ] Ensure `OrganizationStrategy` routes each chunk through BY_DOCUMENT, BY_ENTITY, FLAT helpers while emitting manifest entries for JSON/TXT/CSV.
+  - [ ] Enrich manifests with config snapshot, chunk quality flags, source hashes, entity tags, and processing timestamp for traceability (FR-8.2).
+  - [ ] Keep writes local, honor ADR-005/ADR-006 continue-on-error behavior, and emit structured logs for every manifest change (FR-8.3).
+
+- [ ] **Task 2: Wire OutputWriter + CLI (AC: 1-5)**
+  - [ ] Register Organizer strategies inside `OutputWriter` so CSV, TXT, and JSON formatters all benefit from the same coordination layer.
+  - [ ] Add `--organization`/`ORG` flags to `data_extract.cli` and update help text to describe BY_DOCUMENT/BY_ENTITY/FLAT, including default manifest names.
+  - [ ] Ensure CLI exposes toggles for metadata logging and truncated CSV outputs so downstream automation can surface warnings per FR-8.2.
+
+- [ ] **Task 3: Tests and UAT (AC: 5-8)**
+  - [ ] Run unit suites that cover the Organizer strategies (`tests/unit/test_output/test_organization.py`) plus `CsvFormatter`/`CsvParserValidator`.
+  - [ ] Execute integration tests that exercise all three strategies across JSON, TXT, CSV outputs and include the deferred Excel/Sheets/pandas validations described in `docs/atdd-checklist-3.6.md`.
+  - [ ] Capture UAT evidence for each strategy plus manifest accuracy (screenshots, csvkit logs) and document results.
+
+- [ ] **Task 4: Documentation & baselines (AC: 8)**
+  - [ ] Create or update `docs/csv-format-reference.md`, `docs/organizer-reference.md`, and `docs/performance-baselines-epic-3.md` so Story 3.7 paths and organization overhead are recorded.
+  - [ ] Publish sample outputs/manifests (`docs/examples/csv-output-samples/`), update `.claude/CLAUDE.md`, and mention the new organization options in `docs/index.md`.
+
+- [ ] **Task 5: Sprint tracking & readiness**
+  - [ ] Update `docs/sprint-status.yaml` once Organization strategies + UAT pass so the story moves from `backlog` to `drafted → ready-for-dev`.
+  - [ ] Link this story to the unresolved CSV UAT deferral from Story 3.6 (Task 2/4/5) so reviewers see the closure path.
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC-3.7-1: Three organization modes supported - BY_DOCUMENT, BY_ENTITY, and FLAT layout options are available for Organizer output, with each format (JSON, TXT, CSV) honoring the selected strategy.
+
+AC-3.7-2: By-document layout - Each source file produces its own folder containing all formats plus the shared manifest.
+
+AC-3.7-3: By-entity layout - Output is grouped under entity-type folders (risks, controls, etc.) while maintaining per-chunk provenance.
+
+AC-3.7-4: Flat layout - All outputs land in a single directory with stable prefix/suffix naming, and `manifest.json` records traceability.
+
+AC-3.7-5: Configurable interface - CLI `data-extract process --organization` flag (and config override) lets SM/Dev select the strategy, matching PRD FR-8.1 requirements.
+
+AC-3.7-6: Metadata persistence - Each manifest entry includes processing timestamp, config snapshot, source file hash, entity tags, and quality flags so audit trail granularity meets FR-8.2.
+
+AC-3.7-7: Logging & audit trail - Organization operations log decisions (strategy chosen, manifest writes, errors) with timestamped entries, fulfilling FR-8.3 and ADR logging patterns.
+
+AC-3.7-8: Documentation & tests - Tech-spec test strategy and performance baselines reflect the new organization paths, and UAT exercises all three strategies plus Excel/Sheets/pandas validations before Epic 3 closes.
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- PRD Requirements -->
+      <doc path="docs/PRD/functional-requirements.md" title="Functional Requirements" section="FR-8: Output Organization & Export">
+        <snippet>FR-8.1 defines three organization strategies (by_document, by_entity, flat) with configurable --organization flag. FR-8.2 requires metadata persistence (timestamps, config, hashes, entity tags, quality scores). FR-8.3 mandates comprehensive logging with timestamped entries for all processing decisions.</snippet>
+      </doc>
+
+      <!-- Tech Spec Epic 3 -->
+      <doc path="docs/tech-spec-epic-3/2-detailed-design.md" title="Epic 3 Detailed Design" section="OrganizationStrategy & Organizer">
+        <snippet>Organizer class implements three strategies with folder creation and manifest generation. BY_DOCUMENT creates one folder per source file, BY_ENTITY groups by entity type (risks/, controls/), FLAT uses single directory with prefixed filenames. All strategies generate manifest.json with traceability metadata.</snippet>
+      </doc>
+
+      <doc path="docs/tech-spec-epic-3/7-test-strategy.md" title="Epic 3 Test Strategy" section="Integration Tests">
+        <snippet>Test strategy calls for 7 unit tests covering Organizer strategies plus 9 integration tests exercising all three strategies across JSON/TXT/CSV outputs. UAT must include Excel/Sheets/pandas validations for CSV path before Epic 3 closes.</snippet>
+      </doc>
+
+      <!-- Architecture -->
+      <doc path="docs/architecture/architecture-decision-records-adrs.md" title="Architecture Decision Records" section="ADR-005 & ADR-006">
+        <snippet>ADR-005 mandates streaming pipeline (not batch-load) with constant memory usage. ADR-006 requires continue-on-error batch processing where one file failure doesn't block batch. Both apply to organization operations.</snippet>
+      </doc>
+
+      <doc path="docs/architecture/security-architecture.md" title="Security Architecture" section="On-Premise Processing">
+        <snippet>All writes must stay on-premises with no external telemetry. Data handling requires local-only processing, input validation, and secure dependency management.</snippet>
+      </doc>
+
+      <!-- Previous Story Context -->
+      <doc path="docs/stories/3-6-csv-output-format-for-analysis-and-tracking.md" title="Story 3.6 CSV Output" section="Completion Notes">
+        <snippet>Story 3.6 completed CsvFormatter core with tests passing, but deferred OutputWriter/Organizer wiring, documentation/performance artifacts, and Excel/Sheets UAT to Story 3.7. Closing Story 3.7 clears remaining blockers from CSV review.</snippet>
+      </doc>
+
+      <doc path="docs/atdd-checklist-3.6.md" title="Story 3.6 UAT Checklist" section="Deferred Tasks">
+        <snippet>Task 2 (OutputWriter integration), Task 4 (documentation/performance baselines), and Task 5 (Excel/Sheets/pandas validation) were deferred to Story 3.7 for coordinated multi-format organization implementation.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Organization Infrastructure (Story 3.5) -->
+      <artifact path="src/data_extract/output/organization.py" kind="module" symbol="OrganizationStrategy, Organizer" lines="35-328" reason="Defines three organization strategies (BY_DOCUMENT, BY_ENTITY, FLAT) and Organizer class that Story 3.7 must extend with manifest metadata enrichment per AC-3.7-6"></artifact>
+
+      <artifact path="src/data_extract/output/organization.py" kind="class" symbol="Organizer._write_manifest" lines="259-295" reason="Current manifest implementation includes basic strategy/folder mapping but needs enrichment with config snapshot, source hashes, entity tags, quality flags per FR-8.2"></artifact>
+
+      <!-- OutputWriter Coordinator (Story 3.5) -->
+      <artifact path="src/data_extract/output/writer.py" kind="module" symbol="OutputWriter, WriterResult" lines="1-209" reason="Coordinates formatters (JSON/TXT/CSV) with organization strategies. Story 3.7 must validate all formatters work with all strategies and add logging per FR-8.3"></artifact>
+
+      <artifact path="src/data_extract/output/writer.py" kind="class" symbol="OutputWriter.write" lines="108-205" reason="Main entry point for formatted output. Handles organization routing, formatter kwargs, per-chunk mode. Needs logging enhancements for organization decisions"></artifact>
+
+      <!-- Formatters (Stories 3.4, 3.5, 3.6) -->
+      <artifact path="src/data_extract/output/formatters/base.py" kind="protocol" symbol="BaseFormatter" lines="59-91" reason="Protocol all formatters implement. Ensures JSON/TXT/CSV all work with organization strategies uniformly"></artifact>
+
+      <artifact path="src/data_extract/output/formatters/json_formatter.py" kind="formatter" symbol="JsonFormatter" lines="1-end" reason="JSON formatter with schema validation. Must validate organization integration preserves schema compliance"></artifact>
+
+      <artifact path="src/data_extract/output/formatters/txt_formatter.py" kind="formatter" symbol="TxtFormatter" lines="1-end" reason="TXT formatter with per-chunk/concatenated modes. Organization integration already tested in Story 3.5"></artifact>
+
+      <artifact path="src/data_extract/output/formatters/csv_formatter.py" kind="formatter" symbol="CsvFormatter" lines="1-end" reason="CSV formatter from Story 3.6. Story 3.7 must wire into OutputWriter and validate organization strategies work with CSV output"></artifact>
+
+      <!-- CLI Entry Point (Story 3.5 minimal implementation) -->
+      <artifact path="src/data_extract/cli.py" kind="module" symbol="process, app" lines="22-286" reason="Minimal Click-based CLI with --organize and --strategy flags. Story 3.7 validates flags work correctly, adds help text improvements, and ensures logging exposes organization decisions"></artifact>
+
+      <artifact path="src/data_extract/cli.py" kind="function" symbol="process" lines="78-183" reason="Main CLI command with organize/strategy parameters. Needs validation that all flag combinations work correctly and error messages are clear"></artifact>
+
+      <!-- Validation (Story 3.6) -->
+      <artifact path="src/data_extract/output/validation/csv_parser.py" kind="module" symbol="CsvParserValidator" lines="1-end" reason="Multi-engine CSV validation (Python csv + pandas + csvkit). Story 3.7 UAT must prove organized CSV outputs pass all validators"></artifact>
+    </code>
+
+    <dependencies>
+      <!-- Core Dependencies (from pyproject.toml) -->
+      <python>
+        <package>pydantic>=2.0.0,&lt;3.0</package>
+        <package>PyYAML>=6.0.0,&lt;7.0</package>
+        <package>structlog>=24.0.0,&lt;25.0</package>
+        <package>spacy>=3.7.2,&lt;4.0</package>
+        <package>jsonschema>=4.0.0,&lt;5.0</package>
+        <package>click>=8.1.0</package>
+        <package>rich>=13.0.0</package>
+      </python>
+
+      <!-- Dev Dependencies for Story 3.7 -->
+      <dev>
+        <package>pytest>=8.0.0,&lt;9.0</package>
+        <package>pytest-cov>=5.0.0,&lt;6.0</package>
+        <package>black>=24.0.0,&lt;25.0</package>
+        <package>ruff>=0.6.0,&lt;0.7</package>
+        <package>mypy>=1.11.0,&lt;2.0</package>
+        <package>pandas>=2.0.0,&lt;3.0</package>
+        <package>csvkit>=2.0.0,&lt;3.0</package>
+      </dev>
+
+      <!-- External Tools for UAT -->
+      <tools>
+        <tool>jq (CLI JSON processor for manifest validation)</tool>
+        <tool>csvkit (csvstat, csvlook for CSV validation)</tool>
+        <tool>Node.js (JSON.parse validation)</tool>
+        <tool>Excel/Google Sheets (manual CSV import UAT)</tool>
+      </tools>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Security & Process Constraints -->
+    <constraint source="ADR-005" type="architecture">Streaming pipeline pattern required: process files one at a time, release memory after each. Constant memory usage (2GB max), no batch buffering.</constraint>
+
+    <constraint source="ADR-006" type="architecture">Continue-on-error batch processing: catch per-file errors, log, quarantine, continue with remaining files. One file failure must not block entire batch.</constraint>
+
+    <constraint source="Security Architecture" type="security">All writes stay on-premises. No external telemetry, no data leakage off-machine. Local-only processing enforced.</constraint>
+
+    <constraint source="FR-8.3" type="functional">Comprehensive logging required: timestamped entries for all processing steps (DEBUG, INFO, WARNING, ERROR, CRITICAL levels). Processing decisions must be logged (why chunks split, why content flagged, strategy chosen, manifest writes).</constraint>
+
+    <constraint source="Tech Spec" type="performance">Organization overhead must not significantly impact throughput. Manifest generation and folder creation should complete in <1s for typical batch sizes.</constraint>
+
+    <constraint source="Story 3.6" type="integration">OutputWriter/Organizer must work seamlessly with CsvFormatter. CSV outputs must pass pandas/csvkit validation regardless of organization strategy.</constraint>
+
+    <constraint source="Tech Spec" type="testing">UAT must exercise all three strategies (BY_DOCUMENT, BY_ENTITY, FLAT) across all three formats (JSON, TXT, CSV) for 3x3=9 integration test combinations.</constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- OutputWriter Public API -->
+    <interface name="OutputWriter.write" kind="method" path="src/data_extract/output/writer.py">
+      <signature>
+        def write(
+            self,
+            *,
+            chunks: Iterable[Chunk],
+            output_path: Path,
+            format_type: str,
+            organize: bool = False,
+            strategy: Optional[OrganizationStrategy] = None,
+            **formatter_kwargs: Any,
+        ) -> WriterResult
+      </signature>
+      <description>Main entry point for formatted output. Coordinates formatters with organization strategies. Returns WriterResult with unified metadata.</description>
+    </interface>
+
+    <!-- Organizer Public API -->
+    <interface name="Organizer.organize" kind="method" path="src/data_extract/output/organization.py">
+      <signature>
+        def organize(
+            self,
+            chunks: Iterable[Chunk],
+            output_dir: Path,
+            strategy: OrganizationStrategy,
+        ) -> OrganizationResult
+      </signature>
+      <description>Organize chunks into folder structure based on strategy. Returns OrganizationResult with manifest path and metadata.</description>
+    </interface>
+
+    <!-- BaseFormatter Protocol -->
+    <interface name="BaseFormatter.format_chunks" kind="protocol" path="src/data_extract/output/formatters/base.py">
+      <signature>
+        def format_chunks(
+            self,
+            chunks: Iterable[Chunk],
+            output_path: Path
+        ) -> FormatResult
+      </signature>
+      <description>Format chunks and write to output_path. All formatters (JSON, TXT, CSV) implement this protocol.</description>
+    </interface>
+
+    <!-- CLI Commands -->
+    <interface name="data-extract process" kind="CLI command" path="src/data_extract/cli.py">
+      <signature>
+        data-extract process INPUT_FILE --format {json,txt,csv} --output PATH [--organize] [--strategy {by_document,by_entity,flat}] [--per-chunk] [--include-metadata] [--delimiter TEXT]
+      </signature>
+      <description>Process document and generate formatted output with optional organization. Story 3.7 must validate all flag combinations work correctly.</description>
+    </interface>
+
+    <!-- Manifest Format -->
+    <interface name="manifest.json" kind="data format" path="src/data_extract/output/organization.py">
+      <signature>
+        {
+          "organization_strategy": "by_document" | "by_entity" | "flat",
+          "total_chunks": int,
+          "folders": {
+            "folder_name": {
+              "chunk_count": int,
+              "chunk_ids": ["chunk_001", ...]
+            }
+          },
+          "generated_at": "ISO-8601 timestamp"
+        }
+      </signature>
+      <description>Current manifest format. Story 3.7 must enrich with config snapshot, source hashes, entity tags, quality flags per AC-3.7-6.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+The project uses pytest with strict quality gates enforced by pre-commit hooks and CI. Testing follows Epic 3 test strategy with four categories: unit tests (fast, isolated, 79 planned), integration tests (multi-component, 48 planned), performance tests (latency/memory baselines, 5 planned), and UAT tests (manual/automated validations, 25 planned). Coverage requirements: 60% baseline overall (enforced in CI), 80% for greenfield src/data_extract/, 90% for Epic 5 critical paths. All tests must pass Black (formatting), Ruff (linting), and Mypy (strict type checking) before commit. Story 3.7 must maintain or exceed current coverage levels while adding organization strategy tests.</standards>
+
+    <locations>
+      <location>tests/unit/test_output/test_organization.py - Unit tests for Organizer class and strategies</location>
+      <location>tests/unit/test_output/test_csv_formatter.py - CsvFormatter unit tests (13 tests, 100% passing)</location>
+      <location>tests/unit/test_output/test_csv_parser_validator.py - CsvParserValidator unit tests</location>
+      <location>tests/integration/test_output/test_writer_integration.py - OutputWriter integration tests (17 tests)</location>
+      <location>tests/integration/test_output/test_txt_organization.py - TXT organization integration tests</location>
+      <location>tests/integration/test_output/test_csv_pipeline.py - CSV pipeline integration tests</location>
+      <location>tests/performance/ - Performance benchmarks (must add organization overhead metrics)</location>
+      <location>docs/atdd-checklist-3.6.md - Deferred UAT checklist items for Excel/Sheets/pandas validation</location>
+    </locations>
+
+    <ideas>
+      <!-- Unit Tests (AC-3.7-1 to AC-3.7-4) -->
+      <test-idea ac="AC-3.7-1">Test all three organization strategies (BY_DOCUMENT, BY_ENTITY, FLAT) create expected folder structures with correct naming conventions</test-idea>
+      <test-idea ac="AC-3.7-1">Verify each formatter (JSON, TXT, CSV) produces valid output under all three organization strategies (3x3 matrix)</test-idea>
+      <test-idea ac="AC-3.7-2">BY_DOCUMENT: Verify each source file gets dedicated folder with all format outputs (chunks.json, chunks.txt, chunks.csv)</test-idea>
+      <test-idea ac="AC-3.7-3">BY_ENTITY: Verify chunks grouped by entity type (risks/, controls/, policies/) with unclassified fallback</test-idea>
+      <test-idea ac="AC-3.7-4">FLAT: Verify all outputs in single directory with stable prefixed filenames and manifest.json traceability</test-idea>
+
+      <!-- Integration Tests (AC-3.7-5 to AC-3.7-7) -->
+      <test-idea ac="AC-3.7-5">CLI flag validation: --organize requires --strategy, --strategy requires --organize, invalid combinations show clear error messages</test-idea>
+      <test-idea ac="AC-3.7-6">Manifest enrichment: Verify manifest.json includes processing timestamp, config snapshot, source hashes, entity tags, quality flags per AC-3.7-6</test-idea>
+      <test-idea ac="AC-3.7-7">Logging validation: Verify organization operations emit structured logs (strategy chosen, manifest writes, folder creations, errors) with timestamps</test-idea>
+
+      <!-- UAT Tests (AC-3.7-8) -->
+      <test-idea ac="AC-3.7-8">Excel/Sheets validation: Import organized CSV outputs into Excel and Google Sheets, verify no encoding issues, proper escaping, readable structure</test-idea>
+      <test-idea ac="AC-3.7-8">pandas validation: Load organized CSV outputs with pd.read_csv(), verify all columns parse correctly, no data loss</test-idea>
+      <test-idea ac="AC-3.7-8">csvkit validation: Run csvstat/csvlook on organized CSV outputs under all strategies, verify RFC 4180 compliance</test-idea>
+      <test-idea ac="AC-3.7-8">Performance baseline: Measure organization overhead for each strategy with varying chunk counts (10, 100, 500 chunks), ensure <1s for typical batches</test-idea>
+
+      <!-- Edge Cases & Error Handling -->
+      <test-idea>Verify graceful degradation when entity metadata missing (BY_ENTITY falls back to unclassified/)</test-idea>
+      <test-idea>Test continue-on-error behavior: one chunk with malformed metadata doesn't block entire batch organization</test-idea>
+      <test-idea>Verify manifest generation succeeds even when some chunks fail formatting (partial results tracked)</test-idea>
+      <test-idea>Test path sanitization handles special characters, Unicode filenames, extremely long names</test-idea>
+    </ideas>
+  </tests>
+</story-context>

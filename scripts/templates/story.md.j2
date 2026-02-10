@@ -1,0 +1,67 @@
+# Story {{ story_number }}: {{ title }}
+
+Status: backlog
+
+## Story
+
+As a [role],
+I want [feature/capability],
+So that [benefit/value].
+
+### Story Header
+
+- **Story Key:** `{{ story_key }}` (Epic {{ epic }}, Story ID {{ story_number }})
+- **Dependencies:** None
+- **Estimate:** {{ estimate }} hours
+- **Owner:** {{ owner }}
+
+### Story Body
+
+[Implementation details]
+
+## Acceptance Criteria
+
+{% for ac in acceptance_criteria %}
+{{ ac.id }}. **{{ ac.description }}**
+   - Evidence: {{ ac.evidence }}
+{% endfor %}
+
+## Tasks / Subtasks
+
+{% for item in wiring_checklist.bom %}
+- [ ] BOM: {{ item }}
+{% endfor %}
+{% for item in wiring_checklist.logging %}
+- [ ] Logging: {{ item }}
+{% endfor %}
+{% for item in wiring_checklist.cli %}
+- [ ] CLI: {{ item }}
+{% endfor %}
+{% for item in wiring_checklist.testing %}
+- [ ] Testing: {{ item }}
+{% endfor %}
+
+## Dev Notes
+
+### Submission Summary
+
+**Files Created:**
+{% for file in submission_summary.files_created %}
+- {{ file }}
+{% endfor %}
+
+**Files Modified:**
+{% for file in submission_summary.files_modified %}
+- {{ file }}
+{% endfor %}
+
+**Tests Added:**
+{% for test in submission_summary.tests_added %}
+- {{ test }}
+{% endfor %}
+
+**Coverage:** {{ submission_summary.coverage }}
+
+### Completion Notes
+
+- **{{ date }}:** Story created with template generator

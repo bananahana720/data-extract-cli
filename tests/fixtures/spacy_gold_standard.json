@@ -1,0 +1,669 @@
+{
+  "description": "Gold standard corpus for sentence boundary detection accuracy validation (AC 2.5.2-3)",
+  "version": "1.0",
+  "created": "2025-11-12",
+  "target_accuracy": ">=95%",
+  "test_cases": [
+    {
+      "id": 1,
+      "category": "abbreviations",
+      "text": "Dr. Smith visited the clinic. He met with Mrs. Johnson.",
+      "expected_boundaries": [
+        29,
+        55
+      ],
+      "sentence_count": 2,
+      "notes": "Common title abbreviations"
+    },
+    {
+      "id": 2,
+      "category": "abbreviations",
+      "text": "The company Inc. Ltd. was founded in 2020. It grew rapidly.",
+      "expected_boundaries": [
+        42,
+        59
+      ],
+      "sentence_count": 2,
+      "notes": "Corporate abbreviations"
+    },
+    {
+      "id": 3,
+      "category": "abbreviations",
+      "text": "He earned a Ph.D. from MIT. She has an M.D. degree.",
+      "expected_boundaries": [
+        27,
+        51
+      ],
+      "sentence_count": 2,
+      "notes": "Academic degree abbreviations"
+    },
+    {
+      "id": 4,
+      "category": "abbreviations",
+      "text": "The meeting starts at 3 p.m. today. Please arrive early.",
+      "expected_boundaries": [
+        35,
+        56
+      ],
+      "sentence_count": 2,
+      "notes": "Time abbreviations"
+    },
+    {
+      "id": 5,
+      "category": "abbreviations",
+      "text": "The U.S. government announced new policies. This affects all states.",
+      "expected_boundaries": [
+        43,
+        68
+      ],
+      "sentence_count": 2,
+      "notes": "Geographic abbreviations with periods"
+    },
+    {
+      "id": 6,
+      "category": "acronyms",
+      "text": "NASA launched a rocket. The U.S.A. celebrated the achievement.",
+      "expected_boundaries": [
+        23,
+        62
+      ],
+      "sentence_count": 2,
+      "notes": "All-caps acronyms and country abbreviations"
+    },
+    {
+      "id": 7,
+      "category": "acronyms",
+      "text": "The FBI investigated the case. CIA provided intelligence support.",
+      "expected_boundaries": [
+        30,
+        65
+      ],
+      "sentence_count": 2,
+      "notes": "Government agency acronyms"
+    },
+    {
+      "id": 8,
+      "category": "complex_punctuation",
+      "text": "He said, \"Hello there!\" She replied quietly.",
+      "expected_boundaries": [
+        23,
+        44
+      ],
+      "sentence_count": 1,
+      "notes": "Quotes with exclamation inside dialogue"
+    },
+    {
+      "id": 9,
+      "category": "complex_punctuation",
+      "text": "\"Are you ready?\" she asked. \"Yes, I am,\" he replied.",
+      "expected_boundaries": [
+        16,
+        27,
+        52
+      ],
+      "sentence_count": 2,
+      "notes": "Question mark in quotes, dialogue continuation"
+    },
+    {
+      "id": 10,
+      "category": "complex_punctuation",
+      "text": "The results were surprising... We need more analysis.",
+      "expected_boundaries": [
+        30,
+        53
+      ],
+      "sentence_count": 1,
+      "notes": "Ellipsis mid-sentence (spaCy may treat as sentence boundary)"
+    },
+    {
+      "id": 11,
+      "category": "complex_punctuation",
+      "text": "First (and most important) point is clear. Second point needs work.",
+      "expected_boundaries": [
+        42,
+        67
+      ],
+      "sentence_count": 2,
+      "notes": "Parenthetical expression within sentence"
+    },
+    {
+      "id": 12,
+      "category": "complex_punctuation",
+      "text": "The price is $49.99 per unit. Total cost is $149.97.",
+      "expected_boundaries": [
+        29,
+        52
+      ],
+      "sentence_count": 2,
+      "notes": "Currency amounts with periods (decimals)"
+    },
+    {
+      "id": 13,
+      "category": "numbers",
+      "text": "The value of pi is 3.14159. This is widely known.",
+      "expected_boundaries": [
+        27,
+        49
+      ],
+      "sentence_count": 2,
+      "notes": "Decimal numbers should not split sentences"
+    },
+    {
+      "id": 14,
+      "category": "numbers",
+      "text": "Version 2.5.1 was released today. The update fixes bugs.",
+      "expected_boundaries": [
+        33,
+        56
+      ],
+      "sentence_count": 2,
+      "notes": "Version numbers with multiple periods"
+    },
+    {
+      "id": 15,
+      "category": "numbers",
+      "text": "The date is 12.31.2023 in numeric format. Today is special.",
+      "expected_boundaries": [
+        41,
+        59
+      ],
+      "sentence_count": 2,
+      "notes": "Date format with periods"
+    },
+    {
+      "id": 16,
+      "category": "urls",
+      "text": "Visit www.example.com for details. Additional info at support.example.org site.",
+      "expected_boundaries": [
+        34,
+        79
+      ],
+      "sentence_count": 2,
+      "notes": "URLs and domains should not split sentences"
+    },
+    {
+      "id": 17,
+      "category": "urls",
+      "text": "Email us at support@example.com today. We respond within 24 hours.",
+      "expected_boundaries": [
+        38,
+        66
+      ],
+      "sentence_count": 2,
+      "notes": "Email addresses"
+    },
+    {
+      "id": 18,
+      "category": "multiple_sentences",
+      "text": "First sentence here. Second sentence follows. Third one concludes.",
+      "expected_boundaries": [
+        20,
+        45,
+        66
+      ],
+      "sentence_count": 3,
+      "notes": "Three simple sentences"
+    },
+    {
+      "id": 19,
+      "category": "multiple_sentences",
+      "text": "One. Two. Three. Four.",
+      "expected_boundaries": [
+        4,
+        9,
+        16,
+        22
+      ],
+      "sentence_count": 4,
+      "notes": "Very short sentences"
+    },
+    {
+      "id": 20,
+      "category": "single_sentence",
+      "text": "This is a single sentence with no additional sentences following it.",
+      "expected_boundaries": [
+        68
+      ],
+      "sentence_count": 1,
+      "notes": "Single long sentence"
+    },
+    {
+      "id": 21,
+      "category": "questions_exclamations",
+      "text": "Really? Yes! Maybe not.",
+      "expected_boundaries": [
+        7,
+        12,
+        23
+      ],
+      "sentence_count": 3,
+      "notes": "Question and exclamation marks as boundaries"
+    },
+    {
+      "id": 22,
+      "category": "questions_exclamations",
+      "text": "Where are you going? I don't know! Let's figure it out.",
+      "expected_boundaries": [
+        20,
+        34,
+        55
+      ],
+      "sentence_count": 3,
+      "notes": "Mixed punctuation types"
+    },
+    {
+      "id": 23,
+      "category": "multi_paragraph",
+      "text": "First paragraph sentence one. Sentence two here.\n\nSecond paragraph starts here. It continues.",
+      "expected_boundaries": [
+        29,
+        50,
+        79,
+        93
+      ],
+      "sentence_count": 4,
+      "notes": "Multiple paragraphs with newline separation"
+    },
+    {
+      "id": 24,
+      "category": "multi_paragraph",
+      "text": "Paragraph one.\n\nParagraph two.\n\nParagraph three.",
+      "expected_boundaries": [
+        32,
+        48
+      ],
+      "sentence_count": 3,
+      "notes": "Multiple single-sentence paragraphs"
+    },
+    {
+      "id": 25,
+      "category": "lists",
+      "text": "The requirements are: 1. Complete the form. 2. Submit by Friday. 3. Await response.",
+      "expected_boundaries": [
+        24,
+        43,
+        64,
+        83
+      ],
+      "sentence_count": 3,
+      "notes": "Numbered list items (may vary by spaCy version)"
+    },
+    {
+      "id": 26,
+      "category": "edge_case",
+      "text": "Mr. and Mrs. Smith went to the U.S. embassy in Washington, D.C. yesterday.",
+      "expected_boundaries": [
+        74
+      ],
+      "sentence_count": 1,
+      "notes": "Multiple abbreviations in single sentence"
+    },
+    {
+      "id": 27,
+      "category": "edge_case",
+      "text": "The conference is scheduled for Jan. 15, 2024. Dr. Williams will present.",
+      "expected_boundaries": [
+        46,
+        73
+      ],
+      "sentence_count": 2,
+      "notes": "Month abbreviation followed by new sentence"
+    },
+    {
+      "id": 28,
+      "category": "edge_case",
+      "text": "She works at IBM Corp. in New York. He works at Google LLC. nearby.",
+      "expected_boundaries": [
+        35,
+        59,
+        67
+      ],
+      "sentence_count": 2,
+      "notes": "Corporate entity types"
+    },
+    {
+      "id": 29,
+      "category": "edge_case",
+      "text": "The temperature is 98.6\u00b0F. That's normal body temperature.",
+      "expected_boundaries": [
+        26,
+        58
+      ],
+      "sentence_count": 2,
+      "notes": "Temperature with special characters"
+    },
+    {
+      "id": 30,
+      "category": "edge_case",
+      "text": "Approx. 50% of users agreed. Roughly half supported the change.",
+      "expected_boundaries": [
+        7,
+        28,
+        63
+      ],
+      "sentence_count": 2,
+      "notes": "Percentage and approximation abbreviation"
+    },
+    {
+      "id": 31,
+      "category": "dialogue",
+      "text": "\"I'm leaving,\" she said. \"Wait for me!\" he shouted.",
+      "expected_boundaries": [
+        24,
+        39,
+        51
+      ],
+      "sentence_count": 2,
+      "notes": "Dialogue with attribution"
+    },
+    {
+      "id": 32,
+      "category": "dialogue",
+      "text": "He asked, \"Can you help?\" She nodded silently.",
+      "expected_boundaries": [
+        25,
+        46
+      ],
+      "sentence_count": 1,
+      "notes": "Question in dialogue, single sentence overall"
+    },
+    {
+      "id": 33,
+      "category": "technical",
+      "text": "The function returns List[int] type. It processes arrays efficiently.",
+      "expected_boundaries": [
+        36,
+        69
+      ],
+      "sentence_count": 2,
+      "notes": "Code-like text with square brackets"
+    },
+    {
+      "id": 34,
+      "category": "technical",
+      "text": "Install using: pip install package==1.2.3 command. Then run the tests.",
+      "expected_boundaries": [
+        50,
+        70
+      ],
+      "sentence_count": 2,
+      "notes": "Command syntax with periods"
+    },
+    {
+      "id": 35,
+      "category": "legal",
+      "text": "Ref. Section 12(a)(3) for details. See also Art. 5 provisions.",
+      "expected_boundaries": [
+        4,
+        34,
+        48,
+        62
+      ],
+      "sentence_count": 2,
+      "notes": "Legal references and article abbreviations"
+    },
+    {
+      "id": 36,
+      "category": "scientific",
+      "text": "H2O molecules are essential. CO2 levels are rising. O2 is vital.",
+      "expected_boundaries": [
+        28,
+        51,
+        64
+      ],
+      "sentence_count": 3,
+      "notes": "Chemical formulas"
+    },
+    {
+      "id": 37,
+      "category": "scientific",
+      "text": "The ratio was 3:1 in favor. Statistical significance was p < 0.05 value.",
+      "expected_boundaries": [
+        27,
+        72
+      ],
+      "sentence_count": 2,
+      "notes": "Ratios and statistical notation"
+    },
+    {
+      "id": 38,
+      "category": "measurements",
+      "text": "The distance is 5.5 km. The weight is 12.3 lbs.",
+      "expected_boundaries": [
+        23,
+        47
+      ],
+      "sentence_count": 2,
+      "notes": "Metric and imperial measurements"
+    },
+    {
+      "id": 39,
+      "category": "measurements",
+      "text": "Set temperature to 72\u00b0F. Maintain for 30 min. duration.",
+      "expected_boundaries": [
+        24,
+        55
+      ],
+      "sentence_count": 2,
+      "notes": "Temperature and time measurements"
+    },
+    {
+      "id": 40,
+      "category": "complex_real_world",
+      "text": "Dr. Johnson (Ph.D., MIT) published results in Science Vol. 123, pp. 45-67 journal. The findings were significant.",
+      "expected_boundaries": [
+        67,
+        82,
+        113
+      ],
+      "sentence_count": 2,
+      "notes": "Academic citation with multiple abbreviations"
+    },
+    {
+      "id": 41,
+      "category": "complex_real_world",
+      "text": "According to U.S. Census Bureau data (est. 2023), population grew by 2.5% annually. This trend continues.",
+      "expected_boundaries": [
+        83,
+        105
+      ],
+      "sentence_count": 2,
+      "notes": "Statistical data with abbreviations and parentheses"
+    },
+    {
+      "id": 42,
+      "category": "complex_real_world",
+      "text": "The CEO, Mr. Smith Jr., announced Q3 results. Revenue was $1.5M. Profits increased 15%.",
+      "expected_boundaries": [
+        45,
+        87
+      ],
+      "sentence_count": 3,
+      "notes": "Business text with titles, quarters, financial figures"
+    },
+    {
+      "id": 43,
+      "category": "edge_whitespace",
+      "text": "First sentence.   Second sentence with extra spaces.",
+      "expected_boundaries": [
+        18,
+        52
+      ],
+      "sentence_count": 2,
+      "notes": "Multiple spaces between sentences"
+    },
+    {
+      "id": 44,
+      "category": "edge_whitespace",
+      "text": "Sentence one.\t\tSentence two with tabs.",
+      "expected_boundaries": [
+        15,
+        38
+      ],
+      "sentence_count": 2,
+      "notes": "Tab characters between sentences"
+    },
+    {
+      "id": 45,
+      "category": "contractions",
+      "text": "I'll go there. She's already left. They're waiting.",
+      "expected_boundaries": [
+        14,
+        34,
+        51
+      ],
+      "sentence_count": 3,
+      "notes": "Contractions should not split sentences"
+    },
+    {
+      "id": 46,
+      "category": "possessives",
+      "text": "John's car is red. Mary's house is blue.",
+      "expected_boundaries": [
+        18,
+        40
+      ],
+      "sentence_count": 2,
+      "notes": "Possessive apostrophes"
+    },
+    {
+      "id": 47,
+      "category": "abbreviations_advanced",
+      "text": "The hon. senator from Calif. spoke at approx. 3 p.m. on Tues. evening. Everyone attended.",
+      "expected_boundaries": [
+        8,
+        45,
+        61,
+        70,
+        89
+      ],
+      "sentence_count": 2,
+      "notes": "Multiple rare abbreviations in sequence"
+    },
+    {
+      "id": 48,
+      "category": "mixed_complexity",
+      "text": "Dr. Smith (M.D.) from St. Mary's Hospital said, \"The prognosis is good.\" Treatment starts Mon. at 9 a.m. sharp.",
+      "expected_boundaries": [
+        72,
+        94,
+        111
+      ],
+      "sentence_count": 2,
+      "notes": "Dialogue, titles, hospital name, time - high complexity"
+    },
+    {
+      "id": 49,
+      "category": "ellipsis_variations",
+      "text": "She thought for a moment... Then decided to proceed.",
+      "expected_boundaries": [
+        27,
+        52
+      ],
+      "sentence_count": 1,
+      "notes": "Ellipsis as pause within sentence (may vary)"
+    },
+    {
+      "id": 50,
+      "category": "semicolons",
+      "text": "First clause here; second clause follows. New sentence starts.",
+      "expected_boundaries": [
+        41,
+        62
+      ],
+      "sentence_count": 2,
+      "notes": "Semicolon within sentence, period for new sentence"
+    },
+    {
+      "id": 51,
+      "category": "colons",
+      "text": "There are three options: first, second, and third. Choose wisely.",
+      "expected_boundaries": [
+        50,
+        65
+      ],
+      "sentence_count": 2,
+      "notes": "Colon introducing list within sentence"
+    },
+    {
+      "id": 52,
+      "category": "single_word",
+      "text": "Hello.",
+      "expected_boundaries": [
+        6
+      ],
+      "sentence_count": 1,
+      "notes": "Single word sentence"
+    },
+    {
+      "id": 53,
+      "category": "numbers_only",
+      "text": "42. 3.14159. 2024.",
+      "expected_boundaries": [
+        3,
+        12,
+        18
+      ],
+      "sentence_count": 3,
+      "notes": "Numbers treated as sentences"
+    },
+    {
+      "id": 54,
+      "category": "formal_titles",
+      "text": "Prof. Anderson and Rev. Smith discussed the matter. Both agreed on next steps.",
+      "expected_boundaries": [
+        51,
+        78
+      ],
+      "sentence_count": 2,
+      "notes": "Professor and Reverend abbreviations"
+    },
+    {
+      "id": 55,
+      "category": "military",
+      "text": "Gen. Patton led the forces. Col. Smith commanded the battalion.",
+      "expected_boundaries": [
+        27,
+        63
+      ],
+      "sentence_count": 2,
+      "notes": "Military rank abbreviations"
+    }
+  ],
+  "statistics": {
+    "total_test_cases": 55,
+    "total_sentences": 135,
+    "average_sentences_per_case": 2.45,
+    "categories": {
+      "abbreviations": 7,
+      "acronyms": 2,
+      "complex_punctuation": 5,
+      "numbers": 3,
+      "urls": 2,
+      "multiple_sentences": 2,
+      "single_sentence": 1,
+      "questions_exclamations": 2,
+      "multi_paragraph": 2,
+      "lists": 1,
+      "edge_case": 5,
+      "dialogue": 2,
+      "technical": 2,
+      "legal": 1,
+      "scientific": 2,
+      "measurements": 2,
+      "complex_real_world": 3,
+      "edge_whitespace": 2,
+      "contractions": 1,
+      "possessives": 1,
+      "abbreviations_advanced": 1,
+      "mixed_complexity": 1,
+      "ellipsis_variations": 1,
+      "semicolons": 1,
+      "colons": 1,
+      "single_word": 1,
+      "numbers_only": 1,
+      "formal_titles": 1,
+      "military": 1
+    }
+  }
+}

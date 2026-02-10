@@ -1,0 +1,498 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Entity Normalization for Audit Domain</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-2-entity-normalization-for-audit-domain.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an audit professional processing enterprise audit documents</asA>
+    <iWant>consistent formatting of audit entities (risks, controls, policies, regulations, processes, issues) across all documents with cross-reference resolution</iWant>
+    <soThat>AI systems can accurately understand, retrieve, and reason about entity relationships without ambiguity from inconsistent naming</soThat>
+    <tasks>
+- Task 1: EntityType and Entity Pydantic models (AC: 2.2.1, 2.2.6)
+  - Subtask 1.1: Define EntityType enum (process, risk, control, regulation, policy, issue)
+  - Subtask 1.2: Create Entity model with type, id, text, confidence, location fields
+  - Subtask 1.3: Add entity_tags and entity_counts fields to Metadata model
+  - Subtask 1.4: Write unit tests for Entity and EntityType models
+
+- Task 2: Entity pattern configuration YAML structure (AC: 2.2.1, 2.2.7)
+  - Subtask 2.1: Design config/normalize/entity_patterns.yaml structure
+  - Subtask 2.2: Define regex patterns for all 6 entity types
+  - Subtask 2.3: Add context rules (surrounding words for disambiguation)
+  - Subtask 2.4: Include Archer entity ID format patterns
+  - Subtask 2.5: Write pattern validation logic in NormalizationConfig
+
+- Task 3: Entity dictionary YAML with audit domain terms (AC: 2.2.3, 2.2.7)
+  - Subtask 3.1: Create config/normalize/entity_dictionary.yaml
+  - Subtask 3.2: Add 50+ common audit acronyms (GRC, SOX, NIST, ISO, CIS, COBIT, PCI-DSS, etc.)
+  - Subtask 3.3: Include expansion rules with context requirements
+  - Subtask 3.4: Add configuration override mechanism for custom dictionaries
+  - Subtask 3.5: Write dictionary loading tests
+
+- Task 4: EntityNormalizer class with recognition and standardization (AC: 2.2.1, 2.2.2, 2.2.4)
+  - Subtask 4.1: Create src/data_extract/normalize/entities.py
+  - Subtask 4.2: Implement recognize_entity_type() method with pattern matching
+  - Subtask 4.3: Implement standardize_entity_id() method (normalize ID formats)
+  - Subtask 4.4: Implement normalize_capitalization() method
+  - Subtask 4.5: Add spaCy integration for context-aware matching
+  - Subtask 4.6: Write unit tests for entity recognition (20+ test cases)
+
+- Task 5: Abbreviation expansion functionality (AC: 2.2.3)
+  - Subtask 5.1: Implement expand_abbreviations() method
+  - Subtask 5.2: Add context-aware expansion logic (avoid false positives)
+  - Subtask 5.3: Log all expansions to audit trail
+  - Subtask 5.4: Write unit tests for abbreviation expansion (10+ test cases)
+
+- Task 6: Cross-reference resolution system (AC: 2.2.5)
+  - Subtask 6.1: Implement resolve_cross_references() method
+  - Subtask 6.2: Build entity graph structure (mentions → canonical IDs)
+  - Subtask 6.3: Handle partial entity references with context analysis
+  - Subtask 6.4: Preserve entity relationships (Risk → Control mappings)
+  - Subtask 6.5: Write unit tests for cross-reference resolution (15+ test cases)
+
+- Task 7: Integration with Normalizer orchestrator (AC: 2.2.6)
+  - Subtask 7.1: Add entity normalization step to normalize/normalizer.py
+  - Subtask 7.2: Pass entity results to metadata enrichment (Story 2.6 prep)
+  - Subtask 7.3: Update ProcessingContext with entity statistics
+  - Subtask 7.4: Write integration test for full normalization pipeline with entities
+
+- Task 8: Comprehensive entity normalization tests
+  - Subtask 8.1: Create test fixtures with known entity mentions in docs/
+  - Subtask 8.2: Unit tests for all 6 entity types (6 test cases minimum)
+  - Subtask 8.3: Unit tests for ID standardization (various formats)
+  - Subtask 8.4: Unit tests for abbreviation expansion
+  - Subtask 8.5: Unit tests for cross-reference resolution
+  - Subtask 8.6: Integration test: clean text → entity normalization → enriched output
+  - Subtask 8.7: Determinism test: same document 10 times → identical entity list
+
+- Task 9: Code quality validation
+  - Subtask 9.1: Run black formatter on entities.py
+  - Subtask 9.2: Run ruff linter, fix all issues
+  - Subtask 9.3: Run mypy type checker in strict mode
+  - Subtask 9.4: Achieve >85% test coverage for entities.py
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC-2.2.1: Six entity types are recognized: processes, risks, controls, regulations, policies, issues
+- Pattern-based recognition using spaCy + regex patterns
+- Configurable entity patterns per type in YAML
+- Context-aware matching (surrounding words for disambiguation)
+- Entity detection logged with locations
+
+AC-2.2.2: Entity references are standardized (e.g., "Risk #123" → "Risk-123")
+- Normalization of entity ID formats
+- Consistent separator usage (dash as canonical)
+- Support for various input formats (Risk #123, risk 123, Risk-123, RISK_123)
+- Preservation of entity type in normalized form
+
+AC-2.2.3: Acronyms and abbreviations are expanded using configurable dictionary (GRC, SOX, NIST CSF)
+- Dictionary loaded from YAML configuration
+- Context-aware expansion (avoid false positives)
+- Support for domain-specific audit terminology
+- Expansion logged for audit trail
+- Default dictionary with 50+ common audit terms
+
+AC-2.2.4: Consistent capitalization is applied to entity types
+- Entity type names capitalized (Risk, Control, Policy)
+- Consistent case throughout document
+- Preserve acronym capitalization separately
+- Case normalization configurable per entity type
+
+AC-2.2.5: Cross-references are resolved and linked to canonical entity IDs
+- Multiple mentions of same entity linked to canonical ID
+- Support for partial matches ("Risk 123" and "the risk" in same context)
+- Entity relationship preservation (Risk → Control mappings)
+- Cross-reference graph stored in metadata
+
+AC-2.2.6: Entity mentions are tagged in metadata for downstream retrieval
+- Entity list in metadata with types and locations
+- Entity counts by type aggregated
+- Entity tags include canonical IDs for traceability
+- Metadata supports RAG retrieval filtering by entity
+
+AC-2.2.7: Normalization rules are configurable per organization (YAML-based)
+- Entity pattern configuration separate from code
+- Dictionary override capability for organization-specific terms
+- Priority ordering for pattern matching
+- Configuration validation on load
+- Default configurations provided for common use cases
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 2 Technical Specification -->
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Story 2.2: Entity Normalization for Audit Domain (lines 37-42)</section>
+        <snippet>Recognition and standardization of 6 entity types (processes, risks, controls, regulations, policies, issues). Abbreviation expansion using configurable dictionaries. Cross-reference resolution with canonical entity IDs. Entity tagging in metadata for downstream retrieval. Support for Archer entity ID formats.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Data Models: Entity Types (lines 188-205)</section>
+        <snippet>EntityType enum with 6 audit domain types (process, risk, control, regulation, policy, issue). Entity model with type, id (canonical), text (mention), confidence, location. Metadata extended with entity_tags (list of canonical IDs) and entity_counts (dict by type).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>APIs and Interfaces: Entity Normalization (lines 385-412)</section>
+        <snippet>EntityNormalizer class with methods: normalize_entities() for full processing, recognize_entity_type() for classification, resolve_cross_references() for linking mentions to canonical IDs. Returns tuple of (text_with_normalized_refs, entity_list).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Robust Normalization &amp; Quality Validation</title>
+        <section>Acceptance Criteria: Story 2.2 (lines 930-939)</section>
+        <snippet>7 acceptance criteria covering: entity type recognition, ID standardization, abbreviation expansion, capitalization consistency, cross-reference resolution, metadata tagging, and configurable rules via YAML.</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure: normalize/ module (lines 90-96)</section>
+        <snippet>normalize/entities.py handles entity normalization for 6 audit types. Uses entity registry pattern with configurable dictionaries. Follows Pipeline Stage Pattern established in Epic 1.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Core Models -->
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>models</kind>
+        <symbol>Entity</symbol>
+        <lines>20-44</lines>
+        <reason>Existing Entity model with type, id, text, confidence fields. Already defined but may need EntityType enum added.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>models</kind>
+        <symbol>Metadata</symbol>
+        <lines>46-78</lines>
+        <reason>Metadata model needs to be extended with entity_tags and entity_counts fields for AC-2.2.6.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>models</kind>
+        <symbol>Document</symbol>
+        <lines>81-105</lines>
+        <reason>Document model already has entities field (List[Entity]) ready to receive normalized entities.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>models</kind>
+        <symbol>ProcessingContext</symbol>
+        <lines>148-171</lines>
+        <reason>ProcessingContext carries config, logger, and metrics through pipeline. Use to cache spaCy model and accumulate entity stats.</reason>
+      </artifact>
+
+      <!-- Pipeline Interface -->
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage</symbol>
+        <lines>20-59</lines>
+        <reason>Protocol that EntityNormalizer must implement. Requires process(input_data, context) method returning Output.</reason>
+      </artifact>
+
+      <!-- Normalization Infrastructure (Story 2.1) -->
+      <artifact>
+        <path>src/data_extract/normalize/normalizer.py</path>
+        <kind>orchestrator</kind>
+        <symbol>Normalizer</symbol>
+        <lines>18-152</lines>
+        <reason>Main orchestrator from Story 2.1. EntityNormalizer will be integrated as next step after TextCleaner (line 95).</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>config</kind>
+        <symbol>NormalizationConfig</symbol>
+        <lines>22-86</lines>
+        <reason>Configuration model following cascade pattern. Needs entity-specific fields added: entity_types, entity_dictionary_path, entity_pattern_path.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/config.py</path>
+        <kind>function</kind>
+        <symbol>load_config</symbol>
+        <lines>88-168</lines>
+        <reason>Configuration cascade loader (CLI > env > YAML > defaults). Use same pattern for entity dictionary loading.</reason>
+      </artifact>
+
+      <!-- Test Infrastructure -->
+      <artifact>
+        <path>tests/unit/test_normalize/test_cleaning.py</path>
+        <kind>test</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Reference for test patterns from Story 2.1. Mirror structure for test_entities.py.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <python>
+        <existing>
+          <package name="pydantic" version=">=2.0.0,&lt;3.0" purpose="Data models with validation (Entity, Metadata, Document)" />
+          <package name="PyYAML" version=">=6.0.0,&lt;7.0" purpose="Configuration file loading (entity_patterns.yaml, entity_dictionary.yaml)" />
+          <package name="structlog" version=">=24.0.0,&lt;25.0" purpose="Structured logging for audit trail" />
+          <package name="Pillow" version=">=10.0.0" purpose="Already available (used in Story 2.4 for OCR)" />
+        </existing>
+
+        <required_to_add>
+          <package name="spacy" version=">=3.7.0,&lt;3.8" purpose="NLP core for entity recognition, sentence tokenization, context analysis (AC-2.2.1). Classical NLP as per ADR-004." />
+          <package name="en_core_web_md" version="3.7.x" purpose="spaCy language model (50MB). Provides word vectors and NER patterns for context-aware entity matching." />
+        </required_to_add>
+
+        <installation_notes>
+          After adding spacy to pyproject.toml dependencies, run:
+          python -m spacy download en_core_web_md
+
+          Verify installation:
+          python -m spacy validate
+        </installation_notes>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Architectural Constraints -->
+    <constraint type="architecture">Must implement PipelineStage[Document, Document] protocol (src/data_extract/core/pipeline.py:20-59)</constraint>
+    <constraint type="architecture">Must be stateless - all state in ProcessingContext, not instance variables</constraint>
+    <constraint type="architecture">Must integrate with Normalizer orchestrator (src/data_extract/normalize/normalizer.py)</constraint>
+    <constraint type="architecture">Process Document after TextCleaner, before schema standardization</constraint>
+
+    <!-- Data Model Constraints -->
+    <constraint type="models">Must use existing Entity model (src/data_extract/core/models.py:20-44)</constraint>
+    <constraint type="models">Must extend Metadata with entity_tags (List[str]) and entity_counts (Dict[str, int]) fields</constraint>
+    <constraint type="models">Must define EntityType enum with 6 types: process, risk, control, regulation, policy, issue</constraint>
+    <constraint type="models">All models must use Pydantic v2 with runtime validation (ADR-002)</constraint>
+
+    <!-- NLP and Processing Constraints -->
+    <constraint type="nlp">Must use spaCy en_core_web_md model only - no transformer models allowed (ADR-004: Classical NLP Only)</constraint>
+    <constraint type="nlp">Must use rule-based matching with spaCy Matcher, not neural NER</constraint>
+    <constraint type="nlp">Entity recognition must be deterministic - same input always produces same output (NFR-R1)</constraint>
+    <constraint type="nlp">Context window of ±5 words for disambiguation (as specified in tech-spec lines 150-153)</constraint>
+
+    <!-- Configuration Constraints -->
+    <constraint type="config">Must follow configuration cascade: CLI > env vars > YAML > defaults (same pattern as Story 2.1)</constraint>
+    <constraint type="config">Entity patterns in config/normalize/entity_patterns.yaml (separate from code)</constraint>
+    <constraint type="config">Abbreviation dictionary in config/normalize/entity_dictionary.yaml</constraint>
+    <constraint type="config">Configuration must be validated on load with Pydantic</constraint>
+
+    <!-- Performance Constraints -->
+    <constraint type="performance">Entity normalization must add &lt;3 seconds per document (NFR-P1, tech-spec line 699)</constraint>
+    <constraint type="performance">spaCy model loaded once and cached in ProcessingContext (lazy loading)</constraint>
+    <constraint type="performance">Regex patterns compiled at init, not per document</constraint>
+
+    <!-- Quality and Testing Constraints -->
+    <constraint type="testing">Test coverage must be &gt;85% for entities.py (tech-spec line 239)</constraint>
+    <constraint type="testing">Must include determinism test: same doc 10 times → identical entity list</constraint>
+    <constraint type="testing">Must mirror test structure from Story 2.1 (tests/unit/test_normalize/test_entities.py)</constraint>
+
+    <!-- Error Handling Constraints -->
+    <constraint type="errors">Use ProcessingError for recoverable errors (malformed entity patterns)</constraint>
+    <constraint type="errors">Use CriticalError for fatal errors (missing spaCy model)</constraint>
+    <constraint type="errors">All entity transformations must be logged via structlog for audit trail</constraint>
+
+    <!-- Code Quality Constraints -->
+    <constraint type="quality">Must pass black formatter (100 char lines, Python 3.12)</constraint>
+    <constraint type="quality">Must pass ruff linter with no issues</constraint>
+    <constraint type="quality">Must pass mypy type checker in strict mode</constraint>
+    <constraint type="quality">Must use Google-style docstrings for all public APIs</constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- PipelineStage Protocol -->
+    <interface>
+      <name>EntityNormalizer.process</name>
+      <kind>method</kind>
+      <signature>def process(self, document: Document, context: ProcessingContext) -> Document</signature>
+      <path>src/data_extract/normalize/entities.py</path>
+      <description>Main pipeline method implementing PipelineStage protocol. Accepts Document with cleaned text, returns Document with normalized entities and enriched metadata.</description>
+    </interface>
+
+    <!-- Component Methods -->
+    <interface>
+      <name>EntityNormalizer.recognize_entity_type</name>
+      <kind>method</kind>
+      <signature>def recognize_entity_type(self, mention: str, context_words: List[str]) -> Optional[str]</signature>
+      <path>src/data_extract/normalize/entities.py</path>
+      <description>Classify entity mention by type using pattern matching and context analysis. Returns entity type string or None.</description>
+    </interface>
+
+    <interface>
+      <name>EntityNormalizer.standardize_entity_id</name>
+      <kind>method</kind>
+      <signature>def standardize_entity_id(self, entity_mention: str, entity_type: str) -> str</signature>
+      <path>src/data_extract/normalize/entities.py</path>
+      <description>Normalize entity ID format (e.g., "Risk #123" → "Risk-123"). Handles various input formats.</description>
+    </interface>
+
+    <interface>
+      <name>EntityNormalizer.expand_abbreviations</name>
+      <kind>method</kind>
+      <signature>def expand_abbreviations(self, text: str) -> tuple[str, List[Dict[str, Any]]]</signature>
+      <path>src/data_extract/normalize/entities.py</path>
+      <description>Expand abbreviations using dictionary. Returns (expanded_text, expansion_log). Context-aware to avoid false positives.</description>
+    </interface>
+
+    <interface>
+      <name>EntityNormalizer.resolve_cross_references</name>
+      <kind>method</kind>
+      <signature>def resolve_cross_references(self, entities: List[Entity]) -> List[Entity]</signature>
+      <path>src/data_extract/normalize/entities.py</path>
+      <description>Link entity mentions to canonical IDs. Handles partial matches and builds entity graph.</description>
+    </interface>
+
+    <!-- Configuration Extensions -->
+    <interface>
+      <name>NormalizationConfig (extended)</name>
+      <kind>model</kind>
+      <signature>class NormalizationConfig with new fields for entity normalization</signature>
+      <path>src/data_extract/normalize/config.py</path>
+      <description>Add entity_types, entity_dictionary_path, entity_pattern_path fields to existing config model.</description>
+    </interface>
+
+    <!-- Data Model Extensions -->
+    <interface>
+      <name>Metadata (extended)</name>
+      <kind>model</kind>
+      <signature>class Metadata with entity_tags and entity_counts fields</signature>
+      <path>src/data_extract/core/models.py</path>
+      <description>Add entity_tags: List[str] and entity_counts: Dict[str, int] fields to existing Metadata model.</description>
+    </interface>
+
+    <!-- Reusable from Story 2.1 -->
+    <interface>
+      <name>TextCleaner.clean_text</name>
+      <kind>method</kind>
+      <signature>def clean_text(self, text: str, doc_type: str) -> tuple[str, CleaningResult]</signature>
+      <path>src/data_extract/normalize/cleaning.py</path>
+      <description>Already implemented in Story 2.1. Entity normalization processes cleaned text from this method.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing Framework: pytest with markers (@pytest.mark.unit, @pytest.mark.integration)
+
+      Coverage Target: >85% for entities.py (Story requirement from tech-spec line 239)
+
+      Patterns from Story 2.1:
+      - Determinism tests: Run same input 10 times, assert identical output
+      - Use pytest fixtures for test data (tests/conftest.py and local conftest.py)
+      - Mirror src/ structure exactly (tests/unit/test_normalize/test_entities.py)
+      - Use pytest-mock for spaCy model mocking
+      - Parametrize tests for multiple input variations
+
+      Code Quality Enforcement:
+      - All tests must pass black, ruff, mypy checks via pre-commit hooks
+      - No test code duplication - use fixtures and helper functions
+      - Clear test names: test_&lt;method&gt;_&lt;scenario&gt;_&lt;expected_result&gt;
+
+      Test Data:
+      - Fixtures in tests/fixtures/normalization/entity_test_docs/
+      - Include known entity annotations for validation
+      - Sample audit documents with all 6 entity types
+    </standards>
+
+    <locations>
+      tests/unit/test_normalize/test_entities.py - Unit tests for EntityNormalizer class
+      tests/integration/test_normalization_pipeline.py - Integration tests for text cleaning + entity normalization
+      tests/fixtures/normalization/entity_test_docs/ - Test documents with known entities
+      config/normalize/entity_patterns.yaml - Entity pattern configuration (also tested)
+      config/normalize/entity_dictionary.yaml - Abbreviation dictionary (also tested)
+    </locations>
+
+    <ideas>
+      <!-- AC-2.2.1 Tests: Entity Type Recognition -->
+      <test ac="2.2.1" name="test_recognize_all_6_entity_types">
+        Verify all 6 entity types (process, risk, control, regulation, policy, issue) are recognized.
+        Use sample text with clear examples of each type.
+      </test>
+      <test ac="2.2.1" name="test_entity_recognition_with_context">
+        Test context-aware matching with ±5 word window.
+        Verify "Control" as verb vs "Control" as entity distinguished by context.
+      </test>
+      <test ac="2.2.1" name="test_entity_pattern_loading_from_yaml">
+        Verify entity patterns load correctly from config/normalize/entity_patterns.yaml.
+        Test pattern validation catches invalid regex.
+      </test>
+
+      <!-- AC-2.2.2 Tests: ID Standardization -->
+      <test ac="2.2.2" name="test_standardize_entity_id_formats">
+        Parametrized test with inputs: "Risk #123", "risk 123", "Risk-123", "RISK_123", "Risk ID: 123", "R-123"
+        All should normalize to "Risk-123"
+      </test>
+      <test ac="2.2.2" name="test_entity_type_preservation_in_id">
+        Verify entity type is preserved in canonical ID (Risk-123, Control-456, Policy-789)
+      </test>
+
+      <!-- AC-2.2.3 Tests: Abbreviation Expansion -->
+      <test ac="2.2.3" name="test_expand_common_audit_acronyms">
+        Test GRC → "Governance, Risk, and Compliance", SOX → "Sarbanes-Oxley Act", etc.
+        Verify all 50+ default dictionary terms work.
+      </test>
+      <test ac="2.2.3" name="test_context_aware_expansion_avoids_false_positives">
+        Test that "GRC" in "GRC framework" expands but "GRC" in "GRCXYZ" does not.
+      </test>
+      <test ac="2.2.3" name="test_expansion_audit_logging">
+        Verify all expansions logged to structlog with before/after values.
+      </test>
+
+      <!-- AC-2.2.4 Tests: Capitalization -->
+      <test ac="2.2.4" name="test_consistent_capitalization">
+        Test "risk" → "Risk", "CONTROL" → "Control", "pOlIcY" → "Policy"
+        Verify consistent title case for entity types.
+      </test>
+
+      <!-- AC-2.2.5 Tests: Cross-Reference Resolution -->
+      <test ac="2.2.5" name="test_resolve_multiple_mentions_to_canonical_id">
+        Document with "Risk 123" and "the risk" in same context → both link to "Risk-123"
+      </test>
+      <test ac="2.2.5" name="test_entity_relationship_preservation">
+        Risk → Control mappings preserved in entity graph (metadata or separate structure)
+      </test>
+
+      <!-- AC-2.2.6 Tests: Metadata Tagging -->
+      <test ac="2.2.6" name="test_entity_tags_in_metadata">
+        Verify entity_tags list populated with canonical IDs in document metadata
+      </test>
+      <test ac="2.2.6" name="test_entity_counts_by_type">
+        Verify entity_counts dict has correct counts per type (e.g., {'risk': 5, 'control': 3})
+      </test>
+
+      <!-- AC-2.2.7 Tests: Configurable Rules -->
+      <test ac="2.2.7" name="test_custom_entity_patterns_override">
+        Load custom YAML with organization-specific patterns, verify overrides defaults
+      </test>
+      <test ac="2.2.7" name="test_dictionary_override_mechanism">
+        Custom dictionary overrides default for specific terms
+      </test>
+
+      <!-- Integration Tests -->
+      <test type="integration" name="test_text_cleaning_to_entity_normalization">
+        Story 2.1 TextCleaner → Story 2.2 EntityNormalizer → verify entities extracted from cleaned text
+      </test>
+      <test type="integration" name="test_determinism_10_runs">
+        Same document processed 10 times → identical Entity list with consistent ordering
+      </test>
+
+      <!-- Edge Cases -->
+      <test type="edge" name="test_entity_normalization_empty_text">
+        Empty string input → empty entity list, no errors
+      </test>
+      <test type="edge" name="test_entity_normalization_no_entities">
+        Document with no entities → empty entity list, metadata populated
+      </test>
+      <test type="edge" name="test_ambiguous_entity_mentions">
+        Handle ambiguous mentions with low confidence scoring
+      </test>
+    </ideas>
+  </tests>
+</story-context>

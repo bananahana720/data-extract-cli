@@ -1,0 +1,38 @@
+# Build Test Context Workflow
+name: build-test-context
+description: "Assemble test context XML with relevant fixtures, helpers, and configuration for test execution"
+author: "BMad"
+
+# Critical variables from config
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+date: system-generated
+
+# Workflow components
+installed_path: "{project-root}/bmad/bmm/workflows/4-implementation/build-test-context"
+template: "{installed_path}/template.xml"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Variables and inputs
+variables:
+  story_path: "" # Path to story markdown file
+  story_dir: "{config_source}:dev_story_location"
+  test_cases_file: "" # Path to test cases file (from create-test-cases)
+  include_story_context: true # Whether to include story development context
+
+# Test infrastructure paths
+test_paths:
+  fixtures_root: "{project-root}/tests/fixtures"
+  conftest_global: "{project-root}/tests/conftest.py"
+  conftest_integration: "{project-root}/tests/integration/conftest.py"
+  pytest_config: "{project-root}/pytest.ini"
+
+# Output configuration
+# Creates test context XML alongside test cases
+# Example: docs/uat/test-context/2.5-3.1-test-context.xml
+default_output_file: "{output_folder}/uat/test-context/{{story_key}}-test-context.xml"
+
+standalone: true

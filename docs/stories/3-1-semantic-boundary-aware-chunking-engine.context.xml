@@ -1,0 +1,495 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>Semantic Boundary-Aware Chunking Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-1-semantic-boundary-aware-chunking-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>data scientist preparing enterprise documents for RAG workflows</asA>
+    <iWant>text chunked at semantic boundaries (sentences, paragraphs, sections)</iWant>
+    <soThat>LLM retrievals maintain complete context without mid-sentence splits</soThat>
+    <tasks>
+### Task 1: Create ChunkingEngine Core Component (AC: #3.1-1, #3.1-2, #3.1-5, #3.1-7)
+- [ ] Create `src/data_extract/chunk/engine.py` with ChunkingEngine class
+- [ ] Implement `__init__(segmenter, chunk_size=512, overlap_pct=0.15)` with dependency injection
+- [ ] Implement `chunk_document(result: ProcessingResult) -> Iterator[Chunk]` method
+  - [ ] Extract normalized text from ProcessingResult
+  - [ ] Call SentenceSegmenter.segment(text) to get sentence list
+  - [ ] Implement sliding window algorithm with overlap
+  - [ ] Respect sentence boundaries (AC-3.1-1)
+  - [ ] Detect section boundaries from ContentBlocks (AC-3.1-2)
+  - [ ] Yield Chunk objects one at a time (streaming generator pattern)
+- [ ] Add deterministic chunk_id generation: `{source_file_stem}_chunk_{position:03d}` (AC-3.1-7)
+- [ ] Add comprehensive docstrings (Google style) with examples
+- [ ] Add type hints (mypy strict mode compliant)
+
+### Task 2: Create Chunk Data Models (AC: #3.1-1 through #3.1-7)
+- [ ] Create `src/data_extract/chunk/models.py`
+- [ ] Implement `Chunk` dataclass (frozen=True)
+  - [ ] Fields: chunk_id, text, metadata, entities, quality
+  - [ ] Methods: to_dict(), to_csv_row(), to_txt()
+- [ ] Implement `ChunkMetadata` dataclass (frozen=True)
+  - [ ] Fields: chunk_id, source_file, source_hash, document_type, section_context, position_index, entity_tags, quality, word_count, token_count, created_at, processing_version
+  - [ ] Token count estimation: `token_count = len(text) // 4` (industry standard approximation)
+- [ ] Implement `QualityScore` dataclass (frozen=True) (placeholder for Story 3.3)
+  - [ ] Fields: readability_score, coherence_score, completeness_score
+  - [ ] Default values: 0.0 (enriched in Story 3.3)
+- [ ] Add Pydantic v2 validation for runtime type checking
+- [ ] Add comprehensive docstrings and type hints
+
+### Task 3: Implement Chunking Configuration (AC: #3.1-3, #3.1-4)
+- [ ] Add chunk_size validation in ChunkingEngine.__init__
+  - [ ] Range: 128-2048 tokens
+  - [ ] Warning if size < 128 or > 2048
+  - [ ] Default: 512 tokens
+- [ ] Add overlap_pct validation
+  - [ ] Range: 0.0-0.5 (0-50%)
+  - [ ] Warning if overlap > 0.5
+  - [ ] Default: 0.15 (15%)
+- [ ] Calculate overlap_tokens = int(chunk_size * overlap_pct)
+- [ ] Add configuration logging for debugging
+
+### Task 4: Implement Edge Case Handling (AC: #3.1-6)
+- [ ] Add very long sentence handler
+  - [ ] If sentence > chunk_size: yield entire sentence as single chunk
+  - [ ] Log warning: "Sentence exceeds chunk_size ({len(sentence)} > {chunk_size})"
+- [ ] Add micro-sentence combiner
+  - [ ] Combine adjacent micro-sentences until chunk_size reached
+  - [ ] Preserve sentence boundaries in combined chunk
+- [ ] Add short section handler
+  - [ ] If section < chunk_size: section becomes single chunk
+  - [ ] No artificial splitting
+- [ ] Add empty document handler
+  - [ ] Return empty iterator (no chunks)
+  - [ ] Log info: "Empty normalized document: {source_file}"
+- [ ] Add no-punctuation fallback (defer to spaCy's statistical model)
+- [ ] Add comprehensive error messages with actionable suggestions
+
+### Task 5: Unit Testing (AC: all)
+- [ ] Create `tests/unit/test_chunk/test_engine.py`
+  - [ ] Test basic chunking with default config (happy path)
+  - [ ] Test configurable chunk_size (128, 256, 512, 1024, 2048)
+  - [ ] Test configurable overlap (0.0, 0.1, 0.15, 0.2, 0.5)
+  - [ ] Test sentence boundary preservation (AC-3.1-1)
+  - [ ] Test section boundary preservation (AC-3.1-2)
+  - [ ] Test chunk_id generation (deterministic pattern)
+  - [ ] Test metadata population (ChunkMetadata fields)
+- [ ] Create `tests/unit/test_chunk/test_sentence_boundaries.py`
+  - [ ] Test very long sentences (>512 tokens) → single chunk
+  - [ ] Test micro-sentences (<10 chars) → combined
+  - [ ] Test mixed sentence lengths
+  - [ ] Test no punctuation → spaCy statistical model
+- [ ] Create `tests/unit/test_chunk/test_configuration.py`
+  - [ ] Test chunk_size edge cases (size=1, size=10000)
+  - [ ] Test overlap edge cases (overlap=0.0, overlap=0.5, overlap=1.0)
+  - [ ] Test configuration validation warnings
+- [ ] Create `tests/unit/test_chunk/test_determinism.py`
+  - [ ] Test same input → same chunks (10 runs, byte-for-byte diff)
+  - [ ] Test configuration sensitivity (different config → different chunks)
+  - [ ] Test chunk_id reproducibility
+- [ ] Use pytest fixtures for test data (tests/fixtures/normalized_results/)
+- [ ] Achieve >90% coverage for chunking module
+
+### Task 6: Integration Testing (AC: #3.1-1, #3.1-2, #3.1-5, #3.1-6)
+- [ ] Create `tests/integration/test_chunk/test_chunking_pipeline.py`
+  - [ ] Test Epic 2 ProcessingResult → Epic 3 Chunk integration
+  - [ ] Test real audit documents: policies, risk registers, SOC2 reports
+  - [ ] Test multi-section documents (section boundary preservation)
+  - [ ] Test entity tags flow from ProcessingResult to ChunkMetadata
+- [ ] Create `tests/integration/test_chunk/test_spacy_integration.py`
+  - [ ] Test SentenceSegmenter integration (lazy loading)
+  - [ ] Test spaCy model caching (global instance)
+  - [ ] Test sentence boundary accuracy with real documents
+  - [ ] Test performance: model loading time (<1.2 sec)
+- [ ] Create `tests/integration/test_chunk/test_large_documents.py`
+  - [ ] Test 10,000-word document chunking
+  - [ ] Test streaming (no buffering, constant memory)
+  - [ ] Test very large files (>100MB PDFs)
+- [ ] Use fixtures from `tests/fixtures/normalized_results/`
+- [ ] Include edge case fixtures (very_long_sentences.json, micro_sentences.json, no_punctuation.json)
+
+### Task 7: Performance Testing (AC: NFR-P3, NFR-P4)
+- [ ] Create `tests/performance/test_chunk/test_chunking_latency.py`
+  - [ ] Test NFR-P3: 10,000-word document chunks in <2 seconds
+  - [ ] Measure sentence segmentation time (<0.5 sec)
+  - [ ] Measure chunk generation time (<1.2 sec)
+  - [ ] Measure entity analysis time (<0.3 sec)
+  - [ ] Per-document timing tests (wall-clock time)
+- [ ] Create `tests/performance/test_chunk/test_memory_efficiency.py`
+  - [ ] Test individual document processing ≤500MB peak memory
+  - [ ] Test batch processing memory profile (constant across batch size)
+  - [ ] Use `get_total_memory()` from `scripts/profile_pipeline.py:151-167`
+  - [ ] Measure memory for 10-doc, 50-doc, 100-doc batches
+- [ ] Create `docs/performance-baselines-epic-3.md`
+  - [ ] Document chunking latency baseline
+  - [ ] Document memory usage baseline
+  - [ ] Document spaCy model loading time
+  - [ ] Include hardware specs and test conditions
+
+### Task 8: Documentation and Validation (AC: all)
+- [ ] Update CLAUDE.md
+  - [ ] Add "Epic 3: Chunk & Output" section to architecture overview
+  - [ ] Document ChunkingEngine usage patterns
+  - [ ] Document chunk configuration options (size, overlap)
+  - [ ] Update test markers: add `chunking` marker
+- [ ] Update docs/architecture.md
+  - [ ] Add ADR-011: Semantic Boundary-Aware Chunking (decision, rationale, trade-offs)
+  - [ ] Document ChunkingEngine component design
+  - [ ] Document Chunk data model
+  - [ ] Update Epic 3 integration diagram (Epic 2 → Chunking → Output)
+- [ ] Create `docs/performance-baselines-epic-3.md` (Task 7)
+- [ ] Run all quality gates:
+  - [ ] `black src/ tests/` → 0 violations
+  - [ ] `ruff check src/ tests/` → 0 violations
+  - [ ] `mypy src/data_extract/` → 0 violations (run from project root)
+  - [ ] `pytest -m unit` → All pass
+  - [ ] `pytest -m integration` → All pass
+  - [ ] `pytest -m performance tests/performance/test_chunk/` → NFR-P3 satisfied
+- [ ] Validate all 7 ACs end-to-end:
+  - [ ] AC-3.1-1: Sentence boundary preservation (unit + integration tests)
+  - [ ] AC-3.1-2: Section boundary preservation (integration tests)
+  - [ ] AC-3.1-3: Chunk size configuration (unit tests)
+  - [ ] AC-3.1-4: Chunk overlap configuration (unit tests)
+  - [ ] AC-3.1-5: spaCy integration (integration tests)
+  - [ ] AC-3.1-6: Edge case handling (unit + integration tests)
+  - [ ] AC-3.1-7: Determinism (determinism tests, 10 runs)
+- [ ] Update Epic 3 completion checklist in docs/epics.md
+- [ ] Mark story as done, ready for review
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC-3.1-1: Chunks Never Split Mid-Sentence (P0 - Critical)**
+- Chunking algorithm respects sentence boundaries detected by spaCy SentenceSegmenter
+- No chunk ends in the middle of a sentence
+- If sentence exceeds chunk_size, handled gracefully (entire sentence becomes single chunk with warning logged)
+- **Validation:** Unit tests with edge cases (very long sentences >512 tokens, micro-sentences), integration tests with real audit documents
+- **UAT Required:** Yes - Critical for LLM context integrity
+
+**AC-3.1-2: Section Boundaries Respected When Possible (P0)**
+- Chunking algorithm detects section markers (headings, page breaks, structural boundaries from Epic 2 ContentBlocks)
+- Chunks align with section boundaries when chunk_size permits
+- If section too large, split at sentence boundaries within section
+- Section context preserved in ChunkMetadata.section_context (e.g., "Risk Assessment > Identified Risks")
+- **Validation:** Integration tests with multi-section documents (policies, risk registers, SOC2 reports)
+- **UAT Required:** Yes
+
+**AC-3.1-3: Chunk Size Configurable (P1)**
+- ChunkingEngine accepts chunk_size parameter (tokens or characters)
+- Default: 512 tokens (estimated as chars / 4 per industry standard)
+- Supports range: 128-2048 tokens
+- Configuration validated: size=1 and size=10000 handled with appropriate warnings
+- **Validation:** Unit tests with various chunk sizes
+- **UAT Required:** No - Unit test sufficient
+
+**AC-3.1-4: Chunk Overlap Configurable (P1)**
+- ChunkingEngine accepts overlap_pct parameter (percentage as float)
+- Default: 0.15 (15% overlap)
+- Supports range: 0.0-0.5 (0-50% overlap)
+- Overlap calculated as: overlap_tokens = int(chunk_size * overlap_pct)
+- Sliding window logic ensures no gaps or excessive duplication
+- **Validation:** Unit tests for sliding window overlap edge cases, boundary validation
+- **UAT Required:** No - Unit test sufficient
+
+**AC-3.1-5: Sentence Tokenization Uses spaCy (P0)**
+- ChunkingEngine injects SentenceSegmenter dependency (from Story 2.5.2)
+- spaCy model loaded lazily on first use (global cache)
+- Sentence boundaries detected via spaCy's sent.text iteration
+- Model version logged in ChunkMetadata.processing_version for reproducibility
+- **Validation:** Integration tests verify SentenceSegmenter integration, unit tests mock segmenter
+- **UAT Required:** No - Integration tested
+
+**AC-3.1-6: Edge Cases Handled (P0)**
+- **Very Long Sentences (>chunk_size):** Entire sentence becomes single chunk, warning logged
+- **Micro-Sentences (<10 chars):** Combined with adjacent sentences until chunk_size reached
+- **Short Sections (<chunk_size):** Section becomes single chunk, no artificial splitting
+- **Empty Normalized Documents:** Zero chunks produced, metadata logged, no errors
+- **No Punctuation:** spaCy handles via statistical model, fallback to character-based splitting if needed
+- **Validation:** Unit tests for each edge case, integration tests with edge case fixtures
+- **UAT Required:** Yes
+
+**AC-3.1-7: Chunking is Deterministic (P0 - Critical)**
+- Same ProcessingResult input always produces identical chunks (byte-for-byte comparison)
+- Chunk IDs derived from source file path + position (no timestamps in ID)
+- spaCy model version frozen (en_core_web_md pinned in requirements)
+- Configuration embedded in ChunkMetadata.processing_version
+- No random number generators in chunking pipeline
+- **Validation:** Determinism test runs same document 10 times, diffs outputs
+- **UAT Required:** Yes - Critical for audit trail requirement
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>1. Overview & Scope - Epic Goal and Technical Scope</section>
+        <snippet>Implement semantic chunking that respects boundaries and context, then deliver outputs in multiple RAG-optimized formats (JSON, TXT, CSV). In Scope: Semantic boundary-aware chunking engine using spaCy sentence segmentation; Entity-aware chunking that preserves entity context and relationships; Chunk metadata enrichment with quality scores, readability metrics, and entity tags.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>2.1 Architecture Overview - ChunkingEngine Design</section>
+        <snippet>ChunkingEngine orchestrates semantic chunking with entity awareness. Responsibilities: Semantic boundary-aware chunk generation (respects sentences, paragraphs, sections); Entity-aware chunking to preserve entity context and relationships; Configurable chunk sizing (tokens or characters) with overlap; Deterministic chunking (same input → same chunks).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>2.1 Architecture Overview - Performance Optimizations</section>
+        <snippet>Uses generator pattern (yield instead of building list) to support streaming. Reuses spaCy Doc object across chunks to avoid repeated tokenization. Entity boundary analysis performed once upfront, cached for chunk decisions. Lazy spaCy Loading saves ~1.2s per doc by loading en_core_web_md model once and reusing across all documents.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>2.2 ChunkingEngine Details</section>
+        <snippet>ChunkingEngine receives ProcessingResult from Epic 2 and yields chunks using streaming (no buffering). Configurable parameters: chunk_size (default 512), overlap_pct (default 0.15), entity_aware flag. Entity boundary analysis is performed once upfront and cached for chunk decisions to optimize performance.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>2.2 EntityPreserver - Responsibilities and Design</section>
+        <snippet>EntityPreserver ensures entity context preservation during chunking. Responsibilities: Analyze entity mentions before chunking to plan optimal boundaries; Prefer chunk splits between entities rather than within entity definitions; Mark entities split across chunks with continuation flags in metadata; Preserve entity relationships (e.g., "Risk X mitigated by Control Y").</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification: Epic 3 - Chunk & Output Stages</title>
+        <section>2.2 ChunkMetadata - Data Models</section>
+        <snippet>ChunkMetadata is a frozen dataclass containing: chunk_id (e.g., "audit_report_2024_chunk_001"), source_file, source_hash (SHA-256), document_type, section_context, position_index, entity_tags (list of EntityReference), quality (QualityScore composite), word_count, token_count, created_at, processing_version. Uses @dataclass(frozen=True) to enable structural sharing and reduce allocations via flyweight pattern.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Epic 3 (Chunking) - Architecture Mapping</section>
+        <snippet>Epic 3 (Chunking) involves chunk/ module (semantic, entity_aware, metadata). Uses spaCy from normalize/, feeds to output/. Key Patterns: Sliding window chunking, Metadata enrichment. TF-IDF vectors stored as scipy sparse matrices for memory efficiency.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Pipeline Stage Pattern</section>
+        <snippet>All pipeline stages implement PipelineStage[Input, Output] protocol. The process method receives input_data and ProcessingContext (containing config, logger, metrics). Stages must be composable and testable, implementing the contract: Input → process() → Output with proper exception handling (ProcessingError vs CriticalError).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Normalize → Chunk Data Contract</section>
+        <snippet>Normalizer returns validated Document with entity tags. Chunker uses entity information to determine optimal split points. Data contract: List[Chunk] where each chunk has source document reference. This enables entity-aware chunking logic to preserve context across chunk boundaries.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture/FOUNDATION.md</path>
+        <title>Foundation: Core Data Models & Interface Contracts</title>
+        <section>ContentBlock - The Atomic Unit</section>
+        <snippet>Everything is composed of ContentBlock objects. A document is just a collection of blocks. ContentBlock is immutable (frozen=True) with fields: block_id (UUID), block_type (ContentType), content (str), position (Optional), metadata (dict), confidence (0.0-1.0). Immutable design prevents accidental mutations during processing and makes data flow traceable.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture/FOUNDATION.md</path>
+        <title>Foundation: Core Data Models & Interface Contracts</title>
+        <section>Immutability Principle</section>
+        <snippet>All data models are immutable (frozen dataclasses). This prevents accidental mutations during processing and makes data flow traceable. Correct pattern: Create new block with modifications using dataclass fields. Wrong pattern: Mutate original block (will raise FrozenInstanceError).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/performance-baselines-story-2.5.1.md</path>
+        <title>Performance Baselines - Story 2.5.1</title>
+        <section>NFR-P3 and NFR-P4 Requirements for Chunking</section>
+        <snippet>NFR-P3: Individual file processing &lt;5 seconds (spaCy model load ~2-3 seconds one-time cost, segmentation overhead ~10ms per document). NFR-P4: Deterministic chunking - same input always produces same chunks (100% reproducibility). These NF requirements directly impact Story 3.1 chunking engine design for performance and consistency.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration &amp; Validation</title>
+        <section>get_sentence_boundaries() Utility Function - AC 2.5.2-4</section>
+        <snippet>Function implemented in src/data_extract/utils/nlp.py with signature: get_sentence_boundaries(text: str, nlp: Language = None) -&gt; List[int]. Returns character positions of sentence ends (zero-indexed). Lazy loads en_core_web_md if nlp parameter is None. Handles edge cases: single sentence, multi-paragraph, special characters. This utility is consumed directly by Story 3.1 for semantic chunk boundary detection.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration &amp; Validation</title>
+        <section>Architecture Context - Epic 3 Preparation</section>
+        <snippet>Story 2.5.2 establishes the NLP foundation for Epic 3 (Chunk &amp; Output stages). The get_sentence_boundaries() function will be consumed directly by Story 3.1 (Semantic Boundary-Aware Chunking Engine). Integration Point: Story 2.5.2 Output → Story 3.1 Input. get_sentence_boundaries(text) → Chunker uses boundaries for semantic splits.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration &amp; Validation</title>
+        <section>spaCy Architecture and Performance Characteristics</section>
+        <snippet>Model: en_core_web_md (43MB, medium accuracy model) includes tokenizer, tagger, parser, NER, word vectors. Sentence boundary detection uses rule-based + statistical parser. Performance: Model load time ~2-3 seconds (first load only), Segmentation speed ~10ms per 1000 words, Memory footprint ~100MB loaded model.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Document</symbol>
+        <lines>269-294</lines>
+        <reason>Epic 2 output (normalized document). Story 3.1 receives Document as input from Normalizer. Contains text, entities, metadata, and structure.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Chunk</symbol>
+        <lines>296-334</lines>
+        <reason>Story 3.1 primary output model. Represents semantic chunk with position_index, token_count, word_count, quality_score, readability_scores, and entities.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingContext</symbol>
+        <lines>336-360</lines>
+        <reason>Shared pipeline state passed through all stages. Story 3.1 chunking engine receives context with config, logger, and metrics for deterministic, auditable processing.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Metadata</symbol>
+        <lines>119-214</lines>
+        <reason>Provenance tracking embedded in Document and Chunk. Story 3.1 must preserve and update metadata through chunking pipeline (entity_tags, quality_scores, config_snapshot).</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/utils/nlp.py</path>
+        <kind>utility</kind>
+        <symbol>get_sentence_boundaries()</symbol>
+        <lines>18-92</lines>
+        <reason>CRITICAL dependency for Story 3.1. Provides spaCy-based sentence boundary detection (character offsets). Returns list of positions where sentences end. Lazy-loads en_core_web_md model with caching pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage</symbol>
+        <lines>20-59</lines>
+        <reason>Core protocol that chunking engine must implement. Defines contract: process(Input, ProcessingContext) -&gt; Output. Story 3.1 ChunkingEngine class must implement PipelineStage[Document, List[Chunk]].</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/exceptions.py</path>
+        <kind>interface</kind>
+        <symbol>ProcessingError, CriticalError</symbol>
+        <lines>35-77</lines>
+        <reason>Error hierarchy for Story 3.1. ProcessingError for recoverable errors (skip file, continue batch). CriticalError for unrecoverable errors (halt processing). Story 3.1 should follow this pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/normalize/normalizer.py</path>
+        <kind>pattern</kind>
+        <symbol>Normalizer</symbol>
+        <lines>25-98</lines>
+        <reason>Pattern reference for Epic 2 stage implementation. Demonstrates: (1) PipelineStage protocol implementation, (2) orchestration of sub-components, (3) error handling with graceful degradation, (4) metadata enrichment pattern, (5) factory pattern (NormalizerFactory).</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="spacy" version="3.7.2+" reason="Sentence boundary detection via get_sentence_boundaries() utility" />
+        <package name="pydantic" version="2.x" reason="Data model validation for Chunk, ChunkMetadata, QualityScore" />
+        <package name="structlog" reason="Structured logging for audit trail (from ProcessingContext.logger)" />
+      </python>
+      <internal>
+        <module path="src/data_extract/core/models" exports="Document, Chunk, ProcessingContext, Metadata, Entity" />
+        <module path="src/data_extract/core/pipeline" exports="PipelineStage" />
+        <module path="src/data_extract/core/exceptions" exports="ProcessingError, CriticalError" />
+        <module path="src/data_extract/utils/nlp" exports="get_sentence_boundaries" />
+      </internal>
+      <spacy_model>
+        <model name="en_core_web_md" size="43MB" reason="Sentence segmentation for semantic chunking" />
+        <setup_command>python -m spacy download en_core_web_md</setup_command>
+      </spacy_model>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">All data models must be immutable (frozen=True dataclasses) per ADR-001</constraint>
+    <constraint type="architecture">ChunkingEngine must implement PipelineStage[Document, List[Chunk]] protocol</constraint>
+    <constraint type="architecture">Use streaming generator pattern (yield chunks, not list) for memory efficiency</constraint>
+    <constraint type="performance">NFR-P3: 10,000-word document chunks in &lt;2 seconds (including spaCy model load amortized)</constraint>
+    <constraint type="performance">NFR-P4: Deterministic chunking (same input → same chunks, 100% reproducibility)</constraint>
+    <constraint type="quality">All code must pass: black (formatting), ruff (linting), mypy strict mode (type checking)</constraint>
+    <constraint type="quality">Run quality gates BEFORE committing (shift-left approach from Epic 2 lessons)</constraint>
+    <constraint type="testing">Unit tests: &gt;90% coverage for src/data_extract/chunk/ module</constraint>
+    <constraint type="testing">Integration tests: Epic 2 → Epic 3 pipeline with real audit documents</constraint>
+    <constraint type="testing">Determinism tests: Run same document 10 times, verify byte-for-byte identical output</constraint>
+    <constraint type="error-handling">Follow graceful degradation pattern: log warnings, continue processing (continue-on-error)</constraint>
+    <constraint type="error-handling">ProcessingError for recoverable errors, CriticalError for unrecoverable</constraint>
+    <constraint type="logging">Use structlog via context.logger for audit trail with structured fields</constraint>
+    <constraint type="module">Follow normalize/ module pattern: engine.py (orchestrator), config.py (settings), sub-components</constraint>
+    <constraint type="module">No brownfield dependencies - Epic 3 is pure greenfield in src/data_extract/chunk/</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>PipelineStage[Document, List[Chunk]]</name>
+      <kind>protocol</kind>
+      <signature>class ChunkingEngine(PipelineStage[Document, List[Chunk]]):
+    def process(self, document: Document, context: ProcessingContext) -&gt; List[Chunk]</signature>
+      <path>src/data_extract/core/pipeline.py</path>
+    </interface>
+    <interface>
+      <name>Document (Input)</name>
+      <kind>dataclass</kind>
+      <signature>class Document(BaseModel):
+    id: str
+    text: str
+    entities: List[Entity] = []
+    metadata: Metadata
+    structure: Dict[str, Any] = {}</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+    <interface>
+      <name>Chunk (Output)</name>
+      <kind>dataclass</kind>
+      <signature>class Chunk(BaseModel):
+    id: str
+    text: str
+    document_id: str
+    position_index: int
+    token_count: int
+    word_count: int
+    entities: List[Entity] = []
+    section_context: str = ""
+    quality_score: float
+    readability_scores: Dict[str, float] = {}
+    metadata: Metadata</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+    <interface>
+      <name>get_sentence_boundaries (spaCy utility)</name>
+      <kind>function</kind>
+      <signature>def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -&gt; List[int]
+# Returns character offsets where sentences end (zero-indexed)
+# Example: get_sentence_boundaries("Hello. World.") -&gt; [6, 13]</signature>
+      <path>src/data_extract/utils/nlp.py</path>
+    </interface>
+    <interface>
+      <name>ProcessingContext (Pipeline state)</name>
+      <kind>dataclass</kind>
+      <signature>class ProcessingContext(BaseModel):
+    config: Dict[str, Any] = {}
+    logger: Optional[Any] = None
+    metrics: Dict[str, Any] = {}</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Testing framework: pytest with markers (unit, integration, performance, chunking). All tests mirror src/ structure in tests/ directories. Fixtures in conftest.py and tests/fixtures/ with centralized model in pyproject.toml [tool.pytest.ini_options]. Coverage target: &gt;90% for greenfield chunk/ module. Quality gates: black (100-char lines), ruff (E, F, I, N, W rules), mypy strict mode (must run from project root) before commit. Integration tests use Epic 2 ProcessingResult fixtures and real audit documents (COBIT, NIST, OWASP from tests/fixtures/real-world-files/). Performance tests validate NFR-P3 (&lt;2 sec per 10k words) and NFR-P2-E3 (memory efficiency). Determinism tests: same input run 10 times with byte-for-byte comparison. Test data &lt;100MB total (fixture size constraints enforced).</standards>
+    <locations>tests/unit/test_chunk/ - Fast unit tests for ChunkingEngine initialization, configuration validation, sentence boundary preservation, determinism verification
+tests/unit/test_chunk/test_engine.py - ChunkingEngine core tests (initialization, happy path, streaming behavior, immutability)
+tests/unit/test_chunk/test_configuration.py - Config validation tests (chunk_size range 128-2048, overlap_pct range 0.0-0.5, warning generation)
+tests/unit/test_chunk/test_sentence_boundaries.py - Edge case tests (very long sentences &gt;512 tokens, micro-sentences &lt;10 chars, mixed lengths)
+tests/unit/test_chunk/test_determinism.py - Reproducibility tests (10-run comparison, chunk_id stability)
+tests/integration/test_chunk/test_chunking_pipeline.py - Epic 2 → Epic 3 integration (ProcessingResult input, Chunk output, section boundaries)
+tests/integration/test_chunk/test_spacy_integration.py - SentenceSegmenter integration (lazy loading, global caching, sentence accuracy)
+tests/integration/test_chunk/test_large_documents.py - Large document handling (10k+ word documents, memory-constant streaming)
+tests/performance/test_chunk/test_chunking_latency.py - NFR-P3 verification (&lt;2 sec per 10k words, sentence segmentation &lt;0.5 sec)
+tests/performance/test_chunk/test_memory_efficiency.py - NFR-P2-E3 validation (individual doc ≤500MB peak, batch memory constant)
+tests/fixtures/normalized_results/ - ProcessingResult input fixtures for chunking (single-sentence, multi-sentence, with sections/entities)
+tests/fixtures/normalized_results/sentence_boundaries/ - Edge case test data (very_long_sentences.json, micro_sentences.json, no_punctuation.json)</locations>
+    <ideas>AC-3.1-1 (Sentence boundaries - P0 Critical): Test chunking never splits mid-sentence using unit tests with edge cases (very long sentences &gt;512 tokens becoming single chunks, micro-sentences &lt;10 chars combined with adjacent), integration tests with real audit documents verifying no partial sentences in chunk boundaries. Mock SentenceSegmenter to verify algorithm respects boundaries. Test warning generation when sentence exceeds chunk_size.
+
+AC-3.1-2 (Section boundaries - P0): Test section detection from ContentBlocks in ProcessingResult.content_blocks (heading types, page breaks). Verify chunks align with section boundaries when chunk_size permits. Integration tests with multi-section documents (policy docs, risk registers, SOC2 reports). Verify section_context preserved in ChunkMetadata. Test section too large handled by splitting at sentence boundaries within section.
+
+AC-3.1-3 (Chunk size configurable - P1): Unit tests for initialization with various chunk_size values (128, 256, 512, 1024, 2048 tokens). Edge case tests: size=1, size=10000 with appropriate warnings. Verify configuration validated on init. Test default 512 tokens. Verify token count estimation formula (len(text) // 4).
+
+AC-3.1-4 (Chunk overlap configurable - P1): Unit tests for initialization with overlap_pct values (0.0, 0.1, 0.15, 0.2, 0.5). Sliding window tests: verify overlap_tokens = int(chunk_size * overlap_pct) calculation. Edge case tests: overlap=0.0 (no overlap), overlap=0.5 (50% overlap). Test no gaps and no excessive duplication in window. Verify default 0.15 (15%).
+
+AC-3.1-5 (spaCy integration - P0): Integration tests verify SentenceSegmenter dependency injection (fixture provides mock/real instance). Test lazy loading on first use (model loads once, cached globally). Test sentence boundary detection via spaCy nlp(text).sents iteration. Verify model version logged in ChunkMetadata.processing_version. Unit tests mock SentenceSegmenter for isolated chunking logic. Test en_core_web_md pinning in requirements.
+
+AC-3.1-6 (Edge cases - P0): Unit tests for each edge case: (1) very long sentences &gt;chunk_size → single chunk with warning, (2) micro-sentences &lt;10 chars → combined until chunk_size, (3) short sections &lt;chunk_size → single chunk no splitting, (4) empty normalized documents → zero chunks returned, (5) no punctuation → spaCy statistical model handles, fallback if needed. Integration tests with real edge case fixtures. Error message clarity with actionable suggestions.
+
+AC-3.1-7 (Determinism - P0 Critical): Determinism tests run same ProcessingResult 10 times, verify byte-for-byte identical chunks (chunk_id, text, metadata). No timestamps in chunk_id (use source_file_stem + position instead). Configuration embedded in processing_version. spaCy model version frozen. No random number generators. Test configuration sensitivity: different config → different chunks. Verify chunk_id reproducibility across runs.</ideas>
+  </tests>
+</story-context>

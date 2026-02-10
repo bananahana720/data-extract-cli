@@ -1,0 +1,46 @@
+{
+  "organization_strategy": "flat",
+  "generated_at": "2025-11-16T10:40:15Z",
+  "config_snapshot": {
+    "chunk_size": 1024,
+    "overlap_pct": 0.20,
+    "entity_aware": false,
+    "quality_enrichment": true
+  },
+  "total_chunks": 89,
+  "folders": {
+    ".": {
+      "chunk_count": 89,
+      "chunk_ids": [
+        "audit_report_001",
+        "audit_report_002",
+        "audit_report_003",
+        "risk_matrix_001",
+        "risk_matrix_002",
+        "compliance_policy_001"
+      ]
+    }
+  },
+  "source_hashes": {
+    "audit_report.pdf": "a3f5e8c2d1b94f7a6e3c9d5b8f2a1e7c4d9b6f3a8e5c2d1b9f7a4e6c3d8b5f2a",
+    "risk_matrix.xlsx": "b9d7c1a5e3f8b2d6a4c9e7f1b5d8a3c6e2f9b4d7a1c5e8f3b6d9a2c7e5f1b8d",
+    "compliance_policy.docx": "e2f8a3c9d5b7f1a6e4c8d2b9f5a3e7c1d6b8f4a2e9c5d1b7f3a8e6c2d9b5f1a"
+  },
+  "entity_summary": {
+    "total_entities": 0,
+    "entity_types": {},
+    "unique_entity_ids": []
+  },
+  "quality_summary": {
+    "avg_quality_score": 0.91,
+    "min_quality_score": 0.78,
+    "max_quality_score": 0.98,
+    "chunks_with_quality": 89,
+    "quality_flags": {
+      "low_ocr": 2,
+      "high_complexity": 5,
+      "incomplete_extraction": 0,
+      "gibberish": 0
+    }
+  }
+}

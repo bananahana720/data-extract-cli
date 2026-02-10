@@ -1,0 +1,32 @@
+# Create Test Cases Workflow
+name: create-test-cases
+description: "Generate comprehensive test case specifications from story acceptance criteria with scenarios and expected outcomes"
+author: "BMad"
+
+# Critical variables from config
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Workflow components
+installed_path: "{project-root}/bmad/bmm/workflows/4-implementation/create-test-cases"
+template: "{installed_path}/template.md"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Variables and inputs
+variables:
+  story_path: "" # Path to story markdown file (required)
+  story_dir: "{config_source}:dev_story_location"
+  epic_file: "" # Optional: Path to epic file for additional context
+  test_coverage_level: "standard" # Options: minimal, standard, comprehensive
+
+# Output configuration
+# Creates test cases file alongside story file
+# Example: docs/uat/test-cases/2.5-3.1-test-cases.md
+default_output_file: "{output_folder}/uat/test-cases/{{story_key}}-test-cases.md"
+
+standalone: true

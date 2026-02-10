@@ -1,0 +1,128 @@
+# UAT (User Acceptance Testing) Workflow
+# Story 5-0: UAT Testing Framework
+# AC-5.0-8: CI integration - UAT tests run on every PR via GitHub Actions
+#
+# This workflow validates CLI user journeys using tmux-cli automation.
+# Tests are currently skipped until Stories 5-1+ implement the CLI features.
+
+name: UAT Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/data_extract/**'
+      - 'tests/uat/**'
+      - '.github/workflows/uat.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/data_extract/**'
+      - 'tests/uat/**'
+  workflow_dispatch:  # Allow manual trigger
+
+concurrency:
+  group: uat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  uat-tests:
+    name: UAT Journey Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install tmux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tmux
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+
+      - name: Install tmux-cli
+        run: |
+          uv tool install tmux-cli
+
+      - name: Verify tmux installation
+        run: |
+          tmux -V
+          which tmux-cli || echo "tmux-cli installed via uv tool"
+
+      - name: Run UAT framework tests
+        run: |
+          # Run UAT tests with verbose output
+          # Currently all journey tests are skipped until features implemented
+          pytest tests/uat/ -v \
+            --timeout=300 \
+            -m "uat" \
+            --tb=short \
+            2>&1 | tee uat-results.txt
+
+      - name: Upload UAT results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-results
+          path: |
+            uat-results.txt
+            tests/uat/screenshots/
+          retention-days: 7
+
+      - name: Check UAT status
+        if: failure()
+        run: |
+          echo "::error::UAT tests failed. Check the uploaded artifacts for details."
+          cat uat-results.txt
+
+  uat-lint:
+    name: UAT Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install dev dependencies
+        run: |
+          uv venv
+          uv pip install black ruff mypy
+
+      - name: Check Black formatting
+        run: black --check tests/uat/
+
+      - name: Check Ruff linting
+        run: ruff check tests/uat/
+
+      - name: Check Mypy types
+        run: |
+          # Install package for type checking
+          uv pip install -e ".[dev]"
+          mypy tests/uat/ --ignore-missing-imports

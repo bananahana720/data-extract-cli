@@ -1,0 +1,152 @@
+<test-context id="3-2-entity-aware-chunking" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.2</storyId>
+    <storyKey>3-2-entity-aware-chunking</storyKey>
+    <title>Entity-Aware Chunking with Section Boundary Detection</title>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Build Test Context Workflow (Autonomous Mode)</generator>
+    <testCasesFile>NOT_GENERATED_YET</testCasesFile>
+    <sourceStoryPath>docs/stories/3-2-entity-aware-chunking.md</sourceStoryPath>
+  </metadata>
+
+  <testCases>
+    <summary>
+      <totalTests>8</totalTests>
+      <unitTests>5</unitTests>
+      <integrationTests>2</integrationTests>
+      <performanceTests>1</performanceTests>
+    </summary>
+    <coverage>
+      <ac id="AC-3.2-1" priority="P0" uatRequired="true">Entity preservation &gt;95%</ac>
+      <ac id="AC-3.2-2" priority="P0" uatRequired="true">Partial entity flagging</ac>
+      <ac id="AC-3.2-3" priority="P0" uatRequired="true">Relationship preservation</ac>
+      <ac id="AC-3.2-4" priority="P0" uatRequired="true">Entity definition boundaries</ac>
+      <ac id="AC-3.2-5" priority="P1">Entity ID cross-references</ac>
+      <ac id="AC-3.2-6" priority="P1">Entity metadata tags</ac>
+      <ac id="AC-3.2-7" priority="P0" uatRequired="true">Section boundaries (AC-3.1-2 deferred)</ac>
+      <ac id="AC-3.2-8" priority="P0" uatRequired="true">Determinism (byte-for-byte)</ac>
+    </coverage>
+  </testCases>
+
+  <fixtures>
+    <existing>
+      <fixture>tests/fixtures/normalized_results/ (ProcessingResult from Epic 2)</fixture>
+      <fixture>tests/fixtures/pdfs/large/audit-report-large.pdf (60+ pages, sections)</fixture>
+      <fixture>tests/fixtures/xlsx/large/audit-data-10k-rows.xlsx (10k rows, entities)</fixture>
+    </existing>
+    <required status="TO_CREATE">
+      <directory>tests/fixtures/entity_rich_documents/</directory>
+      <files>
+        <file>risk_register_100_entities.json</file>
+        <file>policy_document_sections.json</file>
+        <file>risk_control_mapping.json</file>
+        <file>long_entity_definitions.json</file>
+      </files>
+      <script>scripts/generate_entity_rich_fixtures.py (TO CREATE)</script>
+    </required>
+  </fixtures>
+
+  <helpers>
+    <global conftest="tests/conftest.py">
+      <fixtures>sample_content_block, sample_heading_block, sample_content_blocks, sample_processing_result, temp_test_file, fixture_dir, validate_processing_result</fixtures>
+    </global>
+    <required status="TO_CREATE">
+      <conftest>tests/unit/test_chunk/conftest.py</conftest>
+      <fixtures>entity_rich_processing_result(num_entities, types), multi_section_document(num_sections)</fixtures>
+    </required>
+  </helpers>
+
+  <configuration>
+    <pytest config="pytest.ini">
+      <markers>unit, integration, performance, chunking, entity_aware (NEW)</markers>
+      <coverage threshold="60%" target="90% for entity_preserver.py"/>
+    </pytest>
+  </configuration>
+
+  <codeUnderTest>
+    <modify>
+      <file path="src/data_extract/chunk/engine.py">
+        <method name="_detect_section_boundaries" lines="252-281" status="PLACEHOLDER">MUST implement in Task 2 (AC-3.1-2 deferred)</method>
+        <method name="chunk_document">Integrate EntityPreserver (Task 3)</method>
+      </file>
+      <file path="src/data_extract/chunk/models.py">
+        <component>ChunkMetadata: add entity_tags, section_context, entity_relationships (Task 4)</component>
+      </file>
+    </modify>
+    <create>
+      <file path="src/data_extract/chunk/entity_preserver.py">EntityPreserver, EntityReference</file>
+      <file path="tests/unit/test_chunk/test_entity_preserver.py">Task 5</file>
+      <file path="tests/unit/test_chunk/test_section_detection.py">Task 6</file>
+      <file path="tests/integration/test_chunk/test_entity_aware_chunking.py">Task 7</file>
+      <file path="tests/integration/test_chunk/test_section_boundaries.py">Task 7</file>
+    </create>
+    <reference>
+      <file path="src/data_extract/core/models.py">Entity (lines 88-117), Metadata (lines 119-180)</file>
+    </reference>
+  </codeUnderTest>
+
+  <integrationPoints>
+    <filesystem>
+      <dir>tests/fixtures/ - create entity_rich_documents/, maintain &lt;100MB total</dir>
+    </filesystem>
+    <commands>
+      <cmd>spacy: python -m spacy download en_core_web_md (43MB, one-time)</cmd>
+      <cmd>pytest: pytest -m unit, -m integration, -m entity_aware</cmd>
+      <cmd>quality: black src/ tests/, ruff check, mypy src/data_extract/ (from root)</cmd>
+    </commands>
+    <deps>spacy&gt;=3.7.2, pydantic&gt;=2.0, pytest&gt;=8.0, black&gt;=24.0, ruff&gt;=0.6, mypy&gt;=1.11</deps>
+  </integrationPoints>
+
+  <context>
+    <reference>docs/stories/3-2-entity-aware-chunking.context.xml (full story context)</reference>
+    <patterns>
+      <pattern>Streaming Generator: Iterator[Chunk]</pattern>
+      <pattern>Dependency Injection: EntityPreserver via constructor</pattern>
+      <pattern>Determinism: {source}_chunk_{pos:03d}</pattern>
+      <pattern>Immutability: @dataclass(frozen=True)</pattern>
+    </patterns>
+    <deferred id="AC-3.1-2">Section detection (Story 3.1 to 3.2, placeholder at engine.py:252-281)</deferred>
+  </context>
+
+  <setup>
+    <prerequisites>
+      <item>spaCy en_core_web_md installed</item>
+      <item>Dev dependencies (pip install -e ".[dev]")</item>
+      <item>Story 3.1 complete (81/81 tests)</item>
+      <item>Epic 2 complete (ProcessingResult with entities)</item>
+    </prerequisites>
+    <fixtures>
+      <step>mkdir tests/fixtures/entity_rich_documents</step>
+      <step>Generate entity fixtures (risk_register, policy_sections, risk_control_mapping, long_definitions)</step>
+      <step>Validate size &lt;100MB</step>
+    </fixtures>
+  </setup>
+
+  <nextSteps>
+    <step n="1">Review test context - verify all components identified</step>
+    <step n="2">Create fixture generation scripts</step>
+    <step n="3">Generate entity-rich test fixtures</step>
+    <step n="4">Implement EntityPreserver + tests (Task 1, 5)</step>
+    <step n="5">Implement section detection (Task 2, 6)</step>
+    <step n="6">Run execute-tests workflow</step>
+    <step n="7">Capture test results</step>
+    <step n="8">Run review-uat-results for QA approval</step>
+  </nextSteps>
+
+  <summary>
+    <discovered>
+      <fixtures>Existing Story 3.1 fixtures reusable, need NEW entity_rich_documents/ with 4 JSON files</fixtures>
+      <helpers>Global conftest.py with 9 fixtures, need NEW test_chunk/conftest.py with 2 fixtures</helpers>
+      <codeUnderTest>3 files to MODIFY (engine.py, models.py, test_determinism.py), 5 files to CREATE</codeUnderTest>
+      <testInfrastructure>pytest.ini with 11 markers (add entity_aware), 60% coverage threshold, 90% target for new module</testInfrastructure>
+    </discovered>
+    <completeness>
+      <testCases>8 ACs mapped to unit/integration/performance tests</testCases>
+      <fixtures>Existing fixtures identified, missing fixtures documented with creation plan</fixtures>
+      <helpers>Global fixtures available, required helper fixtures documented</helpers>
+      <codeComponents>All source modules identified (modify: engine.py, models.py; create: entity_preserver.py)</codeComponents>
+      <setup>Prerequisites, fixture generation steps, validation commands documented</setup>
+    </completeness>
+  </summary>
+</test-context>

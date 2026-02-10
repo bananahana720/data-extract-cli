@@ -1,0 +1,292 @@
+# CI Pipeline for Data Extraction Tool
+# Runs on every push and pull request
+# Enforces quality gates: tests, coverage, linting, type checking, formatting
+
+name: Test & Quality Checks
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  SPACY_MODEL_VERSION: "3.8.0"
+  BURN_IN_ITERATIONS: "10"
+  SCIKIT_VERSION: "1.3.0"
+
+jobs:
+  burn-in:
+    name: Selective Burn-In
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Cache spaCy models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/spacy
+          key: ${{ runner.os }}-spacy-${{ env.SPACY_MODEL_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-spacy-
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+          source .venv/bin/activate
+          python -m spacy download en_core_web_md==${SPACY_MODEL_VERSION}
+
+      - name: Run semantic dependencies smoke test
+        run: |
+          echo "Validating semantic dependencies (scikit-learn, joblib, textstat)..."
+          python scripts/smoke_test_semantic.py
+          echo "✅ Semantic dependencies validated"
+
+      - name: Audit test dependencies
+        run: |
+          echo "Auditing test dependencies against pyproject.toml..."
+          python scripts/audit_dependencies.py --output markdown || {
+            echo "⚠️ Dependency audit found issues (see report above)"
+            # Don't fail the build, just warn
+            true
+          }
+          echo "✅ Dependency audit completed"
+
+      - name: Detect changed test specs
+        id: changed-tests
+        run: |
+          set -euo pipefail
+          BASE_BRANCH="${{ github.base_ref }}"
+          if [ -z "$BASE_BRANCH" ]; then
+            BASE_BRANCH="main"
+          fi
+          git fetch origin "$BASE_BRANCH":"refs/remotes/origin/$BASE_BRANCH"
+          CHANGED=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD | grep -E '^tests/.+\.py$' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "No changed test files detected"
+            echo "specs=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changed tests:\n$CHANGED"
+            SPECS=$(echo "$CHANGED" | tr '\n' ' ')
+            echo "specs=$SPECS" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Burn-in changed specs
+        if: ${{ steps.changed-tests.outputs.specs != '' }}
+        env:
+          CHANGED_SPECS: ${{ steps.changed-tests.outputs.specs }}
+        run: |
+          set -euo pipefail
+          echo "Running burn-in loop for: $CHANGED_SPECS"
+          for iteration in $(seq 1 ${BURN_IN_ITERATIONS}); do
+            echo "Iteration ${iteration}/${BURN_IN_ITERATIONS}"
+            pytest $CHANGED_SPECS || exit 1
+          done
+          echo "Burn-in completed successfully"
+
+  test:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: burn-in
+
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Cache spaCy models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/spacy
+          key: ${{ runner.os }}-spacy-${{ env.SPACY_MODEL_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-spacy-
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+          source .venv/bin/activate
+          python -m spacy download en_core_web_md==${SPACY_MODEL_VERSION}
+
+      - name: Run semantic dependencies smoke test
+        run: |
+          echo "Validating semantic dependencies (scikit-learn, joblib, textstat)..."
+          python scripts/smoke_test_semantic.py
+          echo "✅ Semantic dependencies validated"
+
+      - name: Audit test dependencies
+        run: |
+          echo "Auditing test dependencies against pyproject.toml..."
+          python scripts/audit_dependencies.py --output markdown || {
+            echo "⚠️ Dependency audit found issues (see report above)"
+            # Don't fail the build, just warn
+            true
+          }
+          echo "✅ Dependency audit completed"
+
+      - name: Run full test suite
+        run: |
+          pytest --cov=src --cov-report=term --cov-report=xml --cov-report=html -v
+
+      - name: Validate coverage threshold
+        run: |
+          coverage report --fail-under=60 || {
+            echo "❌ Coverage below 60% threshold"
+            echo "Current coverage: $(coverage report | grep TOTAL | awk '{print $4}')"
+            exit 1
+          }
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-${{ matrix.python-version }}
+          fail_ci_if_error: false
+
+      - name: Upload coverage HTML artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  lint:
+    name: Linting (Ruff)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff~=0.6.0
+
+      - name: Run ruff linter
+        run: |
+          ruff check src/ tests/ --output-format=github
+
+  type-check:
+    name: Type Checking (Mypy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy~=1.11.0 pydantic>=2.0.0 types-PyYAML
+
+      - name: Run mypy type checker
+        run: |
+          mypy src/data_extract/ --python-version=3.12
+
+  format-check:
+    name: Format Checking (Black)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install black
+        run: |
+          python -m pip install --upgrade pip
+          pip install black~=24.0
+
+      - name: Run black format check
+        run: |
+          black --check --line-length=100 src/ tests/
+
+  pre-commit:
+    name: Pre-commit Hooks Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pre-commit
+
+      - name: Run pre-commit on all files
+        run: |
+          pre-commit run --all-files
+
+  status-check:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [burn-in, test, lint, type-check, format-check, pre-commit]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.burn-in.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.type-check.result }}" != "success" ] || \
+             [ "${{ needs.format-check.result }}" != "success" ] || \
+             [ "${{ needs.pre-commit.result }}" != "success" ]; then
+            echo "❌ One or more quality checks failed"
+            exit 1
+          else
+            echo "✅ All quality checks passed"
+          fi

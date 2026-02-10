@@ -1,0 +1,182 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5</storyId>
+    <title>Preset Configurations for Common Workflows</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-5-preset-configurations-for-common-workflows.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>CLI user</asA>
+    <iWant>named presets for common processing workflows (quality, speed, balanced)</iWant>
+    <soThat>I can execute reproducible configurations with a single command and save custom settings for repeated use</soThat>
+    <tasks>
+      <task n="1" title="Preset Directory Infrastructure">
+        <subtask>Create src/data_extract/cli/config/presets.py module</subtask>
+        <subtask>Implement get_preset_directory() -> Path with auto-creation</subtask>
+        <subtask>Handle cross-platform paths (Path.home() / ".data-extract" / "presets")</subtask>
+        <subtask>Add directory permission checks and error handling</subtask>
+        <subtask>Unit tests for directory creation and edge cases</subtask>
+      </task>
+      <task n="2" title="Pydantic Preset Models">
+        <subtask>Create src/data_extract/cli/config/models.py with Pydantic v2 models</subtask>
+        <subtask>Define PresetConfig model with all configurable parameters</subtask>
+        <subtask>Add field validators for ranges and constraints</subtask>
+        <subtask>Implement model_dump_yaml() and model_load_yaml() methods</subtask>
+        <subtask>Unit tests for validation, serialization, error messages</subtask>
+      </task>
+      <task n="3" title="Built-in Presets Definition">
+        <subtask>Define BUILTIN_PRESETS: dict[str, PresetConfig] constant</subtask>
+        <subtask>Document each preset's use case and trade-offs</subtask>
+        <subtask>Ensure built-in presets are read-only (cannot be overwritten by save)</subtask>
+        <subtask>Unit tests for built-in preset access and immutability</subtask>
+      </task>
+      <task n="4" title="Preset List Command">
+        <subtask>Create src/data_extract/cli/commands/config_presets.py</subtask>
+        <subtask>Implement config presets list subcommand using Typer</subtask>
+        <subtask>Display Rich table with columns: Name, Type, Description, Key Settings</subtask>
+        <subtask>Separate sections for built-in vs user presets</subtask>
+        <subtask>Handle empty preset directory gracefully</subtask>
+        <subtask>Integration tests for list output format</subtask>
+      </task>
+      <task n="5" title="Preset Save Command">
+        <subtask>Implement config presets save name subcommand</subtask>
+        <subtask>Capture current configuration from ConfigManager (from Story 5-2)</subtask>
+        <subtask>Validate name doesn't conflict with built-in presets</subtask>
+        <subtask>Write YAML file to ~/.data-extract/presets/name.yaml</subtask>
+        <subtask>Add --description option for custom preset description</subtask>
+        <subtask>Add --force flag to overwrite existing custom preset</subtask>
+        <subtask>Unit tests for save operation, name validation, conflict detection</subtask>
+      </task>
+      <task n="6" title="Preset Load Command">
+        <subtask>Implement config presets load name subcommand</subtask>
+        <subtask>Search order: user presets first, then built-in presets</subtask>
+        <subtask>Validate preset file with Pydantic model on load</subtask>
+        <subtask>Apply preset values to ConfigManager session state</subtask>
+        <subtask>Display diff if current config differs from preset</subtask>
+        <subtask>Handle missing preset with helpful suggestions (fuzzy match)</subtask>
+        <subtask>Integration tests for load and apply behavior</subtask>
+      </task>
+      <task n="7" title="CLI Integration with --preset Flag">
+        <subtask>Add --preset global option to main CLI entry point</subtask>
+        <subtask>Preset values apply as layer in config cascade</subtask>
+        <subtask>Support --preset=name syntax on process/analyze commands</subtask>
+        <subtask>Allow CLI flags to override preset values</subtask>
+        <subtask>Document precedence: CLI args > preset > config file > defaults</subtask>
+        <subtask>Integration tests for preset + CLI flag combinations</subtask>
+      </task>
+      <task n="8" title="Journey 5 UAT Tests">
+        <subtask>Create tests/uat/journeys/test_journey_5_preset_configuration.py</subtask>
+        <subtask>Test: config presets list shows built-in presets</subtask>
+        <subtask>Test: config presets save test-preset creates file</subtask>
+        <subtask>Test: config presets load quality applies settings</subtask>
+        <subtask>Test: --preset=speed applies speed preset on process command</subtask>
+        <subtask>Test: Invalid preset name shows helpful error with suggestions</subtask>
+      </task>
+      <task n="9" title="Quality Gates">
+        <subtask>Run Black formatting on all new code</subtask>
+        <subtask>Run Ruff linting with 0 violations</subtask>
+        <subtask>Run Mypy type checking with 0 errors</subtask>
+        <subtask>Ensure 80%+ test coverage on new code</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-5.5-1">Preset directory ~/.data-extract/presets/ created automatically on first use if not exists</criterion>
+    <criterion id="AC-5.5-2">config presets list displays both built-in and user-defined presets with descriptions</criterion>
+    <criterion id="AC-5.5-3">config presets save name captures current CLI config to user preset file</criterion>
+    <criterion id="AC-5.5-4">config presets load name applies preset configuration to current session</criterion>
+    <criterion id="AC-5.5-5">Three built-in presets defined: quality (max validation), speed (minimal processing), balanced (default trade-off)</criterion>
+    <criterion id="AC-5.5-6">Journey 5 (Preset Configuration) UAT workflows functional: list, save, apply presets</criterion>
+    <criterion id="AC-5.5-7">Pydantic v2 models validate preset files on load with helpful error messages</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-5.md" title="Epic 5 Technical Specification" section="3.2 Configuration Cascade" snippet="Priority order: CLI arguments > Environment variables > Project config > User config > Preset config > Defaults. Presets fit as layer 5 in cascade."/>
+      <doc path="docs/ux-design-specification.md" title="UX Design Specification" section="Journey 5: Preset Configuration" snippet="List Available Presets shows built-in (audit-standard, quality-review) and custom presets with Rich table formatting."/>
+      <doc path="docs/stories/5-2-configuration-management-system.md" title="Story 5-2" section="ConfigManager" snippet="Dependency: Preset integration requires ConfigManager from Story 5-2 for applying settings to session state."/>
+    </docs>
+    <code>
+      <artifact path="src/data_extract/cli/config/presets.py" kind="module" symbol="PresetManager, get_preset_directory, BUILTIN_PRESETS" lines="1-216" reason="EXISTING: Preset manager with directory handling, built-in presets (quality/speed/balanced), list/save/load/delete operations"/>
+      <artifact path="src/data_extract/cli/config/models.py" kind="module" symbol="PresetConfig, ValidationLevel" lines="1-151" reason="EXISTING: Pydantic-style dataclass with validation, YAML serialization, range validators for chunk_size, quality_threshold, dedup_threshold"/>
+      <artifact path="src/data_extract/cli/config/__init__.py" kind="module" symbol="exports" lines="all" reason="Config package initialization - exports presets and models"/>
+      <artifact path="src/data_extract/cli/base.py" kind="module" symbol="config subcommand group" lines="all" reason="Main CLI with config command group - add presets subcommand"/>
+      <artifact path="src/data_extract/cli/config.py" kind="module" symbol="ConfigManager" lines="all" reason="Configuration management from Story 5-2 - integration point for applying presets"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="pydantic" version=">=2.0.0" purpose="Runtime validation for preset models"/>
+        <package name="PyYAML" version=">=6.0.0" purpose="YAML serialization for preset files"/>
+        <package name="typer" version=">=0.9.0" purpose="CLI subcommand structure"/>
+        <package name="rich" version=">=13.0.0" purpose="Table display for preset list"/>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Presets use dataclass with __post_init__ validation (Pydantic-compatible pattern)</constraint>
+    <constraint type="pattern">Built-in presets are read-only - raise ValueError on overwrite attempt</constraint>
+    <constraint type="pattern">User presets take precedence over built-in with same name (search order: custom first)</constraint>
+    <constraint type="pattern">YAML format for preset files - human-readable and editable</constraint>
+    <constraint type="layer">Preset layer in cascade: CLI args > preset > config file > defaults</constraint>
+    <constraint type="path">Cross-platform preset directory: Path.home() / ".data-extract" / "presets"</constraint>
+    <constraint type="validation">Preset validation ranges: chunk_size (128-2048), quality_threshold (0.0-1.0), dedup_threshold (0.0-1.0)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="PresetConfig" kind="dataclass" path="src/data_extract/cli/config/models.py">
+      <signature>@dataclass class PresetConfig: name, description, chunk_size, quality_threshold, output_format, dedup_threshold, include_metadata, validation_level, created</signature>
+    </interface>
+    <interface name="PresetManager" kind="class" path="src/data_extract/cli/config/presets.py">
+      <signature>class PresetManager: __init__(preset_dir), list_builtin(), list_custom(), list_all(), save(preset, force), load(name), delete(name)</signature>
+    </interface>
+    <interface name="get_preset_directory" kind="function" path="src/data_extract/cli/config/presets.py">
+      <signature>def get_preset_directory() -> Path: Creates ~/.data-extract/presets/ if not exists</signature>
+    </interface>
+    <interface name="BUILTIN_PRESETS" kind="constant" path="src/data_extract/cli/config/presets.py">
+      <signature>BUILTIN_PRESETS: dict[str, PresetConfig] = {"quality": PresetConfig(...), "speed": PresetConfig(...), "balanced": PresetConfig(...)}</signature>
+    </interface>
+    <interface name="config presets list" kind="CLI command" path="src/data_extract/cli/base.py">
+      <signature>@config_presets_app.command() def list(): Display Rich table of presets</signature>
+    </interface>
+    <interface name="config presets save" kind="CLI command" path="src/data_extract/cli/base.py">
+      <signature>@config_presets_app.command() def save(name, --description, --force): Save current config as preset</signature>
+    </interface>
+    <interface name="config presets load" kind="CLI command" path="src/data_extract/cli/base.py">
+      <signature>@config_presets_app.command() def load(name): Apply preset to session</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      pytest with fixtures and tmp_path for preset directory isolation.
+      Test both built-in and custom preset workflows.
+      Mock file system operations for edge case testing.
+      80%+ coverage on new code per CLAUDE.md requirements.
+    </standards>
+    <locations>
+      <location>tests/unit/test_cli/test_story_5_2/test_config_presets.py - PresetManager unit tests</location>
+      <location>tests/unit/test_cli/test_story_5_5/test_preset_models.py - PresetConfig model tests</location>
+      <location>tests/integration/test_cli/test_story_5_5/test_preset_commands.py - CLI command integration</location>
+      <location>tests/behavioral/epic_5/test_preset_behavior.py - Behavioral tests</location>
+      <location>tests/uat/journeys/test_journey_5_preset_configuration.py - Journey 5 UAT tests</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-5.5-1">Test directory auto-creation on first get_preset_directory() call</idea>
+      <idea ac="AC-5.5-2">Test list command shows both built-in and custom presets in Rich table</idea>
+      <idea ac="AC-5.5-3">Test save captures current config and writes valid YAML file</idea>
+      <idea ac="AC-5.5-4">Test load applies preset values to ConfigManager session</idea>
+      <idea ac="AC-5.5-5">Test built-in presets have correct values (quality/speed/balanced)</idea>
+      <idea ac="AC-5.5-6">Test Journey 5 complete flow: list -> save -> load</idea>
+      <idea ac="AC-5.5-7">Test invalid preset file produces ValidationError with field details</idea>
+      <idea ac="AC-5.5-1">Test directory permission errors handled gracefully</idea>
+      <idea ac="AC-5.5-3">Test cannot overwrite built-in preset names</idea>
+      <idea ac="AC-5.5-4">Test missing preset shows fuzzy match suggestions</idea>
+    </ideas>
+  </tests>
+</story-context>

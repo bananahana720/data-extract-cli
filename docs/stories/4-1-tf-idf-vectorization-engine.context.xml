@@ -1,0 +1,247 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Implement TF-IDF Vectorization Engine with Caching</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-1-tf-idf-vectorization-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>data scientist working with large document corpora</asA>
+    <iWant>to convert chunks of text into TF-IDF vectors with intelligent caching</iWant>
+    <soThat>I can perform efficient similarity analysis and duplicate detection while reducing redundant computation by 10-100x</soThat>
+    <tasks>
+      <!-- Setup and Infrastructure -->
+      <task>Create src/data_extract/semantic/ module structure with __init__.py</task>
+      <task>Define base SemanticStage abstract class implementing PipelineStage protocol</task>
+      <task>Create cache manager singleton with joblib serialization support</task>
+      <task>Set up .data-extract-cache/models/ directory structure</task>
+      <!-- TF-IDF Implementation -->
+      <task>Implement TfidfVectorizationStage class with configurable TfidfConfig</task>
+      <task>Add quality filtering logic for chunk preprocessing</task>
+      <task>Implement SHA256-based cache key generation from corpus content</task>
+      <task>Add sparse matrix handling with scipy.sparse.csr_matrix</task>
+      <task>Create ProcessingResult builder with all required metadata</task>
+      <!-- Caching Layer -->
+      <task>Implement CacheManager.get() and CacheManager.set() with joblib</task>
+      <task>Add cache warming strategy for common configurations</task>
+      <task>Implement cache size management with LRU eviction</task>
+      <task>Add cache hit/miss metrics tracking</task>
+      <task>Create cache corruption detection and recovery</task>
+      <!-- Performance Optimization -->
+      <task>Profile memory usage with 10k document corpus</task>
+      <task>Implement batch processing for large corpora</task>
+      <task>Add parallel processing option for multi-core systems</task>
+      <task>Optimize vocabulary size with min/max document frequency</task>
+      <!-- Testing and Validation -->
+      <task>Create unit tests for TfidfVectorizationStage (95% coverage)</task>
+      <task>Implement behavioral test for duplicate detection (≥85% precision)</task>
+      <task>Add performance benchmarks validating NFR-P1 requirements</task>
+      <task>Test determinism with multiple runs on same input</task>
+      <task>Validate cache effectiveness metrics</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-4.1-1">TfidfVectorizationStage implements PipelineStage protocol with process() method accepting List[Chunk] and returning ProcessingResult</criterion>
+    <criterion id="AC-4.1-2">Vectorizer configurable with max_features (5000 default), min_df (2), max_df (0.95), ngram_range (1,2), sublinear_tf (True)</criterion>
+    <criterion id="AC-4.1-3">Quality filtering removes chunks with quality_score &lt; threshold (0.5 default) before vectorization</criterion>
+    <criterion id="AC-4.1-4">Cache manager with joblib persistence stores/retrieves vectorizers and sparse matrices using SHA256 content hashing</criterion>
+    <criterion id="AC-4.1-5">Performance meets NFR-P1: &lt;100ms for 1000 words, &lt;1s for 10k words, &lt;500MB memory for 10k documents</criterion>
+    <criterion id="AC-4.1-6">Deterministic output: identical input produces identical vectors across runs (fixed random_state=42)</criterion>
+    <criterion id="AC-4.1-7">ProcessingResult includes tfidf_matrix (sparse CSR), vectorizer, vocabulary dict, feature_names array, chunk_ids</criterion>
+    <criterion id="AC-4.1-8">Cache hit ratio &gt;90% after initial run on same corpus, with 10-100x speedup</criterion>
+    <criterion id="AC-4.1-9">All code passes mypy with zero errors and black/ruff with zero violations</criterion>
+    <criterion id="AC-4.1-10">Unit test coverage ≥95% with behavioral test for duplicate detection accuracy ≥85%</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>TF-IDF Vectorization Engine (Story 4.1)</section>
+        <snippet>Sparse matrix representation of document chunks with vocabulary management (max 10,000 features), N-gram support, and cache-first architecture with joblib.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/epic-4-knowledge-curation-architecture.md</path>
+        <title>Epic 4 Knowledge Curation Architecture</title>
+        <section>Story 4.1: TF-IDF Vectorization Engine</section>
+        <snippet>Core vectorization engine with caching using scikit-learn's TfidfVectorizer, streaming-compatible chunk processing, and aggressive caching with joblib persistence.</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation/epic-4-implementation-patterns.md</path>
+        <title>Epic 4 Implementation Patterns</title>
+        <section>3.1 TF-IDF Vectorizer as PipelineStage</section>
+        <snippet>Detailed implementation pattern showing TfidfVectorizationStage class with configurable TfidfConfig, SHA256 cache keys, and ProcessingResult integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/adr-012-semantic-model-cache.md</path>
+        <title>ADR-012: Semantic Model Cache Strategy</title>
+        <section>Cache Implementation</section>
+        <snippet>Hash-based keys, joblib serialization, 500MB size limit, LRU eviction policy, and CLI integration for cache management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/epic-4-behavioral-test-strategy.md</path>
+        <title>Behavioral Test Strategy</title>
+        <section>AC-BT-1: Duplicate Detection</section>
+        <snippet>Duplicate detection must achieve ≥85% precision and ≥80% recall on golden dataset using TF-IDF vectorization and cosine similarity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/data-architecture.md</path>
+        <title>Data Architecture</title>
+        <section>Pipeline Architecture</section>
+        <snippet>PipelineStage protocol with stateless, deterministic processing and ProcessingContext for configuration and logging.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/core/pipeline.py</path>
+        <kind>protocol</kind>
+        <symbol>PipelineStage</symbol>
+        <lines>20</lines>
+        <reason>Base protocol that TfidfVectorizationStage must implement</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingResult</symbol>
+        <lines>434</lines>
+        <reason>Return type for TF-IDF vectorization stage</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>ProcessingContext</symbol>
+        <lines>468</lines>
+        <reason>Configuration and logging context for pipeline stages</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/core/models.py</path>
+        <kind>model</kind>
+        <symbol>Chunk</symbol>
+        <lines>359</lines>
+        <reason>Input data model from ChunkStage (Epic 3)</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/chunk/models.py</path>
+        <kind>model</kind>
+        <symbol>ChunkMetadata</symbol>
+        <lines>22</lines>
+        <reason>Metadata attached to chunks for quality scoring</reason>
+      </artifact>
+      <artifact>
+        <path>tests/bridge/test_pipeline_epic3_to_epic4.py</path>
+        <kind>test</kind>
+        <symbol>test_e34_001_chunks_have_text_content</symbol>
+        <lines>38-48</lines>
+        <reason>Bridge test validating chunk text content for TF-IDF</reason>
+      </artifact>
+      <artifact>
+        <path>tests/bridge/test_pipeline_epic3_to_epic4.py</path>
+        <kind>test</kind>
+        <symbol>test_e34_006_chunks_vectorizable_with_tfidf</symbol>
+        <lines>121-140</lines>
+        <reason>Bridge test validating TF-IDF vectorization capability</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/profile_pipeline.py</path>
+        <kind>script</kind>
+        <symbol>profile_parallel_processing</symbol>
+        <lines>all</lines>
+        <reason>Performance profiling tool for pipeline stages</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package>scikit-learn</package>
+        <version>>=1.3.0</version>
+        <purpose>TF-IDF vectorization via TfidfVectorizer</purpose>
+      </python>
+      <python>
+        <package>joblib</package>
+        <version>>=1.3.0</version>
+        <purpose>Model caching and persistence</purpose>
+      </python>
+      <python>
+        <package>numpy</package>
+        <version>transitive via scikit-learn</version>
+        <purpose>Array operations for vectors</purpose>
+      </python>
+      <python>
+        <package>scipy</package>
+        <version>transitive via scikit-learn</version>
+        <purpose>Sparse matrix operations (CSR format)</purpose>
+      </python>
+      <python>
+        <package>spacy</package>
+        <version>3.6.0</version>
+        <purpose>Tokenization with en_core_web_md model</purpose>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must implement PipelineStage protocol with stateless, deterministic processing</constraint>
+    <constraint>Cache keys must be deterministic using SHA256 content hashing</constraint>
+    <constraint>Random state must be fixed at 42 for reproducibility</constraint>
+    <constraint>Memory usage must stay under 500MB for 10k documents</constraint>
+    <constraint>Processing latency must be under 100ms for 1000 words</constraint>
+    <constraint>Must filter chunks with quality_score below threshold before vectorization</constraint>
+    <constraint>Vocabulary size capped at max_features (5000-10000) to prevent explosion</constraint>
+    <constraint>Must use sparse CSR matrix format for memory efficiency</constraint>
+    <constraint>Cache storage limited to 500MB with LRU eviction</constraint>
+    <constraint>All code must pass mypy, black, and ruff with zero violations</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>PipelineStage[List[Chunk], ProcessingResult]</name>
+      <kind>protocol</kind>
+      <signature>def process(self, input_data: List[Chunk], context: ProcessingContext) -> ProcessingResult</signature>
+      <path>src/data_extract/core/pipeline.py</path>
+    </interface>
+    <interface>
+      <name>TfidfConfig</name>
+      <kind>dataclass</kind>
+      <signature>@dataclass class TfidfConfig: max_features: int = 5000; min_df: int = 2; max_df: float = 0.95; ngram_range: tuple = (1, 2); use_cache: bool = True</signature>
+      <path>src/data_extract/semantic/tfidf.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>CacheManager</name>
+      <kind>singleton</kind>
+      <signature>def get(self, key: str) -> Optional[Any]; def set(self, key: str, value: Any) -> None</signature>
+      <path>src/data_extract/semantic/cache.py (to be created)</path>
+    </interface>
+    <interface>
+      <name>ProcessingResult</name>
+      <kind>model</kind>
+      <signature>success: bool; data: dict; metadata: dict</signature>
+      <path>src/data_extract/core/models.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>The project uses pytest as the test framework with pytest-benchmark for performance testing. Tests must be organized in tests/unit/ mirroring the src/ structure. All greenfield code requires 80% coverage minimum, with 95% target for core modules. Behavioral tests use golden datasets with verified duplicates and clusters. Performance tests validate NFR requirements using time.time() and psutil for memory profiling. All tests must use Path(__file__).parent for fixture loading, never hardcoded paths. Type hints are required on all test functions, and tests must pass mypy validation.</standards>
+    <locations>
+      <location>tests/unit/test_semantic/test_tfidf_stage.py (unit tests)</location>
+      <location>tests/behavioral/epic_4/test_duplicate_detection.py (behavioral)</location>
+      <location>tests/performance/test_semantic_benchmarks.py (performance)</location>
+      <location>tests/fixtures/semantic/ (golden datasets)</location>
+      <location>tests/bridge/test_pipeline_epic3_to_epic4.py (integration)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-4.1-1">Test TfidfVectorizationStage implements PipelineStage protocol correctly with mock ProcessingContext</idea>
+      <idea ac="AC-4.1-2">Test vectorizer configuration options (max_features, min_df, max_df, ngram_range) produce expected vocabulary sizes</idea>
+      <idea ac="AC-4.1-3">Test quality filtering removes chunks below threshold and preserves those above</idea>
+      <idea ac="AC-4.1-4">Test cache manager stores and retrieves identical vectorizers using content hash keys</idea>
+      <idea ac="AC-4.1-5">Benchmark TF-IDF performance with 1k, 10k, 100k word corpora against NFR limits</idea>
+      <idea ac="AC-4.1-6">Test determinism by running same input 3 times and comparing outputs byte-for-byte</idea>
+      <idea ac="AC-4.1-7">Test ProcessingResult contains all required fields (tfidf_matrix, vectorizer, vocabulary, feature_names, chunk_ids)</idea>
+      <idea ac="AC-4.1-8">Test cache effectiveness by measuring time difference between first and second runs</idea>
+      <idea ac="AC-4.1-10">Behavioral test for duplicate detection using 45 verified duplicate pairs from golden dataset</idea>
+      <idea ac="AC-4.1-10">Test edge cases: empty chunks, single-word chunks, special characters only, very large chunks (>10MB)</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,20 @@
+━━━ CHUNK 001 ━━━
+Source: audit_report.pdf | Chunk: chunk_001
+Entities: RISK-001, CTRL-042
+Quality: 0.96
+This is a sample document demonstrating metadata headers. The compact header provides traceability (source file), context (entity IDs), and quality scoring for filtering.
+
+Metadata headers are limited to 1-3 lines to avoid clutter while providing essential context for LLM understanding.
+
+━━━ CHUNK 002 ━━━
+Source: audit_report.pdf | Chunk: chunk_002
+Quality: 0.92
+This chunk shows graceful handling of missing metadata. The Entities line is omitted when no entity tags are present.
+
+Quality scores enable downstream filtering (e.g., only include chunks with quality >0.90).
+
+━━━ CHUNK 003 ━━━
+Source: audit_report.pdf | Chunk: chunk_003
+Entities: DATA-BREACH-2024, INCIDENT-042
+Quality: 0.88
+This final chunk demonstrates entity tagging for audit workflows. Entity IDs enable correlation across chunks and link to master entity definitions.

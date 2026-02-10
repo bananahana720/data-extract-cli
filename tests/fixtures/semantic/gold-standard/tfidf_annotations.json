@@ -1,0 +1,2098 @@
+{
+  "metadata": {
+    "generated_date": "2025-11-18",
+    "story": "3.5-6-semantic-qa-fixtures",
+    "num_documents": 45,
+    "annotation_types": [
+      "tfidf",
+      "lsa",
+      "entities",
+      "readability"
+    ],
+    "tfidf_config": {
+      "max_features": 1000,
+      "min_df": 2,
+      "max_df": 0.95,
+      "ngram_range": [
+        1,
+        2
+      ]
+    },
+    "lsa_config": {
+      "n_components": 10,
+      "random_state": 42
+    }
+  },
+  "annotations": {
+    "audit-report-0001": {
+      "top_terms": [
+        {
+          "term": "001",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        },
+        {
+          "term": "varying",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0002": {
+      "top_terms": [
+        {
+          "term": "002",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "varying",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0003": {
+      "top_terms": [
+        {
+          "term": "003",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0004": {
+      "top_terms": [
+        {
+          "term": "004",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0005": {
+      "top_terms": [
+        {
+          "term": "005",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0006": {
+      "top_terms": [
+        {
+          "term": "006",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0007": {
+      "top_terms": [
+        {
+          "term": "007",
+          "score": 0.1548
+        },
+        {
+          "term": "audit",
+          "score": 0.0635
+        },
+        {
+          "term": "areas",
+          "score": 0.0632
+        },
+        {
+          "term": "insights",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0608
+        },
+        {
+          "term": "pace",
+          "score": 0.0608
+        },
+        {
+          "term": "showed",
+          "score": 0.0608
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0608
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0608
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0608
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1548
+    },
+    "audit-report-0008": {
+      "top_terms": [
+        {
+          "term": "008",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0009": {
+      "top_terms": [
+        {
+          "term": "009",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0010": {
+      "top_terms": [
+        {
+          "term": "010",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0011": {
+      "top_terms": [
+        {
+          "term": "011",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0012": {
+      "top_terms": [
+        {
+          "term": "012",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0013": {
+      "top_terms": [
+        {
+          "term": "013",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0014": {
+      "top_terms": [
+        {
+          "term": "014",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0015": {
+      "top_terms": [
+        {
+          "term": "015",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0016": {
+      "top_terms": [
+        {
+          "term": "016",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0017": {
+      "top_terms": [
+        {
+          "term": "017",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0018": {
+      "top_terms": [
+        {
+          "term": "018",
+          "score": 0.1674
+        },
+        {
+          "term": "audit",
+          "score": 0.0634
+        },
+        {
+          "term": "areas",
+          "score": 0.063
+        },
+        {
+          "term": "insights",
+          "score": 0.0614
+        },
+        {
+          "term": "pace",
+          "score": 0.0606
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0606
+        },
+        {
+          "term": "varying",
+          "score": 0.0606
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0606
+        },
+        {
+          "term": "showed",
+          "score": 0.0606
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0606
+        }
+      ],
+      "num_unique_terms": 412,
+      "max_tfidf_score": 0.1674
+    },
+    "audit-report-0019": {
+      "top_terms": [
+        {
+          "term": "audit",
+          "score": 0.0643
+        },
+        {
+          "term": "areas",
+          "score": 0.0639
+        },
+        {
+          "term": "insights",
+          "score": 0.0623
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0615
+        },
+        {
+          "term": "varying",
+          "score": 0.0615
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0615
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0615
+        },
+        {
+          "term": "pace",
+          "score": 0.0615
+        },
+        {
+          "term": "showed",
+          "score": 0.0615
+        }
+      ],
+      "num_unique_terms": 411,
+      "max_tfidf_score": 0.0643
+    },
+    "audit-report-0020": {
+      "top_terms": [
+        {
+          "term": "audit",
+          "score": 0.0643
+        },
+        {
+          "term": "areas",
+          "score": 0.0639
+        },
+        {
+          "term": "insights",
+          "score": 0.0623
+        },
+        {
+          "term": "demonstrated",
+          "score": 0.0615
+        },
+        {
+          "term": "varying",
+          "score": 0.0615
+        },
+        {
+          "term": "varying levels",
+          "score": 0.0615
+        },
+        {
+          "term": "control effectiveness",
+          "score": 0.0615
+        },
+        {
+          "term": "inconsistent",
+          "score": 0.0615
+        },
+        {
+          "term": "pace",
+          "score": 0.0615
+        },
+        {
+          "term": "showed",
+          "score": 0.0615
+        }
+      ],
+      "num_unique_terms": 411,
+      "max_tfidf_score": 0.0643
+    },
+    "risk-matrix-0001": {
+      "top_terms": [
+        {
+          "term": "001",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0002": {
+      "top_terms": [
+        {
+          "term": "002",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0003": {
+      "top_terms": [
+        {
+          "term": "003",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0004": {
+      "top_terms": [
+        {
+          "term": "004",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0005": {
+      "top_terms": [
+        {
+          "term": "005",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0006": {
+      "top_terms": [
+        {
+          "term": "006",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0007": {
+      "top_terms": [
+        {
+          "term": "007",
+          "score": 0.1526
+        },
+        {
+          "term": "strategies",
+          "score": 0.0729
+        },
+        {
+          "term": "risk management",
+          "score": 0.0676
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0624
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0624
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0624
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0624
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0624
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0624
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0624
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.1526
+    },
+    "risk-matrix-0008": {
+      "top_terms": [
+        {
+          "term": "008",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "enterprise",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0009": {
+      "top_terms": [
+        {
+          "term": "009",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0010": {
+      "top_terms": [
+        {
+          "term": "010",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0011": {
+      "top_terms": [
+        {
+          "term": "011",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0012": {
+      "top_terms": [
+        {
+          "term": "012",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0013": {
+      "top_terms": [
+        {
+          "term": "013",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0014": {
+      "top_terms": [
+        {
+          "term": "014",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0015": {
+      "top_terms": [
+        {
+          "term": "015",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0016": {
+      "top_terms": [
+        {
+          "term": "016",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0017": {
+      "top_terms": [
+        {
+          "term": "017",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "risk-matrix-0018": {
+      "top_terms": [
+        {
+          "term": "018",
+          "score": 0.165
+        },
+        {
+          "term": "strategies",
+          "score": 0.0728
+        },
+        {
+          "term": "risk management",
+          "score": 0.0675
+        },
+        {
+          "term": "vulnerabilities",
+          "score": 0.0623
+        },
+        {
+          "term": "likelihood",
+          "score": 0.0623
+        },
+        {
+          "term": "stress",
+          "score": 0.0623
+        },
+        {
+          "term": "multiple risk",
+          "score": 0.0623
+        },
+        {
+          "term": "emerging risks",
+          "score": 0.0623
+        },
+        {
+          "term": "evaluated",
+          "score": 0.0623
+        },
+        {
+          "term": "mitigation strategies",
+          "score": 0.0623
+        }
+      ],
+      "num_unique_terms": 393,
+      "max_tfidf_score": 0.165
+    },
+    "compliance-doc-0001": {
+      "top_terms": [
+        {
+          "term": "001",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0002": {
+      "top_terms": [
+        {
+          "term": "002",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0003": {
+      "top_terms": [
+        {
+          "term": "003",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0004": {
+      "top_terms": [
+        {
+          "term": "004",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0005": {
+      "top_terms": [
+        {
+          "term": "005",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0006": {
+      "top_terms": [
+        {
+          "term": "006",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    },
+    "compliance-doc-0007": {
+      "top_terms": [
+        {
+          "term": "007",
+          "score": 0.1067
+        },
+        {
+          "term": "policy",
+          "score": 0.0858
+        },
+        {
+          "term": "identification",
+          "score": 0.0847
+        },
+        {
+          "term": "processes ensure",
+          "score": 0.0774
+        },
+        {
+          "term": "visibility compliance",
+          "score": 0.0774
+        },
+        {
+          "term": "maintain",
+          "score": 0.0774
+        },
+        {
+          "term": "enable",
+          "score": 0.0774
+        },
+        {
+          "term": "management processes",
+          "score": 0.0774
+        },
+        {
+          "term": "promote",
+          "score": 0.0774
+        },
+        {
+          "term": "planning",
+          "score": 0.0765
+        }
+      ],
+      "num_unique_terms": 281,
+      "max_tfidf_score": 0.1067
+    }
+  }
+}

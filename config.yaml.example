@@ -1,0 +1,422 @@
+# =============================================================================
+# AI-Ready File Extraction Tool - Configuration Template
+# =============================================================================
+#
+# This file demonstrates all available configuration options with their
+# default values and explanations. Copy this to `config.yaml` and customize
+# as needed.
+#
+# Quick Start:
+#   1. Copy: cp config.yaml.example config.yaml
+#   2. Edit: Modify values for your environment
+#   3. Use: data-extract --config config.yaml extract document.docx
+#
+# Environment Variables:
+#   Any setting can be overridden using environment variables with the prefix
+#   DATA_EXTRACTOR_. For example:
+#     DATA_EXTRACTOR_LOGGING_LEVEL=DEBUG
+#     DATA_EXTRACTOR_EXTRACTORS_PDF_USE_OCR=false
+#
+# Documentation:
+#   See docs/USER_GUIDE.md for detailed usage instructions
+#   See docs/architecture/INFRASTRUCTURE_NEEDS.md for design rationale
+#
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  # Default: INFO
+  # DEBUG: Detailed per-block extraction information
+  # INFO: Start/end of operations, summary statistics
+  # WARNING: Recoverable issues (truncated content, missing metadata)
+  # ERROR: Operation failures
+  level: INFO
+
+  # Log format: 'json' for structured logging, 'text' for human-readable
+  # Default: json
+  # Use 'json' for log aggregation tools (Splunk, ELK)
+  # Use 'text' for development and debugging
+  format: json
+
+  # Log output handlers
+  handlers:
+    # File handler - write logs to rotating file
+    file:
+      enabled: false
+      path: logs/extractor.log
+      max_bytes: 10485760  # 10MB per file
+      backup_count: 5      # Keep 5 backup files
+
+    # Console handler - write logs to stdout
+    console:
+      enabled: false
+      # When true, logs appear in terminal alongside progress bars
+
+# =============================================================================
+# Extractor Configuration
+# =============================================================================
+# Format-specific settings for content extraction
+extractors:
+
+  # -----------------------------------------------------------------------------
+  # Microsoft Word (.docx) Extractor
+  # -----------------------------------------------------------------------------
+  docx:
+    # Maximum paragraph length before truncation
+    # Default: None (no limit)
+    # Set to limit memory usage for documents with extremely long paragraphs
+    # Example: 5000 for ~1 page of text
+    max_paragraph_length: null
+
+    # Skip empty paragraphs during extraction
+    # Default: true
+    # Set to false if you need to preserve document spacing/structure
+    skip_empty: true
+
+    # Extract style information (bold, italic, font, etc.)
+    # Default: true
+    # Set to false to reduce output size and processing time
+    extract_styles: true
+
+  # -----------------------------------------------------------------------------
+  # PDF Extractor
+  # -----------------------------------------------------------------------------
+  pdf:
+    # Use OCR for image-based PDFs (scanned documents)
+    # Default: true
+    # Requires tesseract to be installed
+    # Set to false if you only process text-based PDFs
+    use_ocr: true
+
+    # Path to tesseract executable (optional)
+    # Default: null (uses system PATH)
+    # Windows example: C:\Users\YourName\AppData\Local\Programs\Tesseract-OCR\tesseract.exe
+    # Linux/Mac example: /usr/local/bin/tesseract
+    # Only needed if tesseract is not in your system PATH
+    tesseract_cmd: null
+
+    # Path to poppler bin directory (optional)
+    # Default: null (uses system PATH)
+    # Windows example: C:\Program Files\poppler-xx.xx.x\Library\bin
+    # Linux/Mac example: /usr/local/bin
+    # Only needed if poppler is not in your system PATH
+    # Required for PDF to image conversion during OCR
+    poppler_path: null
+
+    # OCR DPI resolution
+    # Default: 300
+    # Higher values improve accuracy but increase processing time
+    # Recommended: 150 (fast), 300 (balanced), 600 (high quality)
+    ocr_dpi: 300
+
+    # OCR language code
+    # Default: eng
+    # Use '+' to combine languages: 'eng+fra' for English and French
+    # Common codes: eng, spa, fra, deu, ita, por
+    ocr_lang: eng
+
+    # Extract images embedded in PDFs
+    # Default: true
+    # Set to false to skip image extraction and speed up processing
+    extract_images: true
+
+    # Extract table structures
+    # Default: true
+    # Set to false if tables are not needed
+    extract_tables: true
+
+    # Minimum text characters to consider a page "text-based"
+    # Default: 10
+    # Pages with fewer characters trigger OCR fallback
+    min_text_threshold: 10
+
+  # -----------------------------------------------------------------------------
+  # PowerPoint (.pptx) Extractor
+  # -----------------------------------------------------------------------------
+  pptx:
+    # Extract speaker notes from slides
+    # Default: true
+    # Notes often contain important context not visible in presentations
+    extract_notes: true
+
+    # Extract images from slides
+    # Default: true
+    # Set to false to reduce output size
+    extract_images: true
+
+    # Skip slides with no text content
+    # Default: false
+    # Set to true to filter out blank slides or image-only slides
+    skip_empty_slides: false
+
+  # -----------------------------------------------------------------------------
+  # Excel (.xlsx) Extractor
+  # -----------------------------------------------------------------------------
+  excel:
+    # Maximum rows to extract per sheet
+    # Default: None (no limit)
+    # Use to prevent memory issues with large spreadsheets
+    # Example: 10000 for reasonable-sized datasets
+    max_rows: null
+
+    # Maximum columns to extract per sheet
+    # Default: None (no limit)
+    # Example: 100 for typical business reports
+    max_columns: null
+
+    # Include cell formulas in extraction
+    # Default: true
+    # Captures both formula and computed value
+    include_formulas: true
+
+    # Extract chart metadata
+    # Default: true
+    # Captures chart type, data ranges, titles
+    include_charts: true
+
+    # Skip empty cells during extraction
+    # Default: false
+    # Set to true to reduce output size for sparse spreadsheets
+    skip_empty_cells: false
+
+# =============================================================================
+# Processor Configuration
+# =============================================================================
+# Content enrichment and analysis settings
+processors:
+
+  # -----------------------------------------------------------------------------
+  # Context Linker - Builds document hierarchy
+  # -----------------------------------------------------------------------------
+  context_linker:
+    # Include hierarchical path in metadata (e.g., "Chapter 1 > Section 1.1")
+    # Default: true
+    # Set to false to reduce metadata verbosity
+    include_path: true
+
+  # -----------------------------------------------------------------------------
+  # Metadata Aggregator - Computes document statistics
+  # -----------------------------------------------------------------------------
+  metadata_aggregator:
+    # Enable named entity extraction (requires NLP processing)
+    # Default: false
+    # Set to true for advanced entity recognition (requires spacy or similar)
+    # Note: Requires additional dependencies not included by default
+    enable_entities: false
+
+    # Maximum number of headings to include in summary
+    # Default: 5
+    # Affects the "structure_summary" metadata field
+    summary_max_headings: 5
+
+  # -----------------------------------------------------------------------------
+  # Quality Validator - Assesses extraction quality
+  # -----------------------------------------------------------------------------
+  quality_validator:
+    # Quality score threshold for flagging manual review
+    # Default: 60.0
+    # Files scoring below this are marked needs_review=true
+    # Range: 0.0 (worst) to 100.0 (perfect)
+    needs_review_threshold: 60.0
+
+    # Penalty per empty content block
+    # Default: 5.0
+    # Reduces quality score when empty blocks are present
+    empty_block_penalty: 5.0
+
+    # Confidence threshold for "low confidence" warning
+    # Default: 0.5
+    # Blocks with confidence < threshold trigger quality warnings
+    # Range: 0.0 to 1.0
+    low_confidence_threshold: 0.5
+
+# =============================================================================
+# Formatter Configuration
+# =============================================================================
+# Output format generation settings
+formatters:
+
+  # -----------------------------------------------------------------------------
+  # JSON Formatter
+  # -----------------------------------------------------------------------------
+  json:
+    # Generate hierarchical JSON structure (nested by parent/child relationships)
+    # Default: false
+    # Set to true for tree-like output preserving document structure
+    # Set to false for flat array of blocks
+    hierarchical: false
+
+    # Pretty-print JSON output
+    # Default: true
+    # Set to false for compact output (smaller file size)
+    pretty_print: true
+
+    # Indentation spaces for pretty printing
+    # Default: 2
+    indent: 2
+
+    # Escape non-ASCII characters
+    # Default: false
+    # Set to true for strict ASCII compatibility (increases file size)
+    ensure_ascii: false
+
+  # -----------------------------------------------------------------------------
+  # Markdown Formatter
+  # -----------------------------------------------------------------------------
+  markdown:
+    # Include YAML frontmatter with document metadata
+    # Default: true
+    # Frontmatter includes title, author, dates, word count
+    include_frontmatter: true
+
+    # Heading level offset (add this to all heading levels)
+    # Default: 0
+    # Example: 1 converts H1->H2, H2->H3 (useful for embedding in larger docs)
+    heading_offset: 0
+
+    # Include block metadata as HTML comments
+    # Default: false
+    # Adds <!-- metadata: {...} --> after each block
+    include_metadata: false
+
+    # Include position information in output
+    # Default: false
+    # Shows page/slide numbers for each block
+    include_position_info: false
+
+  # -----------------------------------------------------------------------------
+  # Chunked Text Formatter - Token-limited output for LLMs
+  # -----------------------------------------------------------------------------
+  chunked_text:
+    # Maximum tokens per output chunk
+    # Default: 8000
+    # Recommended: 4000 (GPT-3.5), 8000 (GPT-4), 128000 (Claude)
+    # Chunks are split at block boundaries to preserve context
+    token_limit: 8000
+
+    # Include context headers in each chunk
+    # Default: true
+    # Headers show source file, chunk number, date range
+    include_context_headers: true
+
+    # Number of overlapping tokens between chunks
+    # Default: 0
+    # Example: 200 for smoother continuity between chunks
+    # Useful for semantic search and retrieval applications
+    chunk_overlap: 0
+
+    # Output directory for chunk files
+    # Default: . (current directory)
+    # Chunks are named: {source}_chunk_001.txt, {source}_chunk_002.txt, etc.
+    output_dir: .
+
+# =============================================================================
+# Pipeline Configuration
+# =============================================================================
+# Global pipeline behavior settings
+pipeline:
+  # Enable progress tracking for batch operations
+  # Default: true
+  # Shows real-time progress bars during multi-file processing
+  # Set to false for non-interactive environments (CI/CD, cron jobs)
+  show_progress: true
+
+  # Number of parallel workers for batch processing
+  # Default: 4
+  # Higher values improve throughput but increase memory usage
+  # Recommended: Number of CPU cores or cores-1
+  max_workers: 4
+
+  # Stop batch processing on first error
+  # Default: false
+  # Set to true to abort immediately when any file fails
+  fail_fast: false
+
+  # Memory limit per file (MB)
+  # Default: 500
+  # Files exceeding this limit will be rejected
+  # Prevents OOM errors on very large files
+  max_file_size_mb: 500
+
+  # Timeout per file in seconds
+  # Default: null (no timeout)
+  # Set to limit processing time for individual files
+  # Useful for preventing hung operations on corrupted files
+  # Example: 300 for 5-minute timeout per file
+  timeout_per_file: null
+
+# =============================================================================
+# Use Case Example Configurations
+# =============================================================================
+# Uncomment and modify sections below for specific scenarios
+
+# -----------------------------------------------------------------------------
+# Development Configuration
+# -----------------------------------------------------------------------------
+# Verbose logging, small file limits, debugging enabled
+#
+# logging:
+#   level: DEBUG
+#   handlers:
+#     console:
+#       enabled: true
+# pipeline:
+#   max_file_size_mb: 50
+# extractors:
+#   pdf:
+#     use_ocr: false  # Skip slow OCR during dev
+
+# -----------------------------------------------------------------------------
+# Production Configuration
+# -----------------------------------------------------------------------------
+# Optimized for throughput, file logging, error handling
+#
+# logging:
+#   level: WARNING
+#   format: json
+#   handlers:
+#     file:
+#       enabled: true
+#       path: /var/log/extractor/app.log
+# pipeline:
+#   max_workers: 8
+#   fail_fast: false
+# extractors:
+#   pdf:
+#     ocr_dpi: 150  # Faster OCR
+
+# -----------------------------------------------------------------------------
+# Batch Processing Configuration
+# -----------------------------------------------------------------------------
+# High throughput, minimal logging, parallel execution
+#
+# logging:
+#   level: ERROR
+# pipeline:
+#   show_progress: false  # Disable for cron jobs
+#   max_workers: 16
+#   max_file_size_mb: 200
+# processors:
+#   metadata_aggregator:
+#     enable_entities: false  # Skip expensive NLP
+# formatters:
+#   json:
+#     pretty_print: false  # Compact output
+
+# -----------------------------------------------------------------------------
+# Testing/Validation Configuration
+# -----------------------------------------------------------------------------
+# Quick validation, strict quality thresholds
+#
+# extractors:
+#   pdf:
+#     use_ocr: false
+#   docx:
+#     max_paragraph_length: 1000
+# pipeline:
+#   max_file_size_mb: 10
+# processors:
+#   quality_validator:
+#     needs_review_threshold: 80.0  # Stricter quality

@@ -1,0 +1,313 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>3.5.1</storyId>
+    <title>Story/Review Template Generator</title>
+    <status>backlog</status>
+    <generatedAt>2025-11-17</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-1-story-review-template-generator.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>scrum master responsible for maintaining story quality standards</asA>
+    <iWant>an automated story/review template generator with AC tables and wiring checklists</iWant>
+    <soThat>developers cannot skip required sections and evidence is captured before review status changes</soThat>
+    <tasks>
+      <task id="1" name="Create Jinja2 templates">
+        <subtask>Create scripts/templates/story.md.j2 with story header, body, AC table placeholders</subtask>
+        <subtask>Create scripts/templates/ac-table.md.j2 for acceptance criteria evidence table</subtask>
+        <subtask>Create scripts/templates/wiring-checklist.md.j2 for BOM/logging/CLI/testing reminders</subtask>
+        <subtask>Test template rendering with sample variables</subtask>
+      </task>
+      <task id="2" name="Implement generator CLI">
+        <subtask>Create scripts/new-story entry point with argparse/click for CLI args</subtask>
+        <subtask>Implement scripts/generator.py with Jinja2 rendering logic</subtask>
+        <subtask>Add file output to docs/stories/{story-id}-{title-slug}.md</subtask>
+        <subtask>Add --dry-run flag for preview without writing</subtask>
+      </task>
+      <task id="3" name="Pre-commit validation hook">
+        <subtask>Create scripts/validators.py with AC table structure validation</subtask>
+        <subtask>Add pre-commit hook configuration to .pre-commit-config.yaml</subtask>
+        <subtask>Test hook rejects stories with incomplete AC tables</subtask>
+        <subtask>Document hook behavior in docs/processes/story-quality-enforcement.md</subtask>
+      </task>
+      <task id="4" name="Tests and documentation">
+        <subtask>Unit tests: Template rendering, CLI argument parsing, file output, validation logic</subtask>
+        <subtask>Integration test: Generate Story 4.1 and verify output structure</subtask>
+        <subtask>Run quality gates: Black, Ruff, Mypy</subtask>
+        <subtask>Update CLAUDE.md with template generator usage instructions</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-3.5.1-1" priority="critical">
+      <description>CLI interface: scripts/new-story command accepts --id, --title, --owner, --hours parameters and generates valid story markdown</description>
+      <source>docs/tech-spec-epic-3.5.md#L82-L93</source>
+      <validation>Execute: scripts/new-story --id 4.1 --title "TF-IDF Vectorization" --owner Charlie --hours 6. Verify markdown file created with correct structure.</validation>
+    </criterion>
+    <criterion id="AC-3.5.1-2" priority="critical">
+      <description>Template completeness: Generated story includes AC table template, wiring checklist (BOM, logging, CLI, testing), submission summary section</description>
+      <source>docs/tech-spec-epic-3.5.md#L82-L93</source>
+      <validation>Inspect generated story file for all required sections: Story Header, Body, AC table, Wiring Checklist, Dev Notes</validation>
+    </criterion>
+    <criterion id="AC-3.5.1-3" priority="critical">
+      <description>Jinja2 rendering: Templates use Jinja2 syntax with variables for story_id, story_title, epic_id, owner, estimated_hours, acceptance_criteria</description>
+      <source>docs/tech-spec-epic-3.5.md#L71-L93</source>
+      <validation>Review template files (.j2) for correct Jinja2 variable syntax. Test variable substitution with sample data.</validation>
+    </criterion>
+    <criterion id="AC-3.5.1-4" priority="critical">
+      <description>Pre-commit validation: Pre-commit hook validates AC table presence and structure before allowing story file commits</description>
+      <source>docs/tech-spec-epic-3.5.md#L95-L103</source>
+      <validation>Attempt to commit story file without AC table. Verify pre-commit hook blocks commit with helpful error message.</validation>
+    </criterion>
+    <criterion id="AC-3.5.1-5" priority="high">
+      <description>Quality gates: Black/Ruff/Mypy pass with 0 violations, unit tests cover template rendering and CLI args</description>
+      <source>docs/tech-spec-epic-3.5.md#L226-L230</source>
+      <validation>Run: black --check scripts/, ruff check scripts/, mypy scripts/, pytest tests/unit/test_template_generator.py -v. All must pass.</validation>
+    </criterion>
+    <criterion id="AC-3.5.1-6" priority="high">
+      <description>Story 4.1 validation: Successfully generate Story 4.1 using the new template generator as integration test</description>
+      <source>docs/tech-spec-epic-3.5.md#L47-L48</source>
+      <validation>Execute: scripts/new-story --id 4.1 --title "TF-IDF Vectorization Engine" --owner Charlie --hours 6. Story 4.1 file created and validates against quality checks.</validation>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-3.5.md" title="Epic 3.5 Technical Specification">
+        <section name="Story/Review Template Architecture">
+          <snippet>Template components include story.md.j2 (main template), ac-table.md.j2 (acceptance criteria table), and wiring-checklist.md.j2 (BOM/logging/CLI/testing reminders). Template variables: story_id, story_title, epic_id, owner, estimated_hours, acceptance_criteria. CLI workflow: scripts/new-story --id 4.1 --title "..." generates docs/stories/4-1-....md with AC table. Pre-commit hook validates AC table completeness before commit.</snippet>
+        </section>
+      </doc>
+      <doc path="docs/retrospectives/epic-3-retro-2025-11-16.md" title="Epic 3 Retrospective">
+        <section name="Challenges &amp; Root Causes">
+          <snippet>Missing provenance/metadata reminders in story templates caused AC 3.4-6/3.5-7 to initially fail with extra review cycles. AC evidence was added post-review due to no tooling to prompt authors before status change. Action plan item #1: Create story/review template generator by 2025-11-20 with Elena + DevOps ownership. Success criteria: Story 4.1 must use this generator successfully.</snippet>
+        </section>
+      </doc>
+      <doc path="docs/stories/3-7-configurable-output-organization-strategies.md" title="Story 3.7 (Example Structure)">
+        <section name="Story Format Reference">
+          <snippet>Story structure includes: Status line, Story section (user story), Story Header (Story Key, Context, Dependencies, Estimate, Owner), Story Body (implementation details), Acceptance Criteria (numbered list with sources), Tasks/Subtasks (checkboxes), Dev Notes (Requirements Context Summary, Structure Alignment Summary, References), Dev Agent Record (Context Reference, Agent Model, Debug Log, Completion Notes, File List), Change Log.</snippet>
+        </section>
+      </doc>
+      <doc path="docs/archive/PRD.md" title="Product Requirements Document">
+        <section name="Functional Requirements">
+          <snippet>FR-8.3 Logging &amp; Audit Trail: Comprehensive logging of all processing decisions with timestamped log entries, processing decision logging (why chunks were split, why content was flagged), performance metrics logged. Audit trail requirements mandate deterministic processing verification and version information tracking.</snippet>
+        </section>
+      </doc>
+      <doc path=".claude/CLAUDE.md" title="Project Instructions">
+        <section name="Epic-Based Development">
+          <snippet>Epic 3.5 is a bridge epic preparing for Epic 4. Story 3.5.1 is the story/review template generator. Quality Gates: Pre-commit workflow requires Black, Ruff, Mypy with 0 violations before commit. Always include integration tests. Fix validation issues immediately (don't defer tech debt).</snippet>
+        </section>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact path=".pre-commit-config.yaml" kind="config" reason="Template for adding new pre-commit hook for story validation">
+        <symbol>repos</symbol>
+        <lines>1-43</lines>
+        <reason>Existing pre-commit configuration with Black, Ruff, Mypy hooks. Story validation hook will be added to this configuration following the same pattern.</reason>
+      </artifact>
+      <artifact path="src/data_extract/cli.py" kind="cli" reason="Reference for CLI implementation patterns using Click/Typer">
+        <symbol>app</symbol>
+        <reason>Existing CLI implementation uses Click framework. New scripts/new-story CLI will follow similar patterns for argument parsing and command structure.</reason>
+      </artifact>
+      <artifact path="scripts/validate_installation.py" kind="script" reason="Example script structure and validation patterns">
+        <symbol>main</symbol>
+        <reason>Example of standalone script with validation logic. Template generator will follow similar structure for modularity and testability.</reason>
+      </artifact>
+      <artifact path="bmad/bmm/workflows/4-implementation/story-context/context-template.xml" kind="template" reason="Example of XML template structure with variable placeholders">
+        <symbol>story-context</symbol>
+        <lines>1-35</lines>
+        <reason>BMAD uses XML templates with {{variable}} placeholders. Story generator will use Jinja2 with similar variable substitution patterns for markdown templates.</reason>
+      </artifact>
+      <artifact path="docs/stories/3-7-configurable-output-organization-strategies.md" kind="story" reason="Complete story example with all required sections">
+        <symbol>Story 3.7</symbol>
+        <lines>1-164</lines>
+        <reason>Reference for story structure: Status, Story section, Acceptance Criteria format, Tasks/Subtasks format, Dev Notes sections, Dev Agent Record, Change Log. Template generator must produce this structure.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <python>
+        <package name="Jinja2" version=">=3.1.0,&lt;4.0" reason="Template rendering engine for story markdown generation">NOT_INSTALLED - Must be added to pyproject.toml dependencies</package>
+        <package name="click" version=">=8.1.0" reason="CLI framework for scripts/new-story command line interface">INSTALLED - Already in pyproject.toml for existing CLI</package>
+        <package name="pytest" version=">=8.0.0,&lt;9.0" reason="Testing framework for unit and integration tests">INSTALLED - Already in dev dependencies</package>
+        <package name="black" version=">=24.0.0,&lt;25.0" reason="Code formatter for quality gates">INSTALLED - Already in dev dependencies and pre-commit hooks</package>
+        <package name="ruff" version=">=0.6.0,&lt;0.7" reason="Fast Python linter for quality gates">INSTALLED - Already in dev dependencies and pre-commit hooks</package>
+        <package name="mypy" version=">=1.11.0,&lt;2.0" reason="Static type checking for quality gates">INSTALLED - Already in dev dependencies and pre-commit hooks</package>
+        <package name="pre-commit" version=">=3.0.0,&lt;4.0" reason="Git hook framework for story validation enforcement">INSTALLED - Already in dev dependencies</package>
+        <package name="PyYAML" version=">=6.0.0,&lt;7.0" reason="YAML parsing for configuration (if needed)">INSTALLED - Already in core dependencies</package>
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <technical>
+      <constraint id="TECH-1" severity="critical">
+        <description>Python 3.12 mandatory - Enterprise standardization requirement, no older versions acceptable</description>
+        <impact>All code must use Python 3.12 features and type hints. Template generator must work with Python 3.12.</impact>
+      </constraint>
+      <constraint id="TECH-2" severity="critical">
+        <description>Quality gates enforcement - Black/Ruff/Mypy must pass with 0 violations before commits</description>
+        <impact>All generated code and template generator code must pass quality gates. Pre-commit hooks enforce this automatically.</impact>
+      </constraint>
+      <constraint id="TECH-3" severity="high">
+        <description>TDD approach - RED-GREEN-BLUE pattern required for all new features</description>
+        <impact>Write failing tests first (RED), implement minimum code to pass (GREEN), refactor and add integration tests (BLUE).</impact>
+      </constraint>
+      <constraint id="TECH-4" severity="high">
+        <description>Deterministic processing - Same input must produce same output every time</description>
+        <impact>Template rendering must be deterministic. Same parameters always generate identical story files for audit trail compliance.</impact>
+      </constraint>
+    </technical>
+
+    <development>
+      <constraint id="DEV-1" severity="high">
+        <description>Mirror src/ structure in tests/ - Test files must follow exact source code structure</description>
+        <impact>Template generator tests go in tests/unit/test_scripts/test_generator.py, validation tests in tests/unit/test_scripts/test_validators.py</impact>
+      </constraint>
+      <constraint id="DEV-2" severity="high">
+        <description>No silent failures - Flag problems rather than silently drop content</description>
+        <impact>Template generator must validate all inputs and provide clear error messages for missing or invalid parameters.</impact>
+      </constraint>
+      <constraint id="DEV-3" severity="medium">
+        <description>Limit to Jinja2 + basic validation - Defer advanced features to avoid scope creep</description>
+        <impact>Keep template generator simple. No complex logic in templates. Defer features like story ID auto-increment or Git integration.</impact>
+        <source>docs/tech-spec-epic-3.5.md Risk R-3.5-3</source>
+      </constraint>
+    </development>
+
+    <process>
+      <constraint id="PROC-1" severity="critical">
+        <description>Story 4.1 validation required - Template generator must successfully create Story 4.1 before acceptance</description>
+        <impact>Integration test must generate docs/stories/4-1-tfidf-vectorization-engine.md with complete structure meeting all quality checks.</impact>
+        <source>Epic 3.5 Success Criteria #2</source>
+      </constraint>
+      <constraint id="PROC-2" severity="high">
+        <description>Pre-commit hook integration - Validation must prevent commits of incomplete stories</description>
+        <impact>Hook must validate AC table presence, structure, and evidence fields. Must provide actionable error messages to guide developers.</impact>
+      </constraint>
+      <constraint id="PROC-3" severity="high">
+        <description>Evidence-first review pattern - AC evidence must be captured before status changes to review</description>
+        <impact>Template must include AC evidence table structure. Validation hook enforces completeness before commit.</impact>
+        <source>Epic 3 Retrospective Lesson #2</source>
+      </constraint>
+    </process>
+  </constraints>
+
+  <interfaces>
+    <interface name="scripts/new-story CLI" kind="command-line">
+      <signature>scripts/new-story --id STORY_ID --title TITLE --owner OWNER --hours HOURS [--dry-run]</signature>
+      <path>scripts/new-story</path>
+      <description>Command-line interface for generating new story files. Required parameters: id (e.g., "4.1"), title (e.g., "TF-IDF Vectorization"), owner (e.g., "Charlie"), hours (e.g., "6"). Optional: --dry-run for preview without writing file.</description>
+      <example>scripts/new-story --id 4.1 --title "TF-IDF Vectorization Engine" --owner Charlie --hours 6</example>
+    </interface>
+
+    <interface name="Template Rendering API" kind="function">
+      <signature>def render_story_template(story_id: str, title: str, owner: str, hours: int, **kwargs) -> str</signature>
+      <path>scripts/generator.py</path>
+      <description>Jinja2 template rendering function that generates story markdown from template variables. Returns rendered markdown string ready to write to file.</description>
+      <example>markdown = render_story_template("4.1", "TF-IDF Vectorization", "Charlie", 6)</example>
+    </interface>
+
+    <interface name="Story Validator" kind="function">
+      <signature>def validate_story_structure(file_path: Path) -> tuple[bool, list[str]]</signature>
+      <path>scripts/validators.py</path>
+      <description>Validates story file structure including AC table presence, required sections, and evidence fields. Returns (is_valid, error_messages) tuple for pre-commit hook integration.</description>
+      <example>is_valid, errors = validate_story_structure(Path("docs/stories/4-1-....md"))</example>
+    </interface>
+
+    <interface name="Pre-commit Hook Entry Point" kind="hook">
+      <signature>entry: python scripts/validators.py</signature>
+      <path>.pre-commit-config.yaml</path>
+      <description>Pre-commit hook configuration entry for story validation. Runs on story markdown files in docs/stories/. Blocks commit if validation fails with error messages.</description>
+      <example>files: ^docs/stories/.*\.md$ - Only validates story files, not all markdown</example>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard>Testing framework: pytest with fixtures for sample data</standard>
+      <standard>Test organization: Mirror src/ structure - tests/unit/test_scripts/ for template generator tests</standard>
+      <standard>Coverage requirements: >80% for new code (template generator, validators)</standard>
+      <standard>Quality gates: Black/Ruff/Mypy must pass with 0 violations before commit</standard>
+      <standard>TDD approach: Write failing tests first (RED), implement to pass (GREEN), refactor (BLUE)</standard>
+      <standard>Integration tests required: Generate Story 4.1 as end-to-end validation</standard>
+      <standard>Test markers: Use @pytest.mark.integration for Story 4.1 generation test</standard>
+    </standards>
+
+    <locations>
+      <location>tests/unit/test_scripts/test_generator.py - Template rendering unit tests</location>
+      <location>tests/unit/test_scripts/test_validators.py - Story validation unit tests</location>
+      <location>tests/integration/test_scripts/test_story_generation.py - End-to-end Story 4.1 generation</location>
+      <location>tests/fixtures/template_test_data/ - Sample template variables and expected outputs</location>
+    </locations>
+
+    <ideas>
+      <idea ac_id="AC-3.5.1-1" priority="critical">
+        <description>Test CLI argument parsing with valid and invalid inputs</description>
+        <tests>
+          <test>test_cli_accepts_all_required_parameters() - Verify --id, --title, --owner, --hours all work</test>
+          <test>test_cli_rejects_missing_parameters() - Verify error when required parameters omitted</test>
+          <test>test_cli_dry_run_mode() - Verify --dry-run prints output without writing file</test>
+          <test>test_cli_invalid_story_id_format() - Verify error for malformed story ID (e.g., "abc" instead of "4.1")</test>
+        </tests>
+      </idea>
+
+      <idea ac_id="AC-3.5.1-2" priority="critical">
+        <description>Test template completeness - verify all required sections present in generated output</description>
+        <tests>
+          <test>test_generated_story_has_story_header() - Verify Story Key, Context, Dependencies, Estimate, Owner present</test>
+          <test>test_generated_story_has_ac_table() - Verify acceptance criteria table structure present</test>
+          <test>test_generated_story_has_wiring_checklist() - Verify BOM, logging, CLI, testing sections present</test>
+          <test>test_generated_story_has_dev_notes() - Verify Requirements Context, Structure Alignment, References sections</test>
+          <test>test_generated_story_has_all_required_sections() - Verify Status, Story, Tasks, Dev Agent Record, Change Log</test>
+        </tests>
+      </idea>
+
+      <idea ac_id="AC-3.5.1-3" priority="critical">
+        <description>Test Jinja2 variable substitution and template rendering</description>
+        <tests>
+          <test>test_template_renders_story_id_variable() - Verify {{story_id}} substituted correctly</test>
+          <test>test_template_renders_title_variable() - Verify {{story_title}} substituted correctly</test>
+          <test>test_template_renders_all_variables() - Verify epic_id, owner, estimated_hours all work</test>
+          <test>test_template_handles_special_characters_in_title() - Verify title with quotes, ampersands works</test>
+          <test>test_template_deterministic_rendering() - Verify same inputs produce identical output</test>
+        </tests>
+      </idea>
+
+      <idea ac_id="AC-3.5.1-4" priority="critical">
+        <description>Test pre-commit hook validation and error handling</description>
+        <tests>
+          <test>test_validator_accepts_complete_story() - Verify valid story with AC table passes validation</test>
+          <test>test_validator_rejects_missing_ac_table() - Verify story without AC table fails validation</test>
+          <test>test_validator_rejects_incomplete_ac_table() - Verify AC table without evidence fields fails</test>
+          <test>test_validator_provides_helpful_error_messages() - Verify error messages guide developer to fix issues</test>
+          <test>test_pre_commit_hook_blocks_invalid_commit() - Integration test: attempt commit, verify block</test>
+        </tests>
+      </idea>
+
+      <idea ac_id="AC-3.5.1-5" priority="high">
+        <description>Test quality gates pass for all template generator code</description>
+        <tests>
+          <test>test_black_formatting_compliant() - Verify all code formatted per Black rules</test>
+          <test>test_ruff_linting_passes() - Verify no linting violations</test>
+          <test>test_mypy_type_checking_passes() - Verify all type hints correct and complete</test>
+          <test>test_unit_test_coverage_exceeds_80_percent() - Verify coverage target met</test>
+        </tests>
+      </idea>
+
+      <idea ac_id="AC-3.5.1-6" priority="high">
+        <description>Integration test: Generate Story 4.1 and validate complete structure</description>
+        <tests>
+          <test>test_generate_story_4_1_integration() - End-to-end: Run CLI, verify file created with correct name</test>
+          <test>test_story_4_1_has_correct_metadata() - Verify Story Key "4-1-tfidf-vectorization-engine", Epic 4, Owner Charlie</test>
+          <test>test_story_4_1_validates_against_pre_commit_hook() - Verify generated story passes validation</test>
+          <test>test_story_4_1_follows_naming_convention() - Verify filename: docs/stories/4-1-tfidf-vectorization-engine.md</test>
+        </tests>
+      </idea>
+    </ideas>
+  </tests>
+</story-context>

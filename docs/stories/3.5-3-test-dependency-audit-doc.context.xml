@@ -1,0 +1,207 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3.5</epicId>
+    <storyId>3.5.3</storyId>
+    <title>Test Dependency Audit Documentation</title>
+    <status>backlog</status>
+    <generatedAt>2025-11-17</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3.5-3-test-dependency-audit-doc.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer preparing for a new epic with unfamiliar libraries</asA>
+    <iWant>a documented test-dependency audit process with automated checklist hooks</iWant>
+    <soThat>environment/tool readiness is validated systematically instead of relying on tribal knowledge</soThat>
+    <tasks>
+- Task 1: Analyze Epic 2.5 spaCy integration (AC: 3)
+  - Review Story 2.5.2 implementation (spaCy model download, smoke tests, CI caching)
+  - Extract reusable patterns from spaCy integration approach
+  - Document lessons learned from that dependency addition
+  - Identify common pitfalls to warn about in process doc
+
+- Task 2: Write dependency audit process doc (AC: 1-2)
+  - Create docs/processes/test-dependency-audit.md structure
+  - Document step-by-step checklist: installation, smoke tests, CI config, baselines, docs
+  - Include spaCy integration as worked example
+  - Add troubleshooting section for common dependency issues
+  - Define when audit is required (new libraries, major version upgrades)
+
+- Task 3: Create automated hook (AC: 4)
+  - Create pre-commit hook that detects pyproject.toml changes
+  - Hook outputs reminder to follow test-dependency-audit.md process
+  - Add hook configuration to .pre-commit-config.yaml
+  - Test hook triggers on dependency additions/changes
+
+- Task 4: Integration and validation (AC: 5)
+  - Coordinate with Story 3.5.1 to link audit doc from story template wiring checklist
+  - Validate doc is discoverable via docs/processes/ directory
+  - QA review for completeness and clarity
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Process doc exists: docs/processes/test-dependency-audit.md committed with complete dependency audit workflow. [Source: docs/tech-spec-epic-3.5.md#L29-L30]
+
+2. Checklist template: Doc includes step-by-step checklist covering library installation, smoke tests, CI caching, baselines, docs. [Source: docs/tech-spec-epic-3.5.md#L29-L30]
+
+3. Epic 2.5 examples: References spaCy integration (Story 2.5.2) as concrete example of the process in action. [Source: docs/retrospectives/epic-3-retro-2025-11-16.md#L50]
+
+4. Automated hook: Pre-commit hook detects pyproject.toml dependency changes and reminds developers to follow audit process. [Source: docs/tech-spec-epic-3.5.md#L29-L30]
+
+5. Story template integration: Dependency audit checklist linked from story template wiring section (Story 3.5.1 coordination). [Source: docs/retrospectives/epic-3-retro-2025-11-16.md#L50]
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/retrospectives/epic-3-retro-2025-11-16.md</path>
+        <title>Epic 3 Retrospective</title>
+        <section>Challenges &amp; Root Causes</section>
+        <snippet>Dependency audit doc still absent (action item from Epic 2 deprioritized; no owner). Risk of future epics missing env/tool setup. Undocumented dependency audit process means relying on tribal knowledge; unacceptable as semantic toolchain grows.</snippet>
+      </doc>
+      <doc>
+        <path>docs/retrospectives/epic-3-retro-2025-11-16.md</path>
+        <title>Epic 3 Retrospective</title>
+        <section>Action Plan (SMART)</section>
+        <snippet>Action #3: Test-dependency audit process doc + checklist hook by 2025-11-22 with Winston ownership. Creates docs/processes/test-dependency-audit.md and story template links to it.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-3.5.md</path>
+        <title>Epic 3.5 Technical Specification - Tooling &amp; Semantic Prep (Bridge Epic)</title>
+        <section>Scope &amp; Deliverables - Test Dependency Audit Documentation</section>
+        <snippet>Process doc: docs/processes/test-dependency-audit.md with automated checklist hook for dependency validation. Examples from Epic 2.5 spaCy integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration &amp; Validation</title>
+        <section>Tasks / Subtasks</section>
+        <snippet>Task 1: Install spaCy 3.7.2, check CVEs, download en_core_web_md model, document model size and load time baseline. Task 7: Performance validation with smoke tests. Task 8: Documentation updates including CLAUDE.md setup section and troubleshooting-spacy.md guide.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2.5-2-spacy-integration-and-end-to-end-testing.md</path>
+        <title>Story 2.5.2: spaCy Integration &amp; Validation</title>
+        <section>Dev Notes - Architecture Context</section>
+        <snippet>spaCy setup documented in CLAUDE.md with model download steps, performance metrics (model loads in ~1.2 seconds), and CI/CD caching transparency. Troubleshooting guide created at docs/troubleshooting-spacy.md.</snippet>
+      </doc>
+      <doc>
+        <path>.claude/CLAUDE.md</path>
+        <title>CLAUDE.md Project Instructions</title>
+        <section>spaCy Model Setup (Required for Epic 3)</section>
+        <snippet>Story 2.5.2 integrates spaCy 3.7.2+ for sentence boundary detection. Includes model download commands, validation steps, performance metrics, and CI/CD caching notes. References troubleshooting guide.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ci-cd-pipeline.md</path>
+        <title>CI/CD Pipeline Documentation</title>
+        <section>Workflows - Test &amp; Quality Checks</section>
+        <snippet>Caching strategy: Pip dependencies cached at ~/.cache/pip keyed on pyproject.toml. spaCy models cached at ~/.cache/spacy keyed on spaCy version + model.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3.5-1-story-review-template-generator.md</path>
+        <title>Story 3.5.1: Story/Review Template Generator</title>
+        <section>Acceptance Criteria</section>
+        <snippet>AC 2: Generated story includes AC table template, wiring checklist (BOM, logging, CLI, testing), submission summary section. Wiring checklist will integrate dependency audit reminders.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>config</kind>
+        <symbol>dependencies</symbol>
+        <lines>36-60</lines>
+        <reason>Shows dependency management pattern with version constraints and inline comments documenting which epic/story added each dependency. spaCy example at line 46 shows Story 2.5.2 pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>pyproject.toml</path>
+        <kind>config</kind>
+        <symbol>dev dependencies</symbol>
+        <lines>72-87</lines>
+        <reason>Development dependencies section shows testing and quality gate tools that should be referenced in dependency audit process (pytest, black, ruff, mypy, pre-commit).</reason>
+      </artifact>
+      <artifact>
+        <path>.pre-commit-config.yaml</path>
+        <kind>config</kind>
+        <symbol>hooks</symbol>
+        <lines>1-43</lines>
+        <reason>Existing pre-commit hook configuration showing patterns for Black, Ruff, Mypy, and standard hooks. New dependency audit hook will follow similar structure.</reason>
+      </artifact>
+      <artifact>
+        <path>scripts/regenerate_gold_standard.py</path>
+        <kind>script</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Example of utility script pattern in scripts/ directory. Dependency audit hook script should follow similar conventions.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="spacy" version=">=3.7.2,<4.0" context="Story 2.5.2 example - sentence boundary detection for Epic 3" />
+        <package name="pre-commit" version=">=3.0.0,<4.0" context="Required for automated hook infrastructure" />
+        <package name="pytest" version=">=8.0.0,<9.0" context="Testing framework for validation" />
+        <package name="black" version=">=24.0.0,<25.0" context="Code formatting quality gate" />
+        <package name="ruff" version=">=0.6.0,<0.7" context="Linting quality gate" />
+        <package name="mypy" version=">=1.11.0,<2.0" context="Type checking quality gate" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Process doc establishes the pattern for docs/processes/ directory (currently empty, this creates first document)
+- Hook must integrate with existing .pre-commit-config.yaml infrastructure without breaking existing hooks
+- Documentation must be discoverable and actionable - developers should find it easily when adding dependencies
+- Process must be lightweight enough to not slow down development but comprehensive enough to catch issues
+- Epic 2.5.2 spaCy integration provides the worked example - process doc should reference it as concrete case study
+- Coordinate with Story 3.5.1 (story template generator) to ensure wiring checklist includes dependency audit reminder
+- Follow existing documentation patterns in .claude/CLAUDE.md for setup instructions
+- CI/CD caching strategy must be documented (following spaCy cache pattern at ~/.cache/)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Pre-commit Hook API</name>
+      <kind>Git hook system</kind>
+      <signature>Standard pre-commit hook format with entry point, language, files pattern</signature>
+      <path>.pre-commit-config.yaml</path>
+    </interface>
+    <interface>
+      <name>pyproject.toml Structure</name>
+      <kind>Python project configuration</kind>
+      <signature>[project.dependencies] and [project.optional-dependencies] sections with version constraints</signature>
+      <path>pyproject.toml</path>
+    </interface>
+    <interface>
+      <name>CLAUDE.md Documentation Pattern</name>
+      <kind>Project documentation standard</kind>
+      <signature>Markdown sections with setup commands, validation steps, performance notes, troubleshooting references</signature>
+      <path>.claude/CLAUDE.md</path>
+    </interface>
+    <interface>
+      <name>Story Template Wiring Checklist</name>
+      <kind>Story template section (from Story 3.5.1)</kind>
+      <signature>Checklist format covering BOM (Bill of Materials), logging, CLI flags, testing, dependency audit</signature>
+      <path>scripts/templates/wiring-checklist.md.j2</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing for this story focuses on process documentation quality and hook functionality rather than code coverage. Pre-commit hook should be tested to verify it correctly detects pyproject.toml changes and outputs reminder message. Documentation should be reviewed for completeness (covers all checklist items from AC-2), accuracy (spaCy example correctly referenced), and clarity (junior developers can follow process). Follow existing documentation review patterns from Story 2.5.2 (which created docs/troubleshooting-spacy.md). Hook testing should verify trigger conditions (dependency additions/changes) and non-trigger conditions (unrelated pyproject.toml changes like metadata).
+    </standards>
+    <locations>
+- Pre-commit hook tests: Can be validated via manual testing or basic script tests in tests/unit/test_scripts/ (if created)
+- Documentation review: Manual QA review following Epic 3 retrospective's evidence-first pattern
+- Integration test: Verify hook triggers when dependencies added to pyproject.toml
+- Coordinate with Story 3.5.1 for story template wiring checklist integration testing
+    </locations>
+    <ideas>
+- Test idea for AC-1: Verify docs/processes/test-dependency-audit.md exists and contains all required sections (introduction, checklist, examples, troubleshooting)
+- Test idea for AC-2: Validate checklist includes all items: library installation, smoke tests, CI cache config, performance baselines, documentation updates
+- Test idea for AC-3: Confirm spaCy integration (Story 2.5.2) is referenced with accurate file paths and example steps
+- Test idea for AC-4: Test hook detects pyproject.toml dependency changes - add a new dependency and verify reminder message appears
+- Test idea for AC-4: Test hook doesn't trigger for non-dependency changes (metadata, build config) - negative test case
+- Test idea for AC-5: Verify Story 3.5.1's wiring checklist template includes link to test-dependency-audit.md process doc
+- Manual validation: Have a junior developer follow the process doc to add a test dependency and verify all steps are clear
+- Documentation completeness check: Cross-reference process doc checklist against Story 2.5.2's actual implementation steps
+    </ideas>
+  </tests>
+</story-context>

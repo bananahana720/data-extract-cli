@@ -1,0 +1,266 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>6</storyId>
+    <title>CSV Output Format for Analysis and Tracking</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-15T21:43:07Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-6-csv-output-format-for-analysis-and-tracking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>As a data quality analyst preparing audit chunks for spreadsheet review</asA>
+    <iWant>I want a CSV formatter that preserves chunk text and provenance metadata while supporting truncation and parser validation</iWant>
+    <soThat>so that I can explore coverage, share findings with stakeholders, and trace every row back to its source without rerunning the pipeline</soThat>
+    <tasks>
+      <task id="T1" title="Implement CsvFormatter core" acRefs="AC-3.6-1,AC-3.6-2,AC-3.6-3,AC-3.6-5,AC-3.6-6" sourcePath="src/data_extract/output/formatters/csv_formatter.py">
+        <description>Create CsvFormatter extending BaseFormatter with the canonical column schema, RFC 4180 escaping, optional truncation indicator, and semicolon entity serialization while reusing Story 3.5 text-cleaning utilities.</description>
+        <subtasks>
+          <item>Create src/data_extract/output/formatters/csv_formatter.py with schema enforcement, escaping, truncation, and entity serialization.</item>
+          <item>Reuse TxtFormatter whitespace/BOM normalization helpers to guarantee deterministic CSV encoding.</item>
+        </subtasks>
+      </task>
+      <task id="T2" title="Production integration + CLI wiring" acRefs="AC-3.6-1,AC-3.6-4,AC-3.6-6" sourcePath="src/data_extract/output">
+        <description>Register CsvFormatter inside OutputWriter and Organizer so `--format csv` works for BY_DOCUMENT, BY_ENTITY, and FLAT organization modes.</description>
+        <subtasks>
+          <item>Expose the formatter via the OutputWriter registry and CLI option parity with JSON/TXT.</item>
+          <item>Ensure writer/organizer pipelines emit CSV artifacts in all organization strategies with manifest updates.</item>
+        </subtasks>
+      </task>
+      <task id="T3" title="Automated tests &amp; fixtures" acRefs="AC-3.6-1,AC-3.6-2,AC-3.6-3,AC-3.6-4,AC-3.6-5,AC-3.6-6,AC-3.6-7" sourcePath="tests">
+        <description>Add unit suites for schema, escaping, truncation, and entity serialization plus parser validation that runs Python csv, pandas, and csvkit alongside integration tests for the full pipeline.</description>
+        <subtasks>
+          <item>Create tests/unit/test_output/test_csv_formatter.py covering schema, escaping, truncation, entity serialization, and parser validation.</item>
+          <item>Add tests/integration/test_output/test_csv_pipeline.py to validate BY_DOCUMENT/BY_ENTITY/FLAT outputs including Excel and Google Sheets import harnesses.</item>
+        </subtasks>
+      </task>
+      <task id="T4" title="Documentation, samples, and performance baseline" acRefs="AC-3.6-3,AC-3.6-4,AC-3.6-5,AC-3.6-6,AC-3.6-7" sourcePath="docs">
+        <description>Publish CSV format reference docs, sample outputs with/without truncation, and the Story 3.6 performance baseline while refreshing CLAUDE.md status.</description>
+        <subtasks>
+          <item>Create docs/csv-format-reference.md with schema definitions, Excel import guidance, and troubleshooting.</item>
+          <item>Record performance baselines in docs/performance-baselines-epic-3.md and add sample CSV artifacts plus CLAUDE.md updates.</item>
+        </subtasks>
+      </task>
+      <task id="T5" title="UAT – Spreadsheet import + parser validation" acRefs="AC-3.6-4,AC-3.6-7" sourcePath="docs/uat">
+        <description>Execute the spreadsheet import checklist validating Excel, Google Sheets, pandas, and csvkit logs with artifacts proving clean imports.</description>
+        <subtasks>
+          <item>Run docs/uat/3.6-csv-output-validation.md against generated CSVs.</item>
+          <item>Attach screenshots and parser logs showing successful imports without warnings.</item>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="AC-3.6-1" priority="P0" uatRequired="true">
+      <title>Canonical Column Schema</title>
+      <description>CSV output must always emit the canonical columns (chunk_id, source_file, section_context, chunk_text, entity_tags, quality_score, word_count, token_count, processing_version, warnings) in that stable order so downstream tools rely on schema.</description>
+      <validation>Docs/tech-spec-epic-3.md §1175; validated via unit tests and schema checks.</validation>
+    </ac>
+    <ac id="AC-3.6-2" priority="P0" uatRequired="true">
+      <title>RFC 4180 Escaping</title>
+      <description>Formatter escapes commas, quotes, and multiline text strictly per RFC 4180 ensuring Excel/Sheets ingest rows without shifting columns.</description>
+      <validation>Unit tests plus csv/pandas parsing to confirm escaping fidelity.</validation>
+    </ac>
+    <ac id="AC-3.6-3" priority="P0" uatRequired="true">
+      <title>Clear Header Row</title>
+      <description>The first CSV row labels each column with human-readable names and tooltips are documented for auditors.</description>
+      <validation>Docs and parser validation confirm headers are present on every file.</validation>
+    </ac>
+    <ac id="AC-3.6-4" priority="P0" uatRequired="true">
+      <title>Import Validation</title>
+      <description>Generated CSVs load cleanly into Excel, Google Sheets, and pandas read_csv() with zero warnings so analysts can pivot immediately.</description>
+      <validation>UAT checklist docs/uat/3.6-csv-output-validation.md plus parser logs.</validation>
+    </ac>
+    <ac id="AC-3.6-5" priority="P1" uatRequired="false">
+      <title>Optional Truncation Indicator</title>
+      <description>Formatter supports a max_text_length option that truncates long chunk_text fields and appends an ellipsis (…)</description>
+      <validation>Unit tests verifying truncated outputs and indicator.</validation>
+    </ac>
+    <ac id="AC-3.6-6" priority="P1" uatRequired="false">
+      <title>Entity List Serialization</title>
+      <description>Entity tags serialize as semicolon-delimited values (e.g., Risk-001;Control-003) so spreadsheet filters treat tokens atomically.</description>
+      <validation>Unit tests verifying serialization plus integration/regression on entity metadata.</validation>
+    </ac>
+    <ac id="AC-3.6-7" priority="P0" uatRequired="true">
+      <title>Parser Sanity Checks</title>
+      <description>A parser validation step using Python csv, pandas, and a CLI tool like csvkit runs automatically before surfacing output, failing fast on malformed rows.</description>
+      <validation>Automation tests invoking csv, pandas, csvkit and capturing clean logs before release.</validation>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/PRD/index.md" title="Product Requirements Document" section="FR-3.3: Multiple Output Formats">
+        Snippet: "FR-3.3 mandates exporting chunks in JSON, TXT, and CSV formats in a single run plus configurable organization so every downstream consumer receives matching data sets."
+      </doc>
+      <doc path="docs/tech-spec-epic-3.md" title="Epic 3 Technical Specification" section="Story 3.6 Acceptance Criteria">
+        Snippet: "Table at lines 1170-1181 lists AC-3.6-1 through AC-3.6-7 covering schema, escaping, header row, cross-platform import, truncation indicator, semicolon entity lists, and parser validation with csv/pandas/csvkit."
+      </doc>
+      <doc path="docs/epics.md" title="Epic 3 Roadmap" section="Story 3.6 Definition">
+        Snippet: "Epic narrative reiterates the analyst persona, required CSV columns, RFC 4180 compliance, spreadsheet import guarantees, truncation option, and parser validation prerequisites before promoting Story 3.6."
+      </doc>
+      <doc path="docs/test-design-epic-3.md" title="Epic 3 Test Design" section="Story 3.6 Test Requirements">
+        Snippet: "Risk matrix rows R-004/R-010 and Story 3.6 section prescribe CSV escaping tests, Excel/pandas import validation, optional truncation coverage, and repeated parser sanity checks with Python csv plus csvkit."
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Overview" section="Stage 5: Output Formatting">
+        Snippet: "Architecture map lists src/data_extract/output/writer.py coordinating JSON/TXT/CSV formatters and organizer strategies, anchoring where the CsvFormatter must integrate."
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/data_extract/chunk/engine.py</path>
+        <kind>class</kind>
+        <symbol>ChunkingEngine</symbol>
+        <lines>1-200</lines>
+        <reason>CsvFormatter consumes Chunk objects streamed from ChunkingEngine; BY_DOCUMENT organization relies on metadata computed here (chunk_id, section_context, entity tags, processing_version).</reason>
+      </artifact>
+      <artifact>
+        <path>src/core/interfaces.py</path>
+        <kind>protocol</kind>
+        <symbol>BaseFormatter</symbol>
+        <lines>214-310</lines>
+        <reason>Defines the abstract formatter contract (format() → FormattedOutput, get_format_type(), streaming hooks) that CsvFormatter must implement to plug into the pipeline without bypassing shared infrastructure.</reason>
+      </artifact>
+      <artifact>
+        <path>src/formatters/json_formatter.py</path>
+        <kind>class</kind>
+        <symbol>JsonFormatter</symbol>
+        <lines>1-220</lines>
+        <reason>Reference implementation showing config handling, serialization helpers, error reporting, and FormattedOutput creation—CsvFormatter should mirror this structure for consistency.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_output/test_txt_formatter.py</path>
+        <kind>test-suite</kind>
+        <symbol>TxtFormatterUnitTests</symbol>
+        <lines>1-220</lines>
+        <reason>Existing ATDD-style tests enumerate expectations for formatter behavior (text cleaning, metadata headers, BOM handling); reuse their fixture patterns and assertions when authoring CSV unit tests.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/unit/test_output/test_organization.py</path>
+        <kind>test-suite</kind>
+        <symbol>OrganizerTests</symbol>
+        <lines>1-200</lines>
+        <reason>Specifies Organizer + OrganizationStrategy behavior for BY_DOCUMENT/BY_ENTITY/FLAT routing, which CsvFormatter outputs must integrate with to satisfy organization-aware ACs.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/test_output/test_writer_integration.py</path>
+        <kind>test-suite</kind>
+        <symbol>OutputWriterTests</symbol>
+        <lines>1-200</lines>
+        <reason>Integration tests define OutputWriter.write(...) contract, formatter kwargs flow, and CLI smoke checks; CSV support must add to this registry so these tests can cover json/txt/csv parity.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/test_output/test_txt_pipeline.py</path>
+        <kind>test-suite</kind>
+        <symbol>TxtPipelineTests</symbol>
+        <lines>1-170</lines>
+        <reason>Demonstrates end-to-end flow from ChunkingEngine to formatter output; a CSV pipeline test should follow the same pattern (chunk, format, validate file content).</reason>
+      </artifact>
+      <artifact>
+        <path>src/data_extract/cli.py</path>
+        <kind>cli-command</kind>
+        <symbol>process()</symbol>
+        <lines>1-160</lines>
+        <reason>Current CLI exposes --format choices and instantiates OutputWriter; CsvFormatter integration requires extending allowed values and kwargs while preserving validation logic.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python version="3.12">Pinned in pyproject.toml; aligns with Epic 3 tooling and ensures typing features used by formatters/tests.</python>
+      <stdlib>
+        <module name="csv">Provides DictWriter and RFC 4180 escaping needed for canonical column ordering.</module>
+        <module name="pathlib">Used across CLI + Organizer for cross-platform output paths and relative path normalization.</module>
+        <module name="io">StringIO buffers enable parser sanity checks before writing CSV data to disk.</module>
+      </stdlib>
+      <external>
+        <package name="click" version=">=8.1.0">CLI already depends on Click; CsvFormatter wiring must extend existing process command without breaking options.</package>
+        <package name="jsonschema" version=">=4.0.0,&lt;5.0">Output stack already validates JSON; reuse schema validation helpers/patterns for CSV manifest metadata where appropriate.</package>
+        <package name="pydantic" version=">=2.0.0,&lt;3.0">Chunk/ChunkMetadata models come from Pydantic; CsvFormatter receives these dataclasses and must honor their structure.</package>
+        <package name="spacy" version=">=3.7.2,&lt;4.0">ChunkingEngine depends on spaCy; CSV outputs inherit entity/tag metadata produced by this dependency.</package>
+        <package name="structlog" version=">=24.0.0,&lt;25.0">Shared logging utility used across pipeline; CsvFormatter + OutputWriter should leverage structured logging for troubleshooting.</package>
+        <package name="pandas" version="(add to dev extras)">Required for AC-3.6-4/7 parser validation (docs/test-design-epic-3.md); add under [project.optional-dependencies.dev] if not already present.</package>
+        <package name="csvkit" version="(new CLI dependency)">CLI-style parser validation tool mandated by AC-3.6-7; install via dev extras or story-specific requirements.</package>
+      </external>
+      <internal>
+        <module path="tests/integration/test_output/test_writer_integration.py">Defines current OutputWriter expectations; CSV support extends this module.</module>
+        <module path="tests/unit/test_output/test_organization.py">Organizer contract controlling BY_DOCUMENT/BY_ENTITY/FLAT folder layouts.</module>
+        <module path="src/data_extract/chunk/models.py">Chunk + ChunkMetadata dataclasses provide canonical fields (chunk_id, section_context, quality, entity tags) for CSV columns.</module>
+      </internal>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Preserve canonical column order (chunk_id → warnings) every time as mandated by docs/PRD/index.md#FR-3.3 and docs/tech-spec-epic-3.md:1170-1181; add headers + documented tooltips.
+    - Use Python's csv module (QUOTE_MINIMAL/QUOTE_ALL as needed) to enforce RFC 4180 escaping for commas, quotes, and CRLF newlines so Excel/Sheets imports do not shift columns.
+    - Provide `max_text_length` support with ellipsis marker (`…`) to satisfy AC-3.6-5 and mitigate R-010 from docs/test-design-epic-3.md (long chunk failures in Excel).
+    - Serialize entity tags as semicolon-delimited strings while keeping raw metadata accessible for BY_ENTITY manifests—align with docs/epics.md Story 3.6 notes and chunk metadata contracts.
+    - Normalize every absolute path to project-relative form (strip {project-root}) before emitting CSV rows, organizer manifests, or doc references.
+    - Integrate CsvFormatter with OutputWriter + Organizer so CLI `data-extract process --format csv` respects BY_DOCUMENT/BY_ENTITY/FLAT strategies and manifest generation.
+    - Run parser validation (Python csv, pandas.read_csv, csvkit CLI) before surfacing files; fail fast and attach parser logs per docs/test-design-epic-3.md §§100-320.
+    - Reuse Story 3.5 text-cleaning + BOM-handling patterns to avoid regressions noted in docs/stories/3-5-plain-text-output-format-for-llm-upload.md §§187-420, and update docs/performance-baselines-epic-3.md / .claude/CLAUDE.md as that story’s deferred items require.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>BaseFormatter.format</name>
+      <kind>protocol-method</kind>
+      <signature>def format(self, processing_result: ProcessingResult) -> FormattedOutput</signature>
+      <path>src/core/interfaces.py</path>
+      <description>CsvFormatter must implement the BaseFormatter contract so OutputWriter can instantiate it interchangeably with JsonFormatter/TxtFormatter.</description>
+    </interface>
+    <interface>
+      <name>OutputWriter.write</name>
+      <kind>integration-contract</kind>
+      <signature>def write(self, *, chunks: Iterator[Chunk], output_path: Path, format_type: str, organize: bool = False, strategy: OrganizationStrategy | None = None, **formatter_kwargs) -> WriterResult</signature>
+      <path>tests/integration/test_output/test_writer_integration.py</path>
+      <description>Integration tests call OutputWriter.write() with kwargs like per_chunk, include_metadata, and strategy; CsvFormatter registration must make format_type=\"csv\" a first-class option returning WriterResult metadata.</description>
+    </interface>
+    <interface>
+      <name>Organizer.organize</name>
+      <kind>strategy-hook</kind>
+      <signature>def organize(self, chunks: list[Chunk], output_dir: Path, strategy: OrganizationStrategy) -> OrganizationResult</signature>
+      <path>tests/unit/test_output/test_organization.py</path>
+      <description>Organizer tests describe BY_DOCUMENT/BY_ENTITY/FLAT routing plus manifest generation; CSV outputs must call into this hook so chunk files land in the correct folders.</description>
+    </interface>
+    <interface>
+      <name>data_extract.cli.process</name>
+      <kind>cli-command</kind>
+      <signature>data-extract process input_file --format {json|txt} --output PATH [--per-chunk --include-metadata --organize --strategy]</signature>
+      <path>src/data_extract/cli.py</path>
+      <description>CLI currently limits --format choices to json/txt; Story 3.6 must extend validation, help text, and formatter kwargs so analysts can invoke CSV output via the same interface.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      - Follow Epic 3 test architecture (docs/test-design-epic-3.md §§37-320): unit suites for schema/escaping, integration suites for BY_DOCUMENT/BY_ENTITY/FLAT outputs, parser validation harness (csv, pandas, csvkit), and spreadsheet UAT evidence.
+      - Mirror Story 3.5 coverage depth: add RED→GREEN tests before implementation (unit + integration) and keep pytest markers (unit, integration, output, pipeline) consistent.
+      - Parser sanity checks must execute automatically before returning files; treat any warning from pandas.read_csv() / csvkit as failure.
+      - Extend performance baseline doc once CsvFormatter benchmarking exists to keep parity with TxtFormatter/JsonFormatter.
+    </standards>
+    <locations>
+      - tests/unit/test_output/test_csv_formatter.py (new) – schema order, escaping, truncation, entity serialization, parser smoke tests.
+      - tests/integration/test_output/test_csv_pipeline.py (new) – chunking → CsvFormatter → filesystem checks with BY_DOCUMENT/BY_ENTITY/FLAT strategies.
+      - tests/integration/test_output/test_writer_integration.py (update) – include csv format_type cases and CLI smoke tests.
+      - tests/integration/test_output/test_txt_pipeline.py (reference) – pattern for chunking fixture reuse when adding CSV pipeline tests.
+      - docs/uat/3.6-csv-output-validation.md (new) – spreadsheet import evidence + parser logs.
+    </locations>
+    <ideas>
+      AC-3.6-1 (Schema):
+      - Assert header row equals canonical list; fail if any column missing or out of order.
+      - Validate pandas DataFrame columns match expected names + dtypes.
+      AC-3.6-2 (Escaping):
+      - Feed chunks containing commas, quotes, CRLF newlines, and multi-line paragraphs; reparse with csv.reader to confirm round-trip.
+      - Use csvkit `csvclean` or `csvstat` to ensure zero structural issues.
+      AC-3.6-3 (Header clarity):
+      - Confirm header row written once with friendly names + tooltip doc references in docs/csv-format-reference.md.
+      AC-3.6-4 (Import validation):
+      - Run pandas.read_csv(), openpyxl workbook import (Excel), and Google Sheets export harness to confirm no warnings/log errors.
+      AC-3.6-5 (Truncation indicator):
+      - Configure max_text_length and assert truncated rows end with ellipsis marker while non-truncated rows remain intact.
+      AC-3.6-6 (Entity serialization):
+      - Provide chunks with entity lists and assert serialized cell equals `Risk-001;Control-003`; ensure semicolon splitting works for filter tests.
+      AC-3.6-7 (Parser sanity):
+      - Run csv, pandas, and csvkit parsing inside unit/integration tests, capturing logs; fail test if any tool raises warning/error.
+    </ideas>
+  </tests>
+</story-context>
