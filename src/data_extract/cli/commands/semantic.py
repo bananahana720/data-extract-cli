@@ -23,6 +23,7 @@ from data_extract.semantic.models import SemanticResult, TfidfConfig
 from data_extract.semantic.quality_metrics import QualityConfig, QualityMetricsStage
 from data_extract.semantic.similarity import SimilarityAnalysisStage, SimilarityConfig
 from data_extract.semantic.tfidf import TfidfVectorizationStage
+from data_extract.services.chunk_io import chunk_to_dict, load_chunks
 
 console = Console()
 semantic_app = typer.Typer(
@@ -598,87 +599,19 @@ def topics(
 
 def _load_chunks(input_path: Path, verbose: bool = False) -> List[Chunk]:
     """Load chunks from JSON files in input path."""
-    chunks = []
-
-    if input_path.is_file():
-        files = [input_path]
-    else:
-        files = list(input_path.glob("**/*.json"))
-
-    for file_path in files:
-        try:
-            with open(file_path) as f:
-                data = json.load(f)
-
-            # Handle different JSON structures
-            if isinstance(data, list):
-                for item in data:
-                    chunk = _dict_to_chunk(item)
-                    if chunk:
-                        chunks.append(chunk)
-            elif isinstance(data, dict):
-                if "chunks" in data:
-                    for item in data["chunks"]:
-                        chunk = _dict_to_chunk(item)
-                        if chunk:
-                            chunks.append(chunk)
-                else:
-                    chunk = _dict_to_chunk(data)
-                    if chunk:
-                        chunks.append(chunk)
-
-            if verbose:
-                console.print(f"[dim]Loaded {len(chunks)} chunks from {file_path}[/dim]")
-
-        except Exception as e:
-            if verbose:
-                console.print(f"[yellow]Warning:[/yellow] Failed to load {file_path}: {e}")
-
+    chunks = load_chunks(input_path)
+    if verbose:
+        console.print(f"[dim]Loaded {len(chunks)} chunks from {input_path}[/dim]")
     return chunks
-
-
-def _dict_to_chunk(data: Dict[str, Any]) -> Optional[Chunk]:
-    """Convert dictionary to Chunk object."""
-    try:
-        return Chunk(
-            id=data.get("id", ""),
-            text=data.get("text", ""),
-            document_id=data.get("document_id", ""),
-            position_index=data.get("position_index", 0),
-            token_count=data.get("token_count", 0),
-            word_count=data.get("word_count", len(data.get("text", "").split())),
-            entities=data.get("entities", []),
-            section_context=data.get("section_context", ""),
-            quality_score=data.get("quality_score", 0.0),
-            readability_scores=data.get("readability_scores", {}),
-            metadata=data.get("metadata", {}),
-        )
-    except Exception:
-        return None
 
 
 def _save_chunks(chunks: List[Chunk], output_path: Path) -> None:
     """Save chunks to JSON file."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    chunks_data = []
-    for chunk in chunks:
-        chunks_data.append(
-            {
-                "id": chunk.id,
-                "text": chunk.text,
-                "document_id": chunk.document_id,
-                "position_index": chunk.position_index,
-                "token_count": chunk.token_count,
-                "word_count": chunk.word_count,
-                "entities": chunk.entities,
-                "section_context": chunk.section_context,
-                "quality_score": chunk.quality_score,
-                "readability_scores": chunk.readability_scores,
-            }
-        )
+    chunks_data = [chunk_to_dict(chunk) for chunk in chunks]
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump({"chunks": chunks_data}, f, indent=2)
 
 
@@ -702,6 +635,8 @@ def _compile_results(
         },
         "similarity": {
             "duplicate_groups": data.get("duplicate_groups", []),
+            "similar_pairs": data.get("similar_pairs", []),
+            "similarity_graph": data.get("similarity_graph", {}),
             "n_duplicates": len(data.get("duplicate_groups", [])),
             "statistics": data.get("similarity_statistics", {}),
         },

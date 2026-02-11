@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 
+import { ConfigPage } from "./pages/ConfigPage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { JobsPage } from "./pages/JobsPage";
 import { NewRunPage } from "./pages/NewRunPage";
@@ -17,6 +18,7 @@ export default function App() {
           <NavLink to="/" end>
             New Run
           </NavLink>
+          <NavLink to="/config">Config</NavLink>
           <NavLink to="/jobs">Jobs</NavLink>
           <NavLink to="/sessions">Sessions</NavLink>
         </nav>
@@ -25,6 +27,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<NewRunPage />} />
+          <Route path="/config" element={<ConfigPage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:jobId" element={<JobDetailPage />} />
           <Route path="/sessions" element={<SessionsPage />} />

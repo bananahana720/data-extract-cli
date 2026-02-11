@@ -308,6 +308,76 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Apply named configuration preset (quality, speed, balanced, or custom).",
             ),
         ] = None,
+        semantic: Annotated[
+            bool,
+            typer.Option(
+                "--semantic",
+                help="Enable semantic analysis/reporting in the process flow.",
+            ),
+        ] = False,
+        semantic_report: Annotated[
+            bool,
+            typer.Option(
+                "--semantic-report",
+                help="Generate semantic report artifact (default format: json).",
+            ),
+        ] = False,
+        semantic_report_format: Annotated[
+            str,
+            typer.Option(
+                "--semantic-report-format",
+                help="Semantic report format (json, csv, html).",
+            ),
+        ] = "json",
+        semantic_export_graph: Annotated[
+            bool,
+            typer.Option(
+                "--semantic-export-graph",
+                help="Export semantic similarity graph artifact.",
+            ),
+        ] = False,
+        semantic_graph_format: Annotated[
+            str,
+            typer.Option(
+                "--semantic-graph-format",
+                help="Semantic graph format (json, csv, dot).",
+            ),
+        ] = "json",
+        semantic_duplicate_threshold: Annotated[
+            Optional[float],
+            typer.Option(
+                "--semantic-duplicate-threshold",
+                help="Override semantic duplicate threshold (0.0-1.0).",
+            ),
+        ] = None,
+        semantic_related_threshold: Annotated[
+            Optional[float],
+            typer.Option(
+                "--semantic-related-threshold",
+                help="Override semantic related threshold (0.0-1.0).",
+            ),
+        ] = None,
+        semantic_max_features: Annotated[
+            Optional[int],
+            typer.Option(
+                "--semantic-max-features",
+                help="Override semantic TF-IDF max feature count.",
+            ),
+        ] = None,
+        semantic_n_components: Annotated[
+            Optional[int],
+            typer.Option(
+                "--semantic-n-components",
+                help="Override semantic LSA component count.",
+            ),
+        ] = None,
+        semantic_min_quality: Annotated[
+            Optional[float],
+            typer.Option(
+                "--semantic-min-quality",
+                help="Override semantic minimum quality threshold (0.0-1.0).",
+            ),
+        ] = None,
         idempotency_key: Annotated[
             Optional[str],
             typer.Option(
@@ -353,6 +423,20 @@ def _register_process_command(app: typer.Typer) -> None:
             console.print(f"[red]Configuration error:[/red] Invalid chunk size: {chunk_size}")
             raise typer.Exit(code=EXIT_CONFIG_ERROR)
 
+        if semantic_report_format.lower() not in {"json", "csv", "html"}:
+            console.print(
+                "[red]Configuration error:[/red] Invalid semantic report format. "
+                "Use one of: json, csv, html"
+            )
+            raise typer.Exit(code=EXIT_CONFIG_ERROR)
+
+        if semantic_graph_format.lower() not in {"json", "csv", "dot"}:
+            console.print(
+                "[red]Configuration error:[/red] Invalid semantic graph format. "
+                "Use one of: json, csv, dot"
+            )
+            raise typer.Exit(code=EXIT_CONFIG_ERROR)
+
         if preset:
             try:
                 preset_mgr = PresetManager()
@@ -379,7 +463,16 @@ def _register_process_command(app: typer.Typer) -> None:
             preset=preset,
             idempotency_key=idempotency_key,
             non_interactive=non_interactive and not interactive,
-            include_semantic=False,
+            include_semantic=semantic,
+            semantic_report=semantic_report if semantic else False,
+            semantic_report_format=semantic_report_format.lower() if semantic else None,
+            semantic_export_graph=semantic_export_graph if semantic else False,
+            semantic_graph_format=semantic_graph_format.lower() if semantic else None,
+            semantic_duplicate_threshold=semantic_duplicate_threshold,
+            semantic_related_threshold=semantic_related_threshold,
+            semantic_max_features=semantic_max_features,
+            semantic_n_components=semantic_n_components,
+            semantic_min_quality=semantic_min_quality,
             continue_on_error=True,
         )
 
@@ -411,6 +504,8 @@ def _register_process_command(app: typer.Typer) -> None:
                 console.print(f"[cyan]Output:[/cyan] {result.output_dir}")
                 if result.session_id:
                     console.print(f"[cyan]Session:[/cyan] {result.session_id}")
+                if result.semantic:
+                    console.print(f"[cyan]Semantic:[/cyan] {result.semantic.status}")
 
             if verbose > 0 and result.failed_files:
                 for failure in result.failed_files:
@@ -1870,7 +1965,7 @@ def _register_status_command(app: typer.Typer) -> None:
         from rich.panel import Panel
         from rich.text import Text
 
-        from data_extract.services import StatusService
+        from data_extract.services.status_service import StatusService
 
         effective_format = "json" if json_output else format
         if effective_format not in {"text", "json"}:

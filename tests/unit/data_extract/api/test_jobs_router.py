@@ -18,7 +18,9 @@ from data_extract.api.models import Job, JobEvent
 from data_extract.api.routers import jobs as jobs_router_module
 from data_extract.api.routers.jobs import (
     _build_process_request_from_form,
+    download_job_artifact,
     enqueue_process_job,
+    list_job_artifacts,
     retry_job_failures,
 )
 from data_extract.contracts import ProcessJobRequest
@@ -114,6 +116,35 @@ def test_enqueue_process_job_multipart_upload(
 
 
 @pytest.mark.unit
+def test_build_process_request_from_form_supports_semantic_fields(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(jobs_router_module, "JOBS_HOME", tmp_path)
+    monkeypatch.setattr(jobs_router_module, "UploadFile", DummyUpload)
+
+    request = MultipartRequestStub(
+        values={
+            "input_path": "/tmp/source",
+            "semantic": "true",
+            "semantic_report": "true",
+            "semantic_export_graph": "true",
+            "semantic_graph_format": "dot",
+            "semantic_duplicate_threshold": "0.9",
+        },
+        files=[],
+    )
+    process_request = asyncio.run(
+        _build_process_request_from_form(request, "job-124")  # type: ignore[arg-type]
+    )
+
+    assert process_request.include_semantic is True
+    assert process_request.semantic_report is True
+    assert process_request.semantic_export_graph is True
+    assert process_request.semantic_graph_format == "dot"
+    assert process_request.semantic_duplicate_threshold == 0.9
+
+
+@pytest.mark.unit
 def test_retry_job_failures_persists_queued_state_before_enqueue(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -180,3 +211,50 @@ def test_retry_job_failures_persists_queued_state_before_enqueue(
     assert observed["finished_at"] is None
     assert observed["queued_events"] == ["queued"]
     assert observed["queued_messages"] == ["Retry queued"]
+
+
+@pytest.mark.unit
+def test_job_artifact_list_and_download(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    job_id = "artifacts-job-001"
+    with test_session_local() as db:
+        db.add(
+            Job(
+                id=job_id,
+                status="completed",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload="{}",
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
+        )
+        db.commit()
+
+    job_dir = tmp_path / job_id
+    artifact_path = job_dir / "semantic" / "semantic_summary.json"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+    monkeypatch.setattr(jobs_router_module, "JOBS_HOME", tmp_path)
+
+    listing = list_job_artifacts(job_id)
+    assert listing.job_id == job_id
+    assert any(entry.path == "semantic/semantic_summary.json" for entry in listing.artifacts)
+
+    response = download_job_artifact(job_id, "semantic/semantic_summary.json")
+    assert "semantic_summary.json" in str(response.path)

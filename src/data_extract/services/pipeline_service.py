@@ -8,8 +8,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List
 
+import structlog
+from data_extract.chunk.engine import ChunkingConfig, ChunkingEngine
 from data_extract.core.models import Chunk, Document
 from data_extract.extract import get_extractor
+from data_extract.normalize.config import NormalizationConfig
+from data_extract.normalize.normalizer import Normalizer
 from data_extract.output import OutputWriter
 from data_extract.services.pathing import normalize_path
 
@@ -48,6 +52,8 @@ class PipelineService:
 
     def __init__(self) -> None:
         self.writer = OutputWriter()
+        self.logger = structlog.get_logger(__name__)
+        self.normalizer: Normalizer | None = None
 
     def process_files(
         self,
@@ -58,6 +64,8 @@ class PipelineService:
         include_semantic: bool = False,
         continue_on_error: bool = True,
         source_root: Path | None = None,
+        pipeline_profile: str = "auto",
+        allow_advanced_fallback: bool = True,
     ) -> PipelineRunResult:
         """Process files and return per-file and aggregate details."""
         result = PipelineRunResult()
@@ -72,6 +80,8 @@ class PipelineService:
                     chunk_size=chunk_size,
                     include_semantic=include_semantic,
                     source_root=source_root,
+                    pipeline_profile=pipeline_profile,
+                    allow_advanced_fallback=allow_advanced_fallback,
                 )
                 result.processed.append(file_result)
                 for stage, value in file_result.stage_timings_ms.items():
@@ -97,20 +107,53 @@ class PipelineService:
         chunk_size: int,
         include_semantic: bool = False,
         source_root: Path | None = None,
+        pipeline_profile: str = "auto",
+        allow_advanced_fallback: bool = True,
     ) -> PipelineFileResult:
         """Run the full pipeline for a single file."""
         stage_timings_ms: Dict[str, float] = {}
+        use_advanced = self._should_use_advanced_pipeline(
+            include_semantic=include_semantic,
+            pipeline_profile=pipeline_profile,
+        )
 
         start = time.perf_counter()
         document = self._extract(file_path)
         stage_timings_ms["extract"] = (time.perf_counter() - start) * 1000
 
         start = time.perf_counter()
-        normalized = self._normalize(document)
+        if use_advanced:
+            try:
+                normalized = self._normalize_advanced(document)
+            except Exception as exc:
+                if not allow_advanced_fallback:
+                    raise
+                self.logger.warning(
+                    "advanced_normalize_fallback",
+                    source_path=str(file_path),
+                    error=str(exc),
+                )
+                normalized = self._normalize(document)
+                use_advanced = False
+        else:
+            normalized = self._normalize(document)
         stage_timings_ms["normalize"] = (time.perf_counter() - start) * 1000
 
         start = time.perf_counter()
-        chunks = self._chunk(normalized, chunk_size)
+        if use_advanced:
+            try:
+                chunks = self._chunk_advanced(normalized, chunk_size)
+            except Exception as exc:
+                if not allow_advanced_fallback:
+                    raise
+                self.logger.warning(
+                    "advanced_chunk_fallback",
+                    source_path=str(file_path),
+                    error=str(exc),
+                )
+                chunks = self._chunk(normalized, chunk_size)
+        else:
+            chunks = self._chunk(normalized, chunk_size)
         stage_timings_ms["chunk"] = (time.perf_counter() - start) * 1000
 
         start = time.perf_counter()
@@ -149,6 +192,16 @@ class PipelineService:
         text = "\n".join(line.strip() for line in text.split("\n"))
         text = re.sub(r"\n{3,}", "\n\n", text).strip()
         return document.model_copy(update={"text": text})
+
+    def _normalize_advanced(self, document: Document) -> Document:
+        """Apply advanced normalizer pipeline for semantic-ready processing."""
+        from data_extract.core.models import ProcessingContext
+
+        if self.normalizer is None:
+            self.normalizer = Normalizer(NormalizationConfig())
+
+        context = ProcessingContext(config={}, logger=self.logger, metrics={})
+        return self.normalizer.process(document, context)
 
     @staticmethod
     def _chunk(document: Document, chunk_size: int) -> List[Chunk]:
@@ -197,6 +250,21 @@ class PipelineService:
 
         return chunks
 
+    def _chunk_advanced(self, document: Document, chunk_size: int) -> List[Chunk]:
+        """Run semantic boundary-aware chunking engine."""
+        from data_extract.core.models import ProcessingContext
+
+        engine = ChunkingEngine(
+            config=ChunkingConfig(
+                chunk_size=max(1, int(chunk_size)),
+                overlap_pct=0.15,
+                entity_aware=False,
+                quality_enrichment=True,
+            )
+        )
+        context = ProcessingContext(config={}, logger=self.logger, metrics={})
+        return engine.process(document, context)
+
     @staticmethod
     def _semantic(chunks: List[Chunk]) -> List[Chunk]:
         """Optional semantic stage hook.
@@ -204,6 +272,15 @@ class PipelineService:
         V1 keeps semantic enrichment lightweight and deterministic.
         """
         return chunks
+
+    @staticmethod
+    def _should_use_advanced_pipeline(include_semantic: bool, pipeline_profile: str) -> bool:
+        profile = str(pipeline_profile or "auto").lower()
+        if profile == "advanced":
+            return True
+        if profile == "legacy":
+            return False
+        return include_semantic
 
     @staticmethod
     def _resolve_output_path(

@@ -1,4 +1,10 @@
-import { JobDetail, JobSummary, SessionSummary } from "../types";
+import {
+  ConfigPresetSummary,
+  JobArtifactsResponse,
+  JobDetail,
+  JobSummary,
+  SessionSummary
+} from "../types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -42,6 +48,35 @@ export async function cleanupJobArtifacts(jobId: string): Promise<void> {
   await request(`/api/v1/jobs/${jobId}/artifacts`, { method: "DELETE" });
 }
 
+export function listJobArtifacts(jobId: string): Promise<JobArtifactsResponse> {
+  return request<JobArtifactsResponse>(`/api/v1/jobs/${jobId}/artifacts`);
+}
+
+export function getJobArtifactDownloadUrl(jobId: string, artifactPath: string): string {
+  return `/api/v1/jobs/${jobId}/artifacts/${encodeURIComponent(artifactPath)}`;
+}
+
 export function listSessions(): Promise<SessionSummary[]> {
   return request<SessionSummary[]>("/api/v1/sessions");
+}
+
+export function getEffectiveConfig(): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>("/api/v1/config/effective");
+}
+
+export function listConfigPresets(): Promise<ConfigPresetSummary[]> {
+  return request<ConfigPresetSummary[]>("/api/v1/config/presets");
+}
+
+export function previewConfigPreset(name: string): Promise<Record<string, unknown>> {
+  return request<{ effective_config: Record<string, unknown> }>(
+    `/api/v1/config/presets/${encodeURIComponent(name)}/preview`
+  ).then((payload) => payload.effective_config);
+}
+
+export function applyConfigPreset(name: string): Promise<Record<string, unknown>> {
+  return request<{ effective_config: Record<string, unknown> }>(
+    `/api/v1/config/presets/${encodeURIComponent(name)}/apply`,
+    { method: "POST" }
+  ).then((payload) => payload.effective_config);
 }

@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { cleanupJobArtifacts, getJob, retryJobFailures } from "../api/client";
-import { JobDetail } from "../types";
+import {
+  cleanupJobArtifacts,
+  getJob,
+  getJobArtifactDownloadUrl,
+  listJobArtifacts,
+  retryJobFailures
+} from "../api/client";
+import { JobArtifactEntry, JobDetail, SemanticArtifact, SemanticOutcome } from "../types";
 
 const STAGES = ["extract", "normalize", "chunk", "semantic", "output"];
 const LIFECYCLE_ORDER = ["queued", "running", "finished", "cleanup", "error"];
@@ -100,6 +106,7 @@ export function JobDetailPage() {
   const [retrying, setRetrying] = useState(false);
   const [cleaning, setCleaning] = useState(false);
   const [copyStatus, setCopyStatus] = useState<CopyStatus>(null);
+  const [artifactEntries, setArtifactEntries] = useState<JobArtifactEntry[]>([]);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -113,6 +120,12 @@ export function JobDetailPage() {
         const detail = await getJob(jobId);
         setJob(detail);
         setError(null);
+        try {
+          const artifactPayload = await listJobArtifacts(jobId);
+          setArtifactEntries(artifactPayload.artifacts);
+        } catch {
+          setArtifactEntries([]);
+        }
 
         if (detail.status === "queued" || detail.status === "running") {
           timer = window.setTimeout(refresh, 1000);
@@ -136,11 +149,26 @@ export function JobDetailPage() {
 
   const stageTotals = useMemo(() => {
     const stageMap = (job?.result_payload?.stage_totals_ms as Record<string, number>) || {};
-    return STAGES.map((name) => ({
+    const ordered = [...STAGES, ...Object.keys(stageMap).filter((name) => !STAGES.includes(name))];
+    return ordered.map((name) => ({
       name,
       ms: Number(stageMap[name] || 0)
     }));
   }, [job]);
+  const semanticOutcome = useMemo<SemanticOutcome | null>(() => {
+    const payload = job?.result_payload;
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+    const semantic = payload.semantic;
+    if (!semantic || typeof semantic !== "object") {
+      return null;
+    }
+    return semantic as SemanticOutcome;
+  }, [job]);
+  const semanticArtifacts = useMemo<SemanticArtifact[]>(() => {
+    return semanticOutcome?.artifacts || [];
+  }, [semanticOutcome]);
   const lifecycleEvents = useMemo(() => {
     if (!job) {
       return [];
@@ -244,6 +272,17 @@ export function JobDetailPage() {
           : hasCleanupEvent
             ? "Artifacts are already cleaned. Start a new run when ready."
             : "Review outputs, then use Cleanup Artifacts to remove persisted job files.";
+
+  function resolveArtifactDownloadPath(artifactPath: string): string | null {
+    const normalized = artifactPath.replace(/\\/g, "/");
+    const bySuffix = artifactEntries.find((entry) => normalized.endsWith(entry.path));
+    if (bySuffix) {
+      return bySuffix.path;
+    }
+    const fileName = normalized.split("/").pop() || "";
+    const byName = artifactEntries.find((entry) => entry.path.endsWith(fileName));
+    return byName ? byName.path : null;
+  }
 
   return (
     <section className="panel job-detail" data-testid="job-detail-page">
@@ -394,6 +433,60 @@ export function JobDetailPage() {
           </article>
         ))}
       </div>
+
+      <h3>Semantic Reporting</h3>
+      {semanticOutcome ? (
+        <article className="semantic-card" data-testid="job-semantic-card">
+          <dl className="key-value-list">
+            <dt>Status</dt>
+            <dd>{semanticOutcome.status}</dd>
+            <dt>Total Chunks</dt>
+            <dd>{toNumber(semanticOutcome.summary?.total_chunks)}</dd>
+            <dt>Vocabulary</dt>
+            <dd>{toNumber(semanticOutcome.summary?.vocabulary_size)}</dd>
+            <dt>Components</dt>
+            <dd>{toNumber(semanticOutcome.summary?.n_components)}</dd>
+          </dl>
+          {semanticOutcome.message ? (
+            <p className="inline-alert is-error" role="alert">
+              {semanticOutcome.message}
+            </p>
+          ) : null}
+          {semanticArtifacts.length > 0 ? (
+            <ul className="event-list" data-testid="job-semantic-artifact-list">
+              {semanticArtifacts.map((artifact) => {
+                const downloadablePath = resolveArtifactDownloadPath(artifact.path);
+                return (
+                  <li key={`${artifact.artifact_type}-${artifact.path}`}>
+                    <strong>{artifact.name}</strong>{" "}
+                    <span className="muted">({artifact.format || "unknown"})</span>
+                    {downloadablePath ? (
+                      <>
+                        {" "}
+                        <a
+                          href={getJobArtifactDownloadUrl(job.job_id, downloadablePath)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Download
+                        </a>
+                      </>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="muted" data-testid="job-semantic-empty">
+              No semantic artifacts recorded.
+            </p>
+          )}
+        </article>
+      ) : (
+        <p className="muted" data-testid="job-semantic-empty">
+          Semantic processing was not requested for this job.
+        </p>
+      )}
 
       <h3>Failures</h3>
       {failedFiles.length === 0 ? (

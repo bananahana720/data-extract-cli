@@ -49,3 +49,31 @@ def test_run_process_avoids_output_collisions_for_duplicate_stems(tmp_path: Path
     assert (output_dir / "a" / "same.json").exists()
     assert (output_dir / "b" / "same.json").exists()
     assert all(outcome.source_key for outcome in result.processed_files)
+
+
+def test_run_process_can_emit_semantic_artifacts(tmp_path: Path) -> None:
+    source_dir = tmp_path / "semantic-source"
+    output_dir = tmp_path / "semantic-output"
+    source_dir.mkdir()
+    (source_dir / "a.txt").write_text("alpha beta gamma delta epsilon", encoding="utf-8")
+    (source_dir / "b.txt").write_text("alpha beta gamma zeta eta theta", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="json",
+        chunk_size=64,
+        include_semantic=True,
+        semantic_report=True,
+        semantic_export_graph=True,
+    )
+
+    result = JobService().run_process(request, work_dir=tmp_path)
+
+    assert result.processed_count == 2
+    assert result.semantic is not None
+    assert result.semantic.status in {"completed", "failed", "skipped"}
+    if result.semantic.status == "completed":
+        artifact_types = {artifact.artifact_type for artifact in result.semantic.artifacts}
+        assert "summary" in artifact_types
+        assert "graph" in artifact_types

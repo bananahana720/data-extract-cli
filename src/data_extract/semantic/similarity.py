@@ -387,6 +387,22 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
         n_samples = similarity_matrix.shape[0]
         upper_triangle = similarity_matrix[np.triu_indices(n_samples, k=1)]
 
+        if upper_triangle.size == 0:
+            stats = {
+                "mean": 0.0,
+                "std": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "median": 0.0,
+                "n_samples": n_samples,
+                "n_similar_pairs": n_similar,
+                "n_duplicate_pairs": n_duplicates,
+                "duplicate_rate": 0.0,
+            }
+            for threshold in [0.5, 0.7, 0.8, 0.9, 0.95]:
+                stats[f"pairs_above_{threshold}"] = 0
+            return stats
+
         stats = {
             "mean": float(np.mean(upper_triangle)),
             "std": float(np.std(upper_triangle)),

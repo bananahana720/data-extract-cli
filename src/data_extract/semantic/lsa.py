@@ -197,6 +197,21 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
         n_samples = tfidf_matrix.shape[0]
         n_features = tfidf_matrix.shape[1]
 
+        if n_samples < 2 or n_features < 2:
+            topic_terms: list[str] = []
+            if feature_names is not None and len(feature_names) > 0:
+                topic_terms = [str(term) for term in feature_names[: min(len(feature_names), 10)]]
+            elif n_features > 0:
+                topic_terms = [f"term_{index}" for index in range(min(n_features, 10))]
+
+            return LSAResult(
+                lsa_vectors=np.zeros((n_samples, 1)),
+                topics={0: topic_terms},
+                clusters=np.zeros(n_samples, dtype=int),
+                explained_variance=np.array([0.0]),
+                silhouette_score=0.0,
+            )
+
         # Adjust n_components for optimal clustering
         # Balance between clustering quality and variance preservation
         if n_samples < 20 and self.config.n_clusters is not None:

@@ -7,6 +7,8 @@ from .models import (
     ProcessJobRequest,
     ProcessJobResult,
     RetryRequest,
+    SemanticArtifact,
+    SemanticOutcome,
     SessionSummary,
 )
 
@@ -17,5 +19,7 @@ __all__ = [
     "ProcessedFileOutcome",
     "FileFailure",
     "RetryRequest",
+    "SemanticOutcome",
+    "SemanticArtifact",
     "SessionSummary",
 ]

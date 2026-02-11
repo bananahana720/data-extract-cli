@@ -104,6 +104,8 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     const sourceUploadMode = page.getByTestId("new-run-source-upload");
     const pathInput = page.getByTestId("new-run-input-path");
     const chunkSizeInput = page.getByTestId("new-run-chunk-size");
+    const semanticToggle = page.getByTestId("new-run-semantic");
+    const presetSelect = page.getByTestId("new-run-preset");
     const submitButton = page.getByTestId("new-run-submit");
     const summaryCard = page.getByTestId("new-run-summary-card");
 
@@ -114,6 +116,14 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(summaryCard).toBeVisible();
     await expect(summaryCard).toContainText("Source Mode");
     await expect(summaryCard).toContainText("Not set");
+    await expect(semanticToggle).toBeVisible();
+    await semanticToggle.check();
+
+    const presetOptionCount = await presetSelect.locator("option").count();
+    if (presetOptionCount > 1) {
+      await presetSelect.selectOption({ index: 1 });
+    }
+    await expect(summaryCard).toContainText("Semantic");
 
     await pathInput.fill("   ");
     await submitButton.click();
@@ -238,4 +248,21 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
       // Best effort cleanup for read-only test fixture.
     }
   }
+});
+
+test("config page supports preset preview and apply", async ({ page }) => {
+  await page.goto("/config");
+  await expect(page.getByTestId("config-page")).toBeVisible();
+
+  const presetSelect = page.getByTestId("config-preset-select");
+  await expect(presetSelect).toBeVisible();
+  const optionCount = await presetSelect.locator("option").count();
+  expect(optionCount).toBeGreaterThan(0);
+
+  await presetSelect.selectOption({ index: 0 });
+  await page.getByRole("button", { name: "Preview Preset" }).click();
+  await expect(page.getByTestId("config-preview-json")).toContainText("{");
+
+  await page.getByRole("button", { name: "Apply Preset" }).click();
+  await expect(page.getByTestId("config-effective-json")).toContainText("{");
 });

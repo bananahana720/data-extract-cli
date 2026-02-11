@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from data_extract.contracts import JobStatus, ProcessJobRequest, ProcessJobResult, ProcessedFileOutcome
+from data_extract.contracts import (
+    JobStatus,
+    ProcessJobRequest,
+    ProcessJobResult,
+    ProcessedFileOutcome,
+    SemanticOutcome,
+)
 
 
 def test_process_job_request_defaults() -> None:
@@ -11,6 +17,8 @@ def test_process_job_request_defaults() -> None:
     assert request.recursive is False
     assert request.source_files == []
     assert request.idempotency_key is None
+    assert request.semantic_report is None
+    assert request.semantic_export_graph is None
 
 
 def test_process_job_result_status_enum() -> None:
@@ -27,8 +35,15 @@ def test_process_job_result_status_enum() -> None:
     assert result.exit_code == 0
     assert result.artifact_dir is None
     assert result.request_hash is None
+    assert result.semantic is None
 
 
 def test_processed_file_outcome_supports_source_key() -> None:
     outcome = ProcessedFileOutcome(path="/tmp/a.txt", output_path="/tmp/out/a.json", source_key="abc123")
     assert outcome.source_key == "abc123"
+
+
+def test_semantic_outcome_defaults() -> None:
+    outcome = SemanticOutcome()
+    assert outcome.status == "disabled"
+    assert outcome.artifacts == []

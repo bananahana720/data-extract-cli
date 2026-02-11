@@ -19,12 +19,16 @@ from data_extract.contracts import (
     ProcessedFileOutcome,
     ProcessJobRequest,
     ProcessJobResult,
+    SemanticArtifact,
+    SemanticOutcome,
 )
 from data_extract.services.file_discovery_service import FileDiscoveryService
 from data_extract.services.pathing import normalized_path_text, source_key_for_path
 from data_extract.services.pipeline_service import PipelineService
 from data_extract.services.persistence_repository import RUNNING_STATUSES, TERMINAL_STATUSES
 from data_extract.services.persistence_repository import PersistenceRepository
+from data_extract.services.run_config_resolver import RunConfigResolver
+from data_extract.services.semantic_orchestration_service import SemanticOrchestrationService
 
 
 class JobService:
@@ -35,10 +39,14 @@ class JobService:
         discovery_service: Optional[FileDiscoveryService] = None,
         pipeline_service: Optional[PipelineService] = None,
         persistence_repository: Optional[PersistenceRepository] = None,
+        config_resolver: Optional[RunConfigResolver] = None,
+        semantic_service: Optional[SemanticOrchestrationService] = None,
     ) -> None:
         self.discovery = discovery_service or FileDiscoveryService()
         self.pipeline = pipeline_service or PipelineService()
         self.persistence = persistence_repository or PersistenceRepository()
+        self.config_resolver = config_resolver or RunConfigResolver()
+        self.semantic_service = semantic_service or SemanticOrchestrationService()
 
     def run_process(
         self,
@@ -56,6 +64,7 @@ class JobService:
         if idempotency_hit is not None:
             return idempotency_hit
 
+        resolved_config = self.config_resolver.resolve(request)
         output_dir = self._resolve_output_dir(request, source_dir)
 
         manager = SessionManager(work_dir=work_dir or source_dir)
@@ -77,12 +86,14 @@ class JobService:
                 source_dir=source_dir,
                 total_files=len(resolved_files),
                 configuration={
-                    "format": request.output_format,
-                    "chunk_size": request.chunk_size,
+                    "format": resolved_config.output_format,
+                    "chunk_size": resolved_config.chunk_size,
                     "recursive": request.recursive,
                     "output_path": str(output_dir),
                     "idempotency_key": request.idempotency_key,
                     "request_hash": request_hash,
+                    "include_semantic": resolved_config.include_semantic,
+                    "pipeline_profile": resolved_config.pipeline_profile,
                 },
             )
             session_state = manager._current_session
@@ -116,12 +127,45 @@ class JobService:
         run = self.pipeline.process_files(
             files=resolved_files,
             output_dir=output_dir,
-            output_format=request.output_format,
-            chunk_size=request.chunk_size,
-            include_semantic=request.include_semantic,
-            continue_on_error=request.continue_on_error,
+            output_format=resolved_config.output_format,
+            chunk_size=resolved_config.chunk_size,
+            include_semantic=resolved_config.include_semantic,
+            continue_on_error=resolved_config.continue_on_error,
             source_root=source_dir,
+            pipeline_profile=resolved_config.pipeline_profile,
+            allow_advanced_fallback=resolved_config.allow_advanced_fallback,
         )
+
+        semantic_outcome: SemanticOutcome | None = None
+        if resolved_config.include_semantic:
+            semantic_result = self.semantic_service.run(
+                output_paths=[processed.output_path for processed in run.processed],
+                artifact_root=output_dir,
+                config=resolved_config.semantic,
+            )
+            for stage_name, duration in semantic_result.stage_timings_ms.items():
+                run.stage_totals_ms[stage_name] = run.stage_totals_ms.get(stage_name, 0.0) + duration
+            semantic_outcome = SemanticOutcome(
+                status=semantic_result.status,
+                message=semantic_result.message,
+                summary=semantic_result.summary,
+                artifacts=[
+                    SemanticArtifact(
+                        name=artifact.name,
+                        path=str(artifact.path),
+                        artifact_type=artifact.artifact_type,
+                        format=artifact.format,
+                        size_bytes=artifact.path.stat().st_size if artifact.path.exists() else 0,
+                    )
+                    for artifact in semantic_result.artifacts
+                ],
+                stage_timings_ms=semantic_result.stage_timings_ms,
+            )
+        else:
+            semantic_outcome = SemanticOutcome(
+                status="disabled",
+                message="Semantic stage not requested.",
+            )
 
         processed_outcomes: List[ProcessedFileOutcome] = []
         failure_outcomes: List[FileFailure] = []
@@ -212,6 +256,7 @@ class JobService:
             artifact_dir=str(output_dir),
             request_hash=request_hash,
             exit_code=exit_code,
+            semantic=semantic_outcome,
         )
 
         if job_id:
@@ -327,6 +372,16 @@ class JobService:
                 "resume": request.resume,
                 "preset": request.preset,
                 "include_semantic": request.include_semantic,
+                "semantic_report": request.semantic_report,
+                "semantic_report_format": request.semantic_report_format,
+                "semantic_export_graph": request.semantic_export_graph,
+                "semantic_graph_format": request.semantic_graph_format,
+                "semantic_duplicate_threshold": request.semantic_duplicate_threshold,
+                "semantic_related_threshold": request.semantic_related_threshold,
+                "semantic_max_features": request.semantic_max_features,
+                "semantic_n_components": request.semantic_n_components,
+                "semantic_min_quality": request.semantic_min_quality,
+                "pipeline_profile": request.pipeline_profile,
                 "continue_on_error": request.continue_on_error,
             },
         }

@@ -533,58 +533,108 @@ def export_similarity_graph(results: Dict[str, Any], output_format: str = "json"
     """
     similarity = results.get("similarity", {})
     statistics = similarity.get("statistics", {})
+    similarity_graph = similarity.get("similarity_graph", {}) or {}
+    similar_pairs = similarity.get("similar_pairs", []) or []
+    duplicate_threshold = float(results.get("config", {}).get("similarity_threshold", 0.95))
+
+    node_ids = set()
+    edges: dict[tuple[str, str], dict[str, Any]] = {}
+
+    if isinstance(similarity_graph, dict):
+        for source, targets in similarity_graph.items():
+            if not isinstance(source, str):
+                continue
+            node_ids.add(source)
+            if not isinstance(targets, list):
+                continue
+            for target_entry in targets:
+                if not isinstance(target_entry, (list, tuple)) or len(target_entry) < 2:
+                    continue
+                target = str(target_entry[0])
+                try:
+                    weight = float(target_entry[1])
+                except (TypeError, ValueError):
+                    weight = 0.0
+                node_ids.add(target)
+                key = tuple(sorted((source, target)))
+                existing = edges.get(key)
+                if existing is None or weight > float(existing.get("weight", 0.0)):
+                    edges[key] = {
+                        "source": key[0],
+                        "target": key[1],
+                        "weight": weight,
+                        "type": "duplicate" if weight >= duplicate_threshold else "related",
+                    }
+
+    for pair in similar_pairs:
+        if not isinstance(pair, (list, tuple)) or len(pair) < 3:
+            continue
+        source = str(pair[0])
+        target = str(pair[1])
+        try:
+            weight = float(pair[2])
+        except (TypeError, ValueError):
+            weight = 0.0
+        node_ids.update({source, target})
+        key = tuple(sorted((source, target)))
+        existing = edges.get(key)
+        if existing is None or weight > float(existing.get("weight", 0.0)):
+            edges[key] = {
+                "source": key[0],
+                "target": key[1],
+                "weight": weight,
+                "type": "duplicate" if weight >= duplicate_threshold else "related",
+            }
+
+    # Fallback for legacy payloads that only include duplicate groups.
+    if not edges:
+        duplicate_groups = similarity.get("duplicate_groups", []) or []
+        for group in duplicate_groups:
+            if not isinstance(group, list):
+                continue
+            for member in group:
+                node_ids.add(str(member))
+            for index, node_a in enumerate(group):
+                for node_b in group[index + 1 :]:
+                    key = tuple(sorted((str(node_a), str(node_b))))
+                    edges[key] = {
+                        "source": key[0],
+                        "target": key[1],
+                        "weight": 1.0,
+                        "type": "duplicate",
+                    }
+
+    ordered_nodes = [{"id": node_id} for node_id in sorted(node_ids)]
+    ordered_edges = sorted(
+        edges.values(),
+        key=lambda edge: (edge["source"], edge["target"]),
+    )
 
     if output_format == "json":
         graph_data = {
-            "nodes": [],
-            "edges": [],
+            "nodes": ordered_nodes,
+            "edges": ordered_edges,
             "statistics": statistics,
         }
-
-        # Add nodes from duplicate groups
-        duplicate_groups = similarity.get("duplicate_groups", [])
-        node_ids = set()
-        for group in duplicate_groups:
-            for node_id in group:
-                if node_id not in node_ids:
-                    node_ids.add(node_id)
-                    graph_data["nodes"].append({"id": node_id})
-
-        # Add edges (simplified - just showing group membership)
-        for group in duplicate_groups:
-            for i, node1 in enumerate(group):
-                for node2 in group[i + 1 :]:
-                    graph_data["edges"].append(
-                        {
-                            "source": node1,
-                            "target": node2,
-                            "type": "duplicate",
-                        }
-                    )
-
         return json.dumps(graph_data, indent=2)
 
-    elif output_format == "csv":
-        lines = ["source,target,type"]
-        duplicate_groups = similarity.get("duplicate_groups", [])
-        for group in duplicate_groups:
-            for i, node1 in enumerate(group):
-                for node2 in group[i + 1 :]:
-                    lines.append(f"{node1},{node2},duplicate")
+    if output_format == "csv":
+        lines = ["source,target,type,weight"]
+        for edge in ordered_edges:
+            lines.append(f'{edge["source"]},{edge["target"]},{edge["type"]},{edge["weight"]:.6f}')
         return "\n".join(lines)
 
-    elif output_format == "dot":
-        # GraphViz DOT format
-        lines = ["digraph SimilarityGraph {"]
+    if output_format == "dot":
+        lines = ["graph SimilarityGraph {"]
         lines.append("  rankdir=LR;")
         lines.append("  node [shape=box];")
-
-        duplicate_groups = similarity.get("duplicate_groups", [])
-        for group in duplicate_groups:
-            for i, node1 in enumerate(group):
-                for node2 in group[i + 1 :]:
-                    lines.append(f'  "{node1}" -> "{node2}" [dir=none];')
-
+        for node in ordered_nodes:
+            lines.append(f'  "{node["id"]}";')
+        for edge in ordered_edges:
+            lines.append(
+                f'  "{edge["source"]}" -- "{edge["target"]}" '
+                f'[label="{edge["weight"]:.3f}", color="{ "red" if edge["type"] == "duplicate" else "gray" }"];'
+            )
         lines.append("}")
         return "\n".join(lines)
 

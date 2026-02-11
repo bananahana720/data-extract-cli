@@ -1,7 +1,8 @@
-import { FormEvent, KeyboardEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { createProcessJob, createProcessJobWithFiles } from "../api/client";
+import { createProcessJob, createProcessJobWithFiles, listConfigPresets } from "../api/client";
+import { ConfigPresetSummary } from "../types";
 
 type SourceMode = "path" | "upload";
 type FieldErrors = {
@@ -34,8 +35,15 @@ export function NewRunPage() {
   const [inputPath, setInputPath] = useState("");
   const [chunkSizeInput, setChunkSizeInput] = useState("512");
   const [outputFormat, setOutputFormat] = useState("json");
+  const [preset, setPreset] = useState("");
+  const [availablePresets, setAvailablePresets] = useState<ConfigPresetSummary[]>([]);
   const [recursive, setRecursive] = useState(true);
   const [incremental, setIncremental] = useState(false);
+  const [semanticEnabled, setSemanticEnabled] = useState(false);
+  const [semanticReport, setSemanticReport] = useState(false);
+  const [semanticExportGraph, setSemanticExportGraph] = useState(false);
+  const [semanticReportFormat, setSemanticReportFormat] = useState("json");
+  const [semanticGraphFormat, setSemanticGraphFormat] = useState("json");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -47,6 +55,19 @@ export function NewRunPage() {
     () => selectedFiles.reduce((total, file) => total + file.size, 0),
     [selectedFiles]
   );
+
+  useEffect(() => {
+    async function loadPresets() {
+      try {
+        const presets = await listConfigPresets();
+        setAvailablePresets(presets);
+      } catch {
+        setAvailablePresets([]);
+      }
+    }
+
+    void loadPresets();
+  }, []);
 
   function resetUploads() {
     setSelectedFiles([]);
@@ -144,6 +165,12 @@ export function NewRunPage() {
         formData.append("chunk_size", String(validated.chunkSize));
         formData.append("recursive", String(recursive));
         formData.append("incremental", String(incremental));
+        formData.append("preset", preset);
+        formData.append("semantic", String(semanticEnabled));
+        formData.append("semantic_report", String(semanticEnabled && semanticReport));
+        formData.append("semantic_report_format", semanticReportFormat);
+        formData.append("semantic_export_graph", String(semanticEnabled && semanticExportGraph));
+        formData.append("semantic_graph_format", semanticGraphFormat);
         jobId = await createProcessJobWithFiles(formData);
       } else {
         jobId = await createProcessJob({
@@ -152,6 +179,12 @@ export function NewRunPage() {
           chunk_size: validated.chunkSize,
           recursive,
           incremental,
+          preset: preset || undefined,
+          include_semantic: semanticEnabled,
+          semantic_report: semanticEnabled ? semanticReport : false,
+          semantic_report_format: semanticReportFormat,
+          semantic_export_graph: semanticEnabled ? semanticExportGraph : false,
+          semantic_graph_format: semanticGraphFormat,
           non_interactive: true
         });
       }
@@ -378,6 +411,28 @@ export function NewRunPage() {
             Default is JSON.
           </p>
 
+          <label htmlFor="new-run-preset">
+            <span>Preset</span>
+          </label>
+          <select
+            id="new-run-preset"
+            value={preset}
+            onChange={(event) => setPreset(event.target.value)}
+            aria-describedby="new-run-preset-help"
+            data-testid="new-run-preset"
+          >
+            <option value="">No preset</option>
+            {availablePresets.map((item) => (
+              <option key={item.name} value={item.name}>
+                {item.name}
+                {item.is_builtin ? " (builtin)" : ""}
+              </option>
+            ))}
+          </select>
+          <p className="help-text" id="new-run-preset-help">
+            Optional. Preset settings are merged with request overrides.
+          </p>
+
           <label htmlFor="new-run-chunk-size">
             <span>Chunk Size</span>
           </label>
@@ -427,6 +482,73 @@ export function NewRunPage() {
               <span>Incremental mode (new/changed only)</span>
             </label>
           </div>
+
+          <div className="check-row">
+            <input
+              id="new-run-semantic"
+              type="checkbox"
+              checked={semanticEnabled}
+              onChange={(event) => setSemanticEnabled(event.target.checked)}
+              data-testid="new-run-semantic"
+            />
+            <label htmlFor="new-run-semantic">
+              <span>Enable semantic analysis</span>
+            </label>
+          </div>
+
+          <div className="check-row">
+            <input
+              id="new-run-semantic-report"
+              type="checkbox"
+              checked={semanticReport}
+              disabled={!semanticEnabled}
+              onChange={(event) => setSemanticReport(event.target.checked)}
+            />
+            <label htmlFor="new-run-semantic-report">
+              <span>Generate semantic report artifact</span>
+            </label>
+          </div>
+
+          <div className="check-row">
+            <input
+              id="new-run-semantic-graph"
+              type="checkbox"
+              checked={semanticExportGraph}
+              disabled={!semanticEnabled}
+              onChange={(event) => setSemanticExportGraph(event.target.checked)}
+            />
+            <label htmlFor="new-run-semantic-graph">
+              <span>Export semantic graph artifact</span>
+            </label>
+          </div>
+
+          <label htmlFor="new-run-semantic-report-format">
+            <span>Semantic Report Format</span>
+          </label>
+          <select
+            id="new-run-semantic-report-format"
+            value={semanticReportFormat}
+            onChange={(event) => setSemanticReportFormat(event.target.value)}
+            disabled={!semanticEnabled}
+          >
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="html">HTML</option>
+          </select>
+
+          <label htmlFor="new-run-semantic-graph-format">
+            <span>Semantic Graph Format</span>
+          </label>
+          <select
+            id="new-run-semantic-graph-format"
+            value={semanticGraphFormat}
+            onChange={(event) => setSemanticGraphFormat(event.target.value)}
+            disabled={!semanticEnabled}
+          >
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="dot">DOT</option>
+          </select>
         </fieldset>
 
         <article className="summary-card" data-testid="new-run-summary-card">
@@ -444,10 +566,18 @@ export function NewRunPage() {
             <dd>{outputFormat.toUpperCase()}</dd>
             <dt>Chunk Size</dt>
             <dd>{chunkSizeInput || "Not set"}</dd>
+            <dt>Preset</dt>
+            <dd>{preset || "None"}</dd>
             <dt>Discovery</dt>
             <dd>{recursive ? "Recursive" : "Top-level only"}</dd>
             <dt>Incremental</dt>
             <dd>{incremental ? "Enabled" : "Disabled"}</dd>
+            <dt>Semantic</dt>
+            <dd>{semanticEnabled ? "Enabled" : "Disabled"}</dd>
+            <dt>Semantic Report</dt>
+            <dd>{semanticEnabled && semanticReport ? semanticReportFormat.toUpperCase() : "Off"}</dd>
+            <dt>Semantic Graph</dt>
+            <dd>{semanticEnabled && semanticExportGraph ? semanticGraphFormat.toUpperCase() : "Off"}</dd>
           </dl>
         </article>
 

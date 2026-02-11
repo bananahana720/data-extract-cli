@@ -1,27 +1,26 @@
 # Summary: Integration Checklist
 
 ✅ **Before You Start**:
-- [ ] Read `docs/architecture/FOUNDATION.md` (data models and interfaces)
-- [ ] Review current processor implementations (`src/processors/*.py`)
-- [ ] Understand processor ordering mechanism (`_order_processors()`)
+- [ ] Read `docs/architecture.md` (data models and interfaces)
+- [ ] Review active orchestration services (`src/data_extract/services/*.py`)
+- [ ] Understand process flow in `src/data_extract/services/pipeline_service.py`
 - [ ] Study data flow through pipeline (this doc)
 
 ✅ **Implementing Your Processor**:
-- [ ] Create `src/processors/semantic_analyzer.py`
-- [ ] Implement `BaseProcessor` interface
-- [ ] Declare dependencies via `get_dependencies()`
-- [ ] Set `is_optional()` appropriately
+- [ ] Create/extend semantic stages in `src/data_extract/semantic/*.py`
+- [ ] Implement pipeline stage interface (`PipelineStage`) where applicable
+- [ ] Declare stage configuration and deterministic defaults
+- [ ] Keep stage opt-in behavior explicit in process request/config
 - [ ] Preserve all existing metadata in enriched blocks
 - [ ] Preserve media assets (images, tables)
-- [ ] Add new `ProcessingStage` enum value
 - [ ] Implement error handling (graceful degradation or partial processing)
 - [ ] Add logging with structured context
 
 ✅ **Configuration**:
 - [ ] Define configuration schema (Pydantic model recommended)
-- [ ] Add config section to `config.yaml.example`
+- [ ] Add config section to `.data-extract.yaml` examples
 - [ ] Support constructor injection
-- [ ] Support ConfigManager integration
+- [ ] Support `load_merged_config()` + preset integration
 - [ ] Document all configuration options
 
 ✅ **Testing**:
@@ -33,8 +32,8 @@
 - [ ] Verify metadata preservation
 
 ✅ **Integration**:
-- [ ] Register processor in `src/pipeline/__init__.py`
-- [ ] Update CLI to include new processor (if configurable)
+- [ ] Register stage/orchestration in `src/data_extract/services/job_service.py`
+- [ ] Update CLI/API/UI request surfaces if configurable
 - [ ] Update documentation (`README.md`, `USER_GUIDE.md`)
 - [ ] Add examples to `examples/` directory
 

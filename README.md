@@ -46,10 +46,10 @@ data-extract process input.pdf
 data-extract process input.pdf --idempotency-key daily-audit-run
 
 # Process directory with semantic analysis
-data-extract process docs/ --semantic --format json
+data-extract process docs/ --semantic --semantic-report --semantic-export-graph --format json
 
-# Batch processing with custom config
-data-extract process inputs/ --config legal-audit.yaml
+# Batch processing with preset configuration
+data-extract process inputs/ --preset quality
 
 # Check processing status
 data-extract status
@@ -95,12 +95,12 @@ Extract → Normalize → Chunk → Semantic → Output
 
 1. CLI flags (highest precedence)
 2. Environment variables (DATA_EXTRACT_*)
-3. Session config file
-4. Project config file (config/data-extract.yaml)
-5. User config file (~/.config/data-extract/config.yaml)
+3. Project config file (`.data-extract.yaml`)
+4. User config file (`~/.data-extract/config.yaml`)
+5. Preset config (`~/.data-extract/presets/*.yaml` and built-ins)
 6. System defaults (lowest precedence)
 
-**Built-in Presets**: `legal-audit`, `contract-review`, `compliance-scan`
+**Built-in Presets**: `quality`, `speed`, `balanced`
 
 ## Documentation
 

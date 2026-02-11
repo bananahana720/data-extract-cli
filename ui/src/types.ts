@@ -1,5 +1,30 @@
 export type JobStatus = "queued" | "running" | "completed" | "partial" | "failed";
 
+export interface SemanticArtifact {
+  name: string;
+  path: string;
+  artifact_type: string;
+  format?: string | null;
+  size_bytes: number;
+}
+
+export interface SemanticOutcome {
+  status: string;
+  message?: string | null;
+  summary?: Record<string, unknown>;
+  artifacts?: SemanticArtifact[];
+  stage_timings_ms?: Record<string, number>;
+}
+
+export interface ProcessResultPayload extends Record<string, unknown> {
+  total_files?: number;
+  processed_count?: number;
+  failed_count?: number;
+  skipped_count?: number;
+  stage_totals_ms?: Record<string, number>;
+  semantic?: SemanticOutcome;
+}
+
 export interface JobSummary {
   job_id: string;
   status: JobStatus;
@@ -16,7 +41,7 @@ export interface JobDetail extends JobSummary {
   chunk_size: number;
   updated_at: string;
   request_payload: Record<string, unknown>;
-  result_payload: Record<string, unknown>;
+  result_payload: ProcessResultPayload;
   request_hash?: string | null;
   artifact_dir?: string | null;
   files: Array<{
@@ -35,6 +60,24 @@ export interface JobDetail extends JobSummary {
     payload: Record<string, unknown>;
     event_time: string;
   }>;
+}
+
+export interface JobArtifactEntry {
+  path: string;
+  size_bytes: number;
+  modified_at: string;
+}
+
+export interface JobArtifactsResponse {
+  job_id: string;
+  artifacts: JobArtifactEntry[];
+}
+
+export interface ConfigPresetSummary {
+  name: string;
+  category: string;
+  description?: string | null;
+  is_builtin: boolean;
 }
 
 export interface SessionSummary {

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 
@@ -35,6 +36,21 @@ class CleanupResponse(BaseModel):
     removed: bool
 
 
+class JobArtifactEntry(BaseModel):
+    """Artifact list item."""
+
+    path: str
+    size_bytes: int
+    modified_at: datetime
+
+
+class ArtifactListResponse(BaseModel):
+    """Job artifact list payload."""
+
+    job_id: str
+    artifacts: list[JobArtifactEntry]
+
+
 def _to_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value
@@ -49,11 +65,26 @@ def _to_int(value: Any, default: int) -> int:
     return int(value)
 
 
+def _to_float(value: Any) -> float:
+    if value is None or value == "":
+        raise ValueError("Missing numeric value")
+    return float(value)
+
+
 def _optional_str(value: Any) -> str | None:
     if value is None:
         return None
     text = str(value).strip()
     return text or None
+
+
+def _optional_bool(value: Any) -> bool | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return text.lower() in {"1", "true", "yes", "on"}
 
 
 async def _build_process_request_from_form(request: Request, job_id: str) -> ProcessJobRequest:
@@ -87,6 +118,18 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
     if not input_path:
         raise HTTPException(status_code=400, detail="No usable input_path provided")
 
+    semantic_requested = _to_bool(form.get("semantic")) or _to_bool(form.get("include_semantic"))
+    semantic_report = _optional_bool(form.get("semantic_report"))
+    semantic_export_graph = _optional_bool(form.get("semantic_export_graph"))
+    semantic_report_format = _optional_str(form.get("semantic_report_format"))
+    semantic_graph_format = _optional_str(form.get("semantic_graph_format"))
+
+    # Backward-compatible semantic graph export form handling.
+    legacy_export_graph = _optional_str(form.get("export_graph"))
+    if legacy_export_graph and legacy_export_graph.lower() in {"json", "csv", "dot"}:
+        semantic_export_graph = True
+        semantic_graph_format = legacy_export_graph.lower()
+
     try:
         return ProcessJobRequest(
             input_path=input_path,
@@ -100,6 +143,37 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             preset=_optional_str(form.get("preset")),
             idempotency_key=_optional_str(form.get("idempotency_key")),
             non_interactive=True,
+            include_semantic=semantic_requested,
+            semantic_report=semantic_report,
+            semantic_report_format=semantic_report_format,
+            semantic_export_graph=semantic_export_graph,
+            semantic_graph_format=semantic_graph_format,
+            semantic_duplicate_threshold=(
+                _to_float(form.get("semantic_duplicate_threshold"))
+                if form.get("semantic_duplicate_threshold") not in (None, "")
+                else None
+            ),
+            semantic_related_threshold=(
+                _to_float(form.get("semantic_related_threshold"))
+                if form.get("semantic_related_threshold") not in (None, "")
+                else None
+            ),
+            semantic_max_features=(
+                _to_int(form.get("semantic_max_features"), 0)
+                if form.get("semantic_max_features") not in (None, "")
+                else None
+            ),
+            semantic_n_components=(
+                _to_int(form.get("semantic_n_components"), 0)
+                if form.get("semantic_n_components") not in (None, "")
+                else None
+            ),
+            semantic_min_quality=(
+                _to_float(form.get("semantic_min_quality"))
+                if form.get("semantic_min_quality") not in (None, "")
+                else None
+            ),
+            pipeline_profile=_optional_str(form.get("pipeline_profile")),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid numeric input: {exc}") from exc
@@ -269,3 +343,52 @@ def cleanup_job_artifacts(job_id: str) -> CleanupResponse:
         db.commit()
 
     return CleanupResponse(job_id=job_id, removed=removed)
+
+
+@router.get("/{job_id}/artifacts", response_model=ArtifactListResponse)
+def list_job_artifacts(job_id: str) -> ArtifactListResponse:
+    """List persisted artifacts for a job."""
+    with SessionLocal() as db:
+        job = db.get(Job, job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+
+    job_dir = JOBS_HOME / job_id
+    if not job_dir.exists():
+        return ArtifactListResponse(job_id=job_id, artifacts=[])
+
+    artifacts: list[JobArtifactEntry] = []
+    for path in sorted(job_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(job_dir).as_posix()
+        stat = path.stat()
+        artifacts.append(
+            JobArtifactEntry(
+                path=relative,
+                size_bytes=stat.st_size,
+                modified_at=datetime.utcfromtimestamp(stat.st_mtime),
+            )
+        )
+
+    return ArtifactListResponse(job_id=job_id, artifacts=artifacts)
+
+
+@router.get("/{job_id}/artifacts/{artifact_path:path}")
+def download_job_artifact(job_id: str, artifact_path: str) -> FileResponse:
+    """Download a persisted artifact for a job."""
+    with SessionLocal() as db:
+        job = db.get(Job, job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+
+    job_dir = (JOBS_HOME / job_id).resolve()
+    candidate = (job_dir / artifact_path).resolve()
+    try:
+        candidate.relative_to(job_dir)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid artifact path")
+    if not candidate.exists() or not candidate.is_file():
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_path}")
+
+    return FileResponse(candidate, filename=candidate.name)
