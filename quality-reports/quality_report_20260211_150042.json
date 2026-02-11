@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "timestamp": "2026-02-11T15:00:42.508121",
+    "mode": "ci-mode",
+    "changed_only": false,
+    "elapsed_seconds": 12.45
+  },
+  "results": {
+    "black": {
+      "passed": true,
+      "output": "\u2705 Black: All files formatted correctly",
+      "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python -m black --check src/data_extract/api src/data_extract/chunk src/data_extract/contracts src/data_extract/core src/data_extract/semantic src/data_extract/services/status_service.py src/data_extract/services/pathing.py src/data_extract/services/file_discovery_service.py src/data_extract/utils tests/unit/data_extract tests/integration/test_normalization_pipeline.py"
+    },
+    "ruff": {
+      "passed": true,
+      "output": "\u2705 Ruff: No linting violations found",
+      "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python -m ruff check src/data_extract/api src/data_extract/chunk src/data_extract/contracts src/data_extract/core src/data_extract/semantic src/data_extract/services/status_service.py src/data_extract/services/pathing.py src/data_extract/services/file_discovery_service.py src/data_extract/utils tests/unit/data_extract tests/integration/test_normalization_pipeline.py"
+    },
+    "mypy": {
+      "passed": true,
+      "output": "\u2705 Mypy: No type violations found",
+      "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python -m mypy src/data_extract/contracts src/data_extract/core src/data_extract/chunk src/data_extract/semantic src/data_extract/utils src/data_extract/services/status_service.py src/data_extract/services/pathing.py src/data_extract/services/file_discovery_service.py --python-version=3.12 --follow-imports=skip --ignore-missing-imports"
+    },
+    "docs_audit": {
+      "passed": true,
+      "output": "\u2705 Docs audit: No canon/freshness violations found",
+      "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python scripts/audit_docs.py --strict"
+    },
+    "spacy": {
+      "passed": true,
+      "output": "\u26a0\ufe0f  spaCy model not installed; semantic runtime checks skipped. Set DATA_EXTRACT_REQUIRE_SPACY_MODEL=1 to enforce."
+    },
+    "pytest": {
+      "passed": true,
+      "output": "\u2705 Tests: All tests passed",
+      "coverage": {
+        "greenfield": 49.0,
+        "overall": 42.0
+      },
+      "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python -m pytest tests/unit/data_extract/api tests/unit/data_extract/chunk tests/unit/data_extract/contracts tests/unit/data_extract/core tests/unit/data_extract/semantic tests/unit/data_extract/services tests/integration/test_normalization_pipeline.py --cov=src/data_extract --cov-report=term"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "name": "docs-audit",
+    "status": "pass",
+    "returncode": 0,
+    "duration_seconds": 0.14,
+    "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python scripts/audit_docs.py --strict",
+    "notes": [],
+    "output_tail": "Documentation Audit\n============================================================\nFiles scanned: 34\nTotal violations: 0\nNo violations found.\n\nJSON report: /home/andrewhana/projects/codex-fun/data-extraction-tool-main/quality-reports/docs_audit_report_20260211_195129.json"
+  },
+  {
+    "name": "security-scan",
+    "status": "warn",
+    "returncode": 0,
+    "duration_seconds": 0.5,
+    "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python scripts/scan_security.py",
+    "notes": [
+      "Security scan completed without optional tools (coverage is partial)."
+    ],
+    "output_tail": "2026-02-11 14:51:29 [info     ] loaded_scanignore              patterns=48\n2026-02-11 14:51:29 [info     ] loaded_scanignore              patterns=48\n2026-02-11 14:51:29 [info     ] loaded_scanignore              patterns=48\n2026-02-11 14:51:29 [info     ] loaded_scanignore              patterns=48\n2026-02-11 14:51:29 [info     ] loaded_scanignore              patterns=48\n2026-02-11 14:51:29 [info     ] initialized_security_orchestrator project_root=/home/andrewhana/projects/codex-fun/data-extraction-tool-main\n2026-02-11 14:51:29 [warning  ] gitleaks_not_installed\n  Scanning for secrets... \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 100%\n2026-02-11 14:51:30 [info     ] pattern_scan_completed         files_scanned=405\n2026-02-11 14:51:30 [info     ] pip_audit_not_installed\n2026-02-11 14:51:30 [warning  ] bandit_not_installed           message=Install bandit for SAST scanning\n\u2713 No security issues found!\n\n[green]\u2713 Security scan completed successfully with no findings[/green]"
+  },
+  {
+    "name": "quality-gates",
+    "status": "warn",
+    "returncode": 0,
+    "duration_seconds": 13.46,
+    "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python scripts/run_quality_gates.py --ci-mode",
+    "notes": [
+      "spaCy model missing; semantic runtime checks were skipped."
+    ],
+    "output_tail": "\ud83d\ude80 Quality Gate Runner - CI-MODE mode\n==================================================\n2026-02-11 14:51:30 [info     ] initialized_quality_gate_runner changed_only=False mode=ci-mode\n\n\ud83d\udd0d Running Black...\n2026-02-11 14:51:30 [info     ] running_black_check\n2026-02-11 14:51:30 [info     ] black_check_complete           success=True\n\u2705 Black: All files formatted correctly\n\n\ud83d\udd0d Running Ruff...\n2026-02-11 14:51:30 [info     ] running_ruff_check\n2026-02-11 14:51:30 [info     ] ruff_check_complete            success=True\n\u2705 Ruff: No linting violations found\n\n\ud83d\udd0d Running Mypy...\n2026-02-11 14:51:30 [info     ] running_mypy_check\n2026-02-11 14:51:30 [info     ] mypy_check_complete            success=True\n\u2705 Mypy: No type violations found\n\n\ud83d\udd0d Running Docs...\n2026-02-11 14:51:30 [info     ] running_docs_audit\n2026-02-11 14:51:30 [info     ] docs_audit_complete            success=True\n\u2705 Docs audit: No canon/freshness violations found\n\n\ud83d\udd0d Running spaCy...\n2026-02-11 14:51:30 [info     ] checking_spacy_model\n\u26a0\ufe0f  spaCy model not installed; semantic runtime checks skipped. Set DATA_EXTRACT_REQUIRE_SPACY_MODEL=1 to enforce.\n\n\ud83d\udd0d Running Tests...\n2026-02-11 14:51:31 [info     ] running_tests                  changed_only=False\n2026-02-11 14:51:43 [info     ] tests_complete                 coverage={'greenfield': 49.0, 'overall': 42.0} success=True\n\u2705 Tests: All tests passed\n\n\ud83d\udcca Coverage Check:\n\u2705 Greenfield coverage: 49.0% (>=45.0%)\n\u2705 Overall coverage: 42.0% (>=40.0%)\n\n\ud83d\udcc4 JSON report saved: quality-reports/quality_report_20260211_145143.json\n\ud83d\udcc4 Markdown report saved: quality-reports/quality_report_20260211_145143.md\n\n==================================================\n\u2705 All quality gates PASSED!"
+  },
+  {
+    "name": "ui-runtime-check",
+    "status": "warn",
+    "returncode": 0,
+    "duration_seconds": 2.73,
+    "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/data-extract ui --check",
+    "notes": [
+      "spaCy model missing; semantic runtime checks were skipped."
+    ],
+    "output_tail": "Warning: spaCy model 'en_core_web_sm' is not installed\nRuntime checks passed. DB: \n/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.ui-home/app.db\n\n/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/lib/python3.12/site-packages/joblib/_multiprocessing_helpers.py:44: UserWarning: [Errno 13] Permission denied.  joblib will operate in serial mode\n  warnings.warn(\"%s.  joblib will operate in serial mode\" % (e,))"
+  },
+  {
+    "name": "dependency-audit",
+    "status": "warn",
+    "returncode": 1,
+    "duration_seconds": 0.49,
+    "command": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/.venv/bin/python scripts/audit_dependencies.py --output markdown",
+    "notes": [
+      "Dependency audit output includes known noisy findings; triage manually.",
+      "Dependency audit cache save bug detected (set serialization)."
+    ],
+    "output_tail": "- **Missing Dependencies:** 16\n- **Potentially Unused:** 35\n\n## \u26a0\ufe0f Missing Dependencies\n\nThese packages are imported in tests but not declared in pyproject.toml:\n\n- `__future__`\n- `_pytest`\n- `builtins`\n- `dataclasses`\n- `docx`\n- `gc`\n- `glob`\n- `importlib`\n- `inspect`\n- `numpy`\n- `packaging`\n- `scipy`\n- `scripts`\n- `smoke_test_semantic`\n- `tracemalloc`\n- `types`\n\n## \ud83d\udccb Potentially Unused Test Dependencies\n\nThese are declared but not found in test imports:\n(Note: May be used by src code or optional features)\n\n- `alembic`\n- `beautifulsoup4`\n- `black`\n- `coverage`\n- `csvkit`\n- `data_extraction_tool`\n- `deskew`\n- `fastapi`\n- `httpx`\n- `inquirerpy`\n- `lxml`\n- `memory_profiler`\n- `mypy`\n- `pdf2image`\n- `pdfplumber`\n- `pillow`\n- `pre_commit`\n- `pypdf`\n- `pytesseract`\n- `pytest_cov`\n- `pytest_mock`\n- `pytest_xdist`\n- `python_docx`\n- `python_dotenv`\n- `python_multipart`\n- `python_pptx`\n- `ruff`\n- `scikit_image`\n- `toml`\n- `types_openpyxl`\n- `types_pyyaml`\n- `types_reportlab`\n- `types_requests`\n- `types_toml`\n- `uvicorn`\n\n## \ud83d\udca1 Recommendations\n\nAdd 16 missing dependencies to pyproject.toml [dev] section\n  - Add: __future__\n  - Add: _pytest\n  - Add: builtins\n  - Add: dataclasses\n  - Add: docx\n  ... and 11 more\nReview 35 potentially unused test dependencies\n  Note: These may be used by src code or optional features\n\n\n\n\u26a0\ufe0f  Found 16 missing dependencies!"
+  }
+]
