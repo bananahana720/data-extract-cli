@@ -16,21 +16,29 @@ def get_technical_corpus() -> List[str]:
         List of technical documents for testing
     """
     return [
-        """The enterprise data extraction pipeline leverages modular architecture patterns
-        to ensure scalability and maintainability. Each processing stage implements
-        well-defined interfaces that enable seamless integration and testing.""",
-        """Machine learning algorithms transform unstructured text data into structured
-        representations suitable for downstream analysis. Feature extraction techniques
-        include TF-IDF vectorization and latent semantic analysis.""",
-        """Document processing systems must handle diverse file formats including PDF,
-        DOCX, XLSX, and PPTX. The extraction layer abstracts format-specific complexity
-        through a unified interface.""",
-        """Performance optimization strategies include caching frequently accessed data,
-        implementing lazy evaluation patterns, and utilizing sparse matrix representations
-        for efficient memory usage.""",
-        """Quality assurance frameworks validate extraction accuracy through automated
-        testing pipelines. Regression tests ensure consistent behavior across software
-        updates and dependency changes.""",
+        """The extraction system follows a modular architecture. Each processing stage
+        has one clear job and a stable interface. Teams can test stages alone, then
+        chain them in a full run. This design keeps changes local and makes failures
+        easy to trace during review.""",
+        """Engineers use ML and AI methods to map raw text into useful features.
+        The pipeline can run TF-IDF, LSA, and basic NLP steps on the same input.
+        Each algorithm writes scores and labels that support later search and
+        analysis tasks in production tools. Feature calibration uses probabilistic
+        normalization and parameter regularization for domain-specific vocabularies.
+        This implementation improves data processing quality in the system architecture.""",
+        """The service reads PDF, DOCX, XLSX, and PPTX files through one adapter
+        layer. A common schema stores body text, headers, tables, and page data.
+        Output is exported as JSON or XML so downstream systems can parse it
+        without custom rules for every format.""",
+        """Performance work focuses on fast I/O and low memory use. The code caches
+        repeat reads, uses lazy loading, and streams chunks in order. Benchmarks
+        track CPU time, queue wait, and throughput so optimization choices are
+        based on data from real document workloads.""",
+        """Quality checks run on every build before release. Unit tests, integration
+        tests, and validation rules catch drift in extraction behavior. Regression
+        suites compare new output with known baselines and block deploys when key
+        metrics fall below target. The validation system records data and processing
+        checks to verify architecture implementation choices.""",
     ]
 
 
@@ -42,21 +50,27 @@ def get_business_corpus() -> List[str]:
         List of business-oriented documents
     """
     return [
-        """The quarterly financial report indicates strong revenue growth driven by
-        increased market penetration and successful product launches. Operating margins
-        improved due to operational efficiency initiatives.""",
-        """Risk management protocols require regular assessment of potential threats
-        to business continuity. Mitigation strategies include diversification of
-        supply chains and implementation of robust cybersecurity measures.""",
-        """Customer satisfaction metrics demonstrate consistent improvement across
-        all service categories. Net promoter scores increased following the deployment
-        of enhanced support systems.""",
-        """Strategic initiatives focus on digital transformation and automation of
-        core business processes. Investment in technology infrastructure enables
-        competitive advantage in rapidly evolving markets.""",
-        """Compliance with regulatory requirements necessitates comprehensive audit
-        trails and documentation. Internal controls ensure adherence to industry
-        standards and legal obligations.""",
+        """The quarterly report shows revenue growth in core markets. Sales rose
+        after product updates and better partner coverage. Leaders expect steady
+        demand next quarter, but they also track cost pressure and staffing plans
+        to protect margin targets across all regions. The plan assumes 8% growth
+        in 2026 with modest support cost increases.""",
+        """Risk teams review supply, security, and legal exposure each month. They
+        rank threats by impact and probability, then assign owners for mitigation
+        work. Board updates include open issues, due dates, and control test
+        results so actions stay on schedule.""",
+        """Customer feedback improved across support and onboarding services. Net
+        promoter scores moved up after faster response times and clearer help
+        content. Teams now review top complaint themes weekly and tie fixes to
+        retention goals and service quality plans.""",
+        """Strategic planning links product bets to cash flow and capacity. Managers
+        score each initiative on expected return, delivery risk, and team load.
+        This process keeps the roadmap focused on high-value work with clear
+        milestones and transparent tradeoff decisions.""",
+        """Compliance programs require complete records for audits and policy reviews.
+        Teams store approvals, exceptions, and evidence in one governed repository.
+        Regular checks confirm controls are active and that regulatory deadlines
+        are met without repeat findings.""",
     ]
 
 

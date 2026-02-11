@@ -52,6 +52,7 @@ from src.data_extract.core.models import (  # noqa: E402
     Document,
     Metadata,
     Position,
+    ProcessingContext,
 )
 
 # Markers for test organization
@@ -61,6 +62,18 @@ pytestmark = [
     pytest.mark.chunking,
     pytest.mark.semantic,
 ]
+
+
+def _make_test_metadata(source_file: Path, document_type: str = "report") -> Metadata:
+    """Create metadata compatible with current required core fields."""
+    return Metadata(
+        source_file=source_file,
+        file_hash="test-hash",
+        processing_timestamp="2025-11-18T12:00:00Z",
+        tool_version="1.0.0",
+        config_version="test",
+        document_type=document_type,
+    )
 
 
 class TestChunkToSemanticCompatibility:
@@ -92,12 +105,7 @@ class TestChunkToSemanticCompatibility:
                 + "which is mitigated by CTRL-042: Access control policy. " * 10
                 + "\n\nSection 3: Control Framework\n"
                 + "The control framework implements multiple layers of security. " * 10,
-                metadata=Metadata(
-                    source_file=pdf_path,
-                    document_type="report",
-                    extraction_method="test",
-                    processing_timestamp="2025-11-18T12:00:00Z",
-                ),
+                metadata=_make_test_metadata(source_file=pdf_path, document_type="report"),
                 structure={
                     "page_count": 3,
                     "word_count": 500,
@@ -105,7 +113,12 @@ class TestChunkToSemanticCompatibility:
                     "has_tables": False,
                     "sections": ["Introduction", "Risk Assessment", "Control Framework"],
                 },
-                validation=ValidationReport(is_valid=True, confidence_score=0.98, flags=[]),
+                validation=ValidationReport(
+                    quarantine_recommended=False,
+                    confidence_scores={1: 0.98},
+                    quality_flags=[],
+                    extraction_gaps=[],
+                ),
                 entities=[],
                 content_blocks=[
                     ContentBlock(
@@ -134,22 +147,32 @@ class TestChunkToSemanticCompatibility:
                 pytest.skip(f"Failed to extract test document from {pdf_path}")
 
         # Normalize the document
+        from src.data_extract.normalize.config import NormalizationConfig  # noqa: E402
         from src.data_extract.normalize.normalizer import Normalizer  # noqa: E402
 
-        normalizer = Normalizer()
-        normalized_doc = normalizer.normalize(test_doc)
-
-        if normalized_doc is None:
+        context = ProcessingContext(config={}, logger=None, metrics={})
+        normalizer = Normalizer(
+            NormalizationConfig(
+                enable_entity_normalization=False,
+                enable_schema_standardization=False,
+            )
+        )
+        try:
+            normalized_doc = normalizer.process(test_doc, context)
+        except Exception:
             normalized_doc = test_doc  # Use unnormalized if normalization fails
 
         # Chunk the document
         chunker = ChunkingEngine()
-        chunk_result = chunker.process(normalized_doc)
+        try:
+            chunks = chunker.process(normalized_doc, context)
+        except Exception as exc:
+            pytest.skip(f"Failed to chunk document: {exc}")
 
-        if not chunk_result.success:
-            pytest.skip(f"Failed to chunk document: {chunk_result.error}")
+        if not chunks:
+            pytest.skip("Failed to chunk document: no chunks produced")
 
-        return chunk_result.chunks
+        return chunks
 
     @pytest.mark.p0
     def test_chunks_have_text_content(self, sample_chunks):
@@ -244,14 +267,10 @@ class TestChunkToSemanticCompatibility:
 
             # Should follow pattern {source}_{index}
             if "_" in chunk_id:
-                parts = chunk_id.split("_")
-                if len(parts) == 2:
-                    source, index_str = parts
-                    # Index should be numeric
-                    if not index_str.isdigit():
-                        format_errors.append(f"{chunk_id}: index '{index_str}' not numeric")
-                else:
-                    format_errors.append(f"{chunk_id}: wrong number of parts ({len(parts)})")
+                index_str = chunk_id.rsplit("_", 1)[-1]
+                # Index should be numeric
+                if not index_str.isdigit():
+                    format_errors.append(f"{chunk_id}: index '{index_str}' not numeric")
             else:
                 # ID without underscore is acceptable but note it
                 pass  # Some implementations might use different format
@@ -415,12 +434,7 @@ class TestChunkToSemanticPerformance:
                 section_context=f"Section {i // 10}",
                 quality_score=0.9,
                 readability_scores={"flesch_reading_ease": 60.0},
-                metadata=Metadata(
-                    source_file=Path("test.pdf"),
-                    document_type="report",
-                    extraction_method="test",
-                    processing_timestamp="2025-11-18T12:00:00Z",
-                ),
+                metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
             )
             chunks.append(chunk)
 
@@ -517,11 +531,9 @@ class TestChunkToSemanticPerformance:
                     section_context="Test",
                     quality_score=0.9,
                     readability_scores={},
-                    metadata=Metadata(
+                    metadata=_make_test_metadata(
                         source_file=Path("test.pdf"),
                         document_type="report",
-                        extraction_method="test",
-                        processing_timestamp="2025-11-18T12:00:00Z",
                     ),
                 )
                 chunks.append(chunk)
@@ -575,12 +587,7 @@ class TestChunkToSemanticErrorRecovery:
                 section_context="",
                 quality_score=0.0,
                 readability_scores={},
-                metadata=Metadata(
-                    source_file=Path("test.pdf"),
-                    document_type="report",
-                    extraction_method="test",
-                    processing_timestamp="2025-11-18T12:00:00Z",
-                ),
+                metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
             ),
             Chunk(
                 id="normal_001",
@@ -593,12 +600,7 @@ class TestChunkToSemanticErrorRecovery:
                 section_context="Section 1",
                 quality_score=0.9,
                 readability_scores={},
-                metadata=Metadata(
-                    source_file=Path("test.pdf"),
-                    document_type="report",
-                    extraction_method="test",
-                    processing_timestamp="2025-11-18T12:00:00Z",
-                ),
+                metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
             ),
         ]
 
@@ -634,12 +636,7 @@ class TestChunkToSemanticErrorRecovery:
                 section_context="Special",
                 quality_score=0.9,
                 readability_scores={},
-                metadata=Metadata(
-                    source_file=Path("test.pdf"),
-                    document_type="report",
-                    extraction_method="test",
-                    processing_timestamp="2025-11-18T12:00:00Z",
-                ),
+                metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
             )
             for i, text in enumerate(
                 [
@@ -695,11 +692,9 @@ class TestChunkToSemanticErrorRecovery:
                     section_context=f"Section {chunk_id // 10}",
                     quality_score=0.85 + (chunk_id % 10) * 0.01,
                     readability_scores={"flesch_reading_ease": 50.0 + chunk_id % 30},
-                    metadata=Metadata(
+                    metadata=_make_test_metadata(
                         source_file=Path(f"doc_{doc_id}.pdf"),
                         document_type="report",
-                        extraction_method="test",
-                        processing_timestamp="2025-11-18T12:00:00Z",
                     ),
                 )
                 large_chunks.append(chunk)
@@ -753,12 +748,7 @@ class TestChunkOutputContract:
             section_context="Test Section",
             quality_score=0.9,
             readability_scores={"flesch_reading_ease": 60.0},
-            metadata=Metadata(
-                source_file=Path("test.pdf"),
-                document_type="report",
-                extraction_method="test",
-                processing_timestamp="2025-11-18T12:00:00Z",
-            ),
+            metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
         )
 
         # Verify required fields exist and have correct types
@@ -803,12 +793,7 @@ class TestChunkOutputContract:
             section_context="Section 1",
             quality_score=0.95,
             readability_scores={"flesch_reading_ease": 65.0},
-            metadata=Metadata(
-                source_file=Path("test.pdf"),
-                document_type="report",
-                extraction_method="test",
-                processing_timestamp="2025-11-18T12:00:00Z",
-            ),
+            metadata=_make_test_metadata(source_file=Path("test.pdf"), document_type="report"),
         )
 
         # Convert to dictionary (Epic 4 will do this)

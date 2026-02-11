@@ -172,7 +172,7 @@ class TestQualityMetricsIntegration:
         assert 0 <= threshold <= 1, "Threshold should be in [0, 1]"
 
     def test_qual004_automated_readability_index(
-        self, simple_documents: List[str], semantic_processing_context: ProcessingContext
+        self, semantic_processing_context: ProcessingContext
     ):
         """
         Test QUAL-004: ARI (Automated Readability Index) calculation.
@@ -233,7 +233,7 @@ class TestQualityMetricsIntegration:
 
         for chunk in entity_rich_chunks[:5]:
             # Calculate entity density
-            entities = chunk.metadata.get("entities", [])
+            entities = chunk.metadata.entity_tags or []
             word_count = textstat.lexicon_count(chunk.text, removepunct=True)
             entity_density = len(entities) / max(word_count, 1)
 
@@ -276,27 +276,15 @@ class TestQualityMetricsIntegration:
         """
         import textstat  # noqa: E402
 
-        from src.data_extract.chunk.models import Chunk  # noqa: E402
-
-        # Create chunks in different languages/styles
-        test_chunks = [
-            Chunk(
-                content="This is a simple English sentence with clear meaning.",
-                metadata={"id": 1, "expected_lang": "en"},
-            ),
-            Chunk(
-                content="The quick brown fox jumps over the lazy dog repeatedly.",
-                metadata={"id": 2, "expected_lang": "en"},
-            ),
-            # Note: textstat is English-focused, so we simulate detection
-            Chunk(
-                content="Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-                metadata={"id": 3, "expected_lang": "latin"},
-            ),
+        # Create texts in different languages/styles.
+        test_texts = [
+            "This is a simple English sentence with clear meaning.",
+            "The quick brown fox jumps over the lazy dog repeatedly.",
+            # Note: textstat is English-focused, so we simulate detection.
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         ]
 
-        for chunk in test_chunks:
-            text = chunk.text
+        for text in test_texts:
 
             # For English text, apply full metrics
             if "english" in text.lower() or "fox" in text.lower() or "dog" in text.lower():

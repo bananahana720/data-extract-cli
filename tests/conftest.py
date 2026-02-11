@@ -12,7 +12,10 @@ Usage:
         assert sample_content_block.block_type == ContentType.PARAGRAPH
 """
 
+import os
+import hashlib
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Generator, Tuple
 
@@ -29,6 +32,17 @@ from data_extract.core.models import (
 
 # Legacy compatibility - map brownfield concepts to greenfield
 DocumentMetadata = Metadata  # Alias for backwards compatibility
+
+
+@pytest.fixture(autouse=True)
+def ensure_cli_script_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make installed venv CLI scripts resolvable in subprocess-based tests."""
+    venv_bin = Path(__file__).resolve().parents[1] / ".venv" / "bin"
+    current_path = os.environ.get("PATH", "")
+    path_parts = current_path.split(os.pathsep) if current_path else []
+    if str(venv_bin) not in path_parts:
+        updated_path = f"{venv_bin}{os.pathsep}{current_path}" if current_path else str(venv_bin)
+        monkeypatch.setenv("PATH", updated_path)
 
 # TableMetadata replacement - simple dataclass for table structure in ContentBlock metadata
 
@@ -191,16 +205,15 @@ def sample_document_metadata(tmp_path: Path) -> DocumentMetadata:
         DocumentMetadata with sample values
     """
     test_file = tmp_path / "test_document.txt"
-    test_file.write_text("Sample content")
+    content = "Sample content"
+    test_file.write_text(content)
 
     return DocumentMetadata(
         source_file=test_file,
-        file_format="txt",
-        file_size_bytes=test_file.stat().st_size,
-        title="Test Document",
-        author="Test Author",
-        page_count=1,
-        word_count=50,
+        file_hash=hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        processing_timestamp=datetime.now(UTC),
+        tool_version="1.0.0",
+        config_version="test-fixtures",
     )
 
 
@@ -317,6 +330,22 @@ def temp_test_file(tmp_path: Path) -> Generator[Path, None, None]:
     yield test_file
 
     # Cleanup happens automatically via tmp_path
+
+
+@pytest.fixture
+def temp_workspace(tmp_path: Path) -> Generator[Path, None, None]:
+    """
+    Provide a shared temporary workspace for legacy fixture compatibility.
+
+    Args:
+        tmp_path: pytest built-in fixture providing temporary directory
+
+    Yields:
+        Path to temporary workspace directory
+    """
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True, exist_ok=True)
+    yield workspace
 
 
 @pytest.fixture

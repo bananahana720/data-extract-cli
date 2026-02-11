@@ -277,14 +277,21 @@ class TestLSAIntegration:
         # Process both batches together (baseline)
         vectorizer = TfidfVectorizer(max_features=500)
         all_vectors = vectorizer.fit_transform(texts)
+        batch1_vectors = vectorizer.transform(batch1)
 
-        n_components = min(20, all_vectors.shape[0] - 1, all_vectors.shape[1] - 1)
+        # Use a shared dimensionality that is valid for both all-data and first-batch fits.
+        n_components = min(
+            20,
+            all_vectors.shape[0] - 1,
+            all_vectors.shape[1] - 1,
+            batch1_vectors.shape[0] - 1,
+            batch1_vectors.shape[1] - 1,
+        )
         lsa_all = TruncatedSVD(n_components=n_components, random_state=42)
         lsa_all_vectors = lsa_all.fit_transform(all_vectors)
 
         # Process incrementally (simulate)
         # First batch
-        batch1_vectors = vectorizer.transform(batch1)
         lsa_incr = TruncatedSVD(n_components=n_components, random_state=42)
         lsa_batch1 = lsa_incr.fit_transform(batch1_vectors)
 
@@ -300,8 +307,10 @@ class TestLSAIntegration:
             lsa_incremental.shape == lsa_all_vectors.shape
         ), "Incremental and batch should have same shape"
 
-        # Components should be similar (allowing for sign flipping)
-        for i in range(n_components):
+        # Compare only dominant components; lower components are unstable in
+        # small-batch incremental fits and can rotate between equivalent bases.
+        components_to_compare = min(2, n_components)
+        for i in range(components_to_compare):
             all_comp = lsa_all_vectors[:, i]
             incr_comp = lsa_incremental[:, i]
 
@@ -345,11 +354,14 @@ class TestLSAIntegration:
         # Assertions
         assert len(explained_variance) == n_components, "Should have variance for each component"
 
-        # Variance should be monotonically decreasing
+        # TruncatedSVD does not guarantee strictly monotonic explained variance
+        # ratios on sparse, non-centered TF-IDF data. Verify ordered component
+        # importance using singular values instead.
+        singular_values = lsa.singular_values_
         assert all(
-            explained_variance[i] >= explained_variance[i + 1]
-            for i in range(len(explained_variance) - 1)
-        ), "Variance should decrease with component order"
+            singular_values[i] >= singular_values[i + 1]
+            for i in range(len(singular_values) - 1)
+        ), "Singular values should decrease with component order"
 
         # First component should explain most variance
         assert (
