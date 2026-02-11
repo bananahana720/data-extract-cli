@@ -87,9 +87,30 @@ STDLIB_MODULES = {
     "xml",
     "zipfile",
 }
+# Include the runtime stdlib set when available to reduce stale omissions.
+if hasattr(sys, "stdlib_module_names"):
+    STDLIB_MODULES.update(sys.stdlib_module_names)  # type: ignore[arg-type]
 
 # Project internal modules (don't need declaration)
-PROJECT_MODULES = {"data_extract", "src", "tests"}
+PROJECT_MODULES = {"data_extract", "src", "tests", "scripts", "smoke_test_semantic"}
+
+# Imports intentionally resolved by parent packages or runtime internals.
+ALIAS_IMPORT_MAPPINGS = {
+    "pil": "pillow",
+    "cv2": "opencv_python",
+    "sklearn": "scikit_learn",
+    "yaml": "pyyaml",
+    "bs4": "beautifulsoup4",
+    "_pytest": "pytest",
+    "docx": "python_docx",
+}
+
+# Import names typically provided transitively by declared packages.
+TRANSITIVE_IMPORT_PROVIDERS = {
+    "scikit_learn": {"numpy", "scipy", "packaging"},
+    "python_docx": {"docx"},
+    "pytest": {"_pytest"},
+}
 
 
 class DependencyAuditor:
@@ -133,13 +154,13 @@ class DependencyAuditor:
 
             if cache_key in self.cache and self.cache[cache_key]["mtime"] == file_mtime:
                 # Use cached result
-                imports = self.cache[cache_key]["imports"]
+                imports = set(self.cache[cache_key]["imports"])
                 logger.debug("using_cached_imports", file=str(test_file))
             else:
                 # Parse file for imports
                 imports = self._extract_imports(test_file)
                 # Update cache
-                self.cache[cache_key] = {"mtime": file_mtime, "imports": imports}
+                self.cache[cache_key] = {"mtime": file_mtime, "imports": sorted(imports)}
                 logger.debug("parsed_imports", file=str(test_file), count=len(imports))
 
             # Try to make path relative to PROJECT_ROOT, otherwise use absolute path
@@ -305,9 +326,10 @@ class DependencyAuditor:
         # Normalize import names for comparison
         normalized_imports = {self._normalize_import_name(imp) for imp in all_test_imports}
         normalized_declared = {self._normalize_import_name(dep) for dep in self.declared_deps}
+        provided_imports = self._resolve_transitive_imports(normalized_declared)
 
         # Find missing dependencies (used in tests but not declared)
-        self.missing_deps = normalized_imports - normalized_declared
+        self.missing_deps = normalized_imports - normalized_declared - provided_imports
 
         # Find unused dependencies (declared but not used in tests)
         # Note: This might include dependencies used by src code, not just tests
@@ -331,17 +353,16 @@ class DependencyAuditor:
         Returns:
             Normalized name
         """
-        # Common mappings (keys should be lowercase)
-        mappings = {
-            "pil": "pillow",
-            "cv2": "opencv_python",
-            "sklearn": "scikit_learn",
-            "yaml": "pyyaml",
-            "bs4": "beautifulsoup4",
-        }
-
         normalized = name.lower().replace("-", "_")
-        return mappings.get(normalized, normalized)
+        return ALIAS_IMPORT_MAPPINGS.get(normalized, normalized)
+
+    def _resolve_transitive_imports(self, declared_packages: Set[str]) -> Set[str]:
+        """Return import names expected to be present via declared dependencies."""
+        provided: Set[str] = set()
+        for package in declared_packages:
+            provided.update(TRANSITIVE_IMPORT_PROVIDERS.get(package, set()))
+        # Ensure alias normalization is consistently applied.
+        return {self._normalize_import_name(name) for name in provided}
 
     def generate_report(self, output_format: str = "json") -> str:
         """
@@ -493,8 +514,14 @@ class DependencyAuditor:
         """Save cache to disk."""
         cache_file = self.cache_dir / "import_cache.json"
         try:
+            serializable_cache: Dict[str, Dict[str, Any]] = {}
+            for key, value in self.cache.items():
+                imports = value.get("imports", [])
+                if isinstance(imports, set):
+                    imports = sorted(imports)
+                serializable_cache[key] = {"mtime": value.get("mtime"), "imports": list(imports)}
             with open(cache_file, "w") as f:
-                json.dump(self.cache, f, indent=2)
+                json.dump(serializable_cache, f, indent=2)
             logger.debug("cache_saved", path=str(cache_file))
         except Exception as e:
             logger.warning("failed_to_save_cache", error=str(e))
@@ -505,7 +532,16 @@ class DependencyAuditor:
         if cache_file.exists():
             try:
                 with open(cache_file, "r") as f:
-                    self.cache = json.load(f)
+                    raw_cache = json.load(f)
+                self.cache = {}
+                for key, value in raw_cache.items():
+                    imports = value.get("imports", [])
+                    if isinstance(imports, str):
+                        imports = [imports]
+                    self.cache[key] = {
+                        "mtime": value.get("mtime"),
+                        "imports": list(imports),
+                    }
                 logger.debug("cache_loaded", path=str(cache_file))
             except Exception as e:
                 logger.warning("failed_to_load_cache", error=str(e))

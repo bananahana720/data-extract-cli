@@ -119,6 +119,8 @@ dev = [
         assert auditor._normalize_import_name("sklearn") == "scikit_learn"
         assert auditor._normalize_import_name("yaml") == "pyyaml"
         assert auditor._normalize_import_name("bs4") == "beautifulsoup4"
+        assert auditor._normalize_import_name("_pytest") == "pytest"
+        assert auditor._normalize_import_name("docx") == "python_docx"
 
         # Test normalization rules
         assert auditor._normalize_import_name("Some-Package") == "some_package"
@@ -240,6 +242,22 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         assert "mypy" in unused  # Declared but not used
 
     @pytest.mark.unit
+    def test_cross_reference_suppresses_transitive_providers(self, auditor):
+        """Test that known transitive modules are not flagged missing."""
+        auditor.test_imports = {
+            "tests/test_1.py": {"numpy", "scipy", "packaging", "_pytest", "docx"},
+        }
+        auditor.declared_deps = {"scikit_learn", "pytest", "python_docx"}
+
+        missing, _unused = auditor.cross_reference()
+
+        assert "numpy" not in missing
+        assert "scipy" not in missing
+        assert "packaging" not in missing
+        assert "pytest" not in missing
+        assert "python_docx" not in missing
+
+    @pytest.mark.unit
     def test_generate_recommendations(self, auditor):
         """Test recommendation generation."""
         # Test with missing dependencies
@@ -317,6 +335,16 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         # Verify cache loaded correctly
         assert "test_file.py" in new_auditor.cache
         assert new_auditor.cache["test_file.py"]["mtime"] == 12345.67
+        assert isinstance(new_auditor.cache["test_file.py"]["imports"], list)
+
+    @pytest.mark.unit
+    def test_save_cache_handles_set_imports(self, auditor):
+        """Test cache saving converts set imports into JSON-safe lists."""
+        auditor.cache = {"test_file.py": {"mtime": 1.0, "imports": {"numpy", "pytest"}}}
+        auditor._save_cache()
+
+        raw = json.loads((auditor.cache_dir / "import_cache.json").read_text())
+        assert sorted(raw["test_file.py"]["imports"]) == ["numpy", "pytest"]
 
     @pytest.mark.unit
     def test_scan_test_files_with_cache(self, auditor, tmp_path):
