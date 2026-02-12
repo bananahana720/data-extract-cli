@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List
 
 import structlog
+
 from data_extract.chunk.engine import ChunkingConfig, ChunkingEngine
 from data_extract.core.models import Chunk, Document
 from data_extract.extract import get_extractor

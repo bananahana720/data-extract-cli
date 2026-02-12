@@ -117,7 +117,7 @@ export function JobDetailPage() {
       }
 
       try {
-        const detail = await getJob(jobId);
+        const detail = await getJob(jobId, { fileLimit: 2000, eventLimit: 2000 });
         setJob(detail);
         setError(null);
         try {
@@ -187,7 +187,9 @@ export function JobDetailPage() {
     setRetrying(true);
     try {
       await runWithDatabaseLockRetry(() => retryJobFailures(jobId));
-      const detail = await runWithDatabaseLockRetry(() => getJob(jobId));
+      const detail = await runWithDatabaseLockRetry(() =>
+        getJob(jobId, { fileLimit: 2000, eventLimit: 2000 })
+      );
       setJob(detail);
       if (detail.status === "queued" || detail.status === "running") {
         setPollVersion((current) => current + 1);
@@ -208,7 +210,9 @@ export function JobDetailPage() {
     setCleaning(true);
     try {
       await runWithDatabaseLockRetry(() => cleanupJobArtifacts(jobId));
-      const detail = await runWithDatabaseLockRetry(() => getJob(jobId));
+      const detail = await runWithDatabaseLockRetry(() =>
+        getJob(jobId, { fileLimit: 2000, eventLimit: 2000 })
+      );
       setJob(detail);
       if (detail.status === "queued" || detail.status === "running") {
         setPollVersion((current) => current + 1);

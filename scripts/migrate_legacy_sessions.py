@@ -111,9 +111,10 @@ def _canonical_projection(session_id: str) -> dict[str, Any] | None:
         return None
 
     try:
+        from sqlalchemy import select
+
         from data_extract.api.database import SessionLocal, init_database
         from data_extract.api.models import Job, SessionRecord
-        from sqlalchemy import select
     except Exception:
         return None
 

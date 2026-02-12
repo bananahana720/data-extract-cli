@@ -9,7 +9,6 @@ import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_PATH = PROJECT_ROOT / "scripts" / "migrate_legacy_sessions.py"
 SRC_PATH = PROJECT_ROOT / "src"

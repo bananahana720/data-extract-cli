@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "chunk_count": 1,
+    "processing_version": "1.0.0",
+    "source_documents": [
+      "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/tests/fixtures/quality_test_documents/complex_text.txt"
+    ]
+  },
+  "chunks": [
+    {
+      "id": "complex_text_3fa244a3_001",
+      "text": "The implementation of a comprehensive risk mitigation methodology necessitates the establishment of multifaceted governance frameworks that systematically integrate probabilistic assessment techniques with deterministic control mechanisms, thereby facilitating the optimization of organizational resilience through iterative refinement of procedural architectures and continuous evaluation of emerging threat vectors across heterogeneous operational environments.",
+      "document_id": "complex_text_3fa244a3",
+      "position_index": 0,
+      "token_count": 49,
+      "word_count": 49,
+      "entities": [],
+      "section_context": "",
+      "quality_score": 9.8e-05,
+      "readability_scores": {},
+      "metadata": {
+        "source_file": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/tests/fixtures/quality_test_documents/complex_text.txt",
+        "file_hash": "10cd073ae881106519ae3b82674ade3acfcaf5de1258c37177848dff4fb3af44",
+        "processing_timestamp": "2026-02-12T01:33:27.024458+00:00",
+        "tool_version": "0.1.0",
+        "config_version": "1.0.0",
+        "document_type": "report",
+        "document_subtype": "txt",
+        "quality_scores": {
+          "extraction_confidence": 1.0
+        },
+        "ocr_confidence": {},
+        "completeness_ratio": 1.0,
+        "quality_flags": [],
+        "entity_tags": [],
+        "entity_counts": {},
+        "entity_relationships": [],
+        "section_context": null,
+        "config_snapshot": {},
+        "validation_report": {
+          "quarantine_recommended": false,
+          "document_average_confidence": 1.0,
+          "quality_flags": []
+        }
+      }
+    }
+  ],
+  "content": "The implementation of a comprehensive risk mitigation methodology necessitates the establishment of multifaceted governance frameworks that systematically integrate probabilistic assessment techniques with deterministic control mechanisms, thereby facilitating the optimization of organizational resilience through iterative refinement of procedural architectures and continuous evaluation of emerging threat vectors across heterogeneous operational environments."
+}

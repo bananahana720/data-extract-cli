@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from data_extract.contracts import (
     JobStatus,
+    ProcessedFileOutcome,
     ProcessJobRequest,
     ProcessJobResult,
-    ProcessedFileOutcome,
     SemanticOutcome,
 )
 

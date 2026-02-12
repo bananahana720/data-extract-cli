@@ -12,8 +12,8 @@ Usage:
         assert sample_content_block.block_type == ContentType.PARAGRAPH
 """
 
-import os
 import hashlib
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path

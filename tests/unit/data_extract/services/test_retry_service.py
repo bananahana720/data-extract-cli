@@ -9,10 +9,8 @@ from pathlib import Path
 import pytest
 
 from data_extract.cli.session import SessionManager
-from data_extract.contracts import JobStatus
-from data_extract.contracts import RetryRequest
+from data_extract.contracts import JobStatus, RetryRequest
 from data_extract.services import RetryService
-
 
 pytestmark = [pytest.mark.unit]
 

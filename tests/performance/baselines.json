@@ -184,15 +184,15 @@
     },
     "cli_progress_overhead": {
       "operation": "cli_progress_overhead",
-      "duration_ms": 99.7039660005612,
+      "duration_ms": -0.5085880002297927,
       "memory_mb": 0.0,
       "file_size_kb": 0.87890625,
       "throughput": 0.0,
-      "timestamp": "2026-02-11T19:18:26.347695",
+      "timestamp": "2026-02-11T20:33:25.083400",
       "metadata": {
-        "with_progress_ms": 2207.6728840002033,
-        "quiet_ms": 2107.968917999642,
-        "overhead_pct": 4.729859399216156
+        "with_progress_ms": 2208.158626999648,
+        "quiet_ms": 2208.6672149998776,
+        "overhead_pct": -0.023026918531491893
       }
     },
     "processor_quality_validation": {
@@ -222,110 +222,110 @@
     },
     "cli_extract_txt": {
       "operation": "cli_extract_txt",
-      "duration_ms": 2207.4474940000073,
-      "memory_mb": 220.24609375,
+      "duration_ms": 2208.348296000622,
+      "memory_mb": 220.07421875,
       "file_size_kb": 0.87890625,
-      "throughput": 0.39815499684088845,
-      "timestamp": "2026-02-11T19:18:04.850853",
+      "throughput": 0.3979925864012134,
+      "timestamp": "2026-02-11T20:33:02.373383",
       "metadata": {
         "file_name": "sample.txt",
-        "cpu_percent": 276.17727272727274
+        "cpu_percent": 273.3727272727273
       }
     },
     "cli_extract_pdf": {
       "operation": "cli_extract_pdf",
-      "duration_ms": 5819.080581999515,
-      "memory_mb": 245.3515625,
+      "duration_ms": 6121.150312999816,
+      "memory_mb": 245.60546875,
       "file_size_kb": 807.28515625,
-      "throughput": 138.73070580036648,
-      "timestamp": "2026-02-11T19:18:10.672353",
+      "throughput": 131.884550283878,
+      "timestamp": "2026-02-11T20:33:08.496997",
       "metadata": {
         "file_name": "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf",
-        "cpu_percent": 167.86724137931037
+        "cpu_percent": 163.14590163934426
       }
     },
     "cli_unicode_encoding": {
       "operation": "cli_unicode_encoding",
-      "duration_ms": 2107.3855009999534,
-      "memory_mb": 220.26953125,
+      "duration_ms": 2309.110000000146,
+      "memory_mb": 220.01953125,
       "file_size_kb": 0.453125,
-      "throughput": 0.21501761295453178,
-      "timestamp": "2026-02-11T19:18:28.457647",
+      "throughput": 0.19623361381656626,
+      "timestamp": "2026-02-11T20:33:27.395387",
       "metadata": {
         "file_name": "complex_text.txt",
-        "cpu_percent": 292.0904761904762
+        "cpu_percent": 263.8565217391304
       }
     },
     "cli_batch_1workers": {
       "operation": "cli_batch_1workers",
-      "duration_ms": 2307.507509000061,
-      "memory_mb": 227.99609375,
+      "duration_ms": 2408.5502380003163,
+      "memory_mb": 227.79296875,
       "file_size_kb": 13.5771484375,
-      "throughput": 2.166840186000828,
-      "timestamp": "2026-02-11T19:18:12.983333",
+      "throughput": 2.075937599770067,
+      "timestamp": "2026-02-11T20:33:10.909112",
       "metadata": {
         "num_files": 5,
         "workers": 1,
-        "cpu_percent": 269.2826086956522,
-        "ms_per_file": 461.5015018000122
+        "cpu_percent": 248.45833333333334,
+        "ms_per_file": 481.71004760006326
       }
     },
     "cli_batch_4workers": {
       "operation": "cli_batch_4workers",
-      "duration_ms": 2207.4566250003045,
-      "memory_mb": 227.53515625,
+      "duration_ms": 2509.5162310008163,
+      "memory_mb": 227.875,
       "file_size_kb": 13.5771484375,
-      "throughput": 2.2650501683127344,
-      "timestamp": "2026-02-11T19:18:15.194262",
+      "throughput": 1.9924158840789636,
+      "timestamp": "2026-02-11T20:33:13.422409",
       "metadata": {
         "num_files": 5,
         "workers": 4,
-        "cpu_percent": 280.6227272727273,
-        "ms_per_file": 441.4913250000609
+        "cpu_percent": 250.74400000000003,
+        "ms_per_file": 501.90324620016327
       }
     },
     "cli_batch_8workers": {
       "operation": "cli_batch_8workers",
-      "duration_ms": 2307.623876999969,
-      "memory_mb": 227.93359375,
+      "duration_ms": 2510.0573990002886,
+      "memory_mb": 227.6796875,
       "file_size_kb": 13.5771484375,
-      "throughput": 2.1667309173886085,
-      "timestamp": "2026-02-11T19:18:17.505347",
+      "throughput": 1.9919863195126182,
+      "timestamp": "2026-02-11T20:33:15.936424",
       "metadata": {
         "num_files": 5,
         "workers": 8,
-        "cpu_percent": 269.9391304347826,
-        "ms_per_file": 461.5247753999938
+        "cpu_percent": 246.12400000000002,
+        "ms_per_file": 502.0114798000577
       }
     },
     "cli_batch_16workers": {
       "operation": "cli_batch_16workers",
-      "duration_ms": 2307.195151000087,
-      "memory_mb": 228.05078125,
+      "duration_ms": 2509.04371300021,
+      "memory_mb": 227.64453125,
       "file_size_kb": 13.5771484375,
-      "throughput": 2.167133542142145,
-      "timestamp": "2026-02-11T19:18:19.816292",
+      "throughput": 1.9927911076611766,
+      "timestamp": "2026-02-11T20:33:18.449582",
       "metadata": {
         "num_files": 5,
         "workers": 16,
-        "cpu_percent": 269.7086956521739,
-        "ms_per_file": 461.43903020001744
+        "cpu_percent": 244.38400000000001,
+        "ms_per_file": 501.808742600042
       }
     },
     "cli_stress_high_concurrency": {
       "operation": "cli_stress_high_concurrency",
-      "duration_ms": 2208.2097909997174,
-      "memory_mb": 220.23828125,
+      "duration_ms": 2208.7243839996518,
+      "memory_mb": 220.64453125,
       "file_size_kb": 1.8603515625,
-      "throughput": 3.169988661643832,
-      "timestamp": "2026-02-11T19:18:22.028291",
+      "throughput": 3.1692501113806255,
+      "timestamp": "2026-02-11T20:33:20.662443",
       "metadata": {
         "num_files": 7,
         "workers": 16,
-        "cpu_percent": 277.95909090909095,
+        "cpu_percent": 264.0409090909091,
         "output_files": 7
       }
     }
   },
-  "updated_at": "2026-02-11T19:18:28.457883"
+  "updated_at": "2026-02-11T20:33:27.395633"
 }

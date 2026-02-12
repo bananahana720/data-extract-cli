@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
+
+from sqlalchemy import delete, select
 
 from data_extract.api.database import JOBS_HOME, SessionLocal, init_database
 from data_extract.api.models import Job, JobEvent, JobFile, RetryRun, SessionRecord
@@ -14,9 +17,11 @@ from data_extract.contracts import JobStatus, ProcessJobRequest, RetryRequest
 from data_extract.runtime import LocalJobQueue
 from data_extract.services import JobService, RetryService
 from data_extract.services.pathing import normalized_path_text
-from data_extract.services.persistence_repository import RUNNING_STATUSES, TERMINAL_STATUSES
-from data_extract.services.persistence_repository import PersistenceRepository
-from sqlalchemy import delete
+from data_extract.services.persistence_repository import (
+    RUNNING_STATUSES,
+    TERMINAL_STATUSES,
+    PersistenceRepository,
+)
 
 
 class ApiRuntime:
@@ -24,18 +29,52 @@ class ApiRuntime:
 
     def __init__(self) -> None:
         self.job_service = JobService()
-        self.retry_service = RetryService(job_service=self.job_service)
         self.persistence = PersistenceRepository()
-        self.queue = LocalJobQueue(self._handle_job)
+        self._worker_count = self._resolve_worker_count()
+        self.queue = LocalJobQueue(self._handle_job, worker_count=self._worker_count)
+        self._recovery_stats = {"requeued": 0, "failed": 0}
+        self._readiness_report: dict[str, Any] = {
+            "status": "unknown",
+            "ready": False,
+            "errors": [],
+            "warnings": [],
+            "checks": {},
+            "checked_at": None,
+        }
 
     def start(self) -> None:
         """Initialize schema and start background worker."""
         init_database()
         self.queue.start()
+        self._recover_inflight_jobs()
 
     def stop(self) -> None:
         """Stop background worker."""
         self.queue.stop()
+
+    @property
+    def worker_count(self) -> int:
+        """Configured queue worker count."""
+        return self._worker_count
+
+    @property
+    def queue_backlog(self) -> int:
+        """Approximate number of jobs pending in queue memory."""
+        return self.queue.backlog
+
+    @property
+    def recovery_stats(self) -> dict[str, int]:
+        """Snapshot of last startup recovery actions."""
+        return dict(self._recovery_stats)
+
+    def set_readiness_report(self, report: dict[str, Any]) -> None:
+        """Store startup readiness report snapshot."""
+        self._readiness_report = dict(report)
+
+    @property
+    def readiness_report(self) -> dict[str, Any]:
+        """Return latest startup readiness report."""
+        return dict(self._readiness_report)
 
     def enqueue_process(self, request: ProcessJobRequest, job_id: str | None = None) -> str:
         """Create queued process job and submit to worker."""
@@ -124,13 +163,17 @@ class ApiRuntime:
         self._write_job_log(job_id, "Job started")
 
         try:
+            # Build fresh services per task to avoid shared mutable pipeline state
+            # across concurrent queue workers.
+            job_service = JobService()
+            retry_service = RetryService(job_service=job_service)
             if kind == "retry":
-                result = self.retry_service.run_retry(
+                result = retry_service.run_retry(
                     RetryRequest(**request_payload),
                     work_dir=self._resolve_work_dir(input_path),
                 )
             else:
-                result = self.job_service.run_process(
+                result = job_service.run_process(
                     ProcessJobRequest(**request_payload),
                     job_id=job_id,
                     work_dir=self._resolve_work_dir(input_path),
@@ -166,7 +209,9 @@ class ApiRuntime:
                     JobFile(
                         job_id=job_id,
                         source_path=source_path,
-                        normalized_source_path=normalized_path_text(source_path) if source_path else None,
+                        normalized_source_path=(
+                            normalized_path_text(source_path) if source_path else None
+                        ),
                         output_path=processed.get("output_path"),
                         status="processed",
                         chunk_count=processed.get("chunk_count", 0),
@@ -179,7 +224,9 @@ class ApiRuntime:
                     JobFile(
                         job_id=job_id,
                         source_path=source_path,
-                        normalized_source_path=normalized_path_text(source_path) if source_path else None,
+                        normalized_source_path=(
+                            normalized_path_text(source_path) if source_path else None
+                        ),
                         output_path=None,
                         status="failed",
                         chunk_count=0,
@@ -196,9 +243,11 @@ class ApiRuntime:
                     job.input_path,
                     artifact_dir=job.artifact_dir,
                     is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
-                    archived_at=datetime.utcnow()
-                    if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
-                    else None,
+                    archived_at=(
+                        datetime.utcnow()
+                        if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
+                        else None
+                    ),
                 )
 
             if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}:
@@ -338,6 +387,105 @@ class ApiRuntime:
         except Exception:
             return None
         return self.job_service._compute_request_hash(request, files)
+
+    def _recover_inflight_jobs(self) -> None:
+        """Recover jobs stranded in queued/running after unclean shutdown."""
+        recovered_requeued = 0
+        recovered_failed = 0
+
+        with SessionLocal() as db:
+            stale_jobs = list(
+                db.scalars(
+                    select(Job)
+                    .where(Job.status.in_(RUNNING_STATUSES))
+                    .order_by(Job.created_at.asc())
+                )
+            )
+            if not stale_jobs:
+                self._recovery_stats = {"requeued": 0, "failed": 0}
+                return
+
+            for job in stale_jobs:
+                if job.status == JobStatus.QUEUED.value:
+                    request_payload = self._load_request_payload(job.request_payload)
+                    if request_payload is None:
+                        recovered_failed += self._mark_recovery_failed(
+                            db,
+                            job,
+                            "Failed to recover queued job: invalid request payload",
+                        )
+                        continue
+
+                    job.updated_at = datetime.utcnow()
+                    db.add(
+                        JobEvent(
+                            job_id=job.id,
+                            event_type="queued",
+                            message="Recovered queued job after restart",
+                            payload="{}",
+                            event_time=datetime.utcnow(),
+                        )
+                    )
+                    self.queue.submit(job.id, {"kind": "process", "request": request_payload})
+                    self._write_job_log(job.id, "Recovered queued job after restart")
+                    recovered_requeued += 1
+                    continue
+
+                recovered_failed += self._mark_recovery_failed(
+                    db,
+                    job,
+                    "Recovered running job after restart; marked failed for consistency",
+                )
+
+            db.commit()
+
+        self._recovery_stats = {"requeued": recovered_requeued, "failed": recovered_failed}
+
+    @staticmethod
+    def _load_request_payload(raw_payload: str | None) -> dict[str, Any] | None:
+        if not raw_payload:
+            return None
+        try:
+            payload = json.loads(raw_payload)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(payload, dict):
+            return None
+        try:
+            validated = ProcessJobRequest.model_validate(payload)
+        except Exception:
+            return None
+        return validated.model_dump()
+
+    def _mark_recovery_failed(self, db: Any, job: Job, message: str) -> int:
+        job.status = JobStatus.FAILED.value
+        job.finished_at = datetime.utcnow()
+        job.updated_at = datetime.utcnow()
+        job.result_payload = json.dumps(
+            {
+                "error": message,
+                "recovered_at": datetime.utcnow().isoformat(),
+            }
+        )
+        db.add(
+            JobEvent(
+                job_id=job.id,
+                event_type="error",
+                message=message,
+                payload="{}",
+                event_time=datetime.utcnow(),
+            )
+        )
+        self._write_job_log(job.id, message)
+        return 1
+
+    @staticmethod
+    def _resolve_worker_count() -> int:
+        raw_value = os.environ.get("DATA_EXTRACT_API_WORKERS", "2").strip()
+        try:
+            return max(1, int(raw_value))
+        except ValueError:
+            return 2
 
     @staticmethod
     def _resolve_work_dir(input_path: str) -> Path:

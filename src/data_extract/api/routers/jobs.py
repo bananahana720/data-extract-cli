@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Body, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -90,9 +90,7 @@ def _optional_bool(value: Any) -> bool | None:
 async def _build_process_request_from_form(request: Request, job_id: str) -> ProcessJobRequest:
     form = await request.form()
     uploaded_files = [
-        entry
-        for entry in form.getlist("files")
-        if isinstance(entry, UploadFile) and entry.filename
+        entry for entry in form.getlist("files") if isinstance(entry, UploadFile) and entry.filename
     ]
 
     input_path = _optional_str(form.get("input_path"))
@@ -207,10 +205,15 @@ async def enqueue_process_job(
 
 
 @router.get("")
-def list_jobs() -> list[dict[str, Any]]:
+def list_jobs(
+    limit: int = Query(default=200, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict[str, Any]]:
     """List jobs with basic summary fields."""
     with SessionLocal() as db:
-        jobs = list(db.scalars(select(Job).order_by(Job.created_at.desc())))
+        jobs = list(
+            db.scalars(select(Job).order_by(Job.created_at.desc()).limit(limit).offset(offset))
+        )
 
     output = []
     for job in jobs:
@@ -230,17 +233,34 @@ def list_jobs() -> list[dict[str, Any]]:
 
 
 @router.get("/{job_id}")
-def get_job(job_id: str) -> dict[str, Any]:
+def get_job(
+    job_id: str,
+    file_limit: int = Query(default=1000, ge=1, le=5000),
+    event_limit: int = Query(default=1000, ge=1, le=5000),
+) -> dict[str, Any]:
     """Return full job detail with files and events."""
     with SessionLocal() as db:
         job = db.get(Job, job_id)
         if not job:
             raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
 
-        files = list(db.scalars(select(JobFile).where(JobFile.job_id == job_id)))
-        events = list(
-            db.scalars(select(JobEvent).where(JobEvent.job_id == job_id).order_by(JobEvent.event_time))
+        files = list(
+            db.scalars(
+                select(JobFile)
+                .where(JobFile.job_id == job_id)
+                .order_by(JobFile.id.desc())
+                .limit(file_limit)
+            )
         )
+        events = list(
+            db.scalars(
+                select(JobEvent)
+                .where(JobEvent.job_id == job_id)
+                .order_by(JobEvent.event_time.desc())
+                .limit(event_limit)
+            )
+        )
+    events = list(reversed(events))
 
     return {
         "job_id": job.id,

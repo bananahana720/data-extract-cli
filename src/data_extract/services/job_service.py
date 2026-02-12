@@ -24,9 +24,12 @@ from data_extract.contracts import (
 )
 from data_extract.services.file_discovery_service import FileDiscoveryService
 from data_extract.services.pathing import normalized_path_text, source_key_for_path
+from data_extract.services.persistence_repository import (
+    RUNNING_STATUSES,
+    TERMINAL_STATUSES,
+    PersistenceRepository,
+)
 from data_extract.services.pipeline_service import PipelineService
-from data_extract.services.persistence_repository import RUNNING_STATUSES, TERMINAL_STATUSES
-from data_extract.services.persistence_repository import PersistenceRepository
 from data_extract.services.run_config_resolver import RunConfigResolver
 from data_extract.services.semantic_orchestration_service import SemanticOrchestrationService
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 TERMINAL_STATUSES = {"completed", "partial", "failed"}
 RUNNING_STATUSES = {"queued", "running"}
@@ -22,9 +22,10 @@ class PersistenceRepository:
         if self._import_error is not None:
             return None
         try:
+            from sqlalchemy import func, select
+
             from data_extract.api.database import SessionLocal, init_database
             from data_extract.api.models import Job, JobFile, SessionRecord
-            from sqlalchemy import func, select
 
             init_database()
         except Exception as exc:
@@ -39,16 +40,16 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return None
-        SessionLocal, Job, _JobFile, _SessionRecord, select, _func = deps
+        session_local, job_model, _job_file_model, _session_record_model, select_stmt, _func = deps
         try:
-            with SessionLocal() as db:
+            with session_local() as db:
                 stmt = (
-                    select(Job)
+                    select_stmt(job_model)
                     .where(
-                        Job.idempotency_key == idempotency_key,
-                        Job.request_hash == request_hash,
+                        job_model.idempotency_key == idempotency_key,
+                        job_model.request_hash == request_hash,
                     )
-                    .order_by(Job.updated_at.desc())
+                    .order_by(job_model.updated_at.desc())
                 )
                 job = db.scalar(stmt)
                 if job is None:
@@ -70,10 +71,10 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return
-        SessionLocal, Job, _JobFile, _SessionRecord, _select, _func = deps
+        session_local, job_model, _job_file_model, _session_record_model, _select, _func = deps
         try:
-            with SessionLocal() as db:
-                job = db.get(Job, job_id)
+            with session_local() as db:
+                job = db.get(job_model, job_id)
                 if job is None:
                     return
                 job.request_hash = request_hash
@@ -89,11 +90,11 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return 0
-        SessionLocal, _Job, JobFile, _SessionRecord, select, func = deps
+        session_local, _job_model, job_file_model, _session_record_model, select_stmt, func_stmt = deps
         try:
-            with SessionLocal() as db:
-                stmt = select(func.max(JobFile.retry_count)).where(
-                    JobFile.normalized_source_path == normalized_source_path
+            with session_local() as db:
+                stmt = select_stmt(func_stmt.max(job_file_model.retry_count)).where(
+                    job_file_model.normalized_source_path == normalized_source_path
                 )
                 value = db.scalar(stmt)
             return int(value or 0)
@@ -111,7 +112,7 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return
-        SessionLocal, _Job, _JobFile, SessionRecord, _select, _func = deps
+        session_local, _job_model, _job_file_model, session_record_model, _select, _func = deps
         session_id = str(payload.get("session_id") or "")
         if not session_id:
             return
@@ -127,10 +128,10 @@ class PersistenceRepository:
             return
 
         try:
-            with SessionLocal() as db:
-                record = db.get(SessionRecord, session_id)
+            with session_local() as db:
+                record = db.get(session_record_model, session_id)
                 if record is None:
-                    record = SessionRecord(
+                    record = session_record_model(
                         session_id=session_id,
                         source_directory=str(payload.get("source_directory", "")),
                         status=str(payload.get("status", "unknown")),
@@ -162,13 +163,13 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return None
-        SessionLocal, Job, _JobFile, _SessionRecord, select, _func = deps
+        session_local, job_model, _job_file_model, _session_record_model, select_stmt, _func = deps
         try:
-            with SessionLocal() as db:
+            with session_local() as db:
                 stmt = (
-                    select(Job)
-                    .where(Job.session_id == session_id)
-                    .order_by(Job.updated_at.desc())
+                    select_stmt(job_model)
+                    .where(job_model.session_id == session_id)
+                    .order_by(job_model.updated_at.desc())
                 )
                 jobs = list(db.scalars(stmt))
             for job in jobs:
@@ -184,11 +185,13 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return None
-        SessionLocal, _Job, _JobFile, SessionRecord, select, _func = deps
+        session_local, _job_model, _job_file_model, session_record_model, select_stmt, _func = deps
         try:
-            with SessionLocal() as db:
+            with session_local() as db:
                 records = list(
-                    db.scalars(select(SessionRecord).order_by(SessionRecord.updated_at.desc()))
+                    db.scalars(
+                        select_stmt(session_record_model).order_by(session_record_model.updated_at.desc())
+                    )
                 )
 
             for record in records:

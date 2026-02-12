@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from data_extract.api.readiness import evaluate_runtime_readiness
 from data_extract.api.routers.config import router as config_router
 from data_extract.api.routers.health import router as health_router
 from data_extract.api.routers.jobs import router as jobs_router
@@ -22,12 +24,31 @@ app.include_router(sessions_router)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_DIST = PROJECT_ROOT / "ui" / "dist"
+API_KEY_ENV = "DATA_EXTRACT_API_KEY"
+
+
+@app.middleware("http")
+async def api_key_guard(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Protect API/docs endpoints when DATA_EXTRACT_API_KEY is configured."""
+    configured_key = os.environ.get(API_KEY_ENV, "").strip()
+    if not configured_key:
+        return await call_next(request)
+
+    path = request.url.path
+    protected_prefixes = ("/api/", "/docs", "/redoc", "/openapi")
+    if path.startswith(protected_prefixes):
+        provided_key = request.headers.get("x-api-key", "")
+        if provided_key != configured_key:
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+
+    return await call_next(request)
 
 
 @app.on_event("startup")
 def startup_event() -> None:
     """Initialize persistence and worker runtime."""
     runtime.start()
+    runtime.set_readiness_report(evaluate_runtime_readiness())
 
 
 @app.on_event("shutdown")

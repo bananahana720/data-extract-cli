@@ -10,4 +10,8 @@
 - Removed temporary lifecycle e2e retry mitigations (`ui` test loop + Playwright CLI retries) and added router regression coverage to the refactor tests gate.
 
 2026-02-12
-- Committed all current workspace changes on `main`, including CLI semantic export updates, integration/performance test fixes, fixture script restores, runtime/docs adjustments, and related report/test artifacts present in the working tree.
+- Hardened local UI/API runtime resilience: startup recovery for queued/running jobs, SQLite WAL/busy-timeout tuning, configurable in-process worker concurrency, and richer health/readiness telemetry.
+- Added security and deployment safeguards: API-key middleware support, remote host guardrails in `data-extract ui`, and centralized runtime dependency/readiness checks (including spaCy model validation).
+- Reduced API/UI lock pressure with jobs/detail pagination plus client-side database-lock retries and adaptive polling behavior.
+- Expanded API/runtime test coverage for auth middleware, health payload detail, queue worker behavior, startup job recovery, and jobs pagination.
+- Applied repository-wide lint/import normalization changes and included all currently modified workspace files/artifacts in this commit scope.

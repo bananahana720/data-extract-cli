@@ -11,6 +11,7 @@ export function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [pollDelayMs, setPollDelayMs] = useState(2000);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const inFlightRef = useRef(false);
@@ -22,12 +23,16 @@ export function JobsPage() {
     inFlightRef.current = true;
     setIsRefreshing(true);
     try {
-      setJobs(await listJobs());
+      const loadedJobs = await listJobs({ limit: 300 });
+      const hasActiveJobs = loadedJobs.some((job) => job.status === "queued" || job.status === "running");
+      setJobs(loadedJobs);
       setError(null);
       setLastUpdatedAt(new Date().toISOString());
+      setPollDelayMs(hasActiveJobs ? 1000 : 4000);
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Unable to load jobs";
       setError(message);
+      setPollDelayMs((current) => Math.min(15000, Math.max(2000, current * 2)));
     } finally {
       inFlightRef.current = false;
       setIsRefreshing(false);
@@ -36,13 +41,16 @@ export function JobsPage() {
 
   useEffect(() => {
     void refreshJobs();
-    const timer = window.setInterval(() => {
-      void refreshJobs();
-    }, 1000);
-    return () => {
-      window.clearInterval(timer);
-    };
   }, [refreshJobs]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refreshJobs();
+    }, pollDelayMs);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [refreshJobs, pollDelayMs]);
 
   const sortedJobs = useMemo(() => {
     return [...jobs].sort((left, right) => {

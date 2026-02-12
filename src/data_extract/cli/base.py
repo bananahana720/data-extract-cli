@@ -260,7 +260,6 @@ def _register_cache_commands(app: typer.Typer) -> None:
     app.add_typer(cache_app, name="cache")
 
 
-
 def _register_process_command(app: typer.Typer) -> None:
     """Register process and extract commands backed by shared services."""
 
@@ -752,7 +751,9 @@ def _register_process_command(app: typer.Typer) -> None:
 
         if verbose and not effective_quiet:
             for processed in run.processed:
-                console.print(f"[green]{processed.source_path.name}[/green] -> {processed.output_path}")
+                console.print(
+                    f"[green]{processed.source_path.name}[/green] -> {processed.output_path}"
+                )
             for failed in run.failed:
                 console.print(f"[red]{failed.source_path.name}[/red]: {failed.error_message}")
 
@@ -879,6 +880,8 @@ def _register_process_command(app: typer.Typer) -> None:
             config_error=False,
         )
         raise typer.Exit(code=exit_code)
+
+
 def _register_config_commands(app: typer.Typer) -> None:
     """Register configuration management command group.
 
@@ -1591,7 +1594,11 @@ chunk:
         # Determine which file to validate
         if file is None:
             global_config_path = _get_root_param(ctx, "config")
-            file = Path(global_config_path) if global_config_path else Path.cwd() / ".data-extract.yaml"
+            file = (
+                Path(global_config_path)
+                if global_config_path
+                else Path.cwd() / ".data-extract.yaml"
+            )
 
         # Validate the config
         is_valid, errors = validate_config_file(file)
@@ -1606,7 +1613,6 @@ chunk:
             raise typer.Exit(code=1)
 
     app.add_typer(config_app, name="config")
-
 
 
 def _register_retry_command(app: typer.Typer) -> None:
@@ -1707,6 +1713,8 @@ def _register_retry_command(app: typer.Typer) -> None:
                 console.print(f"[red]{failure.path}[/red]: {failure.error_message}")
 
         raise typer.Exit(code=result.exit_code)
+
+
 def _register_validate_command(app: typer.Typer) -> None:
     """Register validate command for input validation.
 
@@ -2130,7 +2138,6 @@ def _register_session_commands(app: typer.Typer) -> None:
     app.add_typer(session_app)
 
 
-
 def _register_ui_command(app: typer.Typer) -> None:
     """Register local UI launcher command."""
 
@@ -2165,6 +2172,13 @@ def _register_ui_command(app: typer.Typer) -> None:
                 help="Enable hot reload for API development.",
             ),
         ] = False,
+        allow_remote: Annotated[
+            bool,
+            typer.Option(
+                "--allow-remote",
+                help="Allow non-localhost host bindings (requires DATA_EXTRACT_API_KEY).",
+            ),
+        ] = False,
         check: Annotated[
             bool,
             typer.Option(
@@ -2174,18 +2188,28 @@ def _register_ui_command(app: typer.Typer) -> None:
         ] = False,
     ) -> None:
         """Start the local UI and API runtime."""
-        import importlib.util
         import webbrowser
         from threading import Timer
 
         from data_extract.api.database import APP_HOME, DB_PATH
+        from data_extract.api.readiness import evaluate_runtime_readiness
 
         errors: list[str] = []
         warnings: list[str] = []
 
-        for module_name in ["fastapi", "uvicorn", "sqlalchemy"]:
-            if importlib.util.find_spec(module_name) is None:
-                errors.append(f"Missing dependency: {module_name}")
+        readiness = evaluate_runtime_readiness()
+        errors.extend(str(error) for error in readiness.get("errors", []))
+        warnings.extend(str(warning) for warning in readiness.get("warnings", []))
+
+        local_hosts = {"127.0.0.1", "localhost", "::1"}
+        remote_bind = host not in local_hosts
+        if remote_bind and not allow_remote:
+            errors.append(
+                "Refusing non-local host binding without --allow-remote. "
+                "Use localhost/127.0.0.1 or explicitly pass --allow-remote."
+            )
+        if remote_bind and allow_remote and not os.environ.get("DATA_EXTRACT_API_KEY"):
+            errors.append("DATA_EXTRACT_API_KEY is required when using --allow-remote.")
 
         try:
             APP_HOME.mkdir(parents=True, exist_ok=True)
@@ -2194,14 +2218,6 @@ def _register_ui_command(app: typer.Typer) -> None:
             probe.unlink(missing_ok=True)
         except OSError as exc:
             errors.append(f"App home is not writable ({APP_HOME}): {exc}")
-
-        try:
-            import spacy
-
-            if not spacy.util.is_package("en_core_web_sm"):
-                warnings.append("spaCy model 'en_core_web_sm' is not installed")
-        except Exception as exc:
-            warnings.append(f"spaCy check skipped: {exc}")
 
         if warnings:
             for warning in warnings:
@@ -2333,6 +2349,8 @@ def _register_status_command(app: typer.Typer) -> None:
                 panel_content.append(f"- {Path(orphan).name}\n", style="dim")
 
         console.print(Panel(panel_content, title="Corpus Status", border_style="cyan"))
+
+
 def get_app() -> typer.Typer:
     """Get or create the singleton Typer application instance.
 

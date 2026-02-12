@@ -21,6 +21,7 @@ from data_extract.api.routers.jobs import (
     download_job_artifact,
     enqueue_process_job,
     list_job_artifacts,
+    list_jobs,
     retry_job_failures,
 )
 from data_extract.contracts import ProcessJobRequest
@@ -194,8 +195,12 @@ def test_retry_job_failures_persists_queued_state_before_enqueue(
         observed["status"] = job.status if job else None
         observed["started_at"] = job.started_at if job else "missing"
         observed["finished_at"] = job.finished_at if job else "missing"
-        observed["queued_events"] = [event.event_type for event in events if event.event_type == "queued"]
-        observed["queued_messages"] = [event.message for event in events if event.event_type == "queued"]
+        observed["queued_events"] = [
+            event.event_type for event in events if event.event_type == "queued"
+        ]
+        observed["queued_messages"] = [
+            event.message for event in events if event.event_type == "queued"
+        ]
 
     monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
     monkeypatch.setattr(jobs_router_module.runtime, "enqueue_retry", fake_enqueue_retry)
@@ -214,9 +219,7 @@ def test_retry_job_failures_persists_queued_state_before_enqueue(
 
 
 @pytest.mark.unit
-def test_job_artifact_list_and_download(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_job_artifact_list_and_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     db_path = tmp_path / "jobs.db"
     engine = create_engine(
         f"sqlite:///{db_path}",
@@ -258,3 +261,38 @@ def test_job_artifact_list_and_download(
 
     response = download_job_artifact(job_id, "semantic/semantic_summary.json")
     assert "semantic_summary.json" in str(response.path)
+
+
+@pytest.mark.unit
+def test_list_jobs_supports_pagination(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    with test_session_local() as db:
+        for index in range(5):
+            db.add(
+                Job(
+                    id=f"job-{index}",
+                    status="completed",
+                    input_path=str(tmp_path / "input"),
+                    output_dir=str(tmp_path / "output"),
+                    requested_format="json",
+                    chunk_size=512,
+                    request_payload="{}",
+                    result_payload="{}",
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                )
+            )
+        db.commit()
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+
+    jobs_page = list_jobs(limit=2, offset=1)
+    assert len(jobs_page) == 2
