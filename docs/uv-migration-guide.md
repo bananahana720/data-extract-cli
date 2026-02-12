@@ -272,7 +272,7 @@ Some scripts may still reference pip for backwards compatibility. This is expect
 - **UV Documentation:** https://github.com/astral-sh/uv
 - **UV Installation Guide:** https://github.com/astral-sh/uv#installation
 - **UV vs pip Benchmark:** https://github.com/astral-sh/uv#benchmarks
-- **Project pyproject.toml:** `/home/andrew/dev/data-extraction-tool/pyproject.toml`
+- **Project pyproject.toml:** `<project-root>/pyproject.toml`
 
 ## Rollback Instructions
 

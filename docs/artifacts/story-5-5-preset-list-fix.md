@@ -7,7 +7,7 @@ Fix the `config presets` command to properly display built-in presets using `Pre
 
 ### Changes Made
 
-**File**: `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py`
+**File**: `<project-root>/src/data_extract/cli/base.py`
 
 1. **Restructured command hierarchy** to match Story 5-5 specification:
    - Created `presets_app` as a nested Typer subcommand group

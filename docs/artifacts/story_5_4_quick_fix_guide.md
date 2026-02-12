@@ -1,6 +1,6 @@
 # Story 5-4: Quick Fix Guide - Wave 4 Implementation
 
-**Target File:** `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py`
+**Target File:** `<project-root>/src/data_extract/cli/base.py`
 **Lines to Modify:** 1283-1540 (process command)
 **Estimated Time:** 90 minutes
 
@@ -272,7 +272,7 @@ Timing Breakdown
 ## Need Help?
 
 If you get stuck:
-1. Check `/home/andrew/dev/data-extraction-tool/docs/artifacts/story_5_4_code_review_remediation_plan.md` for detailed explanations
+1. Check `<project-root>/docs/artifacts/story_5_4_code_review_remediation_plan.md` for detailed explanations
 2. Verify summary.py is unchanged (it's correct)
 3. Run tests: `pytest tests/unit/test_cli/test_story_5_5/ -v`
 4. Check git diff to see if you modified the right lines

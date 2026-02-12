@@ -147,7 +147,7 @@
       <note>No missing fixtures - all workflow files and documentation created in Story 2.5.3.1</note>
     </missingFixtures>
     <fixtureDocumentation>
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\README.md</path>
+      <path><project-root>\tests\fixtures\README.md</path>
       <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
     </fixtureDocumentation>
   </fixtures>
@@ -155,7 +155,7 @@
   <helpers>
     <globalFixtures>
       <conftest>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\conftest.py</path>
+        <path><project-root>\tests\conftest.py</path>
         <fixtures>
           <fixture name="sample_content_block">Basic ContentBlock for testing (PARAGRAPH type)</fixture>
           <fixture name="sample_heading_block">Heading ContentBlock for testing</fixture>
@@ -177,7 +177,7 @@
     </globalFixtures>
     <integrationFixtures>
       <conftest>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\integration\conftest.py</path>
+        <path><project-root>\tests\integration\conftest.py</path>
         <fixtures>
           <fixture name="sample_docx_file">Generated DOCX with headings, paragraphs, table</fixture>
           <fixture name="sample_pdf_file">Generated PDF with multi-page text content</fixture>
@@ -208,7 +208,7 @@
 
   <configuration>
     <pytest>
-      <configFile>C:\Users\Andrew\projects\data-extraction-tool-1\pytest.ini</configFile>
+      <configFile><project-root>\pytest.ini</configFile>
       <markers>
         <marker name="unit">Unit tests (fast, isolated)</marker>
         <marker name="integration">Integration tests (slower, multiple components)</marker>
@@ -237,7 +237,7 @@
       </settings>
     </pytest>
     <environment>
-      <var name="PROJECT_ROOT">C:\Users\Andrew\projects\data-extraction-tool-1</var>
+      <var name="PROJECT_ROOT"><project-root></var>
       <var name="PYTHON_VERSION">3.12+ (mandatory enterprise requirement)</var>
       <var name="BMAD_CONFIG">bmad/bmm/config.yaml</var>
       <var name="WORKFLOW_ENGINE">bmad/core/tasks/workflow.xml</var>
@@ -328,7 +328,7 @@
 
     <integration type="tmux-cli">
       <description>CLI test automation via tmux-cli command</description>
-      <executable>C:\Users\Andrew\.local\bin\tmux-cli.exe</executable>
+      <executable>C:\Users\<username>\.local\bin\tmux-cli.exe</executable>
       <status>Available</status>
       <usage>
         <pattern>Launch shell: tmux-cli launch "zsh"</pattern>
@@ -408,7 +408,7 @@
 
       <prerequisite name="tmux-cli" status="available">
         <description>CLI automation tool for execute-tests workflow</description>
-        <location>C:\Users\Andrew\.local\bin\tmux-cli.exe</location>
+        <location>C:\Users\<username>\.local\bin\tmux-cli.exe</location>
         <validation>Run: tmux-cli --help</validation>
       </prerequisite>
 

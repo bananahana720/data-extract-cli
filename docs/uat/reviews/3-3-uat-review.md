@@ -392,10 +392,10 @@ Story 3.3 will be marked as **DONE** and Story 3.4 (next in Epic 3 backlog) will
 
 ### Test Results Reference
 
-**Test Results File**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-results\3-3-test-results.md`
-**Test Results JSON**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-results\3-3-test-results.json`
-**Test Cases File**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-cases\3-3-test-cases.md`
-**Story File**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.md`
+**Test Results File**: `<project-root>\docs\uat\test-results\3-3-test-results.md`
+**Test Results JSON**: `<project-root>\docs\uat\test-results\3-3-test-results.json`
+**Test Cases File**: `<project-root>\docs\uat\test-cases\3-3-test-cases.md`
+**Story File**: `<project-root>\docs\stories\3-3-chunk-metadata-and-quality-scoring.md`
 
 ### Review Metadata
 

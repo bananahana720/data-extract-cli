@@ -10,7 +10,7 @@ The story-context workflow for Story 3.10 (Add Excel Import Validation Test) has
 
 ## Generated Files
 
-1. **Story Context XML:** `/home/user/data-extraction-tool/docs/stories/follow-up-3.10-excel-import-validation-test.context.xml`
+1. **Story Context XML:** `<project-root>/docs/stories/follow-up-3.10-excel-import-validation-test.context.xml`
    - Complete story context with all required sections
    - Ready for developer implementation
 

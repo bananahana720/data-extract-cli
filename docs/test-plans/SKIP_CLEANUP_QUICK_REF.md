@@ -8,7 +8,7 @@
 ## Pre-Flight Checklist
 
 ```bash
-cd "C:\Users\Andrew\Documents\AI ideas for fun and work\Prompt Research\Data Extraction\data-extractor-tool"
+cd "<project-root>"
 
 # Verify current state
 pytest tests/ --co -q | tail -1  # Should show "562 tests collected"

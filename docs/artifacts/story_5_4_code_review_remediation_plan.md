@@ -4,8 +4,8 @@
 **Reviewer:** Agent 2A (Senior Developer Code Review)
 **Story:** Story 5-4 - Comprehensive Summary Statistics and Reporting
 **Files Reviewed:**
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/summary.py` (843 lines)
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py` (lines 1200-1540 specifically)
+- `<project-root>/src/data_extract/cli/summary.py` (843 lines)
+- `<project-root>/src/data_extract/cli/base.py` (lines 1200-1540 specifically)
 
 ---
 

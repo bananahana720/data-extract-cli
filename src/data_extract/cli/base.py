@@ -2547,7 +2547,7 @@ def _register_status_command(app: typer.Typer) -> None:
 
         payload = StatusService().get_status(source, output, cleanup=cleanup)
         if effective_format == "json":
-            console.print(json.dumps(payload, indent=2))
+            typer.echo(json.dumps(payload, indent=2))
             return
 
         changes = payload["changes"]

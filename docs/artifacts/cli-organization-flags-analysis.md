@@ -155,7 +155,7 @@ Result: 2 passed, 5 skipped in 0.05s
 
 ## Files Modified
 
-- `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_organization_flags.py`
+- `<project-root>/tests/integration/test_cli/test_organization_flags.py`
   - Updated 5 skip decorators with accurate reason
   - No test logic changed
   - All skip reasons now point to Story 5.x implementation gap

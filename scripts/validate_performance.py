@@ -46,24 +46,32 @@ NFR_P3_LATENCY = {
 # Component mapping for smart test detection
 COMPONENT_MAPPING = {
     "extract": [
+        "test_extract_performance",
         "test_extractor_benchmarks.py",
         "test_throughput.py",
     ],
     "normalize": [
+        "test_normalize_performance",
         "test_quality_performance.py",
     ],
     "chunk": [
+        "test_chunking_performance",
+        "test_entity_chunking_performance",
         "test_chunk/test_chunking_latency.py",
         "test_chunk/test_entity_aware_performance.py",
         "test_chunk/test_memory_efficiency.py",
     ],
     "semantic": [
+        "test_tfidf_performance",
         "test_lsa_performance.py",
         "test_quality_performance.py",
         "test_summary_performance.py",
     ],
     "output": [
+        "test_output_performance",
+        "test_json_performance",
         "test_json_performance.py",
+        "test_txt_performance",
         "test_txt_performance.py",
         "test_pipeline_benchmarks.py",
         "test_cli_benchmarks.py",
@@ -315,7 +323,7 @@ class PerformanceValidator:
         success = True
 
         for test_module in test_modules:
-            test_path = PERFORMANCE_TESTS_DIR / test_module
+            test_path = self._resolve_test_module_path(test_module)
 
             if not test_path.exists():
                 print(f"  ❌ Test file not found: {test_path}")
@@ -361,6 +369,26 @@ class PerformanceValidator:
                 success = False
 
         return success
+
+    @staticmethod
+    def _resolve_test_module_path(test_module: str) -> Path:
+        """Resolve legacy and modern test-module specifiers to concrete file paths."""
+        module_path = Path(test_module)
+        candidates: list[Path] = [PERFORMANCE_TESTS_DIR / module_path]
+
+        if module_path.suffix != ".py":
+            candidates.append(PERFORMANCE_TESTS_DIR / f"{test_module}.py")
+
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+
+        if "/" not in test_module and "\\" not in test_module:
+            matches = sorted(PERFORMANCE_TESTS_DIR.rglob(f"{test_module}.py"))
+            if matches:
+                return matches[0]
+
+        return candidates[-1]
 
     def _parse_test_output(self, test_module: str, output: str) -> None:
         """Parse test output for performance metrics."""
@@ -460,7 +488,9 @@ class PerformanceValidator:
         nfr_pass = True
 
         # Check NFR-P1: Throughput
-        throughput_metrics = [k for k in self.test_results if k.startswith("metric::throughput")]
+        throughput_metrics = [
+            k for k in self.test_results if k.startswith("metric::throughput") or "throughput" in k
+        ]
         for metric in throughput_metrics:
             value = self.test_results[metric]["value"]
             if value < NFR_P1_THROUGHPUT:
@@ -478,7 +508,11 @@ class PerformanceValidator:
                 nfr_pass = False
 
         # Check NFR-P2: Memory
-        memory_metrics = [k for k in self.test_results if k.startswith("metric::memory")]
+        memory_metrics = [
+            k
+            for k in self.test_results
+            if k.startswith("metric::memory") or "memory" in k
+        ]
         for metric in memory_metrics:
             value = self.test_results[metric]["value"]
             if value > NFR_P2_MEMORY_LIMIT:
@@ -498,7 +532,11 @@ class PerformanceValidator:
         # Check NFR-P3: Latency
         for component, max_latency in NFR_P3_LATENCY.items():
             component_metrics = [
-                k for k in self.test_results if k.startswith(f"metric::latency::{component}")
+                k
+                for k in self.test_results
+                if k.startswith(f"metric::latency::{component}")
+                or ("latency" in k and component in k)
+                or ("chunk" in component and ("chunk" in k or "time" in k))
             ]
             for metric in component_metrics:
                 value = self.test_results[metric]["value"]

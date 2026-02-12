@@ -122,7 +122,7 @@ All tests passed successfully.
 
 ## Files Modified
 
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py`
+- `<project-root>/src/data_extract/cli/base.py`
   - Added incremental analysis panel
   - Added time saved display
   - Added summary panel rendering

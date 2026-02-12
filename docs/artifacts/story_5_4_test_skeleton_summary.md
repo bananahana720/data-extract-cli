@@ -11,7 +11,7 @@ Comprehensive ATDD (Acceptance Test-Driven Development) test skeletons created f
 ## Test Files Created
 
 ### 1. Unit Tests: `test_summary_report.py`
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/unit/test_cli/test_summary_report.py`
+**Location**: `<project-root>/tests/unit/test_cli/test_summary_report.py`
 **Test Count**: 29 tests
 **Purpose**: Core functionality testing for dataclasses, stage timing, and rendering components
 
@@ -58,7 +58,7 @@ Comprehensive ATDD (Acceptance Test-Driven Development) test skeletons created f
 - `tmp_export_dir`: Temporary directory for export testing
 
 ### 2. Behavioral Tests: `test_summary_report_behavior.py`
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/behavioral/epic_5/test_summary_report_behavior.py`
+**Location**: `<project-root>/tests/behavioral/epic_5/test_summary_report_behavior.py`
 **Test Count**: 26 tests
 **Purpose**: End-to-end behavior validation focusing on correctness and user experience
 
@@ -110,7 +110,7 @@ Comprehensive ATDD (Acceptance Test-Driven Development) test skeletons created f
 - `cluster_output`: Clustering results
 
 ### 3. Integration Tests: `test_summary_integration.py`
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_summary_integration.py`
+**Location**: `<project-root>/tests/integration/test_cli/test_summary_integration.py`
 **Test Count**: 26 tests
 **Purpose**: CLI command integration with actual summary rendering and file I/O
 
@@ -151,7 +151,7 @@ Comprehensive ATDD (Acceptance Test-Driven Development) test skeletons created f
 - `output_dir`: Temporary output directory for test results
 
 ### 4. UAT Journey Tests: `test_journey_3_summary_statistics.py`
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_3_summary_statistics.py`
+**Location**: `<project-root>/tests/uat/journeys/test_journey_3_summary_statistics.py`
 **Test Count**: 20 tests (organized as user journeys)
 **Purpose**: End-to-end user journey validation for summary statistics feature
 
@@ -189,7 +189,7 @@ Comprehensive ATDD (Acceptance Test-Driven Development) test skeletons created f
 - `processed_chunks`: Previously processed chunk directory
 
 ### 5. Performance Tests: `test_summary_performance.py`
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/performance/test_summary_performance.py`
+**Location**: `<project-root>/tests/performance/test_summary_performance.py`
 **Test Count**: 18 tests
 **Purpose**: Performance characteristics and scalability validation
 

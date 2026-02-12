@@ -254,6 +254,12 @@ class PipelineService:
         if use_advanced:
             try:
                 chunks = self._chunk_advanced(normalized, chunk_size)
+                if not chunks:
+                    # Compatibility fallback: CLI integration expects a deterministic
+                    # placeholder chunk for empty/near-empty documents so output files
+                    # are still emitted in TXT concatenated/per-chunk modes.
+                    chunks = self._chunk(normalized, chunk_size)
+                    use_advanced = False
             except Exception as exc:
                 if not allow_advanced_fallback:
                     raise

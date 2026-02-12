@@ -148,7 +148,7 @@ Updated all AI instruction files that reference tmux-cli to include Windows/WSL 
 ### .tmux.conf (Windows PowerShell Bridge)
 
 **Locations**:
-- Windows: `C:\Users\Andrew\.tmux.conf`
+- Windows: `C:\Users\<username>\.tmux.conf`
 - WSL: `~/.tmux.conf` (copied from Windows)
 
 **Configuration**:
@@ -174,9 +174,9 @@ set -g mouse on
 
 Although not functional with tmux-cli due to subprocess limitations, these wrappers are available for direct tmux usage:
 
-1. **tmux.bat** - `C:\Users\Andrew\.local\bin\tmux.bat`
-2. **tmux.cmd** - `C:\Users\Andrew\.local\bin\tmux.cmd`
-3. **tmux** (Python) - `C:\Users\Andrew\.local\bin\tmux`
+1. **tmux.bat** - `C:\Users\<username>\.local\bin\tmux.bat`
+2. **tmux.cmd** - `C:\Users\<username>\.local\bin\tmux.cmd`
+3. **tmux** (Python) - `C:\Users\<username>\.local\bin\tmux`
 
 All wrappers forward commands to WSL tmux: `wsl tmux %*`
 
@@ -221,7 +221,7 @@ tmux-cli capture --pane=2
 | docs/tech-spec-epic-2.5.md | Specification | Updated - CLI tests section |
 | docs/uat/tmux-cli-windows-setup.md | Documentation | Created - Setup guide |
 | docs/uat/test-results/2.5-3.1-test-results.md | Test Results | Updated - Evidence section |
-| C:\Users\Andrew\.tmux.conf | Configuration | Created - PowerShell bridge |
+| C:\Users\<username>\.tmux.conf | Configuration | Created - PowerShell bridge |
 | ~/.tmux.conf (WSL) | Configuration | Created - PowerShell bridge |
 
 **Total files updated**: 7

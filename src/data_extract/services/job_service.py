@@ -63,15 +63,7 @@ class JobService:
 
         resolved_config = self.config_resolver.resolve(request)
         output_dir = self._resolve_output_dir(request, source_dir)
-        resolved_files = self._exclude_output_files(resolved_files, output_dir)
-        request_hash = self._compute_request_hash(request, resolved_files)
-
-        idempotency_hit = self._resolve_idempotency(request, request_hash)
-        if idempotency_hit is not None:
-            return idempotency_hit
-
         output_file_override: Optional[Path] = None
-
         if (
             request.output_path
             and Path(request.output_path).suffix.lower() == f".{resolved_config.output_format}"
@@ -79,8 +71,18 @@ class JobService:
             and not request.per_chunk
             and not request.organize
         ):
+            # Single-file explicit output path should not cause source-file exclusion
+            # when source and output live in the same directory.
             output_file_override = Path(request.output_path).resolve()
             output_dir = output_file_override.parent
+            resolved_files = [f for f in resolved_files if f.resolve() != output_file_override]
+        else:
+            resolved_files = self._exclude_output_files(resolved_files, output_dir)
+        request_hash = self._compute_request_hash(request, resolved_files)
+
+        idempotency_hit = self._resolve_idempotency(request, request_hash)
+        if idempotency_hit is not None:
+            return idempotency_hit
 
         manager = SessionManager(work_dir=work_dir or source_dir)
         if request.force and not request.resume and not request.resume_session:

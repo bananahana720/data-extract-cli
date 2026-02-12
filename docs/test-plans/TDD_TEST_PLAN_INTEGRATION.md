@@ -3,7 +3,7 @@
 **Agent**: TDD-Builder Specialist
 **Date**: 2025-10-29
 **Mission**: Comprehensive integration testing for data extraction tool
-**Working Directory**: `C:\Users\Andrew\Documents\AI ideas for fun and work\Prompt Research\Data Extraction\data-extractor-tool`
+**Working Directory**: `<project-root>`
 
 ---
 

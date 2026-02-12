@@ -553,10 +553,10 @@ tests/
 ### References
 
 **Source Documents:**
-- [PRD](C:\Users\Andrew\projects\data-extraction-tool-1\docs\PRD.md) - Business requirements, RAG optimization goals
-- [Tech Spec Epic 3](C:\Users\Andrew\projects\data-extraction-tool-1\docs\tech-spec-epic-3.md#Story-3.4) - Story 3.4 acceptance criteria, JSON formatter design
-- [Architecture](C:\Users\Andrew\projects\data-extraction-tool-1\docs\architecture.md) - Immutable models, protocol-based design
-- [Story 3.3](C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.md) - ChunkMetadata, QualityScore, serialization methods
+- [PRD](<project-root>\docs\PRD.md) - Business requirements, RAG optimization goals
+- [Tech Spec Epic 3](<project-root>\docs\tech-spec-epic-3.md#Story-3.4) - Story 3.4 acceptance criteria, JSON formatter design
+- [Architecture](<project-root>\docs\architecture.md) - Immutable models, protocol-based design
+- [Story 3.3](<project-root>\docs\stories\3-3-chunk-metadata-and-quality-scoring.md) - ChunkMetadata, QualityScore, serialization methods
 
 **Technical References:**
 - [JSON Specification (RFC 8259)](https://datatracker.ietf.org/doc/html/rfc8259) - JSON format standard

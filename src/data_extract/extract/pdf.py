@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 import re
 import sys
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
@@ -138,33 +139,33 @@ class PdfExtractorAdapter(ExtractorAdapter):
     @staticmethod
     def _resolve_poppler_path() -> Optional[str]:
         for env_name in ("POPPLER_PATH", "POPPLER_BIN"):
-            candidate = os.environ.get(env_name)
-            if candidate and Path(candidate).is_dir():
-                return candidate
+            env_candidate = os.environ.get(env_name)
+            if env_candidate and Path(env_candidate).is_dir():
+                return env_candidate
 
         if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
             base = Path(sys._MEIPASS)
             for relative in ("poppler/Library/bin", "poppler/bin"):
-                candidate = base / relative
-                if candidate.is_dir():
-                    return str(candidate)
+                path_candidate = base / relative
+                if path_candidate.is_dir():
+                    return str(path_candidate)
 
         local_vendor_root = Path("build_scripts") / "vendor" / "poppler"
         for relative in ("Library/bin", "bin"):
-            candidate = local_vendor_root / relative
-            if candidate.is_dir():
-                return str(candidate)
+            path_candidate = local_vendor_root / relative
+            if path_candidate.is_dir():
+                return str(path_candidate)
 
         return None
 
     def _load_ocr_dependencies(self) -> Tuple[Optional[_OcrDependencies], Optional[str]]:
         try:
-            import pytesseract  # type: ignore[import-not-found]
+            import pytesseract  # type: ignore[import-untyped]
         except Exception:
             return None, "pytesseract not installed"
 
         try:
-            from pdf2image import convert_from_path  # type: ignore[import-not-found]
+            from pdf2image import convert_from_path
         except Exception:
             return None, "pdf2image not installed"
 
@@ -271,7 +272,7 @@ class PdfExtractorAdapter(ExtractorAdapter):
     @staticmethod
     def _preprocess_image(image: Any) -> Optional[Any]:
         try:
-            from PIL import ImageEnhance  # type: ignore[import-not-found]
+            from PIL import ImageEnhance
 
             processed = image.convert("L")
             enhancer = ImageEnhance.Contrast(processed)

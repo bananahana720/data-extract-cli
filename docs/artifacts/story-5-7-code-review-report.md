@@ -28,7 +28,7 @@
 
 ### 1.1 Unit Tests - ✅ PASSING (17/17)
 
-**File:** `/home/andrew/dev/data-extraction-tool/tests/unit/test_cli/test_incremental_processor.py`
+**File:** `<project-root>/tests/unit/test_cli/test_incremental_processor.py`
 
 **Status:** All tests passing - **NOT SKIPPED**
 
@@ -69,7 +69,7 @@ def test_sha256_hash_deterministic(self, tmp_path: Path) -> None:
 
 ### 1.2 Performance Tests - ✅ PASSING (3/3)
 
-**File:** `/home/andrew/dev/data-extraction-tool/tests/performance/test_incremental_performance.py`
+**File:** `<project-root>/tests/performance/test_incremental_performance.py`
 
 **Status:** All tests passing - **NOT SKIPPED**
 
@@ -88,7 +88,7 @@ def test_sha256_hash_deterministic(self, tmp_path: Path) -> None:
 
 ### 1.3 Integration Tests - ⚠️ SKIPPED (0/12)
 
-**File:** `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py`
+**File:** `<project-root>/tests/integration/test_cli/test_batch_incremental.py`
 
 **Skip Reasons:**
 1. **"Implementation pending"** (5 tests) - Test body is `pytest.skip()` placeholder
@@ -137,7 +137,7 @@ def test_incremental_flag_accepted_by_process_command(self, tmp_path: Path) -> N
 
 ### 1.4 UAT Journey Tests - ⚠️ SKIPPED (0/7)
 
-**File:** `/home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_7_incremental_batch.py`
+**File:** `<project-root>/tests/uat/journeys/test_journey_7_incremental_batch.py`
 
 **Skip Reason:** All 7 tests use `pytest.skip("Implementation pending")`
 
@@ -177,7 +177,7 @@ def test_change_detection_panel_displays(self, tmux_session: TmuxSession) -> Non
 
 ### 2.1 Core Implementation - ✅ PRODUCTION READY
 
-**File:** `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/batch.py` (641 lines)
+**File:** `<project-root>/src/data_extract/cli/batch.py` (641 lines)
 
 **Implementation Status:**
 
@@ -259,7 +259,7 @@ def compute_hash(file_path: Path) -> str:
 
 ### 2.2 CLI Integration - ✅ WIRED AND FUNCTIONAL
 
-**File:** `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py`
+**File:** `<project-root>/src/data_extract/cli/base.py`
 
 **CLI Flags Implemented:**
 ```python
@@ -895,17 +895,17 @@ def test_state_file_corruption_handling(self, tmp_path: Path) -> None:
 ## Appendix B: File Locations Reference
 
 **Implementation:**
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/batch.py` (641 lines)
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py` (process command)
+- `<project-root>/src/data_extract/cli/batch.py` (641 lines)
+- `<project-root>/src/data_extract/cli/base.py` (process command)
 
 **Tests:**
-- `/home/andrew/dev/data-extraction-tool/tests/unit/test_cli/test_incremental_processor.py`
-- `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py`
-- `/home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_7_incremental_batch.py`
-- `/home/andrew/dev/data-extraction-tool/tests/performance/test_incremental_performance.py`
+- `<project-root>/tests/unit/test_cli/test_incremental_processor.py`
+- `<project-root>/tests/integration/test_cli/test_batch_incremental.py`
+- `<project-root>/tests/uat/journeys/test_journey_7_incremental_batch.py`
+- `<project-root>/tests/performance/test_incremental_performance.py`
 
 **Story Specification:**
-- `/home/andrew/dev/data-extraction-tool/docs/stories/5-7-batch-processing-optimization-and-incremental-updates.md`
+- `<project-root>/docs/stories/5-7-batch-processing-optimization-and-incremental-updates.md`
 
 ---
 

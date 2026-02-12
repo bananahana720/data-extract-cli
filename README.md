@@ -253,7 +253,7 @@ Internal enterprise F100 cybersecurity tool. Development follows BMad Method wit
 
 ## License
 
-Proprietary - Internal enterprise use only
+MIT - see `LICENSE`
 
 ## Support
 

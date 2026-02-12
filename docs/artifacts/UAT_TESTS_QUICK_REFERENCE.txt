@@ -116,9 +116,9 @@ Tests are designed to naturally extend as implementation occurs.
 
 FILES MODIFIED (ABSOLUTE PATHS)
 ===============================
-1. /home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_2_batch_processing.py
-2. /home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_3_semantic_analysis.py
-3. /home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_4_learning_mode.py
+1. <project-root>/tests/uat/journeys/test_journey_2_batch_processing.py
+2. <project-root>/tests/uat/journeys/test_journey_3_semantic_analysis.py
+3. <project-root>/tests/uat/journeys/test_journey_4_learning_mode.py
 
 ARTIFACTS GENERATED
 ===================

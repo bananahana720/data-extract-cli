@@ -8,9 +8,9 @@ version = "0.1.0"
 description = "Enterprise data extraction tool with modular pipeline architecture for document processing"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "Proprietary"}
+license = {text = "MIT"}
 authors = [
-    {name = "Andrew", email = "andrew@example.com"},
+    {name = "Andrew", email = "bananahana720@users.noreply.github.com"},
 ]
 keywords = [
     "document-extraction",
@@ -116,10 +116,10 @@ all = [
 data-extract = "data_extract.app:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ai-data-extractor"
-Documentation = "https://github.com/yourusername/ai-data-extractor/blob/main/README.md"
-Repository = "https://github.com/yourusername/ai-data-extractor"
-Issues = "https://github.com/yourusername/ai-data-extractor/issues"
+Homepage = "https://github.com/bananahana720/data-extract-cli"
+Documentation = "https://github.com/bananahana720/data-extract-cli/blob/main/README.md"
+Repository = "https://github.com/bananahana720/data-extract-cli"
+Issues = "https://github.com/bananahana720/data-extract-cli/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

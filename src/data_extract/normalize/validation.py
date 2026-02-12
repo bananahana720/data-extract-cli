@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 import structlog
 
 try:
-    import pytesseract  # type: ignore[import-not-found]
+    import pytesseract  # type: ignore[import-untyped]  # noqa: F401
     from PIL import Image, ImageEnhance, ImageFilter
 
     TESSERACT_AVAILABLE = True

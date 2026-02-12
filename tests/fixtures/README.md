@@ -26,8 +26,8 @@ tests/fixtures/
 │   └── *.png, *.jpg        # Image test files
 ├── archer/
 │   └── *                   # Archer-specific audit domain files
-└── real-world-files/
-    └── *                   # Real-world framework documents (COBIT, NIST, OWASP)
+└── real_world_files/
+    └── README.md           # Optional local corpus (not tracked in public repo)
 ```
 
 ## Fixture Inventory
@@ -47,18 +47,13 @@ tests/fixtures/
 | Fixture | Type | Size | Purpose |
 |---------|------|------|---------|
 | `pdfs/sample.pdf` | PDF | 629 bytes | Minimal PDF with basic text content for unit testing |
-| `pdfs/COBIT-2019-*.pdf` | PDF | 0.79-11.36 MB | Real-world governance framework documents |
-| `pdfs/NIST.SP.800-37r2.pdf` | PDF | 2.17 MB | Compliance standards testing |
-| `pdfs/OWASP-*.pdf` | PDF | 1.58-2.94 MB | Security framework documents |
 | `xlsx/sample.xlsx` | Excel | 4.8 KB | Simple Excel spreadsheet for tabular data extraction |
 | `xlsx/multi_sheet.xlsx` | Excel | ~10 KB | Multi-sheet workbook testing |
 | `xlsx/with_formulas.xlsx` | Excel | ~5 KB | Formula and calculation testing |
-| `xlsx/NIST-Privacy-Framework-V1.0-Core.xlsx` | Excel | 0.11 MB | Real-world compliance data |
-| `xlsx/sp800-53ar5-assessment-procedures.xlsx` | Excel | 0.45 MB | Complex audit procedure data |
 | `docx/sample.docx` | Word | 36 KB | Word document with tables for extraction testing |
 | `images/sample.png` | Image | 3.1 KB | Simple image with text for OCR testing |
 
-**Total Repository Fixtures Size**: ~35.69 MB (65% margin under 100 MB constraint)
+**Total Repository Fixtures Size**: public-safe corpus only (small synthetic fixtures)
 
 ## Fixture Creation Process
 
@@ -187,10 +182,10 @@ Expected output: 5-page image-based PDF, ~0.25 MB size
 - **Total repository fixtures: <100 MB** (repository health constraint)
 - **Sanitized** - all content must be synthetic or sanitized
 
-### Real-World Files
-- Used for integration tests and benchmarking
-- Publicly available framework documents (COBIT, NIST, OWASP, COSO)
-- Appropriate licensing for redistribution
+### Optional Real-World Files
+- This public repository does not include third-party framework documents.
+- You may place legally redistributable files under `tests/fixtures/real_world_files/` for local-only benchmarking.
+- Files under this directory are gitignored by default (except `README.md`).
 
 ## Usage in Tests
 
@@ -234,7 +229,7 @@ When adding new test fixtures to this directory, follow these guidelines:
    - Never commit files with PII (names, emails, SSNs, etc.)
    - Never commit proprietary/confidential company data
    - Use synthetic data generators or sanitization scripts
-   - For real-world documents: obtain permission and sanitize first
+   - For real-world documents: ensure legal redistribution rights and keep them untracked
    - Document sanitization process in commit message
 
 3. **Organization**:

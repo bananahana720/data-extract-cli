@@ -46,8 +46,12 @@ test-extraction-outputs/
 test-files-assesses-extraction-tool/
 output/
 .ui-home/
+.codex/
 .env
 .env.local
+.claude/settings.local.json
+tests/fixtures/real_world_files/*
+!tests/fixtures/real_world_files/README.md
 
 # Semantic model cache (Epic 3.5 - ADR-012)
 .data-extract-cache/

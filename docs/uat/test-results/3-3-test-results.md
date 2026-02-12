@@ -377,8 +377,8 @@ non_alpha_ratio > 0.30  # True → gibberish flag triggered ✓
 
 ## Environment Information
 
-**Test Context**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-context\3-3-test-context.xml`
-**Test Cases**: `C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-cases\3-3-test-cases.md`
+**Test Context**: `<project-root>\docs\uat\test-context\3-3-test-context.xml`
+**Test Cases**: `<project-root>\docs\uat\test-cases\3-3-test-cases.md`
 **pytest Version**: 8.4.2
 **Python Version**: 3.13.9
 

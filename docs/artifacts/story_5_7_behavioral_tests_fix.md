@@ -149,7 +149,7 @@ tests/behavioral/epic_5/test_incremental_behavior.py::TestIncrementalModeIntegra
 ## Changes Made
 
 ### File Modified
-`/home/andrew/dev/data-extraction-tool/tests/behavioral/epic_5/test_incremental_behavior.py`
+`<project-root>/tests/behavioral/epic_5/test_incremental_behavior.py`
 
 ### Key Changes
 1. Removed all 10 `pytest.skip("Implementation pending")` statements

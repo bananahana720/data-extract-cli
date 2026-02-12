@@ -206,11 +206,7 @@ class TestSingleFilePerformance:
         self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
     ):
         """Benchmark CLI PDF file extraction."""
-        pdf_file = (
-            fixture_dir
-            / "real_world_files"
-            / "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf"
-        )
+        pdf_file = fixture_dir / "pdfs" / "large" / "audit-report-large.pdf"
 
         if not pdf_file.exists():
             pytest.skip(f"Test file not found: {pdf_file}")

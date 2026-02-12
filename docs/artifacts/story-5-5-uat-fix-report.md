@@ -148,9 +148,9 @@ All checks passed!
 - Error handling - Graceful error messages with suggestions
 
 ## Related Files
-- `/home/andrew/dev/data-extraction-tool/src/data_extract/cli/base.py` - CLI command implementation
-- `/home/andrew/dev/data-extraction-tool/tests/uat/conftest.py` - UAT fixtures
-- `/home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_5_preset_configuration.py` - UAT tests
+- `<project-root>/src/data_extract/cli/base.py` - CLI command implementation
+- `<project-root>/tests/uat/conftest.py` - UAT fixtures
+- `<project-root>/tests/uat/journeys/test_journey_5_preset_configuration.py` - UAT tests
 
 ## Conclusion
 

@@ -5,7 +5,7 @@
 **Agent**: TDD-Builder Specialist
 **Date**: 2025-10-29
 **Target Coverage**: >85%
-**Working Directory**: `C:\Users\Andrew\Documents\AI ideas for fun and work\Prompt Research\Data Extraction\data-extractor-tool`
+**Working Directory**: `<project-root>`
 
 ---
 

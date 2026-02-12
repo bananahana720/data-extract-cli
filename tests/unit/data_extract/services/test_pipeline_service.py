@@ -1,9 +1,9 @@
-from pathlib import Path
 import sys
 import types
+from pathlib import Path
 
 sys.modules.setdefault("textstat", types.SimpleNamespace())
-from data_extract.services.pipeline_service import PipelineService
+from data_extract.services.pipeline_service import PipelineService  # noqa: E402
 
 
 def test_auto_profile_uses_advanced_for_pdf_without_semantic() -> None:

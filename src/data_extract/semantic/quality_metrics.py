@@ -240,25 +240,34 @@ class QualityMetricsStage(PipelineStage[List[Chunk], List[Chunk]]):
             enriched_chunks.append(enriched_chunk)
             scores.append(composite_score)
 
-        # Generate quality distribution report
-        report = self._generate_quality_report(enriched_chunks, scores)
+        needs_report = bool(context and hasattr(context, "metadata"))
+        report: QualityDistributionReport | None = None
+        if needs_report or logger.isEnabledFor(logging.INFO):
+            report = self._generate_quality_report(enriched_chunks, scores)
 
         # Log processing statistics
         processing_time_ms = (time.time() - start_time) * 1000
-        logger.info(
-            f"Processed {len(input_data)} chunks in {processing_time_ms:.2f}ms "
-            f"(avg: {processing_time_ms/len(input_data):.2f}ms per chunk)"
-        )
-        logger.info(
-            f"Quality distribution: High={report.high_quality_count}, "
-            f"Medium={report.medium_quality_count}, Low={report.low_quality_count}, "
-            f"Review={report.review_required_count}"
-        )
+        if logger.isEnabledFor(logging.INFO):
+            logger.info(
+                "Processed %d chunks in %.2fms (avg: %.2fms per chunk)",
+                len(input_data),
+                processing_time_ms,
+                processing_time_ms / len(input_data),
+            )
+            if report is not None:
+                logger.info(
+                    "Quality distribution: High=%d, Medium=%d, Low=%d, Review=%d",
+                    report.high_quality_count,
+                    report.medium_quality_count,
+                    report.low_quality_count,
+                    report.review_required_count,
+                )
 
         # Store report in context if provided
-        if context and hasattr(context, "metadata"):
-            if not hasattr(context.metadata, "quality_report"):
-                context.metadata.quality_report = report
+        if context is not None and report is not None:
+            metadata = getattr(context, "metadata", None)
+            if metadata is not None and not hasattr(metadata, "quality_report"):
+                metadata.quality_report = report
 
         return enriched_chunks
 

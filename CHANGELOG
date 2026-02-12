@@ -18,3 +18,10 @@
 - Completed strict stabilization pass: fixed CLI/service import-cycle boundaries, force-mode session cleanup, retry UX/behavior regressions, JSON/TXT output edge cases, and script compatibility mismatches.
 - Eliminated strict typing blocker by resolving `mypy --strict` errors across CLI/API/semantic/output/service modules (97 -> 0) without relaxing gate settings.
 - Re-ran full validation matrix to green: `ruff check src tests scripts`, `./.venv/bin/mypy src/data_extract/ --strict`, `./.venv/bin/pytest -q`, `npm run build --prefix ui`, and `npm run e2e:gui --prefix ui`.
+- Completed public-readiness hardening for the repository: normalized package/license metadata, added MIT `LICENSE`, and aligned README licensing text with open-source distribution.
+- Removed tracked local-only assistant runtime config (`.claude/settings.local.json`), hardened `.gitignore` for local state (`.codex/`, local `.claude` settings), and sanitized absolute machine paths across project docs and sample artifacts.
+- Replaced public-risk fixture strategy by removing tracked third-party framework documents from `tests/fixtures/real_world_files/`, adding local-only corpus guidance, and deleting derived COBIT output artifacts.
+- Fixed root cause in `scripts/create_performance_batch.py` by constraining PDF source selection to curated synthetic fixtures, regenerated `tests/performance/batch_100_files` with the same 100-file contract, and updated performance fixture documentation/baselines accordingly.
+- Fixed residual pipeline/output regressions: added advanced->legacy empty-chunk fallback, restored deterministic TXT per-chunk 1-indexed filename sequencing, and corrected status JSON rendering for machine parsing.
+- Improved quality-metrics runtime stability by making report generation/log formatting conditional, eliminating non-deterministic performance-scaling test failures under full-suite execution.
+- Completed final verification loop to green with current tree: `ruff check src tests scripts`, `./.venv/bin/mypy src/data_extract/ --strict`, and `./.venv/bin/pytest -q` (`2728 passed, 264 skipped, 6 xfailed`).

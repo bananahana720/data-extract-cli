@@ -186,11 +186,11 @@ The following PresetManager components were confirmed to be fully implemented:
 
 ## Files Modified
 
-1. `/home/andrew/dev/data-extraction-tool/tests/uat/journeys/test_journey_5_preset_configuration.py`
+1. `<project-root>/tests/uat/journeys/test_journey_5_preset_configuration.py`
    - Removed 4 `@pytest.mark.skip` decorators
    - Added test implementations for quality, speed, custom, and onboarding workflows
 
-2. `/home/andrew/dev/data-extraction-tool/tests/behavioral/epic_5/test_preset_behavior.py`
+2. `<project-root>/tests/behavioral/epic_5/test_preset_behavior.py`
    - Removed 3 `@pytest.mark.skip` decorators
    - Added import for `from __future__ import annotations`
    - Added type annotations to all test methods

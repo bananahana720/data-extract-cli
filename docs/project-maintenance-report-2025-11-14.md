@@ -195,7 +195,7 @@ This baseline is for Epic 2 (Extract/Normalize). For Epic 3 chunking baselines, 
 
 **1. CLAUDE.md Epic Status References (CRITICAL)**
 
-**Location:** C:\Users\Andrew\projects\data-extraction-tool-1\CLAUDE.md (564 lines)
+**Location:** <project-root>\CLAUDE.md (564 lines)
 
 **Issues:**
 - Line 9: "Status: Brownfield modernization (Epic 1 - Foundation in progress)" - OUTDATED

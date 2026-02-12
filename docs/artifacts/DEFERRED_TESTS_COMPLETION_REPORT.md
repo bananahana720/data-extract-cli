@@ -131,7 +131,7 @@ All changes comply with project standards:
 ## Files Modified
 
 ### Primary Change
-- **File**: `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py`
+- **File**: `<project-root>/tests/integration/test_cli/test_batch_incremental.py`
 - **Lines Changed**:
   - Line 78: Removed `pytest.skip()` → Added test implementation
   - Line 223: Removed `pytest.skip()` → Added test implementation

@@ -6,8 +6,8 @@
     <title>Chunk Metadata and Quality Scoring</title>
     <generatedAt>2025-11-14</generatedAt>
     <generator>BMAD Build Test Context Workflow</generator>
-    <testCasesFile>C:\Users\Andrew\projects\data-extraction-tool-1\docs\uat\test-cases\3-3-test-cases.md</testCasesFile>
-    <sourceStoryPath>C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.md</sourceStoryPath>
+    <testCasesFile><project-root>\docs\uat\test-cases\3-3-test-cases.md</testCasesFile>
+    <sourceStoryPath><project-root>\docs\stories\3-3-chunk-metadata-and-quality-scoring.md</sourceStoryPath>
   </metadata>
 
   <testCases>
@@ -100,59 +100,59 @@
     <fixtureFiles>
       <!-- Existing Fixtures (Epic 2 Integration) -->
       <fixture>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\normalization\expected_clean_outputs</path>
+        <path><project-root>\tests\fixtures\normalization\expected_clean_outputs</path>
         <type>ProcessingResult fixtures</type>
         <purpose>Epic 2 normalized results for chunking input</purpose>
       </fixture>
       <fixture>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\entity_rich_documents</path>
+        <path><project-root>\tests\fixtures\entity_rich_documents</path>
         <type>Document fixtures</type>
         <purpose>Entity-aware chunking test documents (Story 3.2)</purpose>
       </fixture>
       <fixture>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\pdfs\large\audit-report-large.pdf</path>
+        <path><project-root>\tests\fixtures\pdfs\large\audit-report-large.pdf</path>
         <type>Large PDF (60+ pages, 0.03 MB)</type>
         <purpose>Performance testing for large document quality enrichment</purpose>
       </fixture>
       <fixture>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\xlsx\large\audit-data-10k-rows.xlsx</path>
+        <path><project-root>\tests\fixtures\xlsx\large\audit-data-10k-rows.xlsx</path>
         <type>Large Excel (10,240 rows, 0.67 MB)</type>
         <purpose>Large spreadsheet processing with quality metrics</purpose>
       </fixture>
 
       <!-- Quality Test Documents (NEED TO CREATE) -->
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\simple_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\simple_text.txt</path>
         <type>Simple text (3rd-5th grade reading level)</type>
         <purpose>UAT-3.3-4-2: Simple readability validation</purpose>
         <content>"The cat sat on the mat. The dog ran in the yard. They played together all day. The sun was bright and warm."</content>
       </fixture>
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\standard_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\standard_text.txt</path>
         <type>Standard text (8th-10th grade reading level)</type>
         <purpose>UAT-3.3-4-1: Standard readability validation</purpose>
         <content>"The risk management framework establishes clear guidelines for identifying and mitigating potential threats. Organizations must conduct regular assessments to ensure compliance with regulatory requirements. This systematic approach helps maintain operational resilience and protect stakeholder interests."</content>
       </fixture>
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\complex_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\complex_text.txt</path>
         <type>Complex text (post-graduate reading level)</type>
         <purpose>UAT-3.3-4-3: Complex readability validation</purpose>
         <content>"The implementation of a comprehensive risk mitigation methodology necessitates the establishment of multifaceted governance frameworks that systematically integrate probabilistic assessment techniques with deterministic control mechanisms, thereby facilitating the optimization of organizational resilience through iterative refinement of procedural architectures and continuous evaluation of emerging threat vectors across heterogeneous operational environments."</content>
       </fixture>
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\gibberish_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\gibberish_text.txt</path>
         <type>Gibberish text (&gt;30% non-alphabetic)</type>
         <purpose>UAT-3.3-8-5: Gibberish flag validation</purpose>
         <content>"R!$k-2024-001: ###CRITICAL### @@@ATTENTION@@@ 99% c0mpl!@nc3 r3qu!r3d $$$ 123-456-7890 %%% *** ~~~"</content>
       </fixture>
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\short_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\short_text.txt</path>
         <type>Very short text (1-2 sentences)</type>
         <purpose>UAT-3.3-4-4: Short text edge case</purpose>
         <content>"Risk assessment is critical."</content>
       </fixture>
       <fixture status="missing">
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\quality_test_documents\empty_text.txt</path>
+        <path><project-root>\tests\fixtures\quality_test_documents\empty_text.txt</path>
         <type>Empty text file</type>
         <purpose>UAT-3.3-4-5: Empty text error case</purpose>
         <content></content>
@@ -176,7 +176,7 @@
     </missingFixtures>
 
     <fixtureDocumentation>
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\fixtures\README.md</path>
+      <path><project-root>\tests\fixtures\README.md</path>
       <purpose>Comprehensive fixture inventory and generation guidelines</purpose>
     </fixtureDocumentation>
   </fixtures>
@@ -184,7 +184,7 @@
   <helpers>
     <globalFixtures>
       <conftest>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\conftest.py</path>
+        <path><project-root>\tests\conftest.py</path>
         <fixtures>
           <fixture name="sample_content_block">Basic ContentBlock for testing</fixture>
           <fixture name="sample_extraction_result">Successful ExtractionResult with sample data</fixture>
@@ -198,7 +198,7 @@
 
     <integrationFixtures>
       <conftest>
-        <path>C:\Users\Andrew\projects\data-extraction-tool-1\tests\integration\conftest.py</path>
+        <path><project-root>\tests\integration\conftest.py</path>
         <fixtures>
           <fixture name="sample_docx_file">Generate valid DOCX with headings, paragraphs, tables</fixture>
           <fixture name="sample_pdf_file">Generate simple PDF with text content</fixture>
@@ -239,7 +239,7 @@
 
   <configuration>
     <pytest>
-      <configFile>C:\Users\Andrew\projects\data-extraction-tool-1\pytest.ini</configFile>
+      <configFile><project-root>\pytest.ini</configFile>
       <markers>
         <marker name="unit">Unit tests (fast, isolated)</marker>
         <marker name="integration">Integration tests (slower, multiple components)</marker>
@@ -272,7 +272,7 @@
   <codeUnderTest>
     <!-- Story 3.3 Implementation Files -->
     <artifact type="primary">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\quality.py</path>
+      <path><project-root>\src\data_extract\chunk\quality.py</path>
       <component>QualityScore</component>
       <lines>140</lines>
       <purpose>Quality score dataclass (AC-3.3-4, AC-3.3-5, AC-3.3-8)</purpose>
@@ -284,7 +284,7 @@
     </artifact>
 
     <artifact type="primary">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\metadata_enricher.py</path>
+      <path><project-root>\src\data_extract\chunk\metadata_enricher.py</path>
       <component>MetadataEnricher</component>
       <lines>343</lines>
       <purpose>Quality scoring and metadata enrichment (AC-3.3-1, AC-3.3-4, AC-3.3-5, AC-3.3-7, AC-3.3-8)</purpose>
@@ -300,7 +300,7 @@
     </artifact>
 
     <artifact type="extended">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\models.py</path>
+      <path><project-root>\src\data_extract\chunk\models.py</path>
       <component>ChunkMetadata</component>
       <purpose>Metadata model extended with quality fields (AC-3.3-1, AC-3.3-6, AC-3.3-7)</purpose>
       <symbols>
@@ -309,7 +309,7 @@
     </artifact>
 
     <artifact type="integration">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\engine.py</path>
+      <path><project-root>\src\data_extract\chunk\engine.py</path>
       <component>ChunkingEngine</component>
       <purpose>Integrates MetadataEnricher into chunking pipeline (AC: all)</purpose>
       <symbols>
@@ -320,20 +320,20 @@
 
     <!-- Epic 2 Dependencies -->
     <artifact type="dependency">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\core\models.py</path>
+      <path><project-root>\src\data_extract\core\models.py</path>
       <component>ProcessingResult</component>
       <purpose>Epic 2 output with source_metadata (OCR confidence, completeness)</purpose>
     </artifact>
 
     <!-- Story 3.2 Dependencies -->
     <artifact type="dependency">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\entity_preserver.py</path>
+      <path><project-root>\src\data_extract\chunk\entity_preserver.py</path>
       <component>EntityPreserver</component>
       <purpose>Entity preservation rate for completeness calculation (AC-3.3-5)</purpose>
     </artifact>
 
     <artifact type="dependency">
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\src\data_extract\chunk\sentence_segmenter.py</path>
+      <path><project-root>\src\data_extract\chunk\sentence_segmenter.py</path>
       <component>SentenceSegmenter</component>
       <purpose>Sentence segmentation for coherence calculation (AC-3.3-5)</purpose>
     </artifact>
@@ -395,7 +395,7 @@
 
   <storyContext>
     <reference>
-      <path>C:\Users\Andrew\projects\data-extraction-tool-1\docs\stories\3-3-chunk-metadata-and-quality-scoring.context.xml</path>
+      <path><project-root>\docs\stories\3-3-chunk-metadata-and-quality-scoring.context.xml</path>
       <generated>2025-11-14</generated>
       <sections>
         <section>Story definition and acceptance criteria</section>

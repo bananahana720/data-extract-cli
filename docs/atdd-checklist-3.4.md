@@ -788,7 +788,7 @@ pytest tests/unit/test_output/test_json_formatter.py::TestJsonFormatterCreation:
 ============================= test session starts =============================
 platform win32 -- Python 3.13.9, pytest-8.4.2, pluggy-1.6.0
 cachedir: .pytest_cache
-rootdir: C:\Users\Andrew\projects\data-extraction-tool-1
+rootdir: <project-root>
 configfile: pytest.ini
 plugins: cov-5.0.0, mock-3.15.1, xdist-3.8.0
 collecting ... collected 1 item

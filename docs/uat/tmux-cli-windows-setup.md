@@ -9,7 +9,7 @@ tmux-cli is a powerful tool for automating CLI application testing, but requires
 
 ## Current Status
 
-✅ **tmux-cli installed**: `C:\Users\Andrew\.local\bin\tmux-cli.exe`
+✅ **tmux-cli installed**: `C:\Users\<username>\.local\bin\tmux-cli.exe`
 ✅ **tmux available in WSL**: Version 3.4 in Ubuntu WSL
 ✅ **.tmux.conf configured**: WSL tmux bridges to Windows PowerShell
 ❌ **Windows integration**: tmux-cli cannot call WSL tmux from Windows due to subprocess limitations
@@ -50,7 +50,7 @@ set -g mouse on
 ```
 
 **Location**:
-- Windows: `C:\Users\Andrew\.tmux.conf`
+- Windows: `C:\Users\<username>\.tmux.conf`
 - WSL: `~/.tmux.conf`
 
 ## Recommended Solutions

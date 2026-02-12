@@ -73,7 +73,7 @@ The performance test batch contains 100 files distributed as follows:
 ### File Size Distribution
 
 Files are duplicated from existing fixtures in round-robin fashion to create variety:
-- **PDFs**: Mix of 1-50 page documents (including large COBIT and NIST standards)
+- **PDFs**: Synthetic and sanitized fixtures from `tests/fixtures/pdfs/`
 - **DOCX**: Mix of 1-20 page documents with tables and images
 - **XLSX**: Mix of 10-1000 row spreadsheets with formulas and multiple sheets
 - **Mixed**: PowerPoint presentations and images

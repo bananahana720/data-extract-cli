@@ -584,7 +584,7 @@ Breakdown:
 ## Report End
 
 **Generated:** 2025-11-14
-**Report Location:** `C:\Users\Andrew\projects\data-extraction-tool-1\docs\reviews\maintenance-completion-report-2025-11-14.md`
+**Report Location:** `<project-root>\docs\reviews\maintenance-completion-report-2025-11-14.md`
 **Related Reports:**
 - Phase 1: `docs/project-maintenance-report-2025-11-14.md`
 - TRASH Documentation: `TRASH-FILES.md`

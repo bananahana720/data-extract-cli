@@ -37,11 +37,16 @@ def reset_directory(path: Path) -> None:
 
 
 def copy_files_with_duplication(
-    source_pattern: str, target_dir: Path, target_count: int, file_type: str
+    source_pattern: str,
+    target_dir: Path,
+    target_count: int,
+    file_type: str,
+    source_files: list[Path] | None = None,
 ):
     """Copy files from source, duplicating as needed to reach target count."""
-    # Find all source files
-    source_files = sorted(FIXTURES_DIR.rglob(source_pattern))
+    # Find all source files unless caller supplies a constrained set.
+    if source_files is None:
+        source_files = sorted(FIXTURES_DIR.rglob(source_pattern))
 
     if not source_files:
         print(f"Warning: No {file_type} files found matching {source_pattern}")
@@ -85,7 +90,16 @@ def main():
 
     # 40 PDFs
     print("1. Creating PDF batch (40 files)...")
-    total_files += copy_files_with_duplication("*.pdf", BATCH_DIR / "pdfs", 40, "pdf")
+    # Public-safe corpus: only curated fixture PDFs (exclude third-party real-world corpus).
+    pdf_sources: list[Path] = []
+    for pdf_dir in [FIXTURES_DIR / "pdfs", FIXTURES_DIR / "generated"]:
+        if pdf_dir.exists():
+            pdf_sources.extend(sorted(pdf_dir.rglob("*.pdf")))
+    # Keep deterministic order and drop duplicates.
+    pdf_sources = sorted({path.resolve(): path for path in pdf_sources}.values())
+    total_files += copy_files_with_duplication(
+        "*.pdf", BATCH_DIR / "pdfs", 40, "pdf", source_files=pdf_sources
+    )
     print()
 
     # 30 DOCX

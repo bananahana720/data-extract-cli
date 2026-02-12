@@ -84,7 +84,7 @@ No errors found.
   - Exit code is 0 (or no critical errors)
   - Output contains one of: "new", "incremental", "process", "file"
 
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py:67-113`
+**Location**: `<project-root>/tests/integration/test_cli/test_batch_incremental.py:67-113`
 
 ### Test 2: `test_force_flag_updates_state_with_new_timestamps`
 
@@ -98,7 +98,7 @@ No errors found.
   - Exit code is 0 (successful execution)
   - Output contains one of: "process", "force", "file", "progress"
 
-**Location**: `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py:246-291`
+**Location**: `<project-root>/tests/integration/test_cli/test_batch_incremental.py:246-291`
 
 ## Fixtures Used
 
@@ -133,7 +133,7 @@ This verifies that CLI executed and produced some relevant output without being 
 
 ## Files Modified
 
-- `/home/andrew/dev/data-extraction-tool/tests/integration/test_cli/test_batch_incremental.py`
+- `<project-root>/tests/integration/test_cli/test_batch_incremental.py`
   - Removed: `pytest.skip()` at line 78
   - Removed: `pytest.skip()` at line 223
   - Added: Complete test implementations for both tests

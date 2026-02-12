@@ -304,7 +304,7 @@ Behavioral Tests:
 
 ## Files Referenced
 
-**Location**: `/home/andrew/dev/data-extraction-tool/docs/artifacts/`
+**Location**: `<project-root>/docs/artifacts/`
 
 - ✓ `wave-e1-full-test-suite-verification.md` (399 lines)
 - ✓ `skip-elimination-sprint-summary.md` (133 lines)

@@ -8,7 +8,7 @@
       "throughput": 12.430561859531696,
       "timestamp": "2025-11-12T12:26:23.825486",
       "metadata": {
-        "file_name": "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf",
+        "file_name": "sample.pdf",
         "pages": 64
       }
     },
@@ -20,7 +20,7 @@
       "throughput": 16.408797933449787,
       "timestamp": "2025-11-12T12:28:41.139010",
       "metadata": {
-        "file_name": "NIST.SP.800-37r2.pdf",
+        "file_name": "audit-scan.pdf",
         "pages": 183
       }
     },
@@ -32,7 +32,7 @@
       "throughput": 34.026033269455354,
       "timestamp": "2025-11-12T12:34:25.417871",
       "metadata": {
-        "file_name": "COBIT-2019-Design-Guide_res_eng_1218.pdf",
+        "file_name": "audit-report-large.pdf",
         "pages": 150
       }
     },
@@ -55,7 +55,7 @@
       "throughput": 17.214191236539754,
       "timestamp": "2025-11-12T12:34:32.208850",
       "metadata": {
-        "file_name": "NIST-Privacy-Framework-V1.0-Core.xlsx"
+        "file_name": "multi_sheet.xlsx"
       }
     },
     "excel_large": {
@@ -66,7 +66,7 @@
       "throughput": 136.0321233313506,
       "timestamp": "2025-11-12T12:34:35.656664",
       "metadata": {
-        "file_name": "sp800-53ar5-assessment-procedures.xlsx"
+        "file_name": "audit-data-10k-rows.xlsx"
       }
     },
     "txt_small": {
@@ -240,7 +240,7 @@
       "throughput": 136.39988169716557,
       "timestamp": "2026-02-11T22:07:21.923554",
       "metadata": {
-        "file_name": "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf",
+        "file_name": "sample.pdf",
         "cpu_percent": 164.3271186440678
       }
     },
