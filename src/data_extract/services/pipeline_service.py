@@ -10,7 +10,6 @@ from typing import Dict, Iterable, List
 
 import structlog
 
-from data_extract.chunk.engine import ChunkingConfig, ChunkingEngine
 from data_extract.core.models import Chunk, Document
 from data_extract.extract import get_extractor
 from data_extract.normalize.config import NormalizationConfig
@@ -135,6 +134,7 @@ class PipelineService:
         use_advanced = self._should_use_advanced_pipeline(
             include_semantic=include_semantic,
             pipeline_profile=pipeline_profile,
+            file_path=file_path,
         )
 
         start = time.perf_counter()
@@ -292,6 +292,7 @@ class PipelineService:
 
     def _chunk_advanced(self, document: Document, chunk_size: int) -> List[Chunk]:
         """Run semantic boundary-aware chunking engine."""
+        from data_extract.chunk.engine import ChunkingConfig, ChunkingEngine
         from data_extract.core.models import ProcessingContext
 
         engine = ChunkingEngine(
@@ -314,13 +315,28 @@ class PipelineService:
         return chunks
 
     @staticmethod
-    def _should_use_advanced_pipeline(include_semantic: bool, pipeline_profile: str) -> bool:
+    def _should_use_advanced_pipeline(
+        include_semantic: bool,
+        pipeline_profile: str,
+        file_path: Path,
+    ) -> bool:
         profile = str(pipeline_profile or "auto").lower()
         if profile == "advanced":
             return True
         if profile == "legacy":
             return False
-        return include_semantic
+        advanced_extensions = {
+            ".pdf",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".tif",
+            ".tiff",
+            ".bmp",
+            ".gif",
+            ".webp",
+        }
+        return include_semantic or file_path.suffix.lower() in advanced_extensions
 
     @staticmethod
     def _resolve_output_path(

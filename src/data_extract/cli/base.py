@@ -45,6 +45,18 @@ console = Console()
 CLI_UX_VERSION = "0.2.0"
 LEGACY_EPIC_LABEL = "Epic 3, Story 3.5"
 CURRENT_EPIC_LABEL = "Epic 5 - Enhanced CLI UX"
+VALID_PIPELINE_PROFILES = {"auto", "legacy", "advanced"}
+OCR_SENSITIVE_EXTENSIONS = {
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".tif",
+    ".tiff",
+    ".bmp",
+    ".gif",
+    ".webp",
+}
 
 
 def _build_version_output(verbose: bool = False) -> list[str]:
@@ -77,6 +89,28 @@ def _get_root_param(ctx: typer.Context, key: str) -> Any:
     if isinstance(params, dict):
         return params.get(key)
     return None
+
+
+def _normalize_pipeline_profile(pipeline_profile: str) -> str:
+    normalized = str(pipeline_profile or "auto").strip().lower()
+    if normalized not in VALID_PIPELINE_PROFILES:
+        raise ValueError(
+            f"Invalid pipeline profile '{pipeline_profile}'. "
+            f"Must be one of: {', '.join(sorted(VALID_PIPELINE_PROFILES))}"
+        )
+    return normalized
+
+
+def _show_ocr_readiness_guidance(files: list[Path], quiet: bool) -> None:
+    if quiet:
+        return
+    if not any(path.suffix.lower() in OCR_SENSITIVE_EXTENSIONS for path in files):
+        return
+    from data_extract.cli.ocr_status import check_ocr_available, show_ocr_unavailable_panel
+
+    ocr_available, _ = check_ocr_available()
+    if not ocr_available:
+        show_ocr_unavailable_panel(console)
 
 
 def version_callback(value: bool) -> None:
@@ -427,6 +461,13 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Enable semantic analysis/reporting in the process flow.",
             ),
         ] = False,
+        pipeline_profile: Annotated[
+            str,
+            typer.Option(
+                "--pipeline-profile",
+                help="Pipeline profile routing: auto, legacy, advanced.",
+            ),
+        ] = "auto",
         semantic_report: Annotated[
             bool,
             typer.Option(
@@ -535,6 +576,11 @@ def _register_process_command(app: typer.Typer) -> None:
                 f"Must be one of: {', '.join(sorted(valid_formats))}"
             )
             raise typer.Exit(code=EXIT_CONFIG_ERROR)
+        try:
+            normalized_pipeline_profile = _normalize_pipeline_profile(pipeline_profile)
+        except ValueError as exc:
+            console.print(f"[red]Configuration error:[/red] {exc}")
+            raise typer.Exit(code=EXIT_CONFIG_ERROR) from exc
 
         if organize and not strategy:
             typer.echo("Error: --organize flag requires --strategy option", err=True)
@@ -628,8 +674,11 @@ def _register_process_command(app: typer.Typer) -> None:
                 from data_extract.cli.components.panels import PreflightPanel
                 from data_extract.services.file_discovery_service import FileDiscoveryService
 
-                discovered_files, _ = FileDiscoveryService().discover(input_path, recursive=recursive)
+                discovered_files, _ = FileDiscoveryService().discover(
+                    input_path, recursive=recursive
+                )
                 if discovered_files:
+                    _show_ocr_readiness_guidance(discovered_files, quiet=quiet)
                     preflight = PreflightPanel(output_dir=output)
                     preflight.analyze(discovered_files)
                     console.print(preflight.render())
@@ -665,6 +714,7 @@ def _register_process_command(app: typer.Typer) -> None:
             semantic_max_features=semantic_max_features,
             semantic_n_components=semantic_n_components,
             semantic_min_quality=semantic_min_quality,
+            pipeline_profile=normalized_pipeline_profile,
             continue_on_error=True,
         )
 
@@ -704,7 +754,9 @@ def _register_process_command(app: typer.Typer) -> None:
                     f"{result.failed_count} failed, {result.skipped_count} skipped"
                 )
                 if result.failed_count > 0 and result.processed_count > 0:
-                    console.print("[yellow]Partial success:[/yellow] some files failed during processing.")
+                    console.print(
+                        "[yellow]Partial success:[/yellow] some files failed during processing."
+                    )
                 console.print(
                     f"[cyan]Chunks written:[/cyan] "
                     f"{sum(item.chunk_count for item in result.processed_files)}"
@@ -754,7 +806,8 @@ def _register_process_command(app: typer.Typer) -> None:
                 console.print(
                     "[yellow]DEBUG:[/yellow] stage timings (ms): "
                     + ", ".join(
-                        f"{stage}={duration:.2f}" for stage, duration in result.stage_totals_ms.items()
+                        f"{stage}={duration:.2f}"
+                        for stage, duration in result.stage_totals_ms.items()
                     )
                 )
 
@@ -827,6 +880,13 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Enable verbose output.",
             ),
         ] = False,
+        pipeline_profile: Annotated[
+            str,
+            typer.Option(
+                "--pipeline-profile",
+                help="Pipeline profile routing: auto, legacy, advanced.",
+            ),
+        ] = "auto",
     ) -> None:
         """Extract content from documents without semantic enrichment."""
         from data_extract.cli.exit_codes import determine_exit_code
@@ -841,6 +901,11 @@ def _register_process_command(app: typer.Typer) -> None:
                 "Must be one of: csv, json, txt"
             )
             raise typer.Exit(code=1)
+        try:
+            normalized_pipeline_profile = _normalize_pipeline_profile(pipeline_profile)
+        except ValueError as exc:
+            console.print(f"[red]Configuration error:[/red] {exc}")
+            raise typer.Exit(code=1) from exc
 
         discovery = FileDiscoveryService()
         pipeline = PipelineService()
@@ -853,6 +918,8 @@ def _register_process_command(app: typer.Typer) -> None:
             if not effective_quiet:
                 console.print("[yellow]No supported files found to extract.[/yellow]")
             raise typer.Exit(code=0)
+
+        _show_ocr_readiness_guidance(files, quiet=effective_quiet)
 
         output_dir = output.resolve() if output else source_dir / "extracted"
         output_file_override = None
@@ -868,6 +935,7 @@ def _register_process_command(app: typer.Typer) -> None:
             include_semantic=False,
             continue_on_error=True,
             source_root=input_path.parent if input_path.is_file() else input_path,
+            pipeline_profile=normalized_pipeline_profile,
             output_file_override=output_file_override,
         )
 
@@ -957,6 +1025,13 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Suppress non-error output.",
             ),
         ] = False,
+        pipeline_profile: Annotated[
+            str,
+            typer.Option(
+                "--pipeline-profile",
+                help="Pipeline profile routing: auto, legacy, advanced.",
+            ),
+        ] = "auto",
     ) -> None:
         """Batch process documents in a directory."""
         from data_extract.cli.exit_codes import determine_exit_code
@@ -972,6 +1047,11 @@ def _register_process_command(app: typer.Typer) -> None:
                 "Must be one of: csv, json, txt"
             )
             raise typer.Exit(code=1)
+        try:
+            normalized_pipeline_profile = _normalize_pipeline_profile(pipeline_profile)
+        except ValueError as exc:
+            console.print(f"[red]Configuration error:[/red] {exc}")
+            raise typer.Exit(code=1) from exc
 
         discovery = FileDiscoveryService()
         pipeline = PipelineService()
@@ -984,6 +1064,8 @@ def _register_process_command(app: typer.Typer) -> None:
             console.print("[yellow]No files matched batch criteria.[/yellow]")
             raise typer.Exit(code=1)
 
+        _show_ocr_readiness_guidance(files, quiet=effective_quiet)
+
         output_dir = output.resolve()
         run = pipeline.process_files(
             files=files,
@@ -993,6 +1075,7 @@ def _register_process_command(app: typer.Typer) -> None:
             include_semantic=False,
             continue_on_error=True,
             source_root=source_dir,
+            pipeline_profile=normalized_pipeline_profile,
         )
 
         if not effective_quiet:

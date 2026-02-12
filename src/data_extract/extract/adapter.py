@@ -35,7 +35,12 @@ class ExtractorAdapter(ABC):
 
         text, structure, quality_scores = self.extract(file_path)
 
-        metadata = self._build_metadata(file_path, text=text, quality_scores=quality_scores)
+        metadata = self._build_metadata(
+            file_path,
+            text=text,
+            structure=structure,
+            quality_scores=quality_scores,
+        )
 
         return Document(
             id=self._generate_document_id(file_path),
@@ -49,12 +54,33 @@ class ExtractorAdapter(ABC):
     def extract(self, file_path: Path) -> Tuple[str, Dict[str, Any], Dict[str, float]]:
         """Return (text, structure, quality_scores) for the file."""
 
-    def _build_metadata(self, file_path: Path, text: str, quality_scores: Dict[str, float]) -> Metadata:
+    def _build_metadata(
+        self,
+        file_path: Path,
+        text: str,
+        structure: Dict[str, Any],
+        quality_scores: Dict[str, float],
+    ) -> Metadata:
         """Create consistent metadata for extracted documents."""
         completeness = 1.0 if text.strip() else 0.0
         quality_flags = ["incomplete_extraction"] if completeness == 0.0 else []
+        ocr_confidence_raw = structure.get("ocr_confidence") if isinstance(structure, dict) else {}
+        ocr_confidence: Dict[int, float] = {}
+        if isinstance(ocr_confidence_raw, dict):
+            for page_key, score in ocr_confidence_raw.items():
+                try:
+                    page_num = int(page_key)
+                    value = float(score)
+                except (TypeError, ValueError):
+                    continue
+                if 0.0 <= value <= 1.0:
+                    ocr_confidence[page_num] = value
 
         document_type = self._guess_document_type(file_path)
+        document_average_confidence = quality_scores.get(
+            "ocr_confidence",
+            quality_scores.get("extraction_confidence", 1.0),
+        )
 
         return Metadata(
             source_file=file_path,
@@ -66,7 +92,7 @@ class ExtractorAdapter(ABC):
             document_subtype=self.format_name.lower(),
             quality_scores=quality_scores,
             quality_flags=quality_flags,
-            ocr_confidence={},
+            ocr_confidence=ocr_confidence,
             completeness_ratio=completeness,
             entity_tags=[],
             entity_counts={},
@@ -74,7 +100,7 @@ class ExtractorAdapter(ABC):
             config_snapshot={},
             validation_report={
                 "quarantine_recommended": completeness == 0.0,
-                "document_average_confidence": quality_scores.get("extraction_confidence", 1.0),
+                "document_average_confidence": document_average_confidence,
                 "quality_flags": quality_flags,
             },
         )

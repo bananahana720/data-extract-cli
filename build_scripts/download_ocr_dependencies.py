@@ -12,6 +12,7 @@ with PyInstaller or other packaging tools.
 import argparse
 import hashlib
 import logging
+import os
 import sys
 import zipfile
 from pathlib import Path
@@ -33,12 +34,13 @@ TESSERACT_GITHUB_API = "https://api.github.com/repos/UB-Mannheim/tesseract/relea
 
 POPPLER_GITHUB_API = "https://api.github.com/repos/oschwartz10612/poppler-windows/releases/latest"
 
-# Known good SHA256 checksums for OCR dependencies
-# These checksums should be verified against official releases
-# Update these when upgrading versions
+# Known SHA256 checksums for OCR dependencies.
+# Values can be injected via environment variables in CI/CD:
+# - DATA_EXTRACT_TESSERACT_SHA256
+# - DATA_EXTRACT_POPPLER_SHA256
 CHECKSUMS = {
-    "tesseract-5.3.3": "sha256:TBD",  # TODO: Get from UB-Mannheim releases
-    "poppler-24.02.0": "sha256:TBD",  # TODO: Get from GitHub releases
+    "tesseract-5.3.3": os.environ.get("DATA_EXTRACT_TESSERACT_SHA256", "").strip(),
+    "poppler-24.02.0": os.environ.get("DATA_EXTRACT_POPPLER_SHA256", "").strip(),
 }
 
 # Required files for verification
@@ -243,15 +245,24 @@ def download_tesseract(output_dir: Path, force: bool = False, skip_verify: bool 
         if checksum_key in CHECKSUMS:
             expected_checksum = CHECKSUMS[checksum_key]
 
-            if expected_checksum == "sha256:TBD":
-                logger.warning(f"No checksum available for {checksum_key}, skipping verification")
-                logger.warning("Please update CHECKSUMS dict with official release checksum")
-            elif not verify_checksum(download_path, expected_checksum):
+            if not expected_checksum:
+                logger.error(f"Checksum missing for {checksum_key}")
+                logger.error(
+                    "Set DATA_EXTRACT_TESSERACT_SHA256 or use --skip-verify only in trusted environments."
+                )
+                download_path.unlink(missing_ok=True)
+                return False
+            if not verify_checksum(download_path, expected_checksum):
                 logger.error("Checksum verification failed for Tesseract")
                 download_path.unlink(missing_ok=True)
                 return False
         else:
-            logger.warning(f"No checksum defined for {checksum_key}, skipping verification")
+            logger.error(f"No checksum defined for {checksum_key}")
+            logger.error(
+                "Set DATA_EXTRACT_TESSERACT_SHA256 or use --skip-verify only in trusted environments."
+            )
+            download_path.unlink(missing_ok=True)
+            return False
     else:
         logger.warning("Checksum verification SKIPPED (--skip-verify flag)")
 
@@ -315,15 +326,24 @@ def download_poppler(output_dir: Path, force: bool = False, skip_verify: bool = 
         if checksum_key in CHECKSUMS:
             expected_checksum = CHECKSUMS[checksum_key]
 
-            if expected_checksum == "sha256:TBD":
-                logger.warning(f"No checksum available for {checksum_key}, skipping verification")
-                logger.warning("Please update CHECKSUMS dict with official release checksum")
-            elif not verify_checksum(download_path, expected_checksum):
+            if not expected_checksum:
+                logger.error(f"Checksum missing for {checksum_key}")
+                logger.error(
+                    "Set DATA_EXTRACT_POPPLER_SHA256 or use --skip-verify only in trusted environments."
+                )
+                download_path.unlink(missing_ok=True)
+                return False
+            if not verify_checksum(download_path, expected_checksum):
                 logger.error("Checksum verification failed for Poppler")
                 download_path.unlink(missing_ok=True)
                 return False
         else:
-            logger.warning(f"No checksum defined for {checksum_key}, skipping verification")
+            logger.error(f"No checksum defined for {checksum_key}")
+            logger.error(
+                "Set DATA_EXTRACT_POPPLER_SHA256 or use --skip-verify only in trusted environments."
+            )
+            download_path.unlink(missing_ok=True)
+            return False
     else:
         logger.warning("Checksum verification SKIPPED (--skip-verify flag)")
 

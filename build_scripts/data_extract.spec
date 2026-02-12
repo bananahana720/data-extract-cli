@@ -27,6 +27,7 @@ SRC_DIR = PROJECT_ROOT / "src"
 ENTRY_POINT = SRC_DIR / "data_extract" / "app.py"
 ASSETS_DIR = SPEC_ROOT / "assets"
 ICON_PATH = ASSETS_DIR / "icon.ico"
+VENDOR_DIR = SPEC_ROOT / "vendor"
 
 # Import version information from centralized version.py
 sys.path.insert(0, str(SPEC_ROOT))
@@ -108,6 +109,17 @@ datas += copy_metadata("pydantic_core")
 datas += copy_metadata("spacy")
 datas += copy_metadata("scikit-learn")
 datas += copy_metadata("typer")
+
+# Include OCR binaries when available (Full build).
+tesseract_vendor = VENDOR_DIR / "tesseract"
+if tesseract_vendor.exists():
+    print(f"Including bundled Tesseract: {tesseract_vendor}")
+    datas.append((str(tesseract_vendor), "tesseract"))
+
+poppler_vendor = VENDOR_DIR / "poppler"
+if poppler_vendor.exists():
+    print(f"Including bundled Poppler: {poppler_vendor}")
+    datas.append((str(poppler_vendor), "poppler"))
 
 # Analysis configuration
 a = Analysis(

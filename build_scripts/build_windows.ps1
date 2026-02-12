@@ -237,7 +237,28 @@ try {
 }
 Pop-Location
 
-# Step 5: Download spaCy model
+# Step 5: Download OCR binary dependencies for Full builds
+if ($Full) {
+    Write-Info "Downloading OCR binary dependencies (Tesseract + Poppler)..."
+    Push-Location $ProjectRoot
+    try {
+        $ocrDepsOutput = python build_scripts/download_ocr_dependencies.py 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to download OCR dependencies"
+            Write-Host $ocrDepsOutput -ForegroundColor Red
+            Pop-Location
+            exit 1
+        }
+        Write-Success "OCR binary dependencies downloaded"
+    } catch {
+        Write-Error "Failed to download OCR dependencies: $_"
+        Pop-Location
+        exit 1
+    }
+    Pop-Location
+}
+
+# Step 6: Download spaCy model
 Write-Info "Downloading spaCy model en_core_web_md..."
 
 try {
@@ -271,7 +292,7 @@ try {
     Write-Warning "spaCy validation check failed (non-critical): $_"
 }
 
-# Step 6: Run PyInstaller
+# Step 7: Run PyInstaller
 Write-Info "Running PyInstaller..."
 
 Push-Location $ProjectRoot
@@ -285,7 +306,7 @@ try {
 }
 Pop-Location
 
-# Step 7: Verify build output
+# Step 8: Verify build output
 Write-Info "Verifying build output..."
 
 if (-not (Test-Path $ExePath)) {
@@ -305,7 +326,7 @@ try {
     exit 1
 }
 
-# Step 8: Create installer (if not skipped)
+# Step 9: Create installer (if not skipped)
 if (-not $SkipInstaller) {
     Write-Info "Creating Windows installer with Inno Setup..."
 

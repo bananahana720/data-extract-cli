@@ -886,10 +886,8 @@ class TestMetadataPopulation:
         result = validator.process(document, context)
 
         # Check document-level average: (0.96 + 0.98 + 0.96) / 3 = 0.9667
-        assert "ocr_average_confidence" in result.metadata.quality_scores
-        assert result.metadata.quality_scores["ocr_average_confidence"] == pytest.approx(
-            0.9667, abs=0.001
-        )
+        assert "ocr_confidence" in result.metadata.quality_scores
+        assert result.metadata.quality_scores["ocr_confidence"] == pytest.approx(0.9667, abs=0.001)
 
     @patch("src.data_extract.normalize.validation.TESSERACT_AVAILABLE", True)
     def test_process_adds_quality_flags_to_metadata(self):

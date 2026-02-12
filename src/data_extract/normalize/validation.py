@@ -166,6 +166,7 @@ def configure_pytesseract() -> Tuple[bool, Optional[str]]:
         ...     pytesseract.image_to_string(image)
     """
     tesseract_cmd = _find_tesseract_cmd()
+    pytesseract_module = globals().get("pytesseract") if TESSERACT_AVAILABLE else None
     if not TESSERACT_AVAILABLE:
         if tesseract_cmd:
             # Allow path detection tests to pass in environments without OCR Python deps.
@@ -179,8 +180,11 @@ def configure_pytesseract() -> Tuple[bool, Optional[str]]:
             )
         return False, "pytesseract or Pillow not installed - cannot use OCR"
 
+    if pytesseract_module is None:
+        return False, "pytesseract module not initialized - cannot configure OCR"
+
     if tesseract_cmd:
-        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+        pytesseract_module.pytesseract.tesseract_cmd = tesseract_cmd
         logger.info("pytesseract configured successfully", tesseract_cmd=tesseract_cmd)
         return True, None
 
@@ -304,6 +308,11 @@ class QualityValidator(PipelineStage[Document, Document]):
         try:
             # Load image
             image = Image.open(image_path)
+            pytesseract_module = globals().get("pytesseract")
+            if pytesseract_module is None:
+                raise ProcessingError(
+                    "pytesseract module not initialized - cannot calculate OCR confidence"
+                )
 
             # Apply preprocessing if enabled
             if preprocess and self.ocr_preprocessing_enabled:
@@ -322,7 +331,10 @@ class QualityValidator(PipelineStage[Document, Document]):
                 confidence_after = None
 
             # Get OCR data with confidence scores
-            ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+            ocr_data = pytesseract_module.image_to_data(
+                image,
+                output_type=pytesseract_module.Output.DICT,
+            )
 
             # Extract valid confidence scores (filter out -1 which indicates no OCR)
             confidences = [int(conf) for conf in ocr_data["conf"] if str(conf) != "-1"]
@@ -350,8 +362,14 @@ class QualityValidator(PipelineStage[Document, Document]):
         Returns:
             Average confidence score (0.0-1.0)
         """
+        pytesseract_module = globals().get("pytesseract")
+        if pytesseract_module is None:
+            return 0.0
         try:
-            ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+            ocr_data = pytesseract_module.image_to_data(
+                image,
+                output_type=pytesseract_module.Output.DICT,
+            )
             confidences = [int(conf) for conf in ocr_data["conf"] if str(conf) != "-1"]
 
             if not confidences:
@@ -372,14 +390,13 @@ class QualityValidator(PipelineStage[Document, Document]):
         Returns:
             Preprocessed PIL Image object
         """
-        import numpy as np
-
         # Convert to grayscale for better OCR
         if image.mode != "L":
             image = image.convert("L")
 
         # Apply deskew (rotation correction) using determine_skew from deskew library
         try:
+            import numpy as np
             from deskew import determine_skew  # type: ignore[import-not-found]
             from skimage.transform import rotate  # type: ignore[import-not-found]
 
@@ -537,6 +554,31 @@ class QualityValidator(PipelineStage[Document, Document]):
         if not structure:
             # No structure metadata - assume native PDF
             return False
+
+        page_count = int(structure.get("page_count") or 0)
+        scanned_page_count = int(structure.get("scanned_page_count") or 0)
+        if page_count > 0 and scanned_page_count > 0:
+            scanned_ratio = scanned_page_count / page_count
+            if scanned_ratio > 0.5:
+                self.logger.info(
+                    "scanned_pdf_detected",
+                    document_id=document.id,
+                    reason="scanned_page_ratio",
+                    scanned_page_count=scanned_page_count,
+                    page_count=page_count,
+                    scanned_ratio=scanned_ratio,
+                )
+                return True
+
+        ocr_pages = int(structure.get("ocr_pages") or 0)
+        if ocr_pages > 0:
+            self.logger.info(
+                "scanned_pdf_detected",
+                document_id=document.id,
+                reason="ocr_pages_present",
+                ocr_pages=ocr_pages,
+            )
+            return True
 
         # Count pages/blocks with image content vs. text content
         image_content_count = 0
@@ -940,6 +982,12 @@ class QualityValidator(PipelineStage[Document, Document]):
                 # Note: In a real implementation, we would extract images from the document
                 # For now, we'll use existing ocr_confidence metadata if available
                 confidence_scores = document.metadata.ocr_confidence.copy()
+                if not confidence_scores:
+                    document_average_confidence = document.metadata.quality_scores.get(
+                        "ocr_confidence"
+                    )
+                    if isinstance(document_average_confidence, (int, float)):
+                        confidence_scores = {1: float(document_average_confidence)}
 
                 # If no confidence scores in metadata, skip OCR but do completeness validation
                 if not confidence_scores:
@@ -1030,9 +1078,8 @@ class QualityValidator(PipelineStage[Document, Document]):
         # Build quality_scores dict (preserve existing + add new)
         updated_quality_scores = document.metadata.quality_scores.copy()
         if validation_report.document_average_confidence is not None:
-            updated_quality_scores["ocr_average_confidence"] = (
-                validation_report.document_average_confidence
-            )
+            updated_quality_scores["ocr_confidence"] = validation_report.document_average_confidence
+        updated_quality_scores.pop("ocr_average_confidence", None)
 
         # Build quality_flags list (preserve existing + add new unique flags)
         updated_quality_flags = document.metadata.quality_flags.copy()
