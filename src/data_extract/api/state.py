@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,10 +12,16 @@ from typing import Any, Dict, cast
 
 from sqlalchemy import delete, select
 
-from data_extract.api.database import JOBS_HOME, SessionLocal, init_database
+from data_extract.api.database import (
+    JOBS_HOME,
+    SessionLocal,
+    init_database,
+    sqlite_lock_retry_stats,
+    with_sqlite_lock_retry,
+)
 from data_extract.api.models import Job, JobEvent, JobFile, RetryRun, SessionRecord
 from data_extract.contracts import JobStatus, ProcessJobRequest, RetryRequest
-from data_extract.runtime import LocalJobQueue
+from data_extract.runtime import LocalJobQueue, QueueFullError
 from data_extract.services import JobService, RetryService
 from data_extract.services.pathing import normalized_path_text
 from data_extract.services.persistence_repository import (
@@ -24,6 +31,10 @@ from data_extract.services.persistence_repository import (
 )
 
 
+class QueueCapacityError(RuntimeError):
+    """Raised when queue capacity is exhausted and request cannot be accepted."""
+
+
 class ApiRuntime:
     """Owns queue lifecycle and background job handlers."""
 
@@ -31,7 +42,13 @@ class ApiRuntime:
         self.job_service = JobService()
         self.persistence = PersistenceRepository()
         self._worker_count = self._resolve_worker_count()
-        self.queue = LocalJobQueue(self._handle_job, worker_count=self._worker_count)
+        self._max_backlog = self._resolve_max_backlog()
+        self.queue = LocalJobQueue(
+            self._handle_job,
+            worker_count=self._worker_count,
+            max_backlog=self._max_backlog,
+            error_handler=self._handle_queue_error,
+        )
         self._recovery_stats = {"requeued": 0, "failed": 0}
         self._readiness_report: dict[str, Any] = {
             "status": "unknown",
@@ -61,6 +78,36 @@ class ApiRuntime:
     def queue_backlog(self) -> int:
         """Approximate number of jobs pending in queue memory."""
         return self.queue.backlog
+
+    @property
+    def queue_capacity(self) -> int:
+        """Maximum in-memory queue capacity."""
+        return self.queue.capacity
+
+    @property
+    def queue_utilization(self) -> float:
+        """Queue utilization ratio."""
+        return self.queue.utilization
+
+    @property
+    def alive_workers(self) -> int:
+        """Number of currently alive worker threads."""
+        return self.queue.alive_workers
+
+    @property
+    def dead_workers(self) -> int:
+        """Number of workers currently not alive."""
+        return self.queue.dead_workers
+
+    @property
+    def worker_restarts(self) -> int:
+        """Number of worker restarts handled by watchdog."""
+        return self.queue.worker_restarts
+
+    @property
+    def db_lock_retry_stats(self) -> dict[str, Any]:
+        """SQLite lock retry counters."""
+        return sqlite_lock_retry_stats()
 
     @property
     def recovery_stats(self) -> dict[str, int]:
@@ -96,44 +143,54 @@ class ApiRuntime:
                 if status in TERMINAL_STATUSES or status in RUNNING_STATUSES:
                     return existing_job_id
 
-        with SessionLocal() as db:
-            job = Job(
-                id=effective_job_id,
-                status=JobStatus.QUEUED.value,
-                input_path=normalized_request.input_path,
-                output_dir=normalized_request.output_path or "",
-                requested_format=normalized_request.output_format,
-                chunk_size=normalized_request.chunk_size,
-                request_payload=json.dumps(normalized_request.model_dump(), default=str),
-                request_hash=request_hash,
-                idempotency_key=normalized_request.idempotency_key,
-                attempt=1,
-                artifact_dir=str(job_dirs["root"]),
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
-            )
-            db.add(job)
-            db.add(
-                JobEvent(
-                    job_id=effective_job_id,
-                    event_type="queued",
-                    message="Job queued for processing",
-                    payload="{}",
-                    event_time=datetime.now(timezone.utc),
+        def _persist_queue_record() -> None:
+            with SessionLocal() as db:
+                job = Job(
+                    id=effective_job_id,
+                    status=JobStatus.QUEUED.value,
+                    input_path=normalized_request.input_path,
+                    output_dir=normalized_request.output_path or "",
+                    requested_format=normalized_request.output_format,
+                    chunk_size=normalized_request.chunk_size,
+                    request_payload=json.dumps(normalized_request.model_dump(), default=str),
+                    request_hash=request_hash,
+                    idempotency_key=normalized_request.idempotency_key,
+                    attempt=1,
+                    artifact_dir=str(job_dirs["root"]),
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
-            )
-            db.commit()
+                db.add(job)
+                db.add(
+                    JobEvent(
+                        job_id=effective_job_id,
+                        event_type="queued",
+                        message="Job queued for processing",
+                        payload="{}",
+                        event_time=datetime.now(timezone.utc),
+                    )
+                )
+                db.commit()
+
+        with_sqlite_lock_retry(_persist_queue_record)
 
         self._write_job_log(effective_job_id, "Job queued for processing")
-        self.queue.submit(
-            effective_job_id, {"kind": "process", "request": normalized_request.model_dump()}
-        )
+        try:
+            self.queue.submit(
+                effective_job_id, {"kind": "process", "request": normalized_request.model_dump()}
+            )
+        except QueueFullError as exc:
+            self._discard_unaccepted_process_job(effective_job_id)
+            raise QueueCapacityError(str(exc)) from exc
         return effective_job_id
 
     def enqueue_retry(self, job_id: str, request: RetryRequest) -> None:
         """Submit retry action to worker for existing job id."""
         self._write_job_log(job_id, "Retry queued")
-        self.queue.submit(job_id, {"kind": "retry", "request": request.model_dump()})
+        try:
+            self.queue.submit(job_id, {"kind": "retry", "request": request.model_dump()})
+        except QueueFullError as exc:
+            raise QueueCapacityError(str(exc)) from exc
 
     def _handle_job(self, job_id: str, payload: Dict[str, Any]) -> None:
         """Worker callback for process/retry execution."""
@@ -141,25 +198,31 @@ class ApiRuntime:
         request_payload = payload.get("request", {})
         input_path = ""
 
-        with SessionLocal() as db:
-            job = db.get(Job, job_id)
-            if not job:
-                return
-            input_path = job.input_path
+        def _mark_running() -> str:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if not job:
+                    return ""
 
-            job.status = JobStatus.RUNNING.value
-            job.started_at = datetime.now(timezone.utc)
-            job.updated_at = datetime.now(timezone.utc)
-            db.add(
-                JobEvent(
-                    job_id=job_id,
-                    event_type="running",
-                    message="Job is running",
-                    payload="{}",
-                    event_time=datetime.now(timezone.utc),
+                input_path_value = job.input_path
+                job.status = JobStatus.RUNNING.value
+                job.started_at = datetime.now(timezone.utc)
+                job.updated_at = datetime.now(timezone.utc)
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="running",
+                        message="Job is running",
+                        payload="{}",
+                        event_time=datetime.now(timezone.utc),
+                    )
                 )
-            )
-            db.commit()
+                db.commit()
+                return input_path_value
+
+        input_path = with_sqlite_lock_retry(_mark_running)
+        if not input_path:
+            return
         self._write_job_log(job_id, "Job started")
 
         try:
@@ -185,116 +248,125 @@ class ApiRuntime:
 
     def _persist_result(self, job_id: str, result: Dict[str, Any]) -> None:
         """Persist successful/partial/failed result data."""
-        with SessionLocal() as db:
-            job = db.get(Job, job_id)
-            if not job:
-                return
-
-            raw_status = result.get("status", JobStatus.FAILED.value)
-            status = raw_status.value if isinstance(raw_status, JobStatus) else str(raw_status)
-            job.status = status
-            job.result_payload = json.dumps(result, default=str)
-            job.output_dir = result.get("output_dir", job.output_dir)
-            job.request_hash = result.get("request_hash", job.request_hash)
-            job.artifact_dir = result.get("artifact_dir", job.artifact_dir)
-            job.session_id = result.get("session_id")
-            job.finished_at = datetime.now(timezone.utc)
-            job.updated_at = datetime.now(timezone.utc)
-
-            db.execute(delete(JobFile).where(JobFile.job_id == job_id))
-
-            for processed in result.get("processed_files", []):
-                source_path = str(processed.get("path", ""))
-                db.add(
-                    JobFile(
-                        job_id=job_id,
-                        source_path=source_path,
-                        normalized_source_path=(
-                            normalized_path_text(source_path) if source_path else None
-                        ),
-                        output_path=processed.get("output_path"),
-                        status="processed",
-                        chunk_count=processed.get("chunk_count", 0),
-                    )
-                )
-
-            for failed in result.get("failed_files", []):
-                source_path = str(failed.get("path", ""))
-                db.add(
-                    JobFile(
-                        job_id=job_id,
-                        source_path=source_path,
-                        normalized_source_path=(
-                            normalized_path_text(source_path) if source_path else None
-                        ),
-                        output_path=None,
-                        status="failed",
-                        chunk_count=0,
-                        retry_count=int(failed.get("retry_count", 0)),
-                        error_type=failed.get("error_type"),
-                        error_message=failed.get("error_message"),
-                    )
-                )
-
-            if job.session_id:
-                self._upsert_session(
-                    db,
-                    job.session_id,
-                    job.input_path,
-                    artifact_dir=job.artifact_dir,
-                    is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
-                    archived_at=(
-                        datetime.now(timezone.utc)
-                        if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
-                        else None
-                    ),
-                )
-
-            if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}:
-                db.add(
-                    RetryRun(
-                        job_id=job_id,
-                        source_session_id=job.session_id,
-                        status="available",
-                        requested_at=datetime.now(timezone.utc),
-                    )
-                )
-
-            db.add(
-                JobEvent(
-                    job_id=job_id,
-                    event_type="finished",
-                    message=f"Job finished with status={status}",
-                    payload="{}",
-                    event_time=datetime.now(timezone.utc),
-                )
-            )
-
-            db.commit()
+        raw_status = result.get("status", JobStatus.FAILED.value)
+        status = raw_status.value if isinstance(raw_status, JobStatus) else str(raw_status)
+        # Artifact durability must succeed before terminal DB commit.
         self._write_job_artifact(job_id, result)
+
+        def _persist_terminal_state() -> None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if not job:
+                    return
+
+                job.status = status
+                job.result_payload = json.dumps(result, default=str)
+                job.output_dir = result.get("output_dir", job.output_dir)
+                job.request_hash = result.get("request_hash", job.request_hash)
+                job.artifact_dir = result.get("artifact_dir", job.artifact_dir)
+                job.session_id = result.get("session_id")
+                job.finished_at = datetime.now(timezone.utc)
+                job.updated_at = datetime.now(timezone.utc)
+
+                db.execute(delete(JobFile).where(JobFile.job_id == job_id))
+
+                for processed in result.get("processed_files", []):
+                    source_path = str(processed.get("path", ""))
+                    db.add(
+                        JobFile(
+                            job_id=job_id,
+                            source_path=source_path,
+                            normalized_source_path=(
+                                normalized_path_text(source_path) if source_path else None
+                            ),
+                            output_path=processed.get("output_path"),
+                            status="processed",
+                            chunk_count=processed.get("chunk_count", 0),
+                        )
+                    )
+
+                for failed in result.get("failed_files", []):
+                    source_path = str(failed.get("path", ""))
+                    db.add(
+                        JobFile(
+                            job_id=job_id,
+                            source_path=source_path,
+                            normalized_source_path=(
+                                normalized_path_text(source_path) if source_path else None
+                            ),
+                            output_path=None,
+                            status="failed",
+                            chunk_count=0,
+                            retry_count=int(failed.get("retry_count", 0)),
+                            error_type=failed.get("error_type"),
+                            error_message=failed.get("error_message"),
+                        )
+                    )
+
+                if job.session_id:
+                    self._upsert_session(
+                        db,
+                        job.session_id,
+                        job.input_path,
+                        artifact_dir=job.artifact_dir,
+                        is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
+                        archived_at=(
+                            datetime.now(timezone.utc)
+                            if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
+                            else None
+                        ),
+                    )
+
+                if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}:
+                    db.add(
+                        RetryRun(
+                            job_id=job_id,
+                            source_session_id=job.session_id,
+                            status="available",
+                            requested_at=datetime.now(timezone.utc),
+                        )
+                    )
+
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="finished",
+                        message=f"Job finished with status={status}",
+                        payload="{}",
+                        event_time=datetime.now(timezone.utc),
+                    )
+                )
+
+                db.commit()
+
+        with_sqlite_lock_retry(_persist_terminal_state)
         self._write_job_log(job_id, f"Job finished with status={status}")
 
     def _persist_exception(self, job_id: str, exc: Exception) -> None:
         """Persist worker exception as terminal failed state."""
-        with SessionLocal() as db:
-            job = db.get(Job, job_id)
-            if not job:
-                return
 
-            job.status = JobStatus.FAILED.value
-            job.result_payload = json.dumps({"error": str(exc)})
-            job.finished_at = datetime.now(timezone.utc)
-            job.updated_at = datetime.now(timezone.utc)
-            db.add(
-                JobEvent(
-                    job_id=job_id,
-                    event_type="error",
-                    message=str(exc),
-                    payload="{}",
-                    event_time=datetime.now(timezone.utc),
+        def _persist_error() -> None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if not job:
+                    return
+
+                job.status = JobStatus.FAILED.value
+                job.result_payload = json.dumps({"error": str(exc)})
+                job.finished_at = datetime.now(timezone.utc)
+                job.updated_at = datetime.now(timezone.utc)
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="error",
+                        message=str(exc),
+                        payload="{}",
+                        event_time=datetime.now(timezone.utc),
+                    )
                 )
-            )
-            db.commit()
+                db.commit()
+
+        with_sqlite_lock_retry(_persist_error)
         self._write_job_log(job_id, f"Job failed: {exc}")
 
     @staticmethod
@@ -371,7 +443,16 @@ class ApiRuntime:
         """Persist canonical per-job artifact payload."""
         job_dirs = self._job_dirs(job_id)
         artifact_path = job_dirs["root"] / "result.json"
-        artifact_path.write_text(json.dumps(payload, default=str, indent=2), encoding="utf-8")
+        temp_path = artifact_path.with_suffix(".tmp")
+        try:
+            with temp_path.open("w", encoding="utf-8") as handle:
+                json.dump(payload, handle, default=str, indent=2)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, artifact_path)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
 
     def _write_job_log(self, job_id: str, message: str) -> None:
         job_dirs = self._job_dirs(job_id)
@@ -391,56 +472,89 @@ class ApiRuntime:
 
     def _recover_inflight_jobs(self) -> None:
         """Recover jobs stranded in queued/running after unclean shutdown."""
-        recovered_requeued = 0
-        recovered_failed = 0
 
-        with SessionLocal() as db:
-            stale_jobs = list(
-                db.scalars(
-                    select(Job)
-                    .where(Job.status.in_(RUNNING_STATUSES))
-                    .order_by(Job.created_at.asc())
+        def _stage_recovery() -> tuple[int, list[tuple[str, dict[str, Any], str]]]:
+            recovered_failed = 0
+            staged_submissions: list[tuple[str, dict[str, Any], str]] = []
+            with SessionLocal() as db:
+                stale_jobs = list(
+                    db.scalars(
+                        select(Job)
+                        .where(Job.status.in_(RUNNING_STATUSES))
+                        .order_by(Job.created_at.asc())
+                    )
                 )
-            )
-            if not stale_jobs:
-                self._recovery_stats = {"requeued": 0, "failed": 0}
-                return
+                if not stale_jobs:
+                    return 0, []
 
-            for job in stale_jobs:
-                if job.status == JobStatus.QUEUED.value:
+                for job in stale_jobs:
                     request_payload = self._load_request_payload(job.request_payload)
                     if request_payload is None:
                         recovered_failed += self._mark_recovery_failed(
                             db,
                             job,
-                            "Failed to recover queued job: invalid request payload",
+                            "Failed to recover job after restart: invalid request payload",
                         )
                         continue
 
+                    was_running = job.status == JobStatus.RUNNING.value
+                    if was_running:
+                        request_payload["resume"] = True
+                        request_payload["force"] = False
+                        if job.session_id:
+                            request_payload["resume_session"] = job.session_id
+
+                    job.status = JobStatus.QUEUED.value
+                    job.started_at = None
+                    job.finished_at = None
                     job.updated_at = datetime.now(timezone.utc)
+                    message = (
+                        "Recovered running job after restart; requeued with resume"
+                        if was_running
+                        else "Recovered queued job after restart"
+                    )
+
                     db.add(
                         JobEvent(
                             job_id=job.id,
                             event_type="queued",
-                            message="Recovered queued job after restart",
+                            message=message,
                             payload="{}",
                             event_time=datetime.now(timezone.utc),
                         )
                     )
-                    self.queue.submit(job.id, {"kind": "process", "request": request_payload})
-                    self._write_job_log(job.id, "Recovered queued job after restart")
-                    recovered_requeued += 1
-                    continue
+                    staged_submissions.append(
+                        (
+                            job.id,
+                            {"kind": "process", "request": request_payload},
+                            message,
+                        )
+                    )
 
-                recovered_failed += self._mark_recovery_failed(
-                    db,
-                    job,
-                    "Recovered running job after restart; marked failed for consistency",
+                db.commit()
+            return recovered_failed, staged_submissions
+
+        recovered_failed, staged_submissions = with_sqlite_lock_retry(_stage_recovery)
+        recovered_requeued = 0
+        for job_id, payload, message in staged_submissions:
+            try:
+                self.queue.submit(job_id, payload)
+            except QueueFullError:
+                recovered_failed += self._mark_recovery_submission_failed(
+                    job_id,
+                    "Failed to recover job after restart: queue at capacity",
                 )
-
-            db.commit()
+                continue
+            self._write_job_log(job_id, message)
+            recovered_requeued += 1
 
         self._recovery_stats = {"requeued": recovered_requeued, "failed": recovered_failed}
+
+    def _handle_queue_error(self, job_id: str, payload: dict[str, Any], exc: Exception) -> None:
+        """Persist uncaught queue worker failures as terminal errors."""
+        kind = payload.get("kind", "process")
+        wrapped = RuntimeError(f"Queue worker {kind} handler failure: {exc}")
+        self._persist_exception(job_id, wrapped)
 
     @staticmethod
     def _load_request_payload(raw_payload: str | None) -> dict[str, Any] | None:
@@ -480,6 +594,56 @@ class ApiRuntime:
         self._write_job_log(job.id, message)
         return 1
 
+    def _mark_recovery_submission_failed(self, job_id: str, message: str) -> int:
+        """Persist recovery failure when queue submit is rejected after staging."""
+
+        def _persist() -> int:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if not job:
+                    return 0
+                job.status = JobStatus.FAILED.value
+                job.finished_at = datetime.now(timezone.utc)
+                job.updated_at = datetime.now(timezone.utc)
+                job.result_payload = json.dumps(
+                    {
+                        "error": message,
+                        "recovered_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="error",
+                        message=message,
+                        payload="{}",
+                        event_time=datetime.now(timezone.utc),
+                    )
+                )
+                db.commit()
+                return 1
+
+        failed_count = with_sqlite_lock_retry(_persist)
+        if failed_count:
+            self._write_job_log(job_id, message)
+        return failed_count
+
+    def _discard_unaccepted_process_job(self, job_id: str) -> None:
+        """Remove queued DB/filesystem artifacts when submission was never accepted."""
+
+        def _discard() -> None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if job is None:
+                    return
+                db.execute(delete(JobFile).where(JobFile.job_id == job_id))
+                db.execute(delete(JobEvent).where(JobEvent.job_id == job_id))
+                db.delete(job)
+                db.commit()
+
+        with_sqlite_lock_retry(_discard)
+        shutil.rmtree(JOBS_HOME / job_id, ignore_errors=True)
+
     @staticmethod
     def _resolve_worker_count() -> int:
         raw_value = os.environ.get("DATA_EXTRACT_API_WORKERS", "2").strip()
@@ -487,6 +651,14 @@ class ApiRuntime:
             return max(1, int(raw_value))
         except ValueError:
             return 2
+
+    @staticmethod
+    def _resolve_max_backlog() -> int:
+        raw_value = os.environ.get("DATA_EXTRACT_API_QUEUE_MAX_BACKLOG", "1000").strip()
+        try:
+            return max(1, int(raw_value))
+        except ValueError:
+            return 1000
 
     @staticmethod
     def _resolve_work_dir(input_path: str) -> Path:

@@ -35,6 +35,7 @@ def _inquirer_method(name: str) -> Any | None:
     method = getattr(inquirer, name, None)
     return method if callable(method) else None
 
+
 # ==============================================================================
 # Error Action Enum
 # ==============================================================================

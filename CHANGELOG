@@ -10,6 +10,11 @@
 - Removed temporary lifecycle e2e retry mitigations (`ui` test loop + Playwright CLI retries) and added router regression coverage to the refactor tests gate.
 
 2026-02-12
+- Fixed queue-capacity rejection semantics for process jobs so unaccepted submissions are discarded (DB + artifacts) instead of being persisted as terminal failures, preventing idempotency poisoning on later retries.
+- Preserved prior job result metadata when retry enqueue is rejected by queue capacity by rolling back transient queued state/events in the jobs router.
+- Refactored startup recovery into a two-phase flow (DB staging/commit then queue submission) to prevent duplicate in-memory submissions when SQLite lock retries re-execute recovery logic.
+- Added and updated targeted regression tests for queue-full idempotency behavior, retry rollback/payload preservation, and recovery de-duplication under transient DB-lock contention.
+- Re-ran regression validation in project venv: API/runtime suites, full unit suite, integration/performance semantic suites, and lint/format gates for modified files.
 - Hardened local UI/API runtime resilience: startup recovery for queued/running jobs, SQLite WAL/busy-timeout tuning, configurable in-process worker concurrency, and richer health/readiness telemetry.
 - Added security and deployment safeguards: API-key middleware support, remote host guardrails in `data-extract ui`, and centralized runtime dependency/readiness checks (including spaCy model validation).
 - Reduced API/UI lock pressure with jobs/detail pagination plus client-side database-lock retries and adaptive polling behavior.

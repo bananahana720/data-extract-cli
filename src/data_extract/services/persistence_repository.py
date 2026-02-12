@@ -90,7 +90,9 @@ class PersistenceRepository:
         deps = self._deps()
         if deps is None:
             return 0
-        session_local, _job_model, job_file_model, _session_record_model, select_stmt, func_stmt = deps
+        session_local, _job_model, job_file_model, _session_record_model, select_stmt, func_stmt = (
+            deps
+        )
         try:
             with session_local() as db:
                 stmt = select_stmt(func_stmt.max(job_file_model.retry_count)).where(
@@ -135,7 +137,9 @@ class PersistenceRepository:
                         session_id=session_id,
                         source_directory=str(payload.get("source_directory", "")),
                         status=str(payload.get("status", "unknown")),
-                        total_files=int(stats.get("total_files", payload.get("total_files", 0) or 0)),
+                        total_files=int(
+                            stats.get("total_files", payload.get("total_files", 0) or 0)
+                        ),
                         processed_count=int(stats.get("processed_count", 0)),
                         failed_count=int(stats.get("failed_count", 0)),
                         artifact_dir=artifact_dir,
@@ -147,7 +151,9 @@ class PersistenceRepository:
                 else:
                     record.source_directory = str(payload.get("source_directory", ""))
                     record.status = str(payload.get("status", "unknown"))
-                    record.total_files = int(stats.get("total_files", payload.get("total_files", 0) or 0))
+                    record.total_files = int(
+                        stats.get("total_files", payload.get("total_files", 0) or 0)
+                    )
                     record.processed_count = int(stats.get("processed_count", 0))
                     record.failed_count = int(stats.get("failed_count", 0))
                     record.artifact_dir = artifact_dir
@@ -190,7 +196,9 @@ class PersistenceRepository:
             with session_local() as db:
                 records = list(
                     db.scalars(
-                        select_stmt(session_record_model).order_by(session_record_model.updated_at.desc())
+                        select_stmt(session_record_model).order_by(
+                            session_record_model.updated_at.desc()
+                        )
                     )
                 )
 
@@ -222,7 +230,11 @@ class PersistenceRepository:
 
         started_at = result.get("started_at")
         finished_at = result.get("finished_at")
-        started = started_at if isinstance(started_at, str) else (job.started_at or job.created_at).isoformat()
+        started = (
+            started_at
+            if isinstance(started_at, str)
+            else (job.started_at or job.created_at).isoformat()
+        )
         updated = finished_at if isinstance(finished_at, str) else job.updated_at.isoformat()
 
         source_path = Path(job.input_path)

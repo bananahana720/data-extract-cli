@@ -47,7 +47,9 @@ def test_process_job_result_status_enum() -> None:
 
 
 def test_processed_file_outcome_supports_source_key() -> None:
-    outcome = ProcessedFileOutcome(path="/tmp/a.txt", output_path="/tmp/out/a.json", source_key="abc123")
+    outcome = ProcessedFileOutcome(
+        path="/tmp/a.txt", output_path="/tmp/out/a.json", source_key="abc123"
+    )
     assert outcome.source_key == "abc123"
 
 

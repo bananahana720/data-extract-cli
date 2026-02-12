@@ -1,5 +1,5 @@
 """Runtime infrastructure for local API execution."""
 
-from .queue import LocalJobQueue
+from .queue import LocalJobQueue, QueueFullError
 
-__all__ = ["LocalJobQueue"]
+__all__ = ["LocalJobQueue", "QueueFullError"]

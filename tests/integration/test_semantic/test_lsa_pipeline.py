@@ -359,8 +359,7 @@ class TestLSAIntegration:
         # importance using singular values instead.
         singular_values = lsa.singular_values_
         assert all(
-            singular_values[i] >= singular_values[i + 1]
-            for i in range(len(singular_values) - 1)
+            singular_values[i] >= singular_values[i + 1] for i in range(len(singular_values) - 1)
         ), "Singular values should decrease with component order"
 
         # First component should explain most variance

@@ -265,4 +265,13 @@ test("config page supports preset preview and apply", async ({ page }) => {
 
   await page.getByRole("button", { name: "Apply Preset" }).click();
   await expect(page.getByTestId("config-effective-json")).toContainText("{");
+
+  const apiKeyInput = page.getByTestId("config-api-key-input");
+  await expect(apiKeyInput).toBeVisible();
+  await apiKeyInput.fill("e2e-secret");
+  await page.getByRole("button", { name: "Save API Key" }).click();
+  await expect(page.getByText("API key saved locally and will be sent as x-api-key.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Clear API Key" }).click();
+  await expect(page.getByText("API key cleared.")).toBeVisible();
 });

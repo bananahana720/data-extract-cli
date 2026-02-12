@@ -38,7 +38,9 @@ class Job(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     files: Mapped[list[JobFile]] = relationship(back_populates="job", cascade="all, delete-orphan")
-    events: Mapped[list[JobEvent]] = relationship(back_populates="job", cascade="all, delete-orphan")
+    events: Mapped[list[JobEvent]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
+    )
 
 
 class JobFile(Base):

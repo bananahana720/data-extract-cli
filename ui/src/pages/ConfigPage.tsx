@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 
 import {
   applyConfigPreset,
+  clearApiKey,
+  getApiKey,
   getEffectiveConfig,
   listConfigPresets,
-  previewConfigPreset
+  previewConfigPreset,
+  setApiKey
 } from "../api/client";
 import { ConfigPresetSummary } from "../types";
 
@@ -23,8 +26,12 @@ export function ConfigPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [apiKeyStatus, setApiKeyStatus] = useState<string | null>(null);
 
   useEffect(() => {
+    setApiKeyInput(getApiKey());
+
     async function load() {
       setLoading(true);
       setError(null);
@@ -41,7 +48,11 @@ export function ConfigPage() {
       } catch (requestError) {
         const message =
           requestError instanceof Error ? requestError.message : "Unable to load configuration";
-        setError(message);
+        setError(
+          /Unauthorized/i.test(message)
+            ? "Unauthorized. Set API key below to access secured API endpoints."
+            : message
+        );
       } finally {
         setLoading(false);
       }
@@ -63,7 +74,11 @@ export function ConfigPage() {
     } catch (requestError) {
       const message =
         requestError instanceof Error ? requestError.message : "Unable to preview preset";
-      setError(message);
+      setError(
+        /Unauthorized/i.test(message)
+          ? "Unauthorized. Set API key below to preview secured endpoints."
+          : message
+      );
     }
   }
 
@@ -80,8 +95,27 @@ export function ConfigPage() {
       setStatusMessage(`Applied preset "${selectedPreset}".`);
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Unable to apply preset";
-      setError(message);
+      setError(
+        /Unauthorized/i.test(message)
+          ? "Unauthorized. Set API key below to apply secured endpoints."
+          : message
+      );
     }
+  }
+
+  function saveApiKey() {
+    setApiKey(apiKeyInput);
+    setApiKeyStatus(
+      apiKeyInput.trim()
+        ? "API key saved locally and will be sent as x-api-key."
+        : "API key cleared."
+    );
+  }
+
+  function clearApiKeySetting() {
+    clearApiKey();
+    setApiKeyInput("");
+    setApiKeyStatus("API key cleared.");
   }
 
   return (
@@ -118,6 +152,31 @@ export function ConfigPage() {
           </button>
         </div>
         {statusMessage ? <p className="help-text">{statusMessage}</p> : null}
+      </fieldset>
+
+      <fieldset className="field-group">
+        <legend>API Security</legend>
+        <label htmlFor="config-api-key-input">
+          <span>API Key</span>
+        </label>
+        <input
+          id="config-api-key-input"
+          type="password"
+          value={apiKeyInput}
+          onChange={(event) => setApiKeyInput(event.target.value)}
+          placeholder="Optional x-api-key for secured API mode"
+          data-testid="config-api-key-input"
+          autoComplete="off"
+        />
+        <div className="actions-inline">
+          <button type="button" className="secondary" onClick={saveApiKey}>
+            Save API Key
+          </button>
+          <button type="button" onClick={clearApiKeySetting}>
+            Clear API Key
+          </button>
+        </div>
+        {apiKeyStatus ? <p className="help-text">{apiKeyStatus}</p> : null}
       </fieldset>
 
       {error ? (

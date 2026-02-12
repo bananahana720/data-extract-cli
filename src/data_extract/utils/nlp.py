@@ -279,7 +279,9 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
                     "Falling back to lightweight sentence segmentation; "
                     "install with: python -m spacy download en_core_web_md"
                 )
-                logger.warning("spaCy model load failed, using fallback", error=str(e), resolution=error_msg)
+                logger.warning(
+                    "spaCy model load failed, using fallback", error=str(e), resolution=error_msg
+                )
                 _nlp_model = _build_fallback_nlp()
                 _using_fallback_model = True
                 logger.info(

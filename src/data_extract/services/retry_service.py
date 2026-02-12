@@ -73,7 +73,9 @@ class RetryService:
             prior_retry_counts=retry_counts,
         )
 
-    def _resolve_session(self, manager: SessionManager, request: RetryRequest) -> Optional[SessionState]:
+    def _resolve_session(
+        self, manager: SessionManager, request: RetryRequest
+    ) -> Optional[SessionState]:
         """Resolve target session from request parameters."""
         if request.session:
             canonical = self.persistence.session_payload(request.session)
@@ -126,7 +128,9 @@ class RetryService:
             retryable.append(payload)
         return retryable
 
-    def _load_session_anywhere(self, manager: SessionManager, session_id: str) -> Optional[SessionState]:
+    def _load_session_anywhere(
+        self, manager: SessionManager, session_id: str
+    ) -> Optional[SessionState]:
         """Load session from active or archived location."""
         state = manager.load_session(session_id)
         if state:

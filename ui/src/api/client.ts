@@ -6,6 +6,28 @@ import {
   SessionSummary
 } from "../types";
 
+const API_KEY_STORAGE_KEY = "data_extract_api_key";
+
+function getStoredApiKey(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  try {
+    return (window.localStorage.getItem(API_KEY_STORAGE_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function requestHeaders(init?: RequestInit): Headers {
+  const headers = new Headers(init?.headers || {});
+  const apiKey = getStoredApiKey();
+  if (apiKey && !headers.has("x-api-key")) {
+    headers.set("x-api-key", apiKey);
+  }
+  return headers;
+}
+
 function isDatabaseLocked(message: string): boolean {
   return /database is locked/i.test(message);
 }
@@ -20,7 +42,10 @@ async function request<T>(url: string, init?: RequestInit, attempts = 3): Promis
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const response = await fetch(url, init);
+    const response = await fetch(url, {
+      ...(init || {}),
+      headers: requestHeaders(init)
+    });
     if (response.ok) {
       return (await response.json()) as T;
     }
@@ -36,6 +61,29 @@ async function request<T>(url: string, init?: RequestInit, attempts = 3): Promis
   }
 
   throw lastError ?? new Error("Request failed");
+}
+
+export function getApiKey(): string {
+  return getStoredApiKey();
+}
+
+export function setApiKey(value: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const normalized = value.trim();
+  if (!normalized) {
+    window.localStorage.removeItem(API_KEY_STORAGE_KEY);
+    return;
+  }
+  window.localStorage.setItem(API_KEY_STORAGE_KEY, normalized);
+}
+
+export function clearApiKey(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.removeItem(API_KEY_STORAGE_KEY);
 }
 
 export async function createProcessJob(payload: Record<string, unknown>): Promise<string> {

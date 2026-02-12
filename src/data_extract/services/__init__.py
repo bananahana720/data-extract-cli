@@ -10,7 +10,10 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS: dict[str, tuple[str, str]] = {
-    "FileDiscoveryService": ("data_extract.services.file_discovery_service", "FileDiscoveryService"),
+    "FileDiscoveryService": (
+        "data_extract.services.file_discovery_service",
+        "FileDiscoveryService",
+    ),
     "PipelineService": ("data_extract.services.pipeline_service", "PipelineService"),
     "JobService": ("data_extract.services.job_service", "JobService"),
     "RetryService": ("data_extract.services.retry_service", "RetryService"),
@@ -19,7 +22,10 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "data_extract.services.semantic_orchestration_service",
         "SemanticOrchestrationService",
     ),
-    "PersistenceRepository": ("data_extract.services.persistence_repository", "PersistenceRepository"),
+    "PersistenceRepository": (
+        "data_extract.services.persistence_repository",
+        "PersistenceRepository",
+    ),
     "normalize_path": ("data_extract.services.pathing", "normalize_path"),
     "source_key_for_path": ("data_extract.services.pathing", "source_key_for_path"),
     "list_session_summaries": ("data_extract.services.session_service", "list_session_summaries"),

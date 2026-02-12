@@ -15,6 +15,7 @@ export function JobsPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const inFlightRef = useRef(false);
+  const failureStreakRef = useRef(0);
 
   const refreshJobs = useCallback(async () => {
     if (inFlightRef.current) {
@@ -25,14 +26,18 @@ export function JobsPage() {
     try {
       const loadedJobs = await listJobs({ limit: 300 });
       const hasActiveJobs = loadedJobs.some((job) => job.status === "queued" || job.status === "running");
+      failureStreakRef.current = 0;
       setJobs(loadedJobs);
       setError(null);
       setLastUpdatedAt(new Date().toISOString());
       setPollDelayMs(hasActiveJobs ? 1000 : 4000);
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Unable to load jobs";
+      failureStreakRef.current += 1;
       setError(message);
-      setPollDelayMs((current) => Math.min(15000, Math.max(2000, current * 2)));
+      const baseDelay = 2000 * Math.min(8, 2 ** failureStreakRef.current);
+      const jitter = Math.floor(Math.random() * 250);
+      setPollDelayMs(Math.min(15000, baseDelay + jitter));
     } finally {
       inFlightRef.current = false;
       setIsRefreshing(false);
@@ -44,9 +49,10 @@ export function JobsPage() {
   }, [refreshJobs]);
 
   useEffect(() => {
+    const jitter = Math.floor(Math.random() * 150);
     const timer = window.setTimeout(() => {
       void refreshJobs();
-    }, pollDelayMs);
+    }, pollDelayMs + jitter);
     return () => {
       window.clearTimeout(timer);
     };

@@ -138,7 +138,10 @@ class TestSummaryGenerationPerformance:
 
     def test_summary_rendering_under_50ms(self, medium_summary_report: SummaryReport) -> None:
         elapsed_ms = _measure_total_ms(
-            lambda: (render_quality_dashboard(medium_summary_report.quality_metrics), render_timing_breakdown(medium_summary_report.timing)),
+            lambda: (
+                render_quality_dashboard(medium_summary_report.quality_metrics),
+                render_timing_breakdown(medium_summary_report.timing),
+            ),
             iterations=20,
         )
         assert elapsed_ms < 50.0, f"Dashboard render took {elapsed_ms:.2f}ms for 20 iterations"
@@ -147,7 +150,9 @@ class TestSummaryGenerationPerformance:
 class TestExportPerformance:
     """Test performance of summary export to various formats."""
 
-    def test_json_export_under_100ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+    def test_json_export_under_100ms(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
         output_path = tmp_path / "summary.json"
         elapsed_ms = _measure_total_ms(
             lambda: export_summary(medium_summary_report, output_path, ExportFormat.JSON),
@@ -170,7 +175,9 @@ class TestExportPerformance:
         assert output_path.exists()
         assert elapsed_ms < 300.0, f"Large JSON export took {elapsed_ms:.2f}ms for 20 iterations"
 
-    def test_html_export_under_500ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+    def test_html_export_under_500ms(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
         output_path = tmp_path / "summary.html"
         elapsed_ms = _measure_total_ms(
             lambda: export_summary(medium_summary_report, output_path, ExportFormat.HTML),
@@ -181,7 +188,9 @@ class TestExportPerformance:
         assert "Processing Summary Report" in content
         assert elapsed_ms < 500.0, f"HTML export took {elapsed_ms:.2f}ms for 20 iterations"
 
-    def test_txt_export_under_100ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+    def test_txt_export_under_100ms(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
         output_path = tmp_path / "summary.txt"
         elapsed_ms = _measure_total_ms(
             lambda: export_summary(medium_summary_report, output_path, ExportFormat.TXT),
@@ -249,8 +258,12 @@ class TestScalability:
         medium_summary_report: SummaryReport,
         large_summary_report: SummaryReport,
     ) -> None:
-        time_med_ms = _measure_total_ms(lambda: render_summary_panel(medium_summary_report), iterations=500)
-        time_large_ms = _measure_total_ms(lambda: render_summary_panel(large_summary_report), iterations=500)
+        time_med_ms = _measure_total_ms(
+            lambda: render_summary_panel(medium_summary_report), iterations=500
+        )
+        time_large_ms = _measure_total_ms(
+            lambda: render_summary_panel(large_summary_report), iterations=500
+        )
 
         ratio = time_large_ms / time_med_ms if time_med_ms > 0 else 1.0
         assert 0.5 <= ratio <= 20.0, f"Scaling ratio {ratio:.2f}x out of expected range"
@@ -277,7 +290,9 @@ class TestScalability:
 class TestOutputFormatPerformance:
     """Test performance characteristics of different output formats."""
 
-    def test_json_fastest_format(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+    def test_json_fastest_format(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
         json_path = tmp_path / "summary.json"
         txt_path = tmp_path / "summary.txt"
 
@@ -324,7 +339,9 @@ class TestPerformanceOptimizations:
 
         assert average_ms < 5.0, f"Average render latency {average_ms:.3f}ms exceeded budget"
 
-    def test_streaming_export_for_large_summaries(self, large_summary_report: SummaryReport) -> None:
+    def test_streaming_export_for_large_summaries(
+        self, large_summary_report: SummaryReport
+    ) -> None:
         section_iter = iter_summary_sections(large_summary_report)
 
         start = time.perf_counter()
@@ -332,9 +349,9 @@ class TestPerformanceOptimizations:
         first_section_latency_ms = (time.perf_counter() - start) * 1000
 
         assert "PROCESSING SUMMARY REPORT" in first_section
-        assert first_section_latency_ms < 10.0, (
-            f"First progressive section took {first_section_latency_ms:.2f}ms"
-        )
+        assert (
+            first_section_latency_ms < 10.0
+        ), f"First progressive section took {first_section_latency_ms:.2f}ms"
 
     def test_parallel_export_formats(
         self,

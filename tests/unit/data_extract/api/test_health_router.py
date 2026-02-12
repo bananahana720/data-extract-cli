@@ -25,6 +25,12 @@ def test_health_detailed_includes_runtime_snapshot() -> None:
     assert payload["status"] == "degraded"
     assert payload["ready"] is True
     assert "workers" in payload
+    assert "alive_workers" in payload
+    assert "dead_workers" in payload
+    assert "worker_restarts" in payload
     assert "queue_backlog" in payload
+    assert "queue_capacity" in payload
+    assert "queue_utilization" in payload
+    assert "db_lock_retry_stats" in payload
     assert "recovery" in payload
     assert "readiness" in payload

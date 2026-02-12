@@ -24,7 +24,13 @@ def health(detailed: bool = Query(default=False)) -> dict[str, Any]:
     }
     if detailed:
         payload["workers"] = runtime.worker_count
+        payload["alive_workers"] = runtime.alive_workers
+        payload["dead_workers"] = runtime.dead_workers
+        payload["worker_restarts"] = runtime.worker_restarts
         payload["queue_backlog"] = runtime.queue_backlog
+        payload["queue_capacity"] = runtime.queue_capacity
+        payload["queue_utilization"] = runtime.queue_utilization
         payload["recovery"] = runtime.recovery_stats
+        payload["db_lock_retry_stats"] = runtime.db_lock_retry_stats
         payload["readiness"] = readiness
     return payload

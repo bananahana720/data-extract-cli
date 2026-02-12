@@ -69,6 +69,34 @@ Extract → Normalize → Chunk → Semantic → Output
 **Semantic** - Classical NLP analysis (TF-IDF, LSA, similarity scoring)
 **Output** - Multiple formats (JSON, TXT, CSV with full metadata)
 
+### API Runtime Hardening
+
+Local UI/API runtime now includes queue, upload, and SQLite contention guardrails:
+
+- Bounded in-memory queue with worker watchdog and restart tracking
+- Atomic artifact writes before terminal job status persistence
+- SQLite lock retries with bounded exponential backoff
+- Multipart upload streaming (no full-buffer file reads)
+
+#### Runtime Environment Variables
+
+- `DATA_EXTRACT_API_QUEUE_MAX_BACKLOG` - Max queued jobs in memory (default `1000`)
+- `DATA_EXTRACT_API_MAX_UPLOAD_FILE_BYTES` - Per-file upload limit (default `104857600`)
+- `DATA_EXTRACT_API_MAX_UPLOAD_TOTAL_BYTES` - Total multipart request limit (default `524288000`)
+- `DATA_EXTRACT_API_MAX_UPLOAD_FILES` - Max files per multipart request (default `1000`)
+- `DATA_EXTRACT_API_DB_LOCK_RETRIES` - SQLite lock retry attempts (default `5`)
+- `DATA_EXTRACT_API_DB_LOCK_BACKOFF_MS` - Base lock backoff in milliseconds (default `100`)
+
+#### API Behavior
+
+- `POST /api/v1/jobs/process` can return:
+  - `413` when upload guardrails are exceeded
+  - `503` when queue capacity is exhausted
+- `GET /api/v1/health?detailed=true` includes queue/worker/retry diagnostics:
+  - `alive_workers`, `dead_workers`, `worker_restarts`
+  - `queue_backlog`, `queue_capacity`, `queue_utilization`
+  - `db_lock_retry_stats`
+
 ## Key Features
 
 ### 9 CLI Commands

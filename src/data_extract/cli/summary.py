@@ -499,7 +499,9 @@ def _iter_summary_section_data(report: SummaryReport) -> Iterator[tuple[str, lis
             duration_str = (
                 f"{duration_ms / 1000:.2f}s" if duration_ms >= 1000 else f"{duration_ms:.0f}ms"
             )
-            timing_lines.append(f"{stage.capitalize():12s}: {duration_str:>10s} ({percentage:5.1f}%)")
+            timing_lines.append(
+                f"{stage.capitalize():12s}: {duration_str:>10s} ({percentage:5.1f}%)"
+            )
         yield ("timing", timing_lines)
 
     if report.errors:

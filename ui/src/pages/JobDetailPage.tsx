@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
@@ -114,6 +114,8 @@ export function JobDetailPage() {
   const [cleaning, setCleaning] = useState(false);
   const [copyStatus, setCopyStatus] = useState<CopyStatus>(null);
   const [artifactEntries, setArtifactEntries] = useState<JobArtifactEntry[]>([]);
+  const artifactPollRef = useRef(0);
+  const errorStreakRef = useRef(0);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -125,24 +127,33 @@ export function JobDetailPage() {
 
       try {
         const detail = await getJob(jobId, { fileLimit: 2000, eventLimit: 2000 });
+        errorStreakRef.current = 0;
         setJob(detail);
         setError(null);
-        try {
-          const artifactPayload = await listJobArtifacts(jobId);
-          setArtifactEntries(artifactPayload.artifacts);
-        } catch {
-          setArtifactEntries([]);
+        const active = detail.status === "queued" || detail.status === "running";
+        const shouldFetchArtifacts = !active || artifactPollRef.current % 5 === 0;
+        if (shouldFetchArtifacts) {
+          try {
+            const artifactPayload = await listJobArtifacts(jobId);
+            setArtifactEntries(artifactPayload.artifacts);
+          } catch {
+            setArtifactEntries([]);
+          }
         }
+        artifactPollRef.current = active ? artifactPollRef.current + 1 : 0;
 
-        if (detail.status === "queued" || detail.status === "running") {
-          timer = window.setTimeout(refresh, 1000);
+        if (active) {
+          timer = window.setTimeout(refresh, 1000 + Math.floor(Math.random() * 120));
         }
       } catch (requestError) {
         const message = requestError instanceof Error ? requestError.message : "Unable to load job";
         if (isDatabaseLockedMessage(message) && job) {
           return;
         }
+        errorStreakRef.current += 1;
         setError(message);
+        const delayMs = Math.min(10000, 1000 * (2 ** Math.min(4, errorStreakRef.current)));
+        timer = window.setTimeout(refresh, delayMs + Math.floor(Math.random() * 200));
       }
     }
 

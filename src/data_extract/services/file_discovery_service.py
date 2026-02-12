@@ -52,7 +52,9 @@ class FileDiscoveryService:
         return self._filter_supported(files, excludes)
 
     @staticmethod
-    def _filter_supported(files: Iterable[Path], excludes: Iterable[Path] | None = None) -> List[Path]:
+    def _filter_supported(
+        files: Iterable[Path], excludes: Iterable[Path] | None = None
+    ) -> List[Path]:
         """Keep only extensions currently supported by extractors."""
         excluded_roots = [path.resolve() for path in (excludes or [])]
         filtered = []
@@ -60,7 +62,9 @@ class FileDiscoveryService:
             resolved = file_path.resolve()
             if resolved.suffix.lower() not in SUPPORTED_EXTENSIONS:
                 continue
-            if any(excluded == resolved or excluded in resolved.parents for excluded in excluded_roots):
+            if any(
+                excluded == resolved or excluded in resolved.parents for excluded in excluded_roots
+            ):
                 continue
             filtered.append(resolved)
         return sorted(set(filtered))

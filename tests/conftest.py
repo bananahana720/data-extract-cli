@@ -44,6 +44,7 @@ def ensure_cli_script_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
         updated_path = f"{venv_bin}{os.pathsep}{current_path}" if current_path else str(venv_bin)
         monkeypatch.setenv("PATH", updated_path)
 
+
 # TableMetadata replacement - simple dataclass for table structure in ContentBlock metadata
 
 

@@ -127,15 +127,11 @@ class RunConfigResolver:
         semantic_cfg = merged.get("semantic", {}) if isinstance(merged, dict) else {}
         governance_cfg = merged.get("governance", {}) if isinstance(merged, dict) else {}
         evaluation_cfg = (
-            governance_cfg.get("evaluation", {})
-            if isinstance(governance_cfg, dict)
-            else {}
+            governance_cfg.get("evaluation", {}) if isinstance(governance_cfg, dict) else {}
         )
         include_semantic = bool(request.include_semantic)
         report = (
-            request.semantic_report
-            if request.semantic_report is not None
-            else include_semantic
+            request.semantic_report if request.semantic_report is not None else include_semantic
         )
         export_graph = (
             request.semantic_export_graph
@@ -172,7 +168,9 @@ class RunConfigResolver:
                 _to_float(_nested_get(semantic_cfg, "quality.min_score", 0.3), 0.3),
             ),
         )
-        default_include_evaluation = bool(ProcessJobRequest.model_fields["include_evaluation"].default)
+        default_include_evaluation = bool(
+            ProcessJobRequest.model_fields["include_evaluation"].default
+        )
         default_fail_on_bad = bool(ProcessJobRequest.model_fields["evaluation_fail_on_bad"].default)
         default_policy = DEFAULT_EVALUATION_POLICY
 
@@ -202,7 +200,9 @@ class RunConfigResolver:
             or os.environ.get("DATA_EXTRACT_PIPELINE_PROFILE", DEFAULT_PIPELINE_PROFILE)
         ).lower()
         pipeline_profile = (
-            requested_profile if requested_profile in VALID_PIPELINE_PROFILES else DEFAULT_PIPELINE_PROFILE
+            requested_profile
+            if requested_profile in VALID_PIPELINE_PROFILES
+            else DEFAULT_PIPELINE_PROFILE
         )
         allow_advanced_fallback = _to_bool(
             os.environ.get("DATA_EXTRACT_ADVANCED_FALLBACK"),

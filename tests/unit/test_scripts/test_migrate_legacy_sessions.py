@@ -27,7 +27,9 @@ def _run_migration(tmp_ui_home: Path, *args: str) -> subprocess.CompletedProcess
     )
 
 
-def _run_python(tmp_ui_home: Path, code: str, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def _run_python(
+    tmp_ui_home: Path, code: str, extra_env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["DATA_EXTRACT_UI_HOME"] = str(tmp_ui_home)
     env["PYTHONPATH"] = str(SRC_PATH) + os.pathsep + env.get("PYTHONPATH", "")
@@ -61,7 +63,9 @@ def _session_payload(
     now = datetime.now(timezone.utc).isoformat()
     output_directory = source_directory / "output"
     processed_files = [{"path": Path(path).name, "source_path": path} for path in processed_paths]
-    failed_files = [{"path": path, "retry_count": retry_count} for path, retry_count in failed_paths]
+    failed_files = [
+        {"path": path, "retry_count": retry_count} for path, retry_count in failed_paths
+    ]
     total_files = len(processed_files) + len(failed_files)
     return {
         "schema_version": "1.0",
@@ -118,7 +122,13 @@ def _insert_canonical_seed(
         "skipped_count": 0,
         "output_dir": str(source_directory / "output"),
         "session_id": session_id,
-        "processed_files": [{"path": path, "output_path": str(source_directory / "output" / (Path(path).stem + ".json"))} for path in processed_paths],
+        "processed_files": [
+            {
+                "path": path,
+                "output_path": str(source_directory / "output" / (Path(path).stem + ".json")),
+            }
+            for path in processed_paths
+        ],
         "failed_files": [{"path": path, "retry_count": retry} for path, retry in failed_paths],
         "started_at": now,
         "finished_at": now,
@@ -273,8 +283,16 @@ def test_migration_audit_parity_matches_runtime_artifacts(tmp_path: Path) -> Non
         session_id=session_id,
         source_directory=source_root,
         status=runtime_payload["status"],
-        processed_paths=[item.get("path") for item in runtime_payload.get("processed_files", []) if item.get("path")],
-        failed_paths=[(item.get("path"), int(item.get("retry_count", 0))) for item in runtime_payload.get("failed_files", []) if item.get("path")],
+        processed_paths=[
+            item.get("path")
+            for item in runtime_payload.get("processed_files", [])
+            if item.get("path")
+        ],
+        failed_paths=[
+            (item.get("path"), int(item.get("retry_count", 0)))
+            for item in runtime_payload.get("failed_files", [])
+            if item.get("path")
+        ],
     )
 
     report_json = tmp_path / "parity-report.json"
@@ -289,7 +307,11 @@ def test_migration_audit_parity_matches_runtime_artifacts(tmp_path: Path) -> Non
     assert completed.returncode == 0, completed.stderr
     payload = json.loads(report_json.read_text(encoding="utf-8"))
     assert payload["mismatch_details"] == []
-    parity_statuses = [entry.get("parity", {}).get("status") for entry in payload["sessions"] if entry.get("session_id")]
+    parity_statuses = [
+        entry.get("parity", {}).get("status")
+        for entry in payload["sessions"]
+        if entry.get("session_id")
+    ]
     assert "match" in parity_statuses
 
 

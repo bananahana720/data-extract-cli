@@ -31,9 +31,9 @@ def test_openapi_exposes_v1_contract_paths() -> None:
     for path, methods in expected.items():
         assert path in paths, f"Missing OpenAPI path: {path}"
         actual_methods = set(paths[path].keys())
-        assert methods.issubset(actual_methods), (
-            f"Path {path} is missing methods {methods - actual_methods}"
-        )
+        assert methods.issubset(
+            actual_methods
+        ), f"Path {path} is missing methods {methods - actual_methods}"
 
 
 def test_openapi_process_request_schema_includes_idempotency_key() -> None:

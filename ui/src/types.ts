@@ -90,3 +90,7 @@ export interface SessionSummary {
   failed_count: number;
   updated_at: string;
 }
+
+export interface ApiSecuritySettings {
+  api_key_configured: boolean;
+}

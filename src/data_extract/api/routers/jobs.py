@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import uuid
 from datetime import datetime, timezone
@@ -12,14 +13,19 @@ from typing import Any
 from fastapi import APIRouter, Body, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
-from data_extract.api.database import JOBS_HOME, SessionLocal
+from data_extract.api.database import JOBS_HOME, SessionLocal, with_sqlite_lock_retry
 from data_extract.api.models import AppSetting, Job, JobEvent, JobFile
-from data_extract.api.state import runtime
+from data_extract.api.state import QueueCapacityError, runtime
 from data_extract.contracts import ProcessJobRequest, RetryRequest
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
+
+UPLOAD_CHUNK_BYTES = 1024 * 1024
+MAX_UPLOAD_FILE_BYTES_DEFAULT = 100 * 1024 * 1024
+MAX_UPLOAD_TOTAL_BYTES_DEFAULT = 500 * 1024 * 1024
+MAX_UPLOAD_FILES_DEFAULT = 1000
 
 
 class EnqueueJobResponse(BaseModel):
@@ -49,6 +55,23 @@ class ArtifactListResponse(BaseModel):
 
     job_id: str
     artifacts: list[JobArtifactEntry]
+
+
+def _resolve_int_env(name: str, default: int, minimum: int = 1) -> int:
+    raw = str(os.environ.get(name, str(default))).strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(minimum, value)
+
+
+def _upload_limits() -> tuple[int, int, int]:
+    return (
+        _resolve_int_env("DATA_EXTRACT_API_MAX_UPLOAD_FILE_BYTES", MAX_UPLOAD_FILE_BYTES_DEFAULT),
+        _resolve_int_env("DATA_EXTRACT_API_MAX_UPLOAD_TOTAL_BYTES", MAX_UPLOAD_TOTAL_BYTES_DEFAULT),
+        _resolve_int_env("DATA_EXTRACT_API_MAX_UPLOAD_FILES", MAX_UPLOAD_FILES_DEFAULT),
+    )
 
 
 def _to_bool(value: Any) -> bool:
@@ -92,24 +115,58 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
     uploaded_files = [
         entry for entry in form.getlist("files") if isinstance(entry, UploadFile) and entry.filename
     ]
+    max_file_bytes, max_total_bytes, max_files = _upload_limits()
 
     input_path = _optional_str(form.get("input_path"))
     if not uploaded_files and not input_path:
         raise HTTPException(status_code=400, detail="Provide files upload or input_path")
 
     if uploaded_files:
+        if len(uploaded_files) > max_files:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Upload file count exceeds limit ({max_files}).",
+            )
         inputs_dir = JOBS_HOME / job_id / "inputs"
         inputs_dir.mkdir(parents=True, exist_ok=True)
+        total_bytes = 0
+        try:
+            for upload in uploaded_files:
+                raw_path = Path(str(upload.filename).replace("\\", "/"))
+                safe_parts = [part for part in raw_path.parts if part not in {"", ".", ".."}]
+                if not safe_parts:
+                    continue
+                destination = inputs_dir.joinpath(*safe_parts)
+                destination.parent.mkdir(parents=True, exist_ok=True)
 
-        for upload in uploaded_files:
-            raw_path = Path(str(upload.filename).replace("\\", "/"))
-            safe_parts = [part for part in raw_path.parts if part not in {"", ".", ".."}]
-            if not safe_parts:
-                continue
-            destination = inputs_dir.joinpath(*safe_parts)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            payload = await upload.read()
-            destination.write_bytes(payload)
+                file_bytes = 0
+                with destination.open("wb") as handle:
+                    while True:
+                        payload = await upload.read(UPLOAD_CHUNK_BYTES)
+                        if not payload:
+                            break
+                        file_bytes += len(payload)
+                        total_bytes += len(payload)
+                        if file_bytes > max_file_bytes:
+                            raise HTTPException(
+                                status_code=413,
+                                detail=(
+                                    f"File '{upload.filename}' exceeds per-file upload limit "
+                                    f"({max_file_bytes} bytes)."
+                                ),
+                            )
+                        if total_bytes > max_total_bytes:
+                            raise HTTPException(
+                                status_code=413,
+                                detail=(
+                                    "Total upload payload exceeds limit "
+                                    f"({max_total_bytes} bytes)."
+                                ),
+                            )
+                        handle.write(payload)
+        except Exception:
+            shutil.rmtree(inputs_dir, ignore_errors=True)
+            raise
 
         input_path = str(inputs_dir)
 
@@ -145,9 +202,7 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             idempotency_key=_optional_str(form.get("idempotency_key")),
             non_interactive=True,
             include_semantic=semantic_requested,
-            include_evaluation=(
-                evaluation_requested if evaluation_requested is not None else True
-            ),
+            include_evaluation=(evaluation_requested if evaluation_requested is not None else True),
             evaluation_policy=evaluation_policy or "baseline_v1",
             evaluation_fail_on_bad=(
                 evaluation_fail_on_bad if evaluation_fail_on_bad is not None else False
@@ -188,12 +243,15 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
 
 
 def _resolve_default_preset() -> str | None:
-    with SessionLocal() as db:
-        setting = db.get(AppSetting, "last_preset")
-        if setting is None:
-            return None
-        preset_name = str(setting.value or "").strip()
-        return preset_name or None
+    def _load() -> str | None:
+        with SessionLocal() as db:
+            setting = db.get(AppSetting, "last_preset")
+            if setting is None:
+                return None
+            preset_name = str(setting.value or "").strip()
+            return preset_name or None
+
+    return with_sqlite_lock_retry(_load)
 
 
 @router.post("/process", response_model=EnqueueJobResponse)
@@ -222,8 +280,10 @@ async def enqueue_process_job(
         default_preset = _resolve_default_preset()
         if default_preset:
             process_request = process_request.model_copy(update={"preset": default_preset})
-
-    queued_job_id = runtime.enqueue_process(process_request, job_id=job_id)
+    try:
+        queued_job_id = runtime.enqueue_process(process_request, job_id=job_id)
+    except QueueCapacityError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     return EnqueueJobResponse(job_id=queued_job_id, status="queued")
 
 
@@ -328,34 +388,80 @@ def get_job(
 @router.post("/{job_id}/retry-failures", response_model=EnqueueJobResponse)
 def retry_job_failures(job_id: str) -> EnqueueJobResponse:
     """Queue retry for the failed files of a completed/partial job."""
-    with SessionLocal() as db:
-        job = db.get(Job, job_id)
-        if not job:
-            raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    captured_session_id: str | None = None
+    previous_status: str | None = None
+    previous_started_at: datetime | None = None
+    previous_finished_at: datetime | None = None
+    previous_updated_at: datetime | None = None
+    queued_event_time: datetime | None = None
 
-        result_payload = json.loads(job.result_payload or "{}")
-        session_id = result_payload.get("session_id") or job.session_id
+    def _persist_retry_queue_state() -> None:
+        nonlocal captured_session_id
+        nonlocal previous_status, previous_started_at, previous_finished_at, previous_updated_at
+        nonlocal queued_event_time
+        with SessionLocal() as db:
+            job = db.get(Job, job_id)
+            if not job:
+                raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
 
-        if not session_id:
-            raise HTTPException(status_code=400, detail="Job has no session context for retry")
+            result_payload = json.loads(job.result_payload or "{}")
+            session_id = result_payload.get("session_id") or job.session_id
 
-        job.status = "queued"
-        job.started_at = None
-        job.finished_at = None
-        job.updated_at = datetime.now(timezone.utc)
-        db.add(
-            JobEvent(
-                job_id=job_id,
-                event_type="queued",
-                message="Retry queued",
-                payload="{}",
-                event_time=datetime.now(timezone.utc),
+            if not session_id:
+                raise HTTPException(status_code=400, detail="Job has no session context for retry")
+            captured_session_id = str(session_id)
+
+            previous_status = job.status
+            previous_started_at = job.started_at
+            previous_finished_at = job.finished_at
+            previous_updated_at = job.updated_at
+            queued_event_time = datetime.now(timezone.utc)
+            job.status = "queued"
+            job.started_at = None
+            job.finished_at = None
+            job.updated_at = queued_event_time
+            db.add(
+                JobEvent(
+                    job_id=job_id,
+                    event_type="queued",
+                    message="Retry queued",
+                    payload="{}",
+                    event_time=queued_event_time,
+                )
             )
-        )
-        db.commit()
+            db.commit()
 
-    retry_request = RetryRequest(session=session_id, last=False, non_interactive=True)
-    runtime.enqueue_retry(job_id=job_id, request=retry_request)
+    def _rollback_retry_queue_state() -> None:
+        with SessionLocal() as db:
+            job = db.get(Job, job_id)
+            if not job:
+                return
+            if previous_status is not None:
+                job.status = previous_status
+            job.started_at = previous_started_at
+            job.finished_at = previous_finished_at
+            job.updated_at = previous_updated_at or datetime.now(timezone.utc)
+            if queued_event_time is not None:
+                db.execute(
+                    delete(JobEvent).where(
+                        JobEvent.job_id == job_id,
+                        JobEvent.event_type == "queued",
+                        JobEvent.message == "Retry queued",
+                        JobEvent.event_time == queued_event_time,
+                    )
+                )
+            db.commit()
+
+    with_sqlite_lock_retry(_persist_retry_queue_state)
+    if not captured_session_id:
+        raise HTTPException(status_code=400, detail="Job has no session context for retry")
+
+    retry_request = RetryRequest(session=captured_session_id, last=False, non_interactive=True)
+    try:
+        runtime.enqueue_retry(job_id=job_id, request=retry_request)
+    except QueueCapacityError as exc:
+        with_sqlite_lock_retry(_rollback_retry_queue_state)
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return EnqueueJobResponse(job_id=job_id, status="queued")
 
@@ -363,27 +469,32 @@ def retry_job_failures(job_id: str) -> EnqueueJobResponse:
 @router.delete("/{job_id}/artifacts", response_model=CleanupResponse)
 def cleanup_job_artifacts(job_id: str) -> CleanupResponse:
     """Delete persisted filesystem artifacts for a job."""
-    with SessionLocal() as db:
-        job = db.get(Job, job_id)
-        if not job:
-            raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    removed = False
 
-        job_dir = JOBS_HOME / job_id
-        removed = False
-        if job_dir.exists():
-            shutil.rmtree(job_dir)
-            removed = True
+    def _cleanup() -> None:
+        nonlocal removed
+        with SessionLocal() as db:
+            job = db.get(Job, job_id)
+            if not job:
+                raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
 
-        db.add(
-            JobEvent(
-                job_id=job_id,
-                event_type="cleanup",
-                message="Job artifacts cleaned",
-                payload=json.dumps({"removed": removed}),
-                event_time=datetime.now(timezone.utc),
+            job_dir = JOBS_HOME / job_id
+            if job_dir.exists():
+                shutil.rmtree(job_dir)
+                removed = True
+
+            db.add(
+                JobEvent(
+                    job_id=job_id,
+                    event_type="cleanup",
+                    message="Job artifacts cleaned",
+                    payload=json.dumps({"removed": removed}),
+                    event_time=datetime.now(timezone.utc),
+                )
             )
-        )
-        db.commit()
+            db.commit()
+
+    with_sqlite_lock_retry(_cleanup)
 
     return CleanupResponse(job_id=job_id, removed=removed)
 
