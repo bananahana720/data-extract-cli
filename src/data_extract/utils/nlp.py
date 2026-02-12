@@ -7,6 +7,7 @@ Supports both development and frozen executable modes (PyInstaller).
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -16,6 +17,7 @@ from spacy.language import Language
 
 # Module-level cache for lazy loading (load once, reuse pattern from Story 2.5.1.1)
 _nlp_model: Optional[Language] = None
+_using_fallback_model = False
 
 logger = structlog.get_logger(__name__)
 
@@ -116,6 +118,77 @@ def _find_spacy_model_path() -> Optional[Path]:
     return None
 
 
+def _build_fallback_nlp() -> Language:
+    """Build lightweight English sentence segmenter for offline/dev fallback."""
+    import spacy
+
+    fallback_nlp = spacy.blank("en")
+    if "sentencizer" not in fallback_nlp.pipe_names:
+        fallback_nlp.add_pipe("sentencizer")
+    return fallback_nlp
+
+
+def _heuristic_sentence_boundaries(text: str) -> List[int]:
+    """Calculate sentence boundaries when statistical spaCy model is unavailable."""
+    boundaries: List[int] = []
+    non_terminal_abbreviations = {
+        "dr.",
+        "mr.",
+        "mrs.",
+        "ms.",
+        "prof.",
+        "inc.",
+        "ltd.",
+        "corp.",
+        "co.",
+        "vs.",
+        "e.g.",
+        "i.e.",
+    }
+
+    for idx, char in enumerate(text):
+        if char not in ".!?":
+            continue
+
+        # Ignore punctuation used inside tokens (domains, acronyms, decimals).
+        if idx + 1 < len(text) and not text[idx + 1].isspace():
+            continue
+
+        next_idx = idx + 1
+        while next_idx < len(text) and text[next_idx].isspace():
+            next_idx += 1
+
+        if next_idx >= len(text):
+            boundaries.append(len(text))
+            continue
+
+        next_char = text[next_idx]
+        if char == ".":
+            token_start = idx
+            while token_start > 0 and not text[token_start - 1].isspace():
+                token_start -= 1
+            prev_token = text[token_start : idx + 1]
+            prev_token_lower = prev_token.lower()
+
+            if prev_token_lower in non_terminal_abbreviations:
+                continue
+
+            is_acronym = bool(re.fullmatch(r"(?:[A-Za-z]\.){2,}", prev_token))
+            if is_acronym and not next_char.isupper():
+                continue
+
+            if not (next_char.isalpha() or next_char in "\"'([{"):
+                continue
+
+        boundaries.append(idx + 1)
+
+    if not boundaries:
+        return [len(text)]
+    if boundaries[-1] != len(text):
+        boundaries.append(len(text))
+    return boundaries
+
+
 def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[int]:
     """Extract sentence boundary positions from text using spaCy.
 
@@ -133,7 +206,7 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
 
     Raises:
         ValueError: If text is empty or whitespace-only.
-        OSError: If en_core_web_md model is not installed.
+        OSError: If required spaCy resources are unavailable in frozen mode.
 
     Example:
         >>> boundaries = get_sentence_boundaries("Dr. Smith visited. This is sentence two.")
@@ -152,7 +225,7 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
         - NFR-O4: Logs model version on first load
         - NFR-R3: Clear error messages for missing model or invalid input
     """
-    global _nlp_model
+    global _nlp_model, _using_fallback_model
 
     # Input validation (NFR-R3)
     if not text or not text.strip():
@@ -170,6 +243,7 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
                 if model_path:
                     # Load from bundled or override path
                     _nlp_model = spacy.load(str(model_path))
+                    _using_fallback_model = False
                     logger.info(
                         "spaCy model loaded from custom path",
                         model_name="en_core_web_md",
@@ -179,6 +253,7 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
                 else:
                     # Standard load from site-packages
                     _nlp_model = spacy.load("en_core_web_md")
+                    _using_fallback_model = False
                     logger.info(
                         "spaCy model loaded",
                         model_name="en_core_web_md",
@@ -196,18 +271,30 @@ def get_sentence_boundaries(text: str, nlp: Optional[Language] = None) -> List[i
                         "The model may not have been included during build, or the bundle is corrupted. "
                         "Set SPACY_MODEL_PATH_OVERRIDE environment variable to specify model location."
                     )
-                else:
-                    # In development mode, suggest download
-                    error_msg = (
-                        "spaCy model 'en_core_web_md' not found. "
-                        "Install with: python -m spacy download en_core_web_md"
-                    )
-                logger.error("spaCy model load failed", error=str(e), resolution=error_msg)
-                raise OSError(error_msg) from e
+                    logger.error("spaCy model load failed", error=str(e), resolution=error_msg)
+                    raise OSError(error_msg) from e
+
+                error_msg = (
+                    "spaCy model 'en_core_web_md' not found. "
+                    "Falling back to lightweight sentence segmentation; "
+                    "install with: python -m spacy download en_core_web_md"
+                )
+                logger.warning("spaCy model load failed, using fallback", error=str(e), resolution=error_msg)
+                _nlp_model = _build_fallback_nlp()
+                _using_fallback_model = True
+                logger.info(
+                    "spaCy fallback model loaded",
+                    model_name="blank_en_sentencizer",
+                    language=_nlp_model.meta.get("lang"),
+                )
 
         nlp = _nlp_model
 
     # Process text and extract sentence boundaries
+    assert nlp is not None
+    if nlp is _nlp_model and _using_fallback_model:
+        return _heuristic_sentence_boundaries(text)
+
     doc = nlp(text)
     boundaries = [sent.end_char for sent in doc.sents]
 

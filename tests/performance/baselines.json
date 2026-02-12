@@ -184,15 +184,15 @@
     },
     "cli_progress_overhead": {
       "operation": "cli_progress_overhead",
-      "duration_ms": -0.17475899585406296,
+      "duration_ms": 99.7039660005612,
       "memory_mb": 0.0,
       "file_size_kb": 0.87890625,
       "throughput": 0.0,
-      "timestamp": "2025-12-01T00:20:57.214901",
+      "timestamp": "2026-02-11T19:18:26.347695",
       "metadata": {
-        "with_progress_ms": 102.02888000276289,
-        "quiet_ms": 102.20363899861695,
-        "overhead_pct": -0.1709909721085644
+        "with_progress_ms": 2207.6728840002033,
+        "quiet_ms": 2107.968917999642,
+        "overhead_pct": 4.729859399216156
       }
     },
     "processor_quality_validation": {
@@ -219,7 +219,113 @@
         "num_processors": 3,
         "quality_score": 66.66666666666667
       }
+    },
+    "cli_extract_txt": {
+      "operation": "cli_extract_txt",
+      "duration_ms": 2207.4474940000073,
+      "memory_mb": 220.24609375,
+      "file_size_kb": 0.87890625,
+      "throughput": 0.39815499684088845,
+      "timestamp": "2026-02-11T19:18:04.850853",
+      "metadata": {
+        "file_name": "sample.txt",
+        "cpu_percent": 276.17727272727274
+      }
+    },
+    "cli_extract_pdf": {
+      "operation": "cli_extract_pdf",
+      "duration_ms": 5819.080581999515,
+      "memory_mb": 245.3515625,
+      "file_size_kb": 807.28515625,
+      "throughput": 138.73070580036648,
+      "timestamp": "2026-02-11T19:18:10.672353",
+      "metadata": {
+        "file_name": "COBIT-2019-Framework-Introduction-and-Methodology_res_eng_1118.pdf",
+        "cpu_percent": 167.86724137931037
+      }
+    },
+    "cli_unicode_encoding": {
+      "operation": "cli_unicode_encoding",
+      "duration_ms": 2107.3855009999534,
+      "memory_mb": 220.26953125,
+      "file_size_kb": 0.453125,
+      "throughput": 0.21501761295453178,
+      "timestamp": "2026-02-11T19:18:28.457647",
+      "metadata": {
+        "file_name": "complex_text.txt",
+        "cpu_percent": 292.0904761904762
+      }
+    },
+    "cli_batch_1workers": {
+      "operation": "cli_batch_1workers",
+      "duration_ms": 2307.507509000061,
+      "memory_mb": 227.99609375,
+      "file_size_kb": 13.5771484375,
+      "throughput": 2.166840186000828,
+      "timestamp": "2026-02-11T19:18:12.983333",
+      "metadata": {
+        "num_files": 5,
+        "workers": 1,
+        "cpu_percent": 269.2826086956522,
+        "ms_per_file": 461.5015018000122
+      }
+    },
+    "cli_batch_4workers": {
+      "operation": "cli_batch_4workers",
+      "duration_ms": 2207.4566250003045,
+      "memory_mb": 227.53515625,
+      "file_size_kb": 13.5771484375,
+      "throughput": 2.2650501683127344,
+      "timestamp": "2026-02-11T19:18:15.194262",
+      "metadata": {
+        "num_files": 5,
+        "workers": 4,
+        "cpu_percent": 280.6227272727273,
+        "ms_per_file": 441.4913250000609
+      }
+    },
+    "cli_batch_8workers": {
+      "operation": "cli_batch_8workers",
+      "duration_ms": 2307.623876999969,
+      "memory_mb": 227.93359375,
+      "file_size_kb": 13.5771484375,
+      "throughput": 2.1667309173886085,
+      "timestamp": "2026-02-11T19:18:17.505347",
+      "metadata": {
+        "num_files": 5,
+        "workers": 8,
+        "cpu_percent": 269.9391304347826,
+        "ms_per_file": 461.5247753999938
+      }
+    },
+    "cli_batch_16workers": {
+      "operation": "cli_batch_16workers",
+      "duration_ms": 2307.195151000087,
+      "memory_mb": 228.05078125,
+      "file_size_kb": 13.5771484375,
+      "throughput": 2.167133542142145,
+      "timestamp": "2026-02-11T19:18:19.816292",
+      "metadata": {
+        "num_files": 5,
+        "workers": 16,
+        "cpu_percent": 269.7086956521739,
+        "ms_per_file": 461.43903020001744
+      }
+    },
+    "cli_stress_high_concurrency": {
+      "operation": "cli_stress_high_concurrency",
+      "duration_ms": 2208.2097909997174,
+      "memory_mb": 220.23828125,
+      "file_size_kb": 1.8603515625,
+      "throughput": 3.169988661643832,
+      "timestamp": "2026-02-11T19:18:22.028291",
+      "metadata": {
+        "num_files": 7,
+        "workers": 16,
+        "cpu_percent": 277.95909090909095,
+        "output_files": 7
+      }
     }
   },
-  "updated_at": "2025-12-01T00:20:57.215688"
+  "updated_at": "2026-02-11T19:18:28.457883"
 }

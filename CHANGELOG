@@ -8,3 +8,6 @@
 - Verified Python-side gates and contract tests still pass; UI gate remains environment-blocked due unavailable npm registry and Playwright assets in this workspace.
 - Serialized retry lifecycle persistence so queued state/event commit before retry worker enqueue, eliminating retry-path write races in SQLite.
 - Removed temporary lifecycle e2e retry mitigations (`ui` test loop + Playwright CLI retries) and added router regression coverage to the refactor tests gate.
+
+2026-02-12
+- Committed all current workspace changes on `main`, including CLI semantic export updates, integration/performance test fixes, fixture script restores, runtime/docs adjustments, and related report/test artifacts present in the working tree.

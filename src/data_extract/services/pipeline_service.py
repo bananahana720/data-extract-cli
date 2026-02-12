@@ -15,6 +15,7 @@ from data_extract.extract import get_extractor
 from data_extract.normalize.config import NormalizationConfig
 from data_extract.normalize.normalizer import Normalizer
 from data_extract.output import OutputWriter
+from data_extract.output.organization import OrganizationStrategy
 from data_extract.services.pathing import normalize_path
 
 
@@ -61,11 +62,17 @@ class PipelineService:
         output_dir: Path,
         output_format: str,
         chunk_size: int,
+        include_metadata: bool = False,
+        per_chunk: bool = False,
+        organize: bool = False,
+        strategy: str | None = None,
+        delimiter: str = "━━━ CHUNK {{n}} ━━━",
         include_semantic: bool = False,
         continue_on_error: bool = True,
         source_root: Path | None = None,
         pipeline_profile: str = "auto",
         allow_advanced_fallback: bool = True,
+        output_file_override: Path | None = None,
     ) -> PipelineRunResult:
         """Process files and return per-file and aggregate details."""
         result = PipelineRunResult()
@@ -78,10 +85,16 @@ class PipelineService:
                     output_dir=output_dir,
                     output_format=output_format,
                     chunk_size=chunk_size,
+                    include_metadata=include_metadata,
+                    per_chunk=per_chunk,
+                    organize=organize,
+                    strategy=strategy,
+                    delimiter=delimiter,
                     include_semantic=include_semantic,
                     source_root=source_root,
                     pipeline_profile=pipeline_profile,
                     allow_advanced_fallback=allow_advanced_fallback,
+                    output_file_override=output_file_override,
                 )
                 result.processed.append(file_result)
                 for stage, value in file_result.stage_timings_ms.items():
@@ -105,10 +118,16 @@ class PipelineService:
         output_dir: Path,
         output_format: str,
         chunk_size: int,
+        include_metadata: bool = False,
+        per_chunk: bool = False,
+        organize: bool = False,
+        strategy: str | None = None,
+        delimiter: str = "━━━ CHUNK {{n}} ━━━",
         include_semantic: bool = False,
         source_root: Path | None = None,
         pipeline_profile: str = "auto",
         allow_advanced_fallback: bool = True,
+        output_file_override: Path | None = None,
     ) -> PipelineFileResult:
         """Run the full pipeline for a single file."""
         stage_timings_ms: Dict[str, float] = {}
@@ -161,13 +180,28 @@ class PipelineService:
         stage_timings_ms["semantic"] = (time.perf_counter() - start) * 1000
 
         start = time.perf_counter()
-        output_path = self._resolve_output_path(
-            file_path=file_path,
-            output_dir=output_dir,
-            output_format=output_format,
-            source_root=source_root,
+        if output_file_override is not None:
+            output_path = output_file_override
+        elif per_chunk or organize:
+            output_path = output_dir
+        else:
+            output_path = self._resolve_output_path(
+                file_path=file_path,
+                output_dir=output_dir,
+                output_format=output_format,
+                source_root=source_root,
+            )
+        strategy_enum = OrganizationStrategy(strategy) if strategy else None
+        self.writer.write(
+            semantic_chunks,
+            output_path=output_path,
+            format_type=output_format,
+            per_chunk=per_chunk,
+            organize=organize,
+            strategy=strategy_enum,
+            include_metadata=include_metadata,
+            delimiter=delimiter,
         )
-        self.writer.write(semantic_chunks, output_path=output_path, format_type=output_format)
         stage_timings_ms["output"] = (time.perf_counter() - start) * 1000
 
         return PipelineFileResult(

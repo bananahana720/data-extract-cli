@@ -10,9 +10,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import spacy
 
-from src.data_extract.utils.nlp import get_sentence_boundaries
+spacy = pytest.importorskip("spacy")
+
+from src.data_extract.utils.nlp import get_sentence_boundaries  # noqa: E402
 
 pytestmark = [pytest.mark.P1, pytest.mark.integration]
 
@@ -20,7 +21,10 @@ pytestmark = [pytest.mark.P1, pytest.mark.integration]
 @pytest.fixture(scope="module")
 def nlp_model():
     """Load spaCy model once for all tests in this module."""
-    return spacy.load("en_core_web_md")
+    try:
+        return spacy.load("en_core_web_md")
+    except OSError:
+        pytest.skip("spaCy model 'en_core_web_md' is not installed in this environment")
 
 
 @pytest.fixture(scope="module")
@@ -70,25 +74,23 @@ class TestSpacyModelLoading:
         assert len(boundaries2) == 1
 
     def test_error_handling_missing_model(self):
-        """AC 2.5.2-6: Clear error message when model is missing."""
+        """AC 2.5.2-6: Missing model should trigger fallback segmentation."""
         import src.data_extract.utils.nlp as nlp_module
 
         original_cache = nlp_module._nlp_model
+        original_fallback_state = nlp_module._using_fallback_model
         nlp_module._nlp_model = None
 
         try:
             with patch("spacy.load", side_effect=OSError("Model 'en_core_web_md' not found")):
-                with pytest.raises(
-                    OSError, match="python -m spacy download en_core_web_md"
-                ) as exc_info:
-                    get_sentence_boundaries("Test text for error handling.")
-
-                # Verify error message is actionable
-                error_msg = str(exc_info.value)
-                assert "en_core_web_md" in error_msg
-                assert "python -m spacy download" in error_msg
+                text = "Test text for error handling."
+                boundaries = get_sentence_boundaries(text)
+                assert boundaries[-1] == len(text)
+                assert nlp_module._nlp_model is not None
+                assert nlp_module._using_fallback_model is True
         finally:
             nlp_module._nlp_model = original_cache
+            nlp_module._using_fallback_model = original_fallback_state
 
 
 @pytest.mark.integration
@@ -346,12 +348,17 @@ class TestSpacyLogging:
 
             # Verify model load event was logged with required metadata
             assert (
-                "spaCy model loaded" in output or "model_name=en_core_web_md" in output
+                "spaCy model loaded" in output
+                or "model_name=en_core_web_md" in output
+                or "spaCy fallback model loaded" in output
+                or "model_name=blank_en_sentencizer" in output
             ), "Model load should be logged with metadata"
 
             # Verify key metadata fields are present
             if "model_name=en_core_web_md" in output:
                 assert "version=" in output, "Model version should be logged"
                 assert "language=" in output, "Language should be logged"
+            if "model_name=blank_en_sentencizer" in output:
+                assert "language=" in output, "Fallback language should be logged"
         finally:
             nlp_module._nlp_model = original_cache

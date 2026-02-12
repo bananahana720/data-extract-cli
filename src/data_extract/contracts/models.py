@@ -66,6 +66,11 @@ class ProcessJobRequest(BaseModel):
     output_path: Optional[str] = None
     output_format: str = "json"
     chunk_size: int = 512
+    include_metadata: bool = False
+    per_chunk: bool = False
+    organize: bool = False
+    strategy: Optional[str] = None
+    delimiter: str = "━━━ CHUNK {{n}} ━━━"
     recursive: bool = False
     incremental: bool = False
     force: bool = False

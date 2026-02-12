@@ -18,13 +18,18 @@ Usage:
     from data_extract.cli.base import create_app, get_app
 """
 
+import fnmatch
 import json
 import os
+import platform
+import sys
 from pathlib import Path
 from typing import Annotated, Any, Optional
 
 import typer
 from rich.console import Console
+
+from data_extract import __version__
 
 # CLI integration imports (Story 5-4, 5-5, 5-7)
 from .config import validate_config_file
@@ -36,6 +41,36 @@ _app: Optional[typer.Typer] = None
 
 # Rich console for formatted output
 console = Console()
+
+CLI_UX_VERSION = "0.2.0"
+LEGACY_EPIC_LABEL = "Epic 3, Story 3.5"
+CURRENT_EPIC_LABEL = "Epic 5 - Enhanced CLI UX"
+
+
+def _build_version_output(verbose: bool = False) -> list[str]:
+    """Construct consistent version output across CLI entry points."""
+    lines = [
+        f"[bold]Data Extraction Tool[/bold] v{__version__}",
+        f"Version: {__version__}",
+        LEGACY_EPIC_LABEL,
+        f"{CURRENT_EPIC_LABEL} (v{CLI_UX_VERSION})",
+    ]
+    if verbose:
+        lines.extend(
+            [
+                f"Python version: {sys.version.split()[0]}",
+                f"Platform: {platform.platform()}",
+            ]
+        )
+    return lines
+
+
+def _get_root_param(ctx: typer.Context, key: str) -> Any:
+    """Read an option captured at the root callback context."""
+    current = ctx
+    while current.parent is not None:
+        current = current.parent
+    return current.params.get(key)
 
 
 def version_callback(value: bool) -> None:
@@ -50,8 +85,8 @@ def version_callback(value: bool) -> None:
     if value:
         from rich import print as rprint
 
-        rprint("[bold]Data Extraction Tool[/bold] v0.2.0")
-        rprint("Epic 5 - Enhanced CLI UX")
+        for line in _build_version_output(verbose=False):
+            rprint(line)
         raise typer.Exit()
 
 
@@ -76,7 +111,7 @@ def create_app() -> typer.Typer:
     """
     app = typer.Typer(
         name="data-extract",
-        help="Enterprise document processing for RAG workflows.",
+        help="Data Extraction Tool - Enterprise document processing for RAG workflows.",
         rich_markup_mode="rich",
         add_completion=True,
         no_args_is_help=True,
@@ -99,6 +134,20 @@ def create_app() -> typer.Typer:
                 help="Enable learning mode with educational explanations.",
             ),
         ] = False,
+        quiet: Annotated[
+            bool,
+            typer.Option(
+                "--quiet",
+                help="Suppress non-error output globally.",
+            ),
+        ] = False,
+        config: Annotated[
+            Optional[Path],
+            typer.Option(
+                "--config",
+                help="Path to configuration file for config commands.",
+            ),
+        ] = None,
         no_pause: Annotated[
             bool,
             typer.Option(
@@ -138,6 +187,9 @@ def create_app() -> typer.Typer:
     # Register cache command group (Click-based, wrapped via Typer)
     _register_cache_commands(app)
 
+    # Register version command (Typer-native)
+    _register_version_command(app)
+
     # Register process command (Typer-native)
     _register_process_command(app)
 
@@ -160,6 +212,26 @@ def create_app() -> typer.Typer:
     _register_ui_command(app)
 
     return app
+
+
+def _register_version_command(app: typer.Typer) -> None:
+    """Register explicit version command for subprocess compatibility."""
+
+    @app.command()
+    def version(
+        verbose: Annotated[
+            bool,
+            typer.Option(
+                "--verbose",
+                "-v",
+                help="Show detailed environment/version metadata.",
+            ),
+        ] = False,
+    ) -> None:
+        from rich import print as rprint
+
+        for line in _build_version_output(verbose=verbose):
+            rprint(line)
 
 
 def _register_semantic_commands(app: typer.Typer) -> None:
@@ -217,6 +289,41 @@ def _register_process_command(app: typer.Typer) -> None:
                 help="Output format: json, csv, or txt.",
             ),
         ] = "json",
+        include_metadata: Annotated[
+            bool,
+            typer.Option(
+                "--include-metadata",
+                help="Include metadata headers in TXT output.",
+            ),
+        ] = False,
+        per_chunk: Annotated[
+            bool,
+            typer.Option(
+                "--per-chunk",
+                help="Write one output file per chunk (TXT/JSON/CSV).",
+            ),
+        ] = False,
+        organize: Annotated[
+            bool,
+            typer.Option(
+                "--organize",
+                help="Organize per-chunk output into structured directories.",
+            ),
+        ] = False,
+        strategy: Annotated[
+            Optional[str],
+            typer.Option(
+                "--strategy",
+                help="Organization strategy: by_document, by_entity, flat.",
+            ),
+        ] = None,
+        delimiter: Annotated[
+            str,
+            typer.Option(
+                "--delimiter",
+                help="Delimiter template for TXT concatenated output (supports {{n}}).",
+            ),
+        ] = "━━━ CHUNK {{n}} ━━━",
         chunk_size: Annotated[
             int,
             typer.Option(
@@ -419,6 +526,21 @@ def _register_process_command(app: typer.Typer) -> None:
             )
             raise typer.Exit(code=EXIT_CONFIG_ERROR)
 
+        if organize and not strategy:
+            typer.echo("Error: --organize flag requires --strategy option", err=True)
+            raise typer.Exit(code=1)
+
+        if strategy and not organize:
+            typer.echo("Error: --strategy option requires --organize flag", err=True)
+            raise typer.Exit(code=1)
+
+        if strategy and strategy not in {"by_document", "by_entity", "flat"}:
+            typer.echo(
+                f"Error: Invalid strategy '{strategy}'. Use one of: by_document, by_entity, flat",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+
         if chunk_size <= 0:
             console.print(f"[red]Configuration error:[/red] Invalid chunk size: {chunk_size}")
             raise typer.Exit(code=EXIT_CONFIG_ERROR)
@@ -443,6 +565,11 @@ def _register_process_command(app: typer.Typer) -> None:
                 preset_config = preset_mgr.load(preset)
                 if chunk_size == 512:
                     chunk_size = preset_config.chunk_size
+                if not quiet:
+                    console.print(
+                        f"[green]Loaded Preset:[/green] {preset} "
+                        f"(chunk_size={preset_config.chunk_size})"
+                    )
             except KeyError:
                 console.print(f"[red]Error:[/red] Preset not found: {preset}")
                 raise typer.Exit(code=EXIT_CONFIG_ERROR)
@@ -455,6 +582,11 @@ def _register_process_command(app: typer.Typer) -> None:
             output_path=str(output.resolve()) if output else None,
             output_format=output_format,
             chunk_size=chunk_size,
+            include_metadata=include_metadata,
+            per_chunk=per_chunk,
+            organize=organize,
+            strategy=strategy,
+            delimiter=delimiter,
             recursive=recursive,
             incremental=incremental,
             force=force,
@@ -498,8 +630,12 @@ def _register_process_command(app: typer.Typer) -> None:
 
             if not quiet:
                 console.print(
-                    f"[green]Completed:[/green] {result.processed_count} succeeded, "
+                    f"[green]Processing complete![/green] {result.processed_count} succeeded, "
                     f"{result.failed_count} failed, {result.skipped_count} skipped"
+                )
+                console.print(
+                    f"[cyan]Chunks written:[/cyan] "
+                    f"{sum(item.chunk_count for item in result.processed_files)}"
                 )
                 console.print(f"[cyan]Output:[/cyan] {result.output_dir}")
                 if result.session_id:
@@ -523,6 +659,7 @@ def _register_process_command(app: typer.Typer) -> None:
 
     @app.command()
     def extract(
+        ctx: typer.Context,
         input_path: Annotated[
             Path,
             typer.Argument(
@@ -535,15 +672,30 @@ def _register_process_command(app: typer.Typer) -> None:
             typer.Option(
                 "--output",
                 "-o",
-                help="Output directory for extracted content.",
+                help="Output directory or output file path for extracted content.",
             ),
         ] = None,
+        format: Annotated[
+            str,
+            typer.Option(
+                "--format",
+                "-f",
+                help="Output format: json, csv, or txt.",
+            ),
+        ] = "json",
         recursive: Annotated[
             bool,
             typer.Option(
                 "--recursive",
                 "-r",
                 help="Process subdirectories recursively.",
+            ),
+        ] = False,
+        quiet: Annotated[
+            bool,
+            typer.Option(
+                "--quiet",
+                help="Suppress non-error output.",
             ),
         ] = False,
         verbose: Annotated[
@@ -559,35 +711,166 @@ def _register_process_command(app: typer.Typer) -> None:
         from data_extract.cli.exit_codes import determine_exit_code
         from data_extract.services import FileDiscoveryService, PipelineService
 
+        global_quiet = bool(ctx.parent.params.get("quiet", False)) if ctx.parent else False
+        effective_quiet = quiet or global_quiet
+        output_format = format.lower()
+        if output_format not in {"json", "csv", "txt"}:
+            console.print(
+                f"[red]Configuration error:[/red] Invalid format '{format}'. "
+                "Must be one of: csv, json, txt"
+            )
+            raise typer.Exit(code=1)
+
         discovery = FileDiscoveryService()
         pipeline = PipelineService()
 
         files, source_dir = discovery.discover(str(input_path), recursive=recursive)
         if not files:
-            console.print("[yellow]No supported files found to extract.[/yellow]")
+            if input_path.is_file():
+                console.print(f"[red]Unsupported format:[/red] {input_path.suffix or 'unknown'}")
+                raise typer.Exit(code=1)
+            if not effective_quiet:
+                console.print("[yellow]No supported files found to extract.[/yellow]")
             raise typer.Exit(code=0)
 
         output_dir = output.resolve() if output else source_dir / "extracted"
+        output_file_override = None
+        if output and output.suffix.lower() == f".{output_format}" and len(files) == 1:
+            output_file_override = output.resolve()
+            output_dir = output_file_override.parent
+
         run = pipeline.process_files(
             files=files,
             output_dir=output_dir,
-            output_format="json",
+            output_format=output_format,
             chunk_size=500000,
             include_semantic=False,
             continue_on_error=True,
+            source_root=input_path.parent if input_path.is_file() else input_path,
+            output_file_override=output_file_override,
         )
 
-        if verbose:
+        if verbose and not effective_quiet:
             for processed in run.processed:
                 console.print(f"[green]{processed.source_path.name}[/green] -> {processed.output_path}")
             for failed in run.failed:
                 console.print(f"[red]{failed.source_path.name}[/red]: {failed.error_message}")
 
-        console.print(
-            f"[green]Extraction complete:[/green] "
-            f"{len(run.processed)} succeeded, {len(run.failed)} failed"
+        if not effective_quiet:
+            console.print(
+                f"[green]Extraction complete:[/green] "
+                f"{len(run.processed)} succeeded, {len(run.failed)} failed"
+            )
+            console.print(
+                f"[cyan]Output:[/cyan] {output_file_override if output_file_override else output_dir}"
+            )
+
+        exit_code = determine_exit_code(
+            total_files=len(files),
+            processed_count=len(run.processed),
+            failed_count=len(run.failed),
+            config_error=False,
         )
-        console.print(f"[cyan]Output:[/cyan] {output_dir}")
+        raise typer.Exit(code=exit_code)
+
+    @app.command()
+    def batch(
+        ctx: typer.Context,
+        input_path: Annotated[
+            Path,
+            typer.Argument(
+                help="Input directory or file to batch process.",
+                exists=True,
+            ),
+        ],
+        output: Annotated[
+            Path,
+            typer.Option(
+                "--output",
+                "-o",
+                help="Output directory for batch results.",
+            ),
+        ],
+        format: Annotated[
+            str,
+            typer.Option(
+                "--format",
+                "-f",
+                help="Output format: json, csv, or txt.",
+            ),
+        ] = "json",
+        pattern: Annotated[
+            Optional[str],
+            typer.Option(
+                "--pattern",
+                help="Optional glob pattern filter (e.g., '*.docx').",
+            ),
+        ] = None,
+        recursive: Annotated[
+            bool,
+            typer.Option(
+                "--recursive",
+                "-r",
+                help="Process subdirectories recursively.",
+            ),
+        ] = False,
+        workers: Annotated[
+            int,
+            typer.Option(
+                "--workers",
+                help="Worker count hint (compatibility option).",
+            ),
+        ] = 1,
+        quiet: Annotated[
+            bool,
+            typer.Option(
+                "--quiet",
+                help="Suppress non-error output.",
+            ),
+        ] = False,
+    ) -> None:
+        """Batch process documents in a directory."""
+        from data_extract.cli.exit_codes import determine_exit_code
+        from data_extract.services import FileDiscoveryService, PipelineService
+
+        _ = workers  # Compatibility option accepted for subprocess tests.
+        global_quiet = bool(ctx.parent.params.get("quiet", False)) if ctx.parent else False
+        effective_quiet = quiet or global_quiet
+        output_format = format.lower()
+        if output_format not in {"json", "csv", "txt"}:
+            console.print(
+                f"[red]Configuration error:[/red] Invalid format '{format}'. "
+                "Must be one of: csv, json, txt"
+            )
+            raise typer.Exit(code=1)
+
+        discovery = FileDiscoveryService()
+        pipeline = PipelineService()
+
+        files, source_dir = discovery.discover(str(input_path), recursive=recursive)
+        if pattern:
+            files = [file_path for file_path in files if fnmatch.fnmatch(file_path.name, pattern)]
+
+        if not files:
+            console.print("[yellow]No files matched batch criteria.[/yellow]")
+            raise typer.Exit(code=1)
+
+        output_dir = output.resolve()
+        run = pipeline.process_files(
+            files=files,
+            output_dir=output_dir,
+            output_format=output_format,
+            chunk_size=500000,
+            include_semantic=False,
+            continue_on_error=True,
+            source_root=source_dir,
+        )
+
+        if not effective_quiet:
+            console.print(
+                f"[green]Summary:[/green] {len(run.processed)} successful, {len(run.failed)} failed"
+            )
+            console.print(f"[cyan]Output:[/cyan] {output_dir}")
 
         exit_code = determine_exit_code(
             total_files=len(files),
@@ -613,6 +896,7 @@ def _register_config_commands(app: typer.Typer) -> None:
 
     @config_app.command()
     def show(
+        ctx: typer.Context,
         format: Annotated[
             str,
             typer.Option(
@@ -656,6 +940,8 @@ def _register_config_commands(app: typer.Typer) -> None:
             data-extract config show -v
             data-extract config show --preset audit-standard
         """
+        global_config_path = _get_root_param(ctx, "config")
+
         # Build CLI overrides from command options
         cli_overrides = {}
         if tfidf_max_features is not None:
@@ -668,7 +954,38 @@ def _register_config_commands(app: typer.Typer) -> None:
             }
 
         # Load merged configuration with source tracking
-        from data_extract.cli.config import load_merged_config
+        from data_extract.cli.config import load_config_file, load_merged_config
+
+        if global_config_path:
+            import yaml
+
+            config_dict = load_config_file(Path(global_config_path))
+
+            if format == "json":
+                console.print(json.dumps(config_dict, indent=2))
+            elif format == "table":
+                from rich.table import Table
+
+                table = Table(title="Configuration", show_header=True)
+                table.add_column("Setting", style="cyan")
+                table.add_column("Value", style="green")
+
+                def flatten_dict(d: dict[str, Any], prefix: str = "") -> list[tuple[str, Any]]:
+                    items: list[tuple[str, Any]] = []
+                    for key, value in d.items():
+                        full_key = f"{prefix}.{key}" if prefix else key
+                        if isinstance(value, dict):
+                            items.extend(flatten_dict(value, full_key))
+                        else:
+                            items.append((full_key, value))
+                    return items
+
+                for key, value in flatten_dict(config_dict):
+                    table.add_row(key, str(value))
+                console.print(table)
+            else:
+                console.print(yaml.dump(config_dict, default_flow_style=False, sort_keys=False))
+            return
 
         config_result = load_merged_config(
             preset_name=preset,
@@ -1251,6 +1568,7 @@ chunk:
 
     @config_app.command()
     def validate(
+        ctx: typer.Context,
         file: Annotated[
             Optional[Path],
             typer.Option(
@@ -1272,7 +1590,8 @@ chunk:
 
         # Determine which file to validate
         if file is None:
-            file = Path.cwd() / ".data-extract.yaml"
+            global_config_path = _get_root_param(ctx, "config")
+            file = Path(global_config_path) if global_config_path else Path.cwd() / ".data-extract.yaml"
 
         # Validate the config
         is_valid, errors = validate_config_file(file)

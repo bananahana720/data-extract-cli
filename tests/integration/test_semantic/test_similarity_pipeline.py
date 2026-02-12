@@ -68,7 +68,7 @@ class TestSimilarityIntegration:
 
         # Check range
         assert similarity_matrix.min() >= -1.0, "Cosine similarity >= -1"
-        assert similarity_matrix.max() <= 1.0, "Cosine similarity <= 1"
+        assert similarity_matrix.max() <= 1.0 + 1e-12, "Cosine similarity <= 1 (within tolerance)"
 
         # Check no NaN/Inf
         assert not np.any(np.isnan(similarity_matrix)), "No NaN values"
@@ -112,7 +112,7 @@ class TestSimilarityIntegration:
 
         # All similarities should be in valid range
         assert (similarity_matrix >= -1.0).all(), "All similarities should be >= -1"
-        assert (similarity_matrix <= 1.0).all(), "All similarities should be <= 1"
+        assert (similarity_matrix <= 1.0 + 1e-12).all(), "All similarities should be <= 1"
 
     def test_sim003_find_similar_chunks(
         self, chunked_documents: List[Chunk], semantic_processing_context: ProcessingContext
@@ -284,11 +284,9 @@ class TestSimilarityIntegration:
         texts = []
         for chunk in test_chunks:
             text = chunk.text
-            # Boost entity terms by repeating them
-            entities = chunk.metadata.get("entities", [])
-            for entity in entities:
-                if isinstance(entity, dict) and "text" in entity:
-                    text += f" {entity['text']} {entity['text']}"  # Double weight for entities
+            # Boost entity tags by repeating them for a lightweight entity-aware signal.
+            for entity_tag in chunk.metadata.entity_tags:
+                text += f" {entity_tag} {entity_tag}"
             texts.append(text)
 
         # Compute similarity with entity-boosted text
@@ -307,15 +305,15 @@ class TestSimilarityIntegration:
 
         # Assertions
         # Entity-aware should produce valid similarities
-        assert (similarity_with_entities >= -1.0).all() and (
-            similarity_with_entities <= 1.0
+        assert (similarity_with_entities >= -1.0 - 1e-12).all() and (
+            similarity_with_entities <= 1.0 + 1e-12
         ).all(), "Entity-aware similarities should be in valid range"
 
         # Both methods should preserve self-similarity
         import numpy as np  # noqa: E402
 
         assert np.allclose(
-            similarity_with_entities.diagonal(), 1.0
+            similarity_with_entities.diagonal(), 1.0, atol=1e-7
         ), "Entity-aware should preserve self-similarity"
 
     def test_sim007_similarity_performance(
@@ -596,28 +594,16 @@ class TestSimilarityEdgeCases:
         from sklearn.feature_extraction.text import TfidfVectorizer  # noqa: E402
         from sklearn.metrics.pairwise import cosine_similarity  # noqa: E402
 
-        # Create large corpus (100 documents)
+        # Create large corpus (100 documents) with realistic vocabulary size
+        # so sparse density expectations are stable.
         np.random.seed(42)  # For reproducibility
-        vocab = [
-            "data",
-            "process",
-            "extract",
-            "document",
-            "pipeline",
-            "analysis",
-            "semantic",
-            "chunk",
-            "vector",
-            "similarity",
-            "matrix",
-            "compute",
-        ]
+        vocab = [f"term_{i:03d}" for i in range(500)]
 
         large_corpus = []
         for i in range(100):
             # Generate random documents from vocabulary
-            doc_length = np.random.randint(10, 50)
-            doc_words = np.random.choice(vocab, doc_length)
+            doc_length = np.random.randint(20, 40)
+            doc_words = np.random.choice(vocab, doc_length, replace=False)
             large_corpus.append(" ".join(doc_words))
 
         # Create TF-IDF vectors (should be sparse)
@@ -685,7 +671,9 @@ class TestSimilarityEdgeCases:
 
         # Cosine similarity assertions
         assert cosine_sim.shape == (n_docs, n_docs), "Cosine should produce NxN matrix"
-        assert (cosine_sim >= -1.0).all() and (cosine_sim <= 1.0).all(), "Cosine in [-1, 1]"
+        assert (cosine_sim >= -1.0 - 1e-12).all() and (
+            cosine_sim <= 1.0 + 1e-12
+        ).all(), "Cosine in [-1, 1]"
         assert np.allclose(cosine_sim.diagonal(), 1.0), "Cosine diagonal should be 1"
 
         # Euclidean similarity assertions

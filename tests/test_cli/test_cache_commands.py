@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
 from data_extract.app import app
 from data_extract.semantic.cache import CacheManager
@@ -15,7 +15,7 @@ from data_extract.semantic.cache import CacheManager
 
 @pytest.fixture
 def cli_runner() -> CliRunner:
-    """Provide Click test runner."""
+    """Provide Typer test runner."""
     return CliRunner()
 
 

@@ -80,6 +80,12 @@ def analyze(
         help="Export similarity graph in specified format (json, csv, or dot)",
         case_sensitive=False,
     ),
+    export_summary: bool = typer.Option(
+        False,
+        "--export-summary",
+        "-s",
+        help="Export analysis summary JSON to the output directory",
+    ),
 ) -> None:
     """Run full semantic analysis pipeline on documents.
 
@@ -238,6 +244,20 @@ def analyze(
                 console.print("\n[bold]Similarity Graph:[/bold]")
                 console.print(graph_content)
 
+        if export_summary:
+            summary_path = _export_summary(
+                command_name="analyze",
+                output=output,
+                summary_data={
+                    "command": "analyze",
+                    "summary": results.get("summary", {}),
+                    "statistics": results.get("similarity", {}).get("statistics", {}),
+                    "total_chunks": len(chunks),
+                    "total_documents": len({chunk.document_id for chunk in chunks}),
+                },
+            )
+            console.print(f"[green]Summary exported to {summary_path}[/green]")
+
         # Display summary
         _display_summary(results, verbose)
 
@@ -260,6 +280,13 @@ def deduplicate(
     output: Optional[Path] = typer.Option(
         None, "--output", "-o", help="Output path for deduplicated chunks"
     ),
+    output_format: str = typer.Option(
+        "json",
+        "--format",
+        "-f",
+        help="Output format placeholder (json, csv, or html)",
+        case_sensitive=False,
+    ),
     threshold: float = typer.Option(
         0.95,
         "--threshold",
@@ -269,6 +296,12 @@ def deduplicate(
         help="Similarity threshold for duplicate detection (0.0-1.0)",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show duplicates without removing them"),
+    export_summary: bool = typer.Option(
+        False,
+        "--export-summary",
+        "-s",
+        help="Export deduplication summary JSON to the output directory",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Remove duplicate documents based on similarity threshold.
@@ -288,6 +321,14 @@ def deduplicate(
         data-extract semantic deduplicate ./chunks/ -v
     """
     try:
+        valid_formats = ["json", "csv", "html"]
+        if output_format.lower() not in valid_formats:
+            console.print(
+                f"[red]Error:[/red] Invalid format '{output_format}'. "
+                f"Must be one of: {', '.join(valid_formats)}"
+            )
+            raise typer.Exit(1)
+
         # Load chunks
         chunks = _load_chunks(input_path, verbose)
         if not chunks:
@@ -319,6 +360,8 @@ def deduplicate(
 
         # Filter pairs above threshold
         duplicate_pairs = [(a, b, s) for a, b, s in duplicate_pairs if s >= threshold]
+        total_duplicates = sum(len(g) - 1 for g in duplicate_groups)
+        kept_chunks = len(chunks) - total_duplicates
 
         # Display results
         console.print()
@@ -326,7 +369,6 @@ def deduplicate(
             _display_duplicate_report(duplicate_groups, duplicate_pairs, threshold, verbose)
 
             # Calculate savings
-            total_duplicates = sum(len(g) - 1 for g in duplicate_groups)
             savings_pct = (total_duplicates / len(chunks)) * 100 if chunks else 0
 
             console.print()
@@ -358,6 +400,7 @@ def deduplicate(
 
                 # Filter chunks
                 clean_chunks = [c for c in chunks if c.id in keep_ids]
+                kept_chunks = len(clean_chunks)
 
                 # Save
                 _save_chunks(clean_chunks, output)
@@ -367,6 +410,23 @@ def deduplicate(
 
         else:
             console.print(f"[green]No duplicates found above threshold {threshold}[/green]")
+
+        if export_summary:
+            summary_path = _export_summary(
+                command_name="deduplicate",
+                output=output,
+                summary_data={
+                    "command": "deduplicate",
+                    "total_chunks": len(chunks),
+                    "duplicate_groups": len(duplicate_groups),
+                    "duplicates_found": total_duplicates,
+                    "duplicates_removed": 0 if dry_run else total_duplicates,
+                    "kept_chunks": kept_chunks,
+                    "similarity_threshold": threshold,
+                    "dry_run": dry_run,
+                },
+            )
+            console.print(f"[green]Summary exported to {summary_path}[/green]")
 
     except typer.Exit:
         raise
@@ -392,6 +452,12 @@ def cluster(
         "-f",
         help="Output format (json, csv, or html)",
         case_sensitive=False,
+    ),
+    export_summary: bool = typer.Option(
+        False,
+        "--export-summary",
+        "-s",
+        help="Export clustering summary JSON to the output directory",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
@@ -490,6 +556,20 @@ def cluster(
                 console.print(f"\n[green]Results saved to {output}[/green]")
             else:
                 console.print(json_output)
+
+        if export_summary:
+            summary_path = _export_summary(
+                command_name="cluster",
+                output=output,
+                summary_data={
+                    "command": "cluster",
+                    "cluster_count": cluster_report.get("n_clusters", 0),
+                    "n_documents": cluster_report.get("n_documents", 0),
+                    "silhouette_score": cluster_report.get("silhouette_score", 0.0),
+                    "cluster_sizes": cluster_report.get("cluster_sizes", {}),
+                },
+            )
+            console.print(f"[green]Summary exported to {summary_path}[/green]")
 
     except typer.Exit:
         raise
@@ -613,6 +693,17 @@ def _save_chunks(chunks: List[Chunk], output_path: Path) -> None:
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump({"chunks": chunks_data}, f, indent=2)
+
+
+def _export_summary(
+    command_name: str, output: Optional[Path], summary_data: Dict[str, Any]
+) -> Path:
+    """Write command summary JSON next to output file or in current directory."""
+    summary_dir = output.parent if output else Path.cwd()
+    summary_dir.mkdir(parents=True, exist_ok=True)
+    summary_path = summary_dir / f"{command_name}_summary.json"
+    summary_path.write_text(json.dumps(summary_data, indent=2, default=str))
+    return summary_path
 
 
 def _compile_results(

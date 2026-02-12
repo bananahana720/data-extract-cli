@@ -221,34 +221,67 @@ def semantic_processing_context(tmp_path: Path) -> ProcessingContext:
         - Similarity thresholds
         - Quality metrics settings
     """
+    tfidf_config = {
+        "max_features": 1000,
+        "min_df": 1,
+        "max_df": 0.95,
+        "use_idf": True,
+        "sublinear_tf": True,
+        "norm": "l2",
+    }
+    lsa_config = {"n_components": 100, "algorithm": "randomized", "n_iter": 5}
+    similarity_config = {"threshold": 0.7, "metric": "cosine", "top_k": 5}
+    quality_config = {"calculate_readability": True, "calculate_complexity": True, "threshold": 0.6}
+
     return ProcessingContext(
         config={
+            # Current test access pattern
+            "tfidf": tfidf_config,
+            "lsa": lsa_config,
+            "similarity": similarity_config,
+            "quality": quality_config,
+            # Legacy nested/flattened pattern retained for compatibility
             "semantic": {
-                # TF-IDF configuration
-                "max_features": 1000,
-                "min_df": 0.01,
-                "max_df": 0.95,
-                "use_idf": True,
-                "sublinear_tf": True,
-                "norm": "l2",
-                # LSA configuration
-                "n_components": 100,
-                "algorithm": "randomized",
-                "n_iter": 5,
-                # Similarity configuration
-                "similarity_threshold": 0.7,
-                "similarity_metric": "cosine",
-                "top_k_similar": 5,
-                # Quality metrics configuration
-                "calculate_readability": True,
-                "calculate_complexity": True,
-                "quality_threshold": 0.6,
-            }
+                **tfidf_config,
+                **lsa_config,
+                "similarity_threshold": similarity_config["threshold"],
+                "similarity_metric": similarity_config["metric"],
+                "top_k_similar": similarity_config["top_k"],
+                "quality_threshold": quality_config["threshold"],
+                "tfidf": tfidf_config,
+                "lsa": lsa_config,
+                "similarity": similarity_config,
+                "quality": quality_config,
+            },
         },
         source_file="test_corpus.txt",
         output_dir=tmp_path / "output",
         metrics={},
     )
+
+
+@pytest.fixture
+def single_document() -> str:
+    """Single document fixture for 1x1 similarity edge-case tests."""
+    return "A single semantic analysis document used for similarity matrix testing."
+
+
+@pytest.fixture
+def mock_tfidf_vectors():
+    """Deterministic TF-IDF-like vectors for accuracy tests."""
+    import numpy as np  # noqa: E402
+
+    vectors = np.array(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.5, 0.5, 0.0],
+        ],
+        dtype=np.float64,
+    )
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    norms[norms == 0.0] = 1.0
+    return vectors / norms
 
 
 # ============================================================================
@@ -322,11 +355,14 @@ def mock_tfidf_stage():
             # Create mock sparse vectors (simplified)
             import numpy as np  # noqa: E402
 
+            rng = np.random.default_rng(42)
             vectors = []
             for _ in chunks:
                 # Mock sparse vector as dense for simplicity
-                vector = np.random.rand(1, 1000)
-                vector = vector / np.linalg.norm(vector)  # Normalize
+                vector = rng.random((1, 1000))
+                norm = np.linalg.norm(vector)
+                if norm > 0:
+                    vector = vector / norm  # Normalize
                 vectors.append(vector)
 
             return ProcessingResult(
@@ -365,13 +401,14 @@ def mock_similarity_stage():
             import numpy as np  # noqa: E402
 
             n_docs = len(vectors) if isinstance(vectors, list) else vectors.shape[0]
+            rng = np.random.default_rng(42)
 
             # Create mock similarity matrix
             matrix = np.eye(n_docs)  # Identity matrix (diagonal = 1.0)
             # Add some off-diagonal similarities
             for i in range(n_docs):
                 for j in range(i + 1, n_docs):
-                    sim = np.random.uniform(0.3, 0.9)
+                    sim = rng.uniform(0.3, 0.9)
                     matrix[i, j] = sim
                     matrix[j, i] = sim  # Symmetric
 
@@ -423,9 +460,10 @@ def mock_lsa_stage():
             import numpy as np  # noqa: E402
 
             n_docs = len(vectors) if isinstance(vectors, list) else vectors.shape[0]
+            rng = np.random.default_rng(42)
 
             # Create mock reduced vectors
-            reduced_vectors = np.random.rand(n_docs, self.n_components)
+            reduced_vectors = rng.random((n_docs, self.n_components))
 
             # Mock explained variance (decreasing)
             explained_variance = np.array(
@@ -472,15 +510,16 @@ def mock_quality_stage():
 
             import numpy as np  # noqa: E402
 
+            rng = np.random.default_rng(42)
             quality_scores = []
             for chunk in chunks:
                 # Mock quality metrics
                 score = {
-                    "flesch_reading_ease": np.random.uniform(30, 70),
-                    "flesch_kincaid_grade": np.random.uniform(8, 14),
-                    "smog_index": np.random.uniform(10, 16),
-                    "automated_readability_index": np.random.uniform(8, 15),
-                    "text_complexity": np.random.uniform(0.4, 0.8),
+                    "flesch_reading_ease": rng.uniform(30, 70),
+                    "flesch_kincaid_grade": rng.uniform(8, 14),
+                    "smog_index": rng.uniform(10, 16),
+                    "automated_readability_index": rng.uniform(8, 15),
+                    "text_complexity": rng.uniform(0.4, 0.8),
                 }
                 quality_scores.append(score)
 
@@ -512,10 +551,13 @@ def performance_timer():
             self.start_time = None
             self.end_time = None
             self.elapsed = None
+            self.label = None
 
         def start(self):
             """Start timing."""
             self.start_time = time.perf_counter()
+            self.end_time = None
+            self.elapsed = None
 
         def stop(self):
             """Stop timing and calculate elapsed."""
@@ -528,6 +570,24 @@ def performance_timer():
             self.start_time = None
             self.end_time = None
             self.elapsed = None
+            self.label = None
+
+        def __call__(self, label: str = "operation"):
+            """Support `with performance_timer('name') as timer` usage."""
+            self.label = label
+            self.start()
+            return self
+
+        def __enter__(self):
+            """Context manager enter."""
+            if self.start_time is None:
+                self.start()
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            """Context manager exit."""
+            self.stop()
+            return False
 
     return PerformanceTimer()
 

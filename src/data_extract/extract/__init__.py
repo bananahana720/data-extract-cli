@@ -1,4 +1,4 @@
-"""Extractor adapters and registry."""
+"""Document extraction adapters and registry."""
 
 from __future__ import annotations
 

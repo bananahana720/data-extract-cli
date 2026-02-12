@@ -66,6 +66,17 @@ class JobService:
 
         resolved_config = self.config_resolver.resolve(request)
         output_dir = self._resolve_output_dir(request, source_dir)
+        output_file_override: Optional[Path] = None
+
+        if (
+            request.output_path
+            and Path(request.output_path).suffix.lower() == f".{resolved_config.output_format}"
+            and len(resolved_files) == 1
+            and not request.per_chunk
+            and not request.organize
+        ):
+            output_file_override = Path(request.output_path).resolve()
+            output_dir = output_file_override.parent
 
         manager = SessionManager(work_dir=work_dir or source_dir)
         session_state = self._resolve_session(request, manager, source_dir)
@@ -129,11 +140,17 @@ class JobService:
             output_dir=output_dir,
             output_format=resolved_config.output_format,
             chunk_size=resolved_config.chunk_size,
+            include_metadata=request.include_metadata,
+            per_chunk=request.per_chunk,
+            organize=request.organize,
+            strategy=request.strategy,
+            delimiter=request.delimiter,
             include_semantic=resolved_config.include_semantic,
             continue_on_error=resolved_config.continue_on_error,
             source_root=source_dir,
             pipeline_profile=resolved_config.pipeline_profile,
             allow_advanced_fallback=resolved_config.allow_advanced_fallback,
+            output_file_override=output_file_override,
         )
 
         semantic_outcome: SemanticOutcome | None = None
@@ -300,7 +317,11 @@ class JobService:
     @staticmethod
     def _resolve_output_dir(request: ProcessJobRequest, source_dir: Path) -> Path:
         """Resolve output dir honoring explicit output or default workspace output."""
-        output_dir = Path(request.output_path).resolve() if request.output_path else source_dir / "output"
+        if request.output_path:
+            requested_path = Path(request.output_path).resolve()
+            output_dir = requested_path.parent if requested_path.suffix else requested_path
+        else:
+            output_dir = source_dir / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 

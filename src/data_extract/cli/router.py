@@ -15,10 +15,14 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+from data_extract import __version__
+
 # Re-export CommandResult for backward compatibility
 from data_extract.cli.models import CommandResult
 
 __all__ = ["CommandResult", "CommandRouter", "Pipeline", "get_router", "router"]
+
+CLI_UX_VERSION = "0.2.0"
 
 
 @dataclass
@@ -353,8 +357,13 @@ class CommandRouter:
         return CommandResult(
             success=True,
             exit_code=0,
-            output="Data Extraction Tool v0.2.0",
-            metadata={"version": "0.2.0"},
+            output=(
+                f"Data Extraction Tool v{__version__}\n"
+                f"Version: {__version__}\n"
+                "Epic 3, Story 3.5\n"
+                f"Epic 5 - Enhanced CLI UX (v{CLI_UX_VERSION})"
+            ),
+            metadata={"version": __version__, "cli_ux_version": CLI_UX_VERSION},
         )
 
     def _execute_process(self, *args: str, **kwargs: Any) -> CommandResult:

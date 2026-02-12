@@ -41,10 +41,15 @@ class TestTfIdfIntegration:
         n_chunks = len(chunked_documents)
         n_features = min(expected_vector_dimensions, 100)
 
-        # Create mock sparse vectors
-        data = np.random.rand(n_chunks * 5)  # ~5 non-zero per doc
+        # Create deterministic normalized sparse vectors (~5 non-zero terms per doc).
+        rng = np.random.default_rng(42)
         row = np.repeat(range(n_chunks), 5)
-        col = np.random.choice(n_features, n_chunks * 5)
+        col = []
+        data = []
+        for row_idx in range(n_chunks):
+            chosen_cols = rng.choice(n_features, 5, replace=False)
+            col.extend(chosen_cols.tolist())
+            data.extend([1.0 / np.sqrt(5)] * 5)
         vectors = csr_matrix((data, (row, col)), shape=(n_chunks, n_features))
 
         # Behavioral assertions

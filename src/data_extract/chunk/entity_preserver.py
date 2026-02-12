@@ -97,13 +97,41 @@ class EntityPreserver:
     # Relationship patterns for detection (AC-3.2-3)
     # Pattern: word boundaries + entity ID pattern (allows hyphens)
     # Updated to allow descriptive text between entity ID and relationship keyword
+    ENTITY_ID_PATTERN = r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+"
     RELATIONSHIP_PATTERNS = [
-        (r"\b([A-Z]+-\d+)\b.*?\b(?:is\s+)?mitigated\s+by\b.*?\b([A-Z]+-\d+)\b", "mitigated_by"),
-        (r"\b([A-Z]+-\d+)\b.*?\bmaps\s+to\b.*?\b([A-Z]+-\d+)\b", "maps_to"),
-        (r"\b([A-Z]+-\d+)\b.*?\bimplements\b.*?\b([A-Z]+-\d+)\b", "implements"),
-        (r"\b([A-Z]+-\d+)\b.*?\baddresses\b.*?\b([A-Z]+-\d+)\b", "addresses"),
-        (r"\b([A-Z]+-\d+)\b.*?\bcontrolled\s+by\b.*?\b([A-Z]+-\d+)\b", "controlled_by"),
-        (r"\b([A-Z]+-\d+)\b.*?\brelates\s+to\b.*?\b([A-Z]+-\d+)\b", "relates_to"),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\b(?:is\s+)?mitigated\s+by\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "mitigated_by",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\bmitigates\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "mitigates",
+        ),
+        (rf"\b({ENTITY_ID_PATTERN})\b.*?\bmaps\s+to\b.*?\b({ENTITY_ID_PATTERN})\b", "maps_to"),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\bimplements\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "implements",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\b(?:is\s+)?addressed\s+by\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "addressed_by",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\baddresses\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "addresses",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\bcontrolled\s+by\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "controlled_by",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\b(?:is\s+)?executed\s+through\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "executed_through",
+        ),
+        (
+            rf"\b({ENTITY_ID_PATTERN})\b.*?\brelates\s+to\b.*?\b({ENTITY_ID_PATTERN})\b",
+            "relates_to",
+        ),
     ]
 
     def __init__(self) -> None:

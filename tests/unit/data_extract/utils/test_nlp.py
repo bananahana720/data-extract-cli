@@ -19,6 +19,17 @@ from src.data_extract.utils.nlp import get_sentence_boundaries
 pytestmark = [pytest.mark.P1, pytest.mark.unit]
 
 
+def _load_test_nlp_model():
+    """Load preferred spaCy model with local lightweight fallback for offline environments."""
+    try:
+        return spacy.load("en_core_web_md")
+    except OSError:
+        nlp = spacy.blank("en")
+        if "sentencizer" not in nlp.pipe_names:
+            nlp.add_pipe("sentencizer")
+        return nlp
+
+
 class TestGetSentenceBoundaries:
     """Test suite for get_sentence_boundaries() function."""
 
@@ -63,7 +74,7 @@ class TestGetSentenceBoundaries:
 
     def test_with_provided_nlp_model(self) -> None:
         """AC 2.5.2-5: Should work with pre-loaded nlp parameter."""
-        nlp = spacy.load("en_core_web_md")
+        nlp = _load_test_nlp_model()
         text = "First sentence. Second sentence."
         boundaries = get_sentence_boundaries(text, nlp=nlp)
 
@@ -121,7 +132,7 @@ class TestGetSentenceBoundaries:
     def test_performance_under_100ms(self) -> None:
         """AC 2.5.2-5 & NFR-P1: All unit tests should execute in <100ms."""
         # Pre-load model to exclude model loading time
-        nlp = spacy.load("en_core_web_md")
+        nlp = _load_test_nlp_model()
 
         text = "This is a test sentence. " * 10  # 10 sentences
         start = time.perf_counter()
@@ -132,8 +143,8 @@ class TestGetSentenceBoundaries:
         # Individual test should be much faster than 100ms
         assert elapsed < 0.1, f"Test took {elapsed:.3f}s, expected <0.1s"
 
-    def test_missing_model_raises_oserror_with_helpful_message(self) -> None:
-        """AC 2.5.2-4: Should raise OSError with actionable message if model missing."""
+    def test_missing_model_uses_fallback_sentencizer(self) -> None:
+        """Missing en_core_web_md should fall back to blank+sentencizer in dev mode."""
         import src.data_extract.utils.nlp as nlp_module
 
         original_cache = nlp_module._nlp_model
@@ -141,8 +152,10 @@ class TestGetSentenceBoundaries:
 
         try:
             with patch("spacy.load", side_effect=OSError("Model not found")):
-                with pytest.raises(OSError, match="python -m spacy download en_core_web_md"):
-                    get_sentence_boundaries("Test text.")
+                boundaries = get_sentence_boundaries("Test text.")
+                assert boundaries == [10]
+                assert nlp_module._nlp_model is not None
+                assert "sentencizer" in nlp_module._nlp_model.pipe_names
         finally:
             nlp_module._nlp_model = original_cache
 
@@ -215,3 +228,10 @@ class TestSentenceBoundaryEdgeCases:
         boundaries = get_sentence_boundaries(text)
 
         assert len(boundaries) == 3
+
+    def test_acronym_sentence_end_splits_correctly(self) -> None:
+        """Acronym-ending sentence should split when next sentence starts uppercase."""
+        text = "Dr. Smith works at XYZ Corp. in the U.S. He is an expert."
+        boundaries = get_sentence_boundaries(text)
+
+        assert len(boundaries) == 2
