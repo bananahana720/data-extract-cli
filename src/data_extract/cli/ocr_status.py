@@ -74,7 +74,7 @@ def check_ocr_available() -> Tuple[bool, str]:
         ...     print(f"OCR unavailable: {message}")
     """
     try:
-        import pytesseract  # type: ignore[import-not-found]
+        import pytesseract  # type: ignore[import-not-found,import-untyped]
 
         # Attempt to get version to verify Tesseract is actually installed
         # (not just pytesseract package)

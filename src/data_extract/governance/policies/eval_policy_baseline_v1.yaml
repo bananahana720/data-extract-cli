@@ -1,0 +1,108 @@
+policy_id: baseline_v1
+version: "1.0"
+thresholds:
+  good_min: 85
+  watch_min: 70
+milestones:
+  - milestone_id: extract
+    title: Extract Integrity
+    weight: 25
+    checks:
+      - check_id: extract_count_reconciled
+        metric: extract.counts_reconciled
+        operator: equals
+        target: true
+        critical: true
+        weight: 1
+        reason_code: CRITICAL_EXTRACT_COUNT_MISMATCH
+      - check_id: extract_processed_ratio
+        metric: extract.processed_ratio
+        operator: gte
+        target: 0.8
+        critical: false
+        weight: 1
+        reason_code: LOW_EXTRACT_PROCESSED_RATIO
+
+  - milestone_id: normalize
+    title: Normalize Quality
+    weight: 20
+    checks:
+      - check_id: normalize_stage_coverage
+        metric: normalize.stage_timing_coverage
+        operator: gte
+        target: 1.0
+        critical: true
+        weight: 1
+        reason_code: CRITICAL_NORMALIZE_STAGE_INCOMPLETE
+      - check_id: normalize_failure_ratio
+        metric: normalize.failure_ratio
+        operator: lte
+        target: 0.2
+        critical: false
+        weight: 1
+        reason_code: HIGH_NORMALIZE_FAILURE_RATIO
+
+  - milestone_id: chunk
+    title: Chunk Fidelity
+    weight: 20
+    checks:
+      - check_id: chunk_nonzero_ratio
+        metric: chunk.nonzero_chunk_ratio
+        operator: gte
+        target: 1.0
+        critical: true
+        weight: 1
+        reason_code: CRITICAL_CHUNK_EMPTY_OUTPUT
+      - check_id: chunk_stage_present
+        metric: chunk.stage_present
+        operator: bool_true
+        target: true
+        critical: false
+        weight: 1
+        reason_code: LOW_CHUNK_STAGE_RELIABILITY
+
+  - milestone_id: semantic
+    title: Semantic Reliability
+    weight: 20
+    skip_when_semantic_disabled: true
+    checks:
+      - check_id: semantic_stage_completed
+        metric: semantic.required_status_ok
+        operator: bool_true
+        target: true
+        critical: true
+        weight: 1
+        reason_code: CRITICAL_SEMANTIC_STAGE_FAILED
+      - check_id: semantic_summary_present
+        metric: semantic.summary_present
+        operator: bool_true
+        target: true
+        critical: false
+        weight: 1
+        reason_code: LOW_SEMANTIC_SUMMARY_COMPLETENESS
+
+  - milestone_id: output
+    title: Output Publishability
+    weight: 15
+    checks:
+      - check_id: output_exists_ratio
+        metric: output.output_exists_ratio
+        operator: gte
+        target: 1.0
+        critical: true
+        weight: 1
+        reason_code: CRITICAL_OUTPUT_ARTIFACT_MISSING
+      - check_id: output_stage_present
+        metric: output.stage_present
+        operator: bool_true
+        target: true
+        critical: false
+        weight: 1
+        reason_code: LOW_OUTPUT_STAGE_RELIABILITY
+      - check_id: output_dir_exists
+        metric: output.output_dir_exists
+        operator: bool_true
+        target: true
+        critical: false
+        weight: 1
+        reason_code: LOW_OUTPUT_DIRECTORY_INTEGRITY

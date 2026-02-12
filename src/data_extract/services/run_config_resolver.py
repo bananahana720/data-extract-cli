@@ -12,6 +12,7 @@ from data_extract.contracts import ProcessJobRequest
 DEFAULT_CHUNK_SIZE = int(ProcessJobRequest.model_fields["chunk_size"].default)
 DEFAULT_OUTPUT_FORMAT = str(ProcessJobRequest.model_fields["output_format"].default)
 DEFAULT_PIPELINE_PROFILE = "auto"
+DEFAULT_EVALUATION_POLICY = str(ProcessJobRequest.model_fields["evaluation_policy"].default)
 VALID_PIPELINE_PROFILES = {"auto", "legacy", "advanced"}
 
 
@@ -66,6 +67,15 @@ class ResolvedSemanticConfig:
 
 
 @dataclass(frozen=True)
+class ResolvedEvaluationConfig:
+    """Governance evaluation settings used by process orchestration."""
+
+    enabled: bool
+    policy: str
+    fail_on_bad: bool
+
+
+@dataclass(frozen=True)
 class ResolvedRunConfig:
     """Fully resolved execution settings for a processing job."""
 
@@ -76,6 +86,7 @@ class ResolvedRunConfig:
     pipeline_profile: str
     allow_advanced_fallback: bool
     semantic: ResolvedSemanticConfig
+    evaluation: ResolvedEvaluationConfig
 
 
 class RunConfigResolver:
@@ -114,6 +125,12 @@ class RunConfigResolver:
         )
 
         semantic_cfg = merged.get("semantic", {}) if isinstance(merged, dict) else {}
+        governance_cfg = merged.get("governance", {}) if isinstance(merged, dict) else {}
+        evaluation_cfg = (
+            governance_cfg.get("evaluation", {})
+            if isinstance(governance_cfg, dict)
+            else {}
+        )
         include_semantic = bool(request.include_semantic)
         report = (
             request.semantic_report
@@ -155,6 +172,30 @@ class RunConfigResolver:
                 _to_float(_nested_get(semantic_cfg, "quality.min_score", 0.3), 0.3),
             ),
         )
+        default_include_evaluation = bool(ProcessJobRequest.model_fields["include_evaluation"].default)
+        default_fail_on_bad = bool(ProcessJobRequest.model_fields["evaluation_fail_on_bad"].default)
+        default_policy = DEFAULT_EVALUATION_POLICY
+
+        include_evaluation = (
+            _to_bool(_nested_get(evaluation_cfg, "enabled"), default_include_evaluation)
+            if request.include_evaluation == default_include_evaluation
+            else bool(request.include_evaluation)
+        )
+        evaluation_policy = (
+            str(_nested_get(evaluation_cfg, "policy", default_policy))
+            if request.evaluation_policy == default_policy
+            else str(request.evaluation_policy)
+        )
+        evaluation_fail_on_bad = (
+            _to_bool(_nested_get(evaluation_cfg, "fail_on_bad"), default_fail_on_bad)
+            if request.evaluation_fail_on_bad == default_fail_on_bad
+            else bool(request.evaluation_fail_on_bad)
+        )
+        resolved_evaluation = ResolvedEvaluationConfig(
+            enabled=include_evaluation,
+            policy=evaluation_policy,
+            fail_on_bad=evaluation_fail_on_bad,
+        )
 
         requested_profile = str(
             request.pipeline_profile
@@ -176,6 +217,7 @@ class RunConfigResolver:
             pipeline_profile=pipeline_profile,
             allow_advanced_fallback=allow_advanced_fallback,
             semantic=resolved_semantic,
+            evaluation=resolved_evaluation,
         )
 
     @staticmethod

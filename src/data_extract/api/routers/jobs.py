@@ -117,6 +117,9 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
         raise HTTPException(status_code=400, detail="No usable input_path provided")
 
     semantic_requested = _to_bool(form.get("semantic")) or _to_bool(form.get("include_semantic"))
+    evaluation_requested = _optional_bool(form.get("include_evaluation"))
+    evaluation_fail_on_bad = _optional_bool(form.get("evaluation_fail_on_bad"))
+    evaluation_policy = _optional_str(form.get("evaluation_policy"))
     semantic_report = _optional_bool(form.get("semantic_report"))
     semantic_export_graph = _optional_bool(form.get("semantic_export_graph"))
     semantic_report_format = _optional_str(form.get("semantic_report_format"))
@@ -142,6 +145,13 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             idempotency_key=_optional_str(form.get("idempotency_key")),
             non_interactive=True,
             include_semantic=semantic_requested,
+            include_evaluation=(
+                evaluation_requested if evaluation_requested is not None else True
+            ),
+            evaluation_policy=evaluation_policy or "baseline_v1",
+            evaluation_fail_on_bad=(
+                evaluation_fail_on_bad if evaluation_fail_on_bad is not None else False
+            ),
             semantic_report=semantic_report,
             semantic_report_format=semantic_report_format,
             semantic_export_graph=semantic_export_graph,

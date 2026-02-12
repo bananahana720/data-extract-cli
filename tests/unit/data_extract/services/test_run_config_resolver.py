@@ -36,3 +36,17 @@ def test_resolve_rejects_unknown_preset(monkeypatch: pytest.MonkeyPatch) -> None
 
     with pytest.raises(ValueError, match="Preset not found: does-not-exist"):
         RunConfigResolver().resolve(request)
+
+
+def test_resolve_includes_evaluation_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_load_merged_config(**_: Any) -> _MergedConfigStub:
+        return _MergedConfigStub({"format": "json", "chunk": {"size": 512}, "semantic": {}})
+
+    monkeypatch.setattr(resolver_module, "load_merged_config", fake_load_merged_config)
+
+    request = ProcessJobRequest(input_path="/tmp/source")
+    resolved = RunConfigResolver().resolve(request)
+
+    assert resolved.evaluation.enabled is True
+    assert resolved.evaluation.policy == "baseline_v1"
+    assert resolved.evaluation.fail_on_bad is False

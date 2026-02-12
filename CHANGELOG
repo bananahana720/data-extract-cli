@@ -25,3 +25,7 @@
 - Fixed residual pipeline/output regressions: added advanced->legacy empty-chunk fallback, restored deterministic TXT per-chunk 1-indexed filename sequencing, and corrected status JSON rendering for machine parsing.
 - Improved quality-metrics runtime stability by making report generation/log formatting conditional, eliminating non-deterministic performance-scaling test failures under full-suite execution.
 - Completed final verification loop to green with current tree: `ruff check src tests scripts`, `./.venv/bin/mypy src/data_extract/ --strict`, and `./.venv/bin/pytest -q` (`2728 passed, 264 skipped, 6 xfailed`).
+- Added governance evaluation contract models and processing hooks (API form parsing, run-config resolution, job orchestration persistence, and governance policy/evaluator modules) with baseline policy definitions and unit coverage.
+- Fixed evaluation fail-on-bad behavior to set both non-zero exit code and failed job status, so API persistence/retry semantics align with governance verdict outcomes.
+- Reworked governance policy loading to prefer packaged resources with development fallback paths, eliminating source-tree path assumptions in installed environments.
+- Completed regression validation for current workspace state: `PYTHONPATH=src .venv/bin/ruff check src tests` and `PYTHONPATH=src .venv/bin/pytest` (`2736 passed, 264 skipped, 6 xfailed`).

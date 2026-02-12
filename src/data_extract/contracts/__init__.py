@@ -1,7 +1,12 @@
 """Shared contract models for CLI, API, and UI."""
 
 from .models import (
+    EvaluationVerdict,
     FileFailure,
+    GovernanceCheckResult,
+    GovernanceEvaluationOutcome,
+    GovernanceEvidenceRef,
+    GovernanceMilestoneResult,
     JobStatus,
     ProcessedFileOutcome,
     ProcessJobRequest,
@@ -13,6 +18,7 @@ from .models import (
 )
 
 __all__ = [
+    "EvaluationVerdict",
     "JobStatus",
     "ProcessJobRequest",
     "ProcessJobResult",
@@ -22,4 +28,8 @@ __all__ = [
     "SemanticOutcome",
     "SemanticArtifact",
     "SessionSummary",
+    "GovernanceEvidenceRef",
+    "GovernanceCheckResult",
+    "GovernanceMilestoneResult",
+    "GovernanceEvaluationOutcome",
 ]

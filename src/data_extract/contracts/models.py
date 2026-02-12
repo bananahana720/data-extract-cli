@@ -19,6 +19,14 @@ class JobStatus(str, Enum):
     FAILED = "failed"
 
 
+class EvaluationVerdict(str, Enum):
+    """Governance evaluation verdict."""
+
+    GOOD = "good"
+    WATCH = "watch"
+    BAD = "bad"
+
+
 class FileFailure(BaseModel):
     """Failure details for a single source file."""
 
@@ -60,6 +68,57 @@ class SemanticOutcome(BaseModel):
     stage_timings_ms: Dict[str, float] = Field(default_factory=dict)
 
 
+class GovernanceEvidenceRef(BaseModel):
+    """Evidence pointer for a governance check result."""
+
+    artifact_path: Optional[str] = None
+    field_path: Optional[str] = None
+    value_snapshot: Any = None
+
+
+class GovernanceCheckResult(BaseModel):
+    """Evaluation result for one governance check."""
+
+    check_id: str
+    metric: str
+    critical: bool = False
+    weight: float = 1.0
+    operator: str = "gte"
+    target: Optional[Any] = None
+    observed: Any = None
+    passed: bool = False
+    score: float = Field(default=0.0, ge=0.0, le=100.0)
+    reason_code: Optional[str] = None
+    evidence: List[GovernanceEvidenceRef] = Field(default_factory=list)
+
+
+class GovernanceMilestoneResult(BaseModel):
+    """Evaluation rollup for one governance milestone."""
+
+    milestone_id: str
+    title: str
+    weight: float = 1.0
+    status: str = "passed"
+    score: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    skipped: bool = False
+    critical_failed: bool = False
+    checks: List[GovernanceCheckResult] = Field(default_factory=list)
+    reason_codes: List[str] = Field(default_factory=list)
+
+
+class GovernanceEvaluationOutcome(BaseModel):
+    """Full governance evaluation payload for a process result."""
+
+    policy_id: str
+    policy_version: str
+    overall_score: float = Field(ge=0.0, le=100.0)
+    verdict: EvaluationVerdict
+    milestones: List[GovernanceMilestoneResult] = Field(default_factory=list)
+    failed_critical_checks: List[str] = Field(default_factory=list)
+    reason_codes: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
 class ProcessJobRequest(BaseModel):
     """Request contract for processing files through the pipeline."""
 
@@ -80,6 +139,9 @@ class ProcessJobRequest(BaseModel):
     preset: Optional[str] = None
     non_interactive: bool = False
     include_semantic: bool = False
+    include_evaluation: bool = True
+    evaluation_policy: str = "baseline_v1"
+    evaluation_fail_on_bad: bool = False
     semantic_report: Optional[bool] = None
     semantic_report_format: Optional[str] = None
     semantic_export_graph: Optional[bool] = None
@@ -115,6 +177,7 @@ class ProcessJobResult(BaseModel):
     request_hash: Optional[str] = None
     exit_code: int = 0
     semantic: Optional[SemanticOutcome] = None
+    evaluation: Optional[GovernanceEvaluationOutcome] = None
 
 
 class RetryRequest(BaseModel):

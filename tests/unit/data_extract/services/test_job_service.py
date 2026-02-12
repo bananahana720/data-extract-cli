@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from data_extract.contracts import ProcessJobRequest
+from data_extract.contracts import JobStatus, ProcessJobRequest
 from data_extract.services import JobService, StatusService
 
 
@@ -26,6 +26,7 @@ def test_run_process_generates_real_output_for_txt(tmp_path: Path) -> None:
     assert result.failed_count == 0
     assert (output_dir / "sample.json").exists()
     assert result.request_hash is not None
+    assert result.evaluation is not None
 
 
 def test_run_process_avoids_output_collisions_for_duplicate_stems(tmp_path: Path) -> None:
@@ -122,6 +123,32 @@ def test_run_process_semantic_incompatible_output_sets_reason_code(tmp_path: Pat
     assert result.semantic is not None
     assert result.semantic.status == "skipped"
     assert result.semantic.reason_code == "semantic_output_format_incompatible"
+
+
+def test_run_process_fail_on_bad_evaluation_sets_nonzero_exit_code(tmp_path: Path) -> None:
+    source_dir = tmp_path / "eval-fail-source"
+    output_dir = tmp_path / "eval-fail-output"
+    source_dir.mkdir(parents=True)
+    (source_dir / "sample.txt").write_text("alpha beta gamma", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="txt",
+        chunk_size=64,
+        include_semantic=True,
+        include_evaluation=True,
+        evaluation_fail_on_bad=True,
+    )
+
+    result = JobService().run_process(request, work_dir=tmp_path)
+
+    assert result.processed_count == 1
+    assert result.failed_count == 0
+    assert result.evaluation is not None
+    assert result.evaluation.verdict == "bad"
+    assert result.exit_code == 1
+    assert result.status == JobStatus.FAILED
 
 
 def test_run_process_excludes_existing_outputs_from_source_discovery(tmp_path: Path) -> None:

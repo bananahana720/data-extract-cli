@@ -13,6 +13,7 @@ from typing import Any, List, Optional
 from data_extract.cli.exit_codes import determine_exit_code
 from data_extract.cli.session import SessionManager, SessionState
 from data_extract.contracts import (
+    EvaluationVerdict,
     FileFailure,
     JobStatus,
     ProcessedFileOutcome,
@@ -21,6 +22,7 @@ from data_extract.contracts import (
     SemanticArtifact,
     SemanticOutcome,
 )
+from data_extract.governance import GovernanceEvaluator
 from data_extract.services.file_discovery_service import FileDiscoveryService
 from data_extract.services.pathing import normalized_path_text, source_key_for_path
 from data_extract.services.persistence_repository import (
@@ -43,12 +45,14 @@ class JobService:
         persistence_repository: Optional[PersistenceRepository] = None,
         config_resolver: Optional[RunConfigResolver] = None,
         semantic_service: Optional[SemanticOrchestrationService] = None,
+        governance_evaluator: Optional[GovernanceEvaluator] = None,
     ) -> None:
         self.discovery = discovery_service or FileDiscoveryService()
         self.pipeline = pipeline_service or PipelineService()
         self.persistence = persistence_repository or PersistenceRepository()
         self.config_resolver = config_resolver or RunConfigResolver()
         self.semantic_service = semantic_service or SemanticOrchestrationService()
+        self.governance_evaluator = governance_evaluator or GovernanceEvaluator()
 
     def run_process(
         self,
@@ -96,7 +100,9 @@ class JobService:
         if request.incremental and not request.source_files:
             from data_extract.cli.batch import IncrementalProcessor
 
-            incremental_processor = IncrementalProcessor(source_dir=source_dir, output_dir=output_dir)
+            incremental_processor = IncrementalProcessor(
+                source_dir=source_dir, output_dir=output_dir
+            )
             changes = incremental_processor.analyze()
             if not request.force:
                 changed = set(changes.new_files + changes.modified_files)
@@ -179,7 +185,9 @@ class JobService:
                     config=resolved_config.semantic,
                 )
                 for stage_name, duration in semantic_result.stage_timings_ms.items():
-                    run.stage_totals_ms[stage_name] = run.stage_totals_ms.get(stage_name, 0.0) + duration
+                    run.stage_totals_ms[stage_name] = (
+                        run.stage_totals_ms.get(stage_name, 0.0) + duration
+                    )
                 semantic_outcome = SemanticOutcome(
                     status=semantic_result.status,
                     message=semantic_result.message,
@@ -190,7 +198,9 @@ class JobService:
                             path=str(artifact.path),
                             artifact_type=artifact.artifact_type,
                             format=artifact.format,
-                            size_bytes=artifact.path.stat().st_size if artifact.path.exists() else 0,
+                            size_bytes=(
+                                artifact.path.stat().st_size if artifact.path.exists() else 0
+                            ),
                         )
                         for artifact in semantic_result.artifacts
                     ],
@@ -250,7 +260,9 @@ class JobService:
             manager.complete_session()
 
         if incremental_processor is not None:
-            incremental_processor.record_processed_files([item.source_path for item in run.processed])
+            incremental_processor.record_processed_files(
+                [item.source_path for item in run.processed]
+            )
 
         processed_count = len(run.processed)
         failed_count = len(run.failed)
@@ -276,7 +288,9 @@ class JobService:
             status = JobStatus.COMPLETED
 
         finished_at = datetime.now(timezone.utc)
-        effective_job_id = job_id or (session_state.session_id if session_state else str(uuid.uuid4())[:8])
+        effective_job_id = job_id or (
+            session_state.session_id if session_state else str(uuid.uuid4())[:8]
+        )
         result = ProcessJobResult(
             job_id=effective_job_id,
             status=status,
@@ -296,6 +310,25 @@ class JobService:
             exit_code=exit_code,
             semantic=semantic_outcome,
         )
+        if resolved_config.evaluation.enabled:
+            evaluation = self.governance_evaluator.evaluate(
+                result=result,
+                stage_totals_ms=run.stage_totals_ms,
+                semantic_outcome=semantic_outcome,
+                policy_id=resolved_config.evaluation.policy,
+            )
+            result = result.model_copy(update={"evaluation": evaluation})
+            if (
+                resolved_config.evaluation.fail_on_bad
+                and evaluation.verdict == EvaluationVerdict.BAD
+                and result.exit_code == 0
+            ):
+                result = result.model_copy(
+                    update={
+                        "exit_code": 1,
+                        "status": JobStatus.FAILED,
+                    }
+                )
 
         if job_id:
             self.persistence.update_job_metadata(
@@ -474,6 +507,9 @@ class JobService:
                 "semantic_max_features": request.semantic_max_features,
                 "semantic_n_components": request.semantic_n_components,
                 "semantic_min_quality": request.semantic_min_quality,
+                "include_evaluation": request.include_evaluation,
+                "evaluation_policy": request.evaluation_policy,
+                "evaluation_fail_on_bad": request.evaluation_fail_on_bad,
                 "pipeline_profile": request.pipeline_profile,
                 "continue_on_error": request.continue_on_error,
             },
