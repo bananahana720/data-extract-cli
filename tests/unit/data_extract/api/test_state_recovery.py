@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -49,8 +49,8 @@ def test_recover_inflight_jobs_requeues_queued_and_fails_running(
                 chunk_size=512,
                 request_payload=json.dumps(request_payload),
                 result_payload="{}",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
         )
         db.add(
@@ -63,9 +63,9 @@ def test_recover_inflight_jobs_requeues_queued_and_fails_running(
                 chunk_size=512,
                 request_payload=json.dumps(request_payload),
                 result_payload="{}",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
-                started_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+                started_at=datetime.now(timezone.utc),
             )
         )
         db.commit()

@@ -537,7 +537,6 @@ class TestPresetListCommand:
 class TestPresetCLICommands:
     """AC-5.2-3: Test preset CLI commands."""
 
-    @pytest.mark.xfail(reason="TDD RED - Epic 5.2 preset commands not yet implemented")
     def test_config_presets_command_exists(self, typer_cli_runner):
         """
         RED: Test 'data-extract config presets list' command exists.
@@ -558,12 +557,11 @@ class TestPresetCLICommands:
 
         # Then
         assert result.exit_code == 0, f"Command failed: {result.output}"
-        assert "audit-standard" in result.output, f"Should list built-in presets: {result.output}"
+        assert "quality" in result.output, f"Should list built-in presets: {result.output}"
 
-    @pytest.mark.xfail(reason="TDD RED - Epic 5.2 preset commands not yet implemented")
     def test_config_save_command_exists(self, typer_cli_runner, mock_home_directory):
         """
-        RED: Test 'data-extract config save <name>' command exists.
+        Test 'data-extract config presets save <name>' command exists.
 
         Given: The CLI app
         When: We invoke 'config save my-preset'
@@ -575,7 +573,7 @@ class TestPresetCLICommands:
         try:
             from data_extract.app import app
 
-            result = typer_cli_runner.invoke(app, ["config", "save", "test-save"])
+            result = typer_cli_runner.invoke(app, ["config", "presets", "save", "test-save"])
         except ImportError as e:
             pytest.fail(f"Cannot import: {e}")
 
@@ -585,10 +583,9 @@ class TestPresetCLICommands:
             "saved" in result.output.lower() or "created" in result.output.lower()
         ), f"Should confirm save: {result.output}"
 
-    @pytest.mark.xfail(reason="TDD RED - Epic 5.2 preset commands not yet implemented")
     def test_config_load_command_exists(self, typer_cli_runner):
         """
-        RED: Test 'data-extract config load <name>' command exists.
+        Test 'data-extract config presets load <name>' command exists.
 
         Given: The CLI app
         When: We invoke 'config load audit-standard'
@@ -600,7 +597,7 @@ class TestPresetCLICommands:
         try:
             from data_extract.app import app
 
-            result = typer_cli_runner.invoke(app, ["config", "load", "audit-standard"])
+            result = typer_cli_runner.invoke(app, ["config", "presets", "load", "quality"])
         except ImportError as e:
             pytest.fail(f"Cannot import: {e}")
 
@@ -618,13 +615,12 @@ class TestPresetCLICommands:
 class TestJourney5PresetConfiguration:
     """AC-5.2-5: Test Journey 5 (Preset Configuration) from UX Design Spec."""
 
-    @pytest.mark.xfail(reason="TDD RED - Journey 5 preset UI not yet implemented")
     def test_journey5_list_presets(self, typer_cli_runner):
         """
         RED: Journey 5 Step 1 - List available presets.
 
         Given: User wants to see available presets
-        When: 'data-extract config presets' is run
+        When: 'data-extract config presets list' is run
         Then: Formatted list of presets with descriptions shown
 
         Expected RED failure: Rich output not implemented
@@ -633,7 +629,7 @@ class TestJourney5PresetConfiguration:
         try:
             from data_extract.app import app
 
-            result = typer_cli_runner.invoke(app, ["config", "presets"])
+            result = typer_cli_runner.invoke(app, ["config", "presets", "list"])
         except ImportError as e:
             pytest.fail(f"Cannot import: {e}")
 
@@ -641,17 +637,16 @@ class TestJourney5PresetConfiguration:
         assert result.exit_code == 0
         # Check for Rich-formatted output indicators
         assert (
-            "Built-in" in result.output or "audit-standard" in result.output
+            "built-in" in result.output.lower() or "quality" in result.output.lower()
         ), f"Should show preset list: {result.output}"
         # Should include descriptions
         assert (
-            "audit" in result.output.lower() or "rag" in result.output.lower()
+            "quality" in result.output.lower() or "speed" in result.output.lower()
         ), f"Should show preset descriptions: {result.output}"
 
-    @pytest.mark.xfail(reason="TDD RED - Journey 5 custom preset creation not yet implemented")
     def test_journey5_create_custom_preset(self, typer_cli_runner, mock_home_directory):
         """
-        RED: Journey 5 Step 2 - Create custom preset from current config.
+        Journey 5 Step 2 - Create custom preset from current config.
 
         Given: User has a configuration they want to save
         When: 'data-extract config save "quarterly-audit"' is run
@@ -663,7 +658,7 @@ class TestJourney5PresetConfiguration:
         try:
             from data_extract.app import app
 
-            result = typer_cli_runner.invoke(app, ["config", "save", "quarterly-audit"])
+            result = typer_cli_runner.invoke(app, ["config", "presets", "save", "quarterly-audit"])
         except ImportError as e:
             pytest.fail(f"Cannot import: {e}")
 
@@ -708,12 +703,11 @@ class TestJourney5PresetConfiguration:
             "4000" in result.output or "300" in result.output
         ), f"Preset values should be applied: {result.output}"
 
-    @pytest.mark.xfail(reason="TDD RED - Journey 5 Rich formatting not yet implemented")
     def test_journey5_rich_formatted_preset_list(self, typer_cli_runner):
         """
         RED: Journey 5 - Verify Rich-formatted preset list.
 
-        Given: The config presets command
+        Given: The config presets list command
         When: Run in terminal
         Then: Should show Rich-formatted panel with categories
 
@@ -732,7 +726,7 @@ class TestJourney5PresetConfiguration:
         try:
             from data_extract.app import app
 
-            result = typer_cli_runner.invoke(app, ["config", "presets"])
+            result = typer_cli_runner.invoke(app, ["config", "presets", "list"])
         except ImportError as e:
             pytest.fail(f"Cannot import: {e}")
 

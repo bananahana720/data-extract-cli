@@ -80,6 +80,13 @@ function formatDateTime(value: string | null): string {
   return new Date(value).toLocaleString();
 }
 
+function formatReasonCode(reasonCode: string): string {
+  return reasonCode
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function remediationHint(file: JobDetail["files"][number]): string {
   const errorType = (file.error_type || "").toLowerCase();
   const message = (file.error_message || "").toLowerCase();
@@ -444,6 +451,14 @@ export function JobDetailPage() {
           <dl className="key-value-list">
             <dt>Status</dt>
             <dd>{semanticOutcome.status}</dd>
+            {semanticOutcome.reason_code ? (
+              <>
+                <dt>Reason</dt>
+                <dd data-testid="job-semantic-reason-code">
+                  {formatReasonCode(semanticOutcome.reason_code)}
+                </dd>
+              </>
+            ) : null}
             <dt>Total Chunks</dt>
             <dd>{toNumber(semanticOutcome.summary?.total_chunks)}</dd>
             <dt>Vocabulary</dt>

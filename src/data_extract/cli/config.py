@@ -297,6 +297,39 @@ PRESETS_DIR = Path.home() / ".data-extract" / "presets"
 USER_CONFIG_DIR = Path.home() / ".data-extract"
 USER_CONFIG_PATH = USER_CONFIG_DIR / "config.yaml"
 
+LEGACY_PRESET_BRIDGE: Dict[str, Dict[str, Any]] = {
+    "quality": {
+        "format": "json",
+        "chunk": {"max_tokens": 256},
+        "semantic": {
+            "quality": {"min_score": 0.9},
+            "similarity": {"duplicate_threshold": 0.85},
+        },
+        "metadata": {"include": True},
+        "validation": {"level": "strict"},
+    },
+    "speed": {
+        "format": "json",
+        "chunk": {"max_tokens": 1024},
+        "semantic": {
+            "quality": {"min_score": 0.5},
+            "similarity": {"duplicate_threshold": 0.99},
+        },
+        "metadata": {"include": False},
+        "validation": {"level": "minimal"},
+    },
+    "balanced": {
+        "format": "json",
+        "chunk": {"max_tokens": 500},
+        "semantic": {
+            "quality": {"min_score": 0.7},
+            "similarity": {"duplicate_threshold": 0.95},
+        },
+        "metadata": {"include": True},
+        "validation": {"level": "standard"},
+    },
+}
+
 
 # Convenience exception for preset not found
 class PresetNotFoundError(ValueError):
@@ -361,6 +394,11 @@ def load_preset(name: str) -> Dict[str, Any]:
     if builtin_path.exists():
         return _load_yaml(builtin_path)
 
+    # Bridge legacy PresetManager built-ins into config cascade presets.
+    legacy = LEGACY_PRESET_BRIDGE.get(name)
+    if legacy is not None:
+        return legacy.copy()
+
     # Raise both types for compatibility
     raise PresetNotFoundError(f"Preset not found: {name}")
 
@@ -396,6 +434,8 @@ def list_presets() -> List[Dict[str, Any]]:
     if builtin_dir.exists():
         for p in builtin_dir.glob("*.yaml"):
             presets[p.stem] = "builtin"
+    for preset_name in LEGACY_PRESET_BRIDGE:
+        presets.setdefault(preset_name, "builtin")
 
     # User presets (can override built-in indication) - compute path dynamically
     user_presets_dir = Path.home() / ".data-extract" / "presets"

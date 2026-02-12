@@ -42,6 +42,8 @@ class StatusService:
             "total_files": status.get("total_files", 0),
             "last_updated": status.get("last_updated"),
             "sync_state": status.get("sync_state", "unknown"),
+            "state_file_present": bool(status.get("state_file_present", False)),
+            "tracked_files": status.get("tracked_files", []),
             "changes": {
                 "new": changes.new_count,
                 "modified": changes.modified_count,
@@ -55,21 +57,28 @@ class StatusService:
 
     @staticmethod
     def _find_orphaned_outputs(source_dir: Path, output_dir: Path) -> List[Path]:
-        """Find output files that no longer map to a source file stem."""
+        """Find output files that no longer map to source-relative paths."""
         if not output_dir.exists():
             return []
 
-        source_stems = {
-            file_path.stem
+        source_relative_keys = {
+            str(file_path.relative_to(source_dir).with_suffix(""))
             for file_path in source_dir.rglob("*")
             if file_path.is_file() and output_dir not in file_path.resolve().parents
         }
 
+        tracked_suffixes = {".json", ".txt", ".csv"}
+        ignored_output_files = {"incremental-state.json", "summary.json", "session.json"}
         orphans: List[Path] = []
-        for output_file in output_dir.glob("*.json"):
-            if output_file.name in {"incremental-state.json", "summary.json", "session.json"}:
+        for output_file in output_dir.rglob("*"):
+            if not output_file.is_file():
                 continue
-            if output_file.stem not in source_stems:
+            if output_file.suffix.lower() not in tracked_suffixes:
+                continue
+            if output_file.name in ignored_output_files:
+                continue
+            output_key = str(output_file.relative_to(output_dir).with_suffix(""))
+            if output_key not in source_relative_keys:
                 orphans.append(output_file)
 
         return sorted(orphans)

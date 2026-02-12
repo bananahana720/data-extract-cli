@@ -1,7 +1,12 @@
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { createProcessJob, createProcessJobWithFiles, listConfigPresets } from "../api/client";
+import {
+  createProcessJob,
+  createProcessJobWithFiles,
+  getCurrentPreset,
+  listConfigPresets
+} from "../api/client";
 import { ConfigPresetSummary } from "../types";
 
 type SourceMode = "path" | "upload";
@@ -9,6 +14,7 @@ type FieldErrors = {
   path?: string;
   upload?: string;
   chunkSize?: string;
+  semantic?: string;
 };
 
 function formatBytes(bytes: number): string {
@@ -59,8 +65,11 @@ export function NewRunPage() {
   useEffect(() => {
     async function loadPresets() {
       try {
-        const presets = await listConfigPresets();
+        const [presets, currentPreset] = await Promise.all([listConfigPresets(), getCurrentPreset()]);
         setAvailablePresets(presets);
+        if (currentPreset && presets.some((item) => item.name === currentPreset)) {
+          setPreset((current) => current || currentPreset);
+        }
       } catch {
         setAvailablePresets([]);
       }
@@ -121,6 +130,9 @@ export function NewRunPage() {
 
     if (sourceMode === "upload" && selectedFiles.length === 0) {
       nextErrors.upload = "Upload mode requires at least one selected file.";
+    }
+    if (semanticEnabled && outputFormat !== "json") {
+      nextErrors.semantic = "Semantic analysis requires JSON output format.";
     }
 
     setFieldErrors(nextErrors);
@@ -488,13 +500,17 @@ export function NewRunPage() {
               id="new-run-semantic"
               type="checkbox"
               checked={semanticEnabled}
-              onChange={(event) => setSemanticEnabled(event.target.checked)}
+              onChange={(event) => {
+                setSemanticEnabled(event.target.checked);
+                setFieldErrors((current) => ({ ...current, semantic: undefined }));
+              }}
               data-testid="new-run-semantic"
             />
             <label htmlFor="new-run-semantic">
               <span>Enable semantic analysis</span>
             </label>
           </div>
+          {fieldErrors.semantic ? <p className="field-error">{fieldErrors.semantic}</p> : null}
 
           <div className="check-row">
             <input

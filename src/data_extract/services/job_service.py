@@ -60,14 +60,16 @@ class JobService:
         """Execute a processing job and return structured outcome."""
         started_at = datetime.now(timezone.utc)
         resolved_files, source_dir = self._resolve_files(request)
+
+        resolved_config = self.config_resolver.resolve(request)
+        output_dir = self._resolve_output_dir(request, source_dir)
+        resolved_files = self._exclude_output_files(resolved_files, output_dir)
         request_hash = self._compute_request_hash(request, resolved_files)
 
         idempotency_hit = self._resolve_idempotency(request, request_hash)
         if idempotency_hit is not None:
             return idempotency_hit
 
-        resolved_config = self.config_resolver.resolve(request)
-        output_dir = self._resolve_output_dir(request, source_dir)
         output_file_override: Optional[Path] = None
 
         if (
@@ -86,13 +88,14 @@ class JobService:
         session_state = self._resolve_session(request, manager, source_dir)
 
         skipped_files: List[Path] = []
+        incremental_processor = None
 
         # Apply incremental filtering before resume-based skips.
         if request.incremental and not request.source_files:
             from data_extract.cli.batch import IncrementalProcessor
 
-            incremental = IncrementalProcessor(source_dir=source_dir, output_dir=output_dir)
-            changes = incremental.analyze()
+            incremental_processor = IncrementalProcessor(source_dir=source_dir, output_dir=output_dir)
+            changes = incremental_processor.analyze()
             if not request.force:
                 changed = set(changes.new_files + changes.modified_files)
                 skipped_files.extend(changes.unchanged_files)
@@ -161,29 +164,36 @@ class JobService:
 
         semantic_outcome: SemanticOutcome | None = None
         if resolved_config.include_semantic:
-            semantic_result = self.semantic_service.run(
-                output_paths=[processed.output_path for processed in run.processed],
-                artifact_root=output_dir,
-                config=resolved_config.semantic,
-            )
-            for stage_name, duration in semantic_result.stage_timings_ms.items():
-                run.stage_totals_ms[stage_name] = run.stage_totals_ms.get(stage_name, 0.0) + duration
-            semantic_outcome = SemanticOutcome(
-                status=semantic_result.status,
-                message=semantic_result.message,
-                summary=semantic_result.summary,
-                artifacts=[
-                    SemanticArtifact(
-                        name=artifact.name,
-                        path=str(artifact.path),
-                        artifact_type=artifact.artifact_type,
-                        format=artifact.format,
-                        size_bytes=artifact.path.stat().st_size if artifact.path.exists() else 0,
-                    )
-                    for artifact in semantic_result.artifacts
-                ],
-                stage_timings_ms=semantic_result.stage_timings_ms,
-            )
+            if resolved_config.output_format != "json":
+                semantic_outcome = SemanticOutcome(
+                    status="skipped",
+                    reason_code="semantic_output_format_incompatible",
+                    message="Semantic stage requires JSON output format for chunk loading.",
+                )
+            else:
+                semantic_result = self.semantic_service.run(
+                    output_paths=[processed.output_path for processed in run.processed],
+                    artifact_root=output_dir,
+                    config=resolved_config.semantic,
+                )
+                for stage_name, duration in semantic_result.stage_timings_ms.items():
+                    run.stage_totals_ms[stage_name] = run.stage_totals_ms.get(stage_name, 0.0) + duration
+                semantic_outcome = SemanticOutcome(
+                    status=semantic_result.status,
+                    message=semantic_result.message,
+                    summary=semantic_result.summary,
+                    artifacts=[
+                        SemanticArtifact(
+                            name=artifact.name,
+                            path=str(artifact.path),
+                            artifact_type=artifact.artifact_type,
+                            format=artifact.format,
+                            size_bytes=artifact.path.stat().st_size if artifact.path.exists() else 0,
+                        )
+                        for artifact in semantic_result.artifacts
+                    ],
+                    stage_timings_ms=semantic_result.stage_timings_ms,
+                )
         else:
             semantic_outcome = SemanticOutcome(
                 status="disabled",
@@ -236,6 +246,9 @@ class JobService:
 
             manager.save_session()
             manager.complete_session()
+
+        if incremental_processor is not None:
+            incremental_processor.record_processed_files([item.source_path for item in run.processed])
 
         processed_count = len(run.processed)
         failed_count = len(run.failed)
@@ -330,6 +343,18 @@ class JobService:
             output_dir = source_dir / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
+
+    @staticmethod
+    def _exclude_output_files(files: List[Path], output_dir: Path) -> List[Path]:
+        """Exclude already generated output artifacts from source discovery."""
+        output_root = output_dir.resolve()
+        filtered: List[Path] = []
+        for file_path in files:
+            resolved = file_path.resolve()
+            if output_root in resolved.parents:
+                continue
+            filtered.append(resolved)
+        return sorted(set(filtered))
 
     def _resolve_session(
         self,

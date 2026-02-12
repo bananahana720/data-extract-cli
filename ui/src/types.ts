@@ -10,6 +10,7 @@ export interface SemanticArtifact {
 
 export interface SemanticOutcome {
   status: string;
+  reason_code?: string | null;
   message?: string | null;
   summary?: Record<string, unknown>;
   artifacts?: SemanticArtifact[];

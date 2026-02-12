@@ -53,6 +53,7 @@ class SemanticOutcome(BaseModel):
     """Semantic stage status and produced outputs."""
 
     status: str = "disabled"
+    reason_code: Optional[str] = None
     message: Optional[str] = None
     summary: Dict[str, Any] = Field(default_factory=dict)
     artifacts: List[SemanticArtifact] = Field(default_factory=list)

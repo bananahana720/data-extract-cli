@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import cast
 
 from fastapi import APIRouter, HTTPException
@@ -42,6 +42,12 @@ class PresetPreviewResponse(BaseModel):
 
     preset: str
     effective_config: dict[str, object]
+
+
+class CurrentPresetResponse(BaseModel):
+    """Current default preset for new UI/API runs."""
+
+    preset: str | None
 
 
 def _preset_to_effective_config(name: str) -> dict[str, object]:
@@ -89,14 +95,26 @@ def apply_preset(name: str) -> ApplyPresetResponse:
     with SessionLocal() as db:
         setting = db.get(AppSetting, "last_preset")
         if setting is None:
-            setting = AppSetting(key="last_preset", value=name, updated_at=datetime.utcnow())
+            setting = AppSetting(
+                key="last_preset",
+                value=name,
+                updated_at=datetime.now(timezone.utc),
+            )
             db.add(setting)
         else:
             setting.value = name
-            setting.updated_at = datetime.utcnow()
+            setting.updated_at = datetime.now(timezone.utc)
         db.commit()
 
     return ApplyPresetResponse(preset=name, effective_config=config)
+
+
+@router.get("/current-preset", response_model=CurrentPresetResponse)
+def get_current_preset() -> CurrentPresetResponse:
+    """Return the currently persisted default preset selection."""
+    with SessionLocal() as db:
+        setting = db.get(AppSetting, "last_preset")
+    return CurrentPresetResponse(preset=setting.value if setting else None)
 
 
 @router.get("/presets", response_model=list[PresetSummary])

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from data_extract.api.database import Base
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class Job(Base):
@@ -28,10 +32,10 @@ class Job(Base):
     attempt: Mapped[int] = mapped_column(Integer, default=1)
     artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
     session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     files: Mapped[list[JobFile]] = relationship(back_populates="job", cascade="all, delete-orphan")
     events: Mapped[list[JobEvent]] = relationship(back_populates="job", cascade="all, delete-orphan")
@@ -70,7 +74,7 @@ class JobEvent(Base):
     event_type: Mapped[str] = mapped_column(String(64), index=True)
     message: Mapped[str] = mapped_column(Text)
     payload: Mapped[str] = mapped_column(Text, default="{}")
-    event_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    event_time: Mapped[datetime] = mapped_column(DateTime, default=utc_now, index=True)
 
     job: Mapped[Job] = relationship(back_populates="events")
 
@@ -89,7 +93,7 @@ class SessionRecord(Base):
     artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_archived: Mapped[int] = mapped_column(Integer, default=0)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
 class RetryRun(Base):
@@ -101,7 +105,7 @@ class RetryRun(Base):
     job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"), index=True)
     source_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(32), index=True)
-    requested_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    requested_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
@@ -112,7 +116,7 @@ class AppSetting(Base):
 
     key: Mapped[str] = mapped_column(String(128), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
 Index(

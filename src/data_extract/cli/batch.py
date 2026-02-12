@@ -551,6 +551,12 @@ class IncrementalProcessor:
             time_saved_estimate=time_saved,
         )
 
+    def record_processed_files(self, processed_files: list[Path]) -> None:
+        """Persist incremental state for successfully processed files."""
+        if not processed_files:
+            return
+        self._update_state(processed_files)
+
     def get_status(self) -> dict[str, Any]:
         """Get current corpus sync status.
 
@@ -569,6 +575,8 @@ class IncrementalProcessor:
                 "source_dir": str(self.source_dir),
                 "output_dir": str(self.output_dir),
                 "sync_state": "not processed",
+                "state_file_present": self.state_file.exists(),
+                "tracked_files": [],
             }
 
         # Analyze current changes
@@ -586,6 +594,8 @@ class IncrementalProcessor:
             "source_dir": str(self.source_dir),
             "output_dir": str(self.output_dir),
             "sync_state": sync_state,
+            "state_file_present": self.state_file.exists(),
+            "tracked_files": sorted(self._state.get("files", {}).keys()),
             "changes": {
                 "new": changes.new_count,
                 "modified": changes.modified_count,
@@ -601,10 +611,15 @@ class IncrementalProcessor:
             List of all files (recursively)
         """
         files: list[Path] = []
+        output_dir_resolved = self.output_dir.resolve()
 
         for item in self.source_dir.rglob("*"):
-            if item.is_file():
-                files.append(item)
+            if not item.is_file():
+                continue
+            resolved_item = item.resolve()
+            if output_dir_resolved in resolved_item.parents:
+                continue
+            files.append(resolved_item)
 
         return sorted(files)
 

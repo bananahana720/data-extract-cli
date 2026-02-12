@@ -21,6 +21,7 @@ def test_openapi_exposes_v1_contract_paths() -> None:
         "/api/v1/sessions": {"get"},
         "/api/v1/sessions/{session_id}": {"get"},
         "/api/v1/config/effective": {"get"},
+        "/api/v1/config/current-preset": {"get"},
         "/api/v1/config/presets": {"get"},
         "/api/v1/config/presets/{name}/preview": {"get"},
         "/api/v1/config/presets/{name}/apply": {"post"},

@@ -21,11 +21,13 @@ class FileDiscoveryService:
         self,
         input_path: str | Path,
         recursive: bool = False,
+        exclude_paths: Iterable[Path] | None = None,
     ) -> Tuple[List[Path], Path]:
         """Resolve files and return (file_list, source_dir)."""
+        excludes = [path.resolve() for path in (exclude_paths or [])]
         input_str = str(input_path)
         if self.is_glob_pattern(input_str):
-            files = self._discover_from_glob(input_str)
+            files = self._discover_from_glob(input_str, excludes)
             return files, Path.cwd()
 
         resolved = Path(input_str)
@@ -33,13 +35,13 @@ class FileDiscoveryService:
             raise FileNotFoundError(f"Source not found: {resolved}")
 
         if resolved.is_file():
-            return self._filter_supported([resolved]), resolved.parent
+            return self._filter_supported([resolved], excludes), resolved.parent
 
         pattern = "**/*" if recursive else "*"
         files = [p for p in resolved.glob(pattern) if p.is_file()]
-        return self._filter_supported(files), resolved
+        return self._filter_supported(files, excludes), resolved
 
-    def _discover_from_glob(self, pattern: str) -> List[Path]:
+    def _discover_from_glob(self, pattern: str, excludes: Iterable[Path]) -> List[Path]:
         """Expand glob pattern and filter to supported source files."""
         if "**" in pattern:
             sub_pattern = pattern.replace("**/", "")
@@ -47,10 +49,18 @@ class FileDiscoveryService:
         else:
             matches = list(Path.cwd().glob(pattern))
         files = [p for p in matches if p.is_file()]
-        return self._filter_supported(files)
+        return self._filter_supported(files, excludes)
 
     @staticmethod
-    def _filter_supported(files: Iterable[Path]) -> List[Path]:
+    def _filter_supported(files: Iterable[Path], excludes: Iterable[Path] | None = None) -> List[Path]:
         """Keep only extensions currently supported by extractors."""
-        filtered = [f.resolve() for f in files if f.suffix.lower() in SUPPORTED_EXTENSIONS]
+        excluded_roots = [path.resolve() for path in (excludes or [])]
+        filtered = []
+        for file_path in files:
+            resolved = file_path.resolve()
+            if resolved.suffix.lower() not in SUPPORTED_EXTENSIONS:
+                continue
+            if any(excluded == resolved or excluded in resolved.parents for excluded in excluded_roots):
+                continue
+            filtered.append(resolved)
         return sorted(set(filtered))

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from data_extract.contracts import ProcessJobRequest
-from data_extract.services import JobService
+from data_extract.services import JobService, StatusService
 
 
 def test_run_process_generates_real_output_for_txt(tmp_path: Path) -> None:
@@ -77,3 +77,95 @@ def test_run_process_can_emit_semantic_artifacts(tmp_path: Path) -> None:
         artifact_types = {artifact.artifact_type for artifact in result.semantic.artifacts}
         assert "summary" in artifact_types
         assert "graph" in artifact_types
+
+
+def test_run_process_incremental_persists_state_for_status(tmp_path: Path) -> None:
+    source_dir = tmp_path / "incremental-source"
+    output_dir = source_dir / "output"
+    source_dir.mkdir(parents=True)
+    sample_file = source_dir / "sample.txt"
+    sample_file.write_text("incremental payload", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="json",
+        chunk_size=64,
+        incremental=True,
+    )
+    result = JobService().run_process(request, work_dir=tmp_path)
+
+    assert result.processed_count == 1
+    status = StatusService().get_status(source_dir=source_dir, output_dir=output_dir)
+    assert status["state_file_present"] is True
+    assert status["total_files"] == 1
+    assert str(sample_file.resolve()) in status["tracked_files"]
+
+
+def test_run_process_semantic_incompatible_output_sets_reason_code(tmp_path: Path) -> None:
+    source_dir = tmp_path / "semantic-incompatible-source"
+    output_dir = tmp_path / "semantic-incompatible-output"
+    source_dir.mkdir(parents=True)
+    (source_dir / "sample.txt").write_text("alpha beta gamma", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="txt",
+        chunk_size=64,
+        include_semantic=True,
+    )
+
+    result = JobService().run_process(request, work_dir=tmp_path)
+
+    assert result.processed_count == 1
+    assert result.semantic is not None
+    assert result.semantic.status == "skipped"
+    assert result.semantic.reason_code == "semantic_output_format_incompatible"
+
+
+def test_run_process_excludes_existing_outputs_from_source_discovery(tmp_path: Path) -> None:
+    source_dir = tmp_path / "source-with-output"
+    output_dir = source_dir / "output"
+    output_dir.mkdir(parents=True)
+    source_file = source_dir / "source.txt"
+    source_file.parent.mkdir(parents=True, exist_ok=True)
+    source_file.write_text("real source", encoding="utf-8")
+    generated_output = output_dir / "generated.txt"
+    generated_output.write_text("already generated artifact", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="json",
+        chunk_size=64,
+        recursive=True,
+    )
+    result = JobService().run_process(request, work_dir=tmp_path)
+
+    processed_sources = {Path(item.path).resolve() for item in result.processed_files}
+    assert result.processed_count == 1
+    assert source_file.resolve() in processed_sources
+    assert generated_output.resolve() not in processed_sources
+
+
+def test_request_hash_ignores_outputs_inside_source_tree(tmp_path: Path) -> None:
+    source_dir = tmp_path / "source-hash"
+    output_dir = source_dir / "output"
+    source_dir.mkdir(parents=True)
+    (source_dir / "source.txt").write_text("hash baseline", encoding="utf-8")
+
+    request = ProcessJobRequest(
+        input_path=str(source_dir),
+        output_path=str(output_dir),
+        output_format="txt",
+        chunk_size=32,
+        recursive=True,
+    )
+
+    service = JobService()
+    first = service.run_process(request, work_dir=tmp_path)
+    second = service.run_process(request, work_dir=tmp_path)
+
+    assert first.request_hash is not None
+    assert second.request_hash == first.request_hash

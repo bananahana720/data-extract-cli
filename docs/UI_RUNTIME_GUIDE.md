@@ -48,8 +48,20 @@ Checks include:
 - `GET /api/v1/sessions`
 - `GET /api/v1/sessions/{session_id}`
 - `GET /api/v1/config/effective`
+- `GET /api/v1/config/current-preset`
 - `POST /api/v1/config/presets/{name}/apply`
 - `GET /api/v1/health`
+
+Preset behavior notes:
+- `POST /api/v1/config/presets/{name}/apply` persists `last_preset` in app settings.
+- `GET /api/v1/config/current-preset` returns the persisted default preset (`null` when unset).
+- `POST /api/v1/jobs/process` applies the persisted default preset only when request `preset` is omitted.
+- If request `preset` is provided, that explicit value overrides the persisted default.
+
+Semantic compatibility notes:
+- Semantic processing requires `output_format=json` for chunk loading.
+- For non-JSON outputs with semantic requested, job results include `semantic.status="skipped"` and `semantic.reason_code="semantic_output_format_incompatible"`.
+- UI job detail renders the semantic reason code so skipped semantic outcomes are explainable.
 
 ## Job Storage Layout
 

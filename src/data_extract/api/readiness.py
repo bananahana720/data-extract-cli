@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 REQUIRED_RUNTIME_MODULES: dict[str, str] = {
@@ -66,5 +66,5 @@ def evaluate_runtime_readiness() -> dict[str, Any]:
         "errors": errors,
         "warnings": warnings,
         "checks": checks,
-        "checked_at": datetime.utcnow().isoformat(),
+        "checked_at": datetime.now(timezone.utc).isoformat(),
     }

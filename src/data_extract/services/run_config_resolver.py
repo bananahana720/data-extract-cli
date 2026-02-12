@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from data_extract.cli.config import load_merged_config
+from data_extract.cli.config import load_merged_config, load_preset
 from data_extract.contracts import ProcessJobRequest
 
 DEFAULT_CHUNK_SIZE = int(ProcessJobRequest.model_fields["chunk_size"].default)
@@ -84,6 +84,11 @@ class RunConfigResolver:
     def resolve(self, request: ProcessJobRequest) -> ResolvedRunConfig:
         if load_merged_config is None:
             raise RuntimeError("Configuration loader is unavailable")
+        if request.preset and callable(load_preset):
+            try:
+                load_preset(request.preset)
+            except ValueError as exc:
+                raise ValueError(f"Preset not found: {request.preset}") from exc
         cli_overrides = self._build_cli_overrides(request)
         merged = load_merged_config(
             cli_overrides=cli_overrides,

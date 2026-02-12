@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, cast
 
@@ -109,8 +109,8 @@ class ApiRuntime:
                 idempotency_key=normalized_request.idempotency_key,
                 attempt=1,
                 artifact_dir=str(job_dirs["root"]),
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
             db.add(job)
             db.add(
@@ -119,7 +119,7 @@ class ApiRuntime:
                     event_type="queued",
                     message="Job queued for processing",
                     payload="{}",
-                    event_time=datetime.utcnow(),
+                    event_time=datetime.now(timezone.utc),
                 )
             )
             db.commit()
@@ -148,15 +148,15 @@ class ApiRuntime:
             input_path = job.input_path
 
             job.status = JobStatus.RUNNING.value
-            job.started_at = datetime.utcnow()
-            job.updated_at = datetime.utcnow()
+            job.started_at = datetime.now(timezone.utc)
+            job.updated_at = datetime.now(timezone.utc)
             db.add(
                 JobEvent(
                     job_id=job_id,
                     event_type="running",
                     message="Job is running",
                     payload="{}",
-                    event_time=datetime.utcnow(),
+                    event_time=datetime.now(timezone.utc),
                 )
             )
             db.commit()
@@ -198,8 +198,8 @@ class ApiRuntime:
             job.request_hash = result.get("request_hash", job.request_hash)
             job.artifact_dir = result.get("artifact_dir", job.artifact_dir)
             job.session_id = result.get("session_id")
-            job.finished_at = datetime.utcnow()
-            job.updated_at = datetime.utcnow()
+            job.finished_at = datetime.now(timezone.utc)
+            job.updated_at = datetime.now(timezone.utc)
 
             db.execute(delete(JobFile).where(JobFile.job_id == job_id))
 
@@ -244,7 +244,7 @@ class ApiRuntime:
                     artifact_dir=job.artifact_dir,
                     is_archived=status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value},
                     archived_at=(
-                        datetime.utcnow()
+                        datetime.now(timezone.utc)
                         if status in {JobStatus.PARTIAL.value, JobStatus.FAILED.value}
                         else None
                     ),
@@ -256,7 +256,7 @@ class ApiRuntime:
                         job_id=job_id,
                         source_session_id=job.session_id,
                         status="available",
-                        requested_at=datetime.utcnow(),
+                        requested_at=datetime.now(timezone.utc),
                     )
                 )
 
@@ -266,7 +266,7 @@ class ApiRuntime:
                     event_type="finished",
                     message=f"Job finished with status={status}",
                     payload="{}",
-                    event_time=datetime.utcnow(),
+                    event_time=datetime.now(timezone.utc),
                 )
             )
 
@@ -283,15 +283,15 @@ class ApiRuntime:
 
             job.status = JobStatus.FAILED.value
             job.result_payload = json.dumps({"error": str(exc)})
-            job.finished_at = datetime.utcnow()
-            job.updated_at = datetime.utcnow()
+            job.finished_at = datetime.now(timezone.utc)
+            job.updated_at = datetime.now(timezone.utc)
             db.add(
                 JobEvent(
                     job_id=job_id,
                     event_type="error",
                     message=str(exc),
                     payload="{}",
-                    event_time=datetime.utcnow(),
+                    event_time=datetime.now(timezone.utc),
                 )
             )
             db.commit()
@@ -376,7 +376,7 @@ class ApiRuntime:
     def _write_job_log(self, job_id: str, message: str) -> None:
         job_dirs = self._job_dirs(job_id)
         log_path = job_dirs["logs"] / "events.log"
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(f"{timestamp} {message}\n")
 
@@ -417,14 +417,14 @@ class ApiRuntime:
                         )
                         continue
 
-                    job.updated_at = datetime.utcnow()
+                    job.updated_at = datetime.now(timezone.utc)
                     db.add(
                         JobEvent(
                             job_id=job.id,
                             event_type="queued",
                             message="Recovered queued job after restart",
                             payload="{}",
-                            event_time=datetime.utcnow(),
+                            event_time=datetime.now(timezone.utc),
                         )
                     )
                     self.queue.submit(job.id, {"kind": "process", "request": request_payload})
@@ -460,12 +460,12 @@ class ApiRuntime:
 
     def _mark_recovery_failed(self, db: Any, job: Job, message: str) -> int:
         job.status = JobStatus.FAILED.value
-        job.finished_at = datetime.utcnow()
-        job.updated_at = datetime.utcnow()
+        job.finished_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(timezone.utc)
         job.result_payload = json.dumps(
             {
                 "error": message,
-                "recovered_at": datetime.utcnow().isoformat(),
+                "recovered_at": datetime.now(timezone.utc).isoformat(),
             }
         )
         db.add(
@@ -474,7 +474,7 @@ class ApiRuntime:
                 event_type="error",
                 message=message,
                 payload="{}",
-                event_time=datetime.utcnow(),
+                event_time=datetime.now(timezone.utc),
             )
         )
         self._write_job_log(job.id, message)

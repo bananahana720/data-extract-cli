@@ -110,6 +110,12 @@ export function listConfigPresets(): Promise<ConfigPresetSummary[]> {
   return request<ConfigPresetSummary[]>("/api/v1/config/presets");
 }
 
+export function getCurrentPreset(): Promise<string | null> {
+  return request<{ preset: string | null }>("/api/v1/config/current-preset").then(
+    (payload) => payload.preset
+  );
+}
+
 export function previewConfigPreset(name: string): Promise<Record<string, unknown>> {
   return request<{ effective_config: Record<string, unknown> }>(
     `/api/v1/config/presets/${encodeURIComponent(name)}/preview`

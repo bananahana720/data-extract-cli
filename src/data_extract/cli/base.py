@@ -615,20 +615,8 @@ def _register_process_command(app: typer.Typer) -> None:
             )
             raise typer.Exit(code=EXIT_CONFIG_ERROR)
 
-        if preset:
-            try:
-                preset_mgr = PresetManager()
-                preset_config = preset_mgr.load(preset)
-                if chunk_size == 512:
-                    chunk_size = preset_config.chunk_size
-                if not quiet:
-                    console.print(
-                        f"[green]Loaded Preset:[/green] {preset} "
-                        f"(chunk_size={preset_config.chunk_size})"
-                    )
-            except KeyError:
-                console.print(f"[red]Error:[/red] Preset not found: {preset}")
-                raise typer.Exit(code=EXIT_CONFIG_ERROR)
+        if preset and not quiet:
+            console.print(f"[green]Using Preset:[/green] {preset}")
 
         work_dir_env = os.environ.get("DATA_EXTRACT_WORK_DIR")
         work_dir = Path(work_dir_env) if work_dir_env else None
@@ -1332,13 +1320,18 @@ def _register_config_commands(app: typer.Typer) -> None:
         if presets:
             console.print()
             console.print("[bold]Available Presets:[/bold]")
-            preset_dir = Path.home() / ".data-extract" / "presets"
-            if preset_dir.exists():
-                for preset_file in preset_dir.glob("*.yaml"):
-                    console.print(f"  - {preset_file.stem}")
+            from data_extract.cli.config import list_presets as list_config_presets
+
+            preset_entries = list_config_presets() if callable(list_config_presets) else []
+            if preset_entries:
+                for entry in preset_entries:
+                    if not isinstance(entry, dict):
+                        continue
+                    preset_name = str(entry.get("name", "")).strip()
+                    if preset_name:
+                        console.print(f"  - {preset_name}")
             else:
-                console.print("  [dim]No presets directory found[/dim]")
-                console.print("  Built-in presets: audit-standard, rag-optimized, quick-scan")
+                console.print("  [dim]No presets found[/dim]")
 
     @config_app.command()
     def init(
@@ -2011,7 +2004,9 @@ def _register_validate_command(app: typer.Typer) -> None:
             files = [input_path]
         else:
             pattern = "**/*" if recursive else "*"
-            supported_extensions = {".pdf", ".docx", ".xlsx", ".pptx", ".csv", ".txt"}
+            from data_extract.extract import SUPPORTED_EXTENSIONS
+
+            supported_extensions = set(SUPPORTED_EXTENSIONS)
             files = [
                 f
                 for f in input_path.glob(pattern)
@@ -2559,6 +2554,10 @@ def _register_status_command(app: typer.Typer) -> None:
         panel_content = Text()
         panel_content.append(f"Last updated: {payload['last_updated'] or 'Never'}\n")
         panel_content.append(f"Total files: {payload['total_files']}\n")
+        panel_content.append(f"Tracked files: {len(payload.get('tracked_files', []))}\n")
+        panel_content.append(
+            f"State file present: {'yes' if payload.get('state_file_present') else 'no'}\n"
+        )
         panel_content.append(f"Source: {payload['source_dir']}\n")
         panel_content.append(f"Output: {payload['output_dir']}\n\n")
         panel_content.append(f"Sync status: {payload['sync_state']}\n", style="bold")

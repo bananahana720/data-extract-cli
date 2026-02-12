@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 os.environ.setdefault("DATA_EXTRACT_UI_HOME", "/tmp/data-extract-ui-tests")
 
 from data_extract.api.database import Base
-from data_extract.api.models import Job, JobEvent
+from data_extract.api.models import AppSetting, Job, JobEvent
 from data_extract.api.routers import jobs as jobs_router_module
 from data_extract.api.routers.jobs import (
     _build_process_request_from_form,
@@ -91,6 +91,89 @@ def test_enqueue_process_job_json(monkeypatch: pytest.MonkeyPatch) -> None:
     assert response.status == "queued"
     assert response.job_id
     assert isinstance(captured["request"], ProcessJobRequest)
+
+
+@pytest.mark.unit
+def test_enqueue_process_job_uses_current_preset_when_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    with test_session_local() as db:
+        db.add(AppSetting(key="last_preset", value="quality", updated_at=datetime.now(timezone.utc)))
+        db.commit()
+
+    captured: dict[str, object] = {}
+
+    def fake_enqueue(request: ProcessJobRequest, job_id: str | None = None) -> str:
+        captured["request"] = request
+        captured["job_id"] = job_id
+        return job_id or "fallback"
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+    monkeypatch.setattr(jobs_router_module.runtime, "enqueue_process", fake_enqueue)
+
+    request = JsonRequestStub(
+        {
+            "input_path": "/tmp/source",
+            "output_format": "json",
+            "chunk_size": 128,
+        }
+    )
+    response = asyncio.run(enqueue_process_job(request))  # type: ignore[arg-type]
+
+    assert response.status == "queued"
+    assert isinstance(captured["request"], ProcessJobRequest)
+    assert captured["request"].preset == "quality"
+
+
+@pytest.mark.unit
+def test_enqueue_process_job_explicit_preset_overrides_persisted_default(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    with test_session_local() as db:
+        db.add(AppSetting(key="last_preset", value="quality", updated_at=datetime.now(timezone.utc)))
+        db.commit()
+
+    captured: dict[str, object] = {}
+
+    def fake_enqueue(request: ProcessJobRequest, job_id: str | None = None) -> str:
+        captured["request"] = request
+        captured["job_id"] = job_id
+        return job_id or "fallback"
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+    monkeypatch.setattr(jobs_router_module.runtime, "enqueue_process", fake_enqueue)
+
+    request = JsonRequestStub(
+        {
+            "input_path": "/tmp/source",
+            "output_format": "json",
+            "chunk_size": 128,
+            "preset": "speed",
+        }
+    )
+    response = asyncio.run(enqueue_process_job(request))  # type: ignore[arg-type]
+
+    assert response.status == "queued"
+    assert isinstance(captured["request"], ProcessJobRequest)
+    assert captured["request"].preset == "speed"
 
 
 @pytest.mark.unit
@@ -172,8 +255,8 @@ def test_retry_job_failures_persists_queued_state_before_enqueue(
                 request_payload="{}",
                 result_payload=json.dumps({"session_id": session_id}),
                 session_id=session_id,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
         )
         db.commit()
@@ -241,8 +324,8 @@ def test_job_artifact_list_and_download(monkeypatch: pytest.MonkeyPatch, tmp_pat
                 chunk_size=512,
                 request_payload="{}",
                 result_payload="{}",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
         )
         db.commit()
@@ -286,8 +369,8 @@ def test_list_jobs_supports_pagination(monkeypatch: pytest.MonkeyPatch, tmp_path
                     chunk_size=512,
                     request_payload="{}",
                     result_payload="{}",
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
             )
         db.commit()

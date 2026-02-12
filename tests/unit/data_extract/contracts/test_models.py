@@ -46,4 +46,25 @@ def test_processed_file_outcome_supports_source_key() -> None:
 def test_semantic_outcome_defaults() -> None:
     outcome = SemanticOutcome()
     assert outcome.status == "disabled"
+    assert outcome.reason_code is None
     assert outcome.artifacts == []
+
+
+def test_process_job_result_semantic_skip_reason_code_contract() -> None:
+    result = ProcessJobResult(
+        job_id="job-2",
+        status=JobStatus.COMPLETED,
+        total_files=1,
+        processed_count=1,
+        failed_count=0,
+        output_dir="/tmp/out",
+        semantic=SemanticOutcome(
+            status="skipped",
+            reason_code="semantic_output_format_incompatible",
+            message="Semantic stage requires JSON output format for chunk loading.",
+        ),
+    )
+
+    payload = result.model_dump()
+    assert payload["semantic"]["status"] == "skipped"
+    assert payload["semantic"]["reason_code"] == "semantic_output_format_incompatible"

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from data_extract.api.database import JOBS_HOME, SessionLocal
-from data_extract.api.models import Job, JobEvent, JobFile
+from data_extract.api.models import AppSetting, Job, JobEvent, JobFile
 from data_extract.api.state import runtime
 from data_extract.contracts import ProcessJobRequest, RetryRequest
 
@@ -177,6 +177,15 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
         raise HTTPException(status_code=400, detail=f"Invalid numeric input: {exc}") from exc
 
 
+def _resolve_default_preset() -> str | None:
+    with SessionLocal() as db:
+        setting = db.get(AppSetting, "last_preset")
+        if setting is None:
+            return None
+        preset_name = str(setting.value or "").strip()
+        return preset_name or None
+
+
 @router.post("/process", response_model=EnqueueJobResponse)
 async def enqueue_process_job(
     request: Request,
@@ -199,6 +208,10 @@ async def enqueue_process_job(
             process_request = ProcessJobRequest(**payload)
     if process_request is None:
         raise HTTPException(status_code=400, detail="Missing process request payload")
+    if not process_request.preset:
+        default_preset = _resolve_default_preset()
+        if default_preset:
+            process_request = process_request.model_copy(update={"preset": default_preset})
 
     queued_job_id = runtime.enqueue_process(process_request, job_id=job_id)
     return EnqueueJobResponse(job_id=queued_job_id, status="queued")
@@ -319,14 +332,14 @@ def retry_job_failures(job_id: str) -> EnqueueJobResponse:
         job.status = "queued"
         job.started_at = None
         job.finished_at = None
-        job.updated_at = datetime.utcnow()
+        job.updated_at = datetime.now(timezone.utc)
         db.add(
             JobEvent(
                 job_id=job_id,
                 event_type="queued",
                 message="Retry queued",
                 payload="{}",
-                event_time=datetime.utcnow(),
+                event_time=datetime.now(timezone.utc),
             )
         )
         db.commit()
@@ -357,7 +370,7 @@ def cleanup_job_artifacts(job_id: str) -> CleanupResponse:
                 event_type="cleanup",
                 message="Job artifacts cleaned",
                 payload=json.dumps({"removed": removed}),
-                event_time=datetime.utcnow(),
+                event_time=datetime.now(timezone.utc),
             )
         )
         db.commit()
@@ -387,7 +400,7 @@ def list_job_artifacts(job_id: str) -> ArtifactListResponse:
             JobArtifactEntry(
                 path=relative,
                 size_bytes=stat.st_size,
-                modified_at=datetime.utcfromtimestamp(stat.st_mtime),
+                modified_at=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
             )
         )
 

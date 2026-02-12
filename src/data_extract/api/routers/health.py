@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -20,7 +20,7 @@ def health(detailed: bool = Query(default=False)) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "status": status,
         "ready": bool(readiness.get("ready", False)),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if detailed:
         payload["workers"] = runtime.worker_count
