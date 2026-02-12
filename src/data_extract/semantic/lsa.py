@@ -8,7 +8,7 @@ document clustering with K-means.
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -58,7 +58,7 @@ class LsaConfig:
         if self.n_clusters is not None and self.n_clusters < 2:
             raise ValueError(f"n_clusters must be >= 2, got {self.n_clusters}")
 
-    def get_cache_key_components(self) -> tuple:
+    def get_cache_key_components(self) -> tuple[Any, ...]:
         """Get components for cache key generation."""
         return (
             self.n_components,
@@ -391,7 +391,7 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
         row_sums[row_sums == 0] = 1  # Avoid division by zero
         distributions = shifted / row_sums
 
-        return distributions
+        return cast(np.ndarray, distributions)
 
     def _generate_cache_key(self, matrix: csr_matrix) -> str:
         """Generate cache key from TF-IDF matrix.
@@ -540,7 +540,7 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
             Explained variance ratio array or None if not fitted
         """
         if self._svd is not None and hasattr(self._svd, "explained_variance_ratio_"):
-            return self._svd.explained_variance_ratio_
+            return cast(np.ndarray, self._svd.explained_variance_ratio_)
         return None
 
     def get_topics(self) -> Optional[Dict[int, List[str]]]:

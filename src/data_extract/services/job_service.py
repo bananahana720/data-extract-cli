@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List, Optional
 
-from data_extract.cli.batch import IncrementalProcessor
 from data_extract.cli.exit_codes import determine_exit_code
 from data_extract.cli.session import SessionManager, SessionState
 from data_extract.contracts import (
@@ -82,12 +81,16 @@ class JobService:
             output_dir = output_file_override.parent
 
         manager = SessionManager(work_dir=work_dir or source_dir)
+        if request.force and not request.resume and not request.resume_session:
+            self._clear_incomplete_sessions(manager, source_dir)
         session_state = self._resolve_session(request, manager, source_dir)
 
         skipped_files: List[Path] = []
 
         # Apply incremental filtering before resume-based skips.
         if request.incremental and not request.source_files:
+            from data_extract.cli.batch import IncrementalProcessor
+
             incremental = IncrementalProcessor(source_dir=source_dir, output_dir=output_dir)
             changes = incremental.analyze()
             if not request.force:
@@ -343,6 +346,45 @@ class JobService:
         if request.resume:
             return manager.find_incomplete_session(source_dir)
         return None
+
+    @staticmethod
+    def _clear_incomplete_sessions(manager: SessionManager, source_dir: Path) -> None:
+        """Remove stale in-progress sessions for a source directory.
+
+        Force mode should always start from a clean session state.
+        """
+        if not manager.session_dir.exists():
+            return
+
+        normalized_source = source_dir.resolve()
+        for session_file in manager.session_dir.glob("session-*.json"):
+            if session_file.suffix == ".tmp":
+                continue
+            try:
+                state_dict: dict[str, Any] = json.loads(session_file.read_text())
+            except (json.JSONDecodeError, OSError):
+                continue
+
+            status = state_dict.get("status")
+            if status not in {"in_progress", "interrupted"}:
+                continue
+
+            source_value = state_dict.get("source_directory")
+            if not isinstance(source_value, str):
+                continue
+
+            try:
+                session_source = Path(source_value).resolve()
+            except OSError:
+                continue
+
+            if session_source != normalized_source:
+                continue
+
+            try:
+                session_file.unlink()
+            except OSError:
+                continue
 
     def _resolve_idempotency(
         self,

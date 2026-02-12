@@ -90,7 +90,7 @@ class Pipeline:
         >>> print(result)  # 7.5 (len("hello") = 5, 5 * 1.5 = 7.5)
     """
 
-    def __init__(self, stages: List[PipelineStage]) -> None:
+    def __init__(self, stages: List[PipelineStage[Any, Any]]) -> None:
         """Initialize pipeline with list of stages.
 
         Args:

@@ -70,6 +70,7 @@ class ExtractorAdapter(ABC):
             completeness_ratio=completeness,
             entity_tags=[],
             entity_counts={},
+            section_context=None,
             config_snapshot={},
             validation_report={
                 "quarantine_recommended": completeness == 0.0,

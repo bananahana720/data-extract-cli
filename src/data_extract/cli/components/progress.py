@@ -15,7 +15,8 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from types import TracebackType
+from typing import Any, Optional
 
 from rich.console import Console
 from rich.progress import (
@@ -189,7 +190,12 @@ class PipelineProgress:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Context manager exit - stops progress tracking."""
         self.stop()
 
@@ -268,7 +274,7 @@ class PipelineProgress:
             return remaining / rate
         return None
 
-    def get_status(self) -> dict:
+    def get_status(self) -> dict[str, Any]:
         """Get current progress status as dictionary.
 
         Returns:
@@ -412,7 +418,12 @@ class FileProgress:
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Context manager exit - stops progress display."""
         self.stop()
 

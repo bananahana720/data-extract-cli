@@ -291,8 +291,12 @@ class TestMemoryProfilingUtility:
         baseline = get_total_memory()
 
         # WHEN: Allocating memory
-        # Allocate ~10MB of data
-        large_data = ["x" * 1000000 for _ in range(10)]  # 10 x 1MB strings
+        # Allocate and touch ~24MB of unique memory pages so RSS increase is
+        # reliably observable even in a long-running test process.
+        large_data = [bytearray(3_000_000) for _ in range(8)]
+        for block in large_data:
+            for index in range(0, len(block), 4096):
+                block[index] = 1
 
         after_alloc = get_total_memory()
         delta_mb = bytes_to_mb(after_alloc - baseline)

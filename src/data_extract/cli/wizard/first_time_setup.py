@@ -8,7 +8,7 @@ This module provides an interactive wizard that runs on first launch to:
 """
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import yaml
 from rich.console import Console
@@ -97,7 +97,7 @@ def is_first_run() -> bool:
     return not (data_extract_config.exists() or xdg_config.exists())
 
 
-def first_run_wizard(console: Optional[Console] = None) -> dict:
+def first_run_wizard(console: Optional[Console] = None) -> dict[str, Any]:
     """Run the interactive first-time setup wizard.
 
     This wizard:

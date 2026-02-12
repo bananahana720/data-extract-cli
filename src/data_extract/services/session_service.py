@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from data_extract.contracts import SessionSummary
 
@@ -62,7 +62,8 @@ def load_session_details(work_dir: Path, session_id: str) -> Optional[dict[str, 
         if not session_file.exists():
             continue
         try:
-            return json.loads(session_file.read_text())
+            payload = json.loads(session_file.read_text())
+            return cast(dict[str, Any], payload)
         except json.JSONDecodeError:
             continue
     return None

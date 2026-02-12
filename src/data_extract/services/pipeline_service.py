@@ -193,6 +193,12 @@ class PipelineService:
                 source_root=source_root,
             )
         strategy_enum = OrganizationStrategy(strategy) if strategy else None
+        formatter_kwargs: Dict[str, object] = {
+            "include_metadata": include_metadata,
+            "delimiter": delimiter,
+        }
+        if output_format == "json":
+            formatter_kwargs["write_bom"] = False
         self.writer.write(
             semantic_chunks,
             output_path=output_path,
@@ -200,8 +206,7 @@ class PipelineService:
             per_chunk=per_chunk,
             organize=organize,
             strategy=strategy_enum,
-            include_metadata=include_metadata,
-            delimiter=delimiter,
+            **formatter_kwargs,
         )
         stage_timings_ms["output"] = (time.perf_counter() - start) * 1000
 

@@ -12,14 +12,14 @@ from typing import Optional
 
 import structlog
 
-from data_extract.core.exceptions import CriticalError, ProcessingError
-from data_extract.core.models import Document, ProcessingContext
-from data_extract.normalize.cleaning import TextCleaner
-from data_extract.normalize.config import NormalizationConfig
-from data_extract.normalize.entities import EntityNormalizer
-from data_extract.normalize.metadata import MetadataEnricher
-from data_extract.normalize.schema import SchemaStandardizer
-from data_extract.normalize.validation import QualityValidator
+from ..core.exceptions import CriticalError, ProcessingError
+from ..core.models import Document, ProcessingContext
+from .cleaning import TextCleaner
+from .config import NormalizationConfig
+from .entities import EntityNormalizer
+from .metadata import MetadataEnricher
+from .schema import SchemaStandardizer
+from .validation import QualityValidator
 
 
 class Normalizer:
@@ -255,7 +255,7 @@ class Normalizer:
                 # Get ValidationReport from quality validator's last validation
                 # Note: In production, this would be stored or passed through
                 # For now, we'll create a minimal ValidationReport from metadata
-                from data_extract.core.models import ValidationReport
+                from ..core.models import ValidationReport
 
                 validation_report = ValidationReport(
                     quarantine_recommended=(len(validated_document.metadata.quality_flags) > 0),
@@ -417,7 +417,7 @@ class NormalizerFactory:
             ... )
         """
 
-        from data_extract.normalize.config import load_config
+        from .config import load_config
 
         config = load_config(yaml_path=Path(yaml_path))
         return Normalizer(config)

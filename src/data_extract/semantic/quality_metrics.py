@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 import numpy as np
-import textstat  # type: ignore[import-untyped]
+import textstat
 
 from ..core.models import Chunk, ProcessingContext
 from ..core.pipeline import PipelineStage

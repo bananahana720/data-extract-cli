@@ -8,9 +8,9 @@
   },
   "chunks": [
     {
-      "id": "sample_6dad9a1c_001",
+      "id": "sample_dd04d555_001",
       "text": "Sample Test Document Introduction This is a sample document for testing the text extraction functionality. It contains multiple paragraphs, headings, and different types of content. Background The document extraction tool processes various file formats including DOCX, PDF, PPTX, and XLSX files. This simple text file serves as a basic fixture for testing core extraction logic. Testing Approach When testing extractors, we follow these patterns: 1. Test successful extraction with valid files 2. Test error handling with invalid files 3. Test format-specific features 4. Test edge cases like empty or very large files Expected Results This file should be extracted as: - A heading block for each section title - Paragraph blocks for each text section - Proper sequence ordering maintained Conclusion This fixture file provides a baseline for testing text extraction capabilities of the system.",
-      "document_id": "sample_6dad9a1c",
+      "document_id": "sample_dd04d555",
       "position_index": 0,
       "token_count": 135,
       "word_count": 135,
@@ -21,7 +21,7 @@
       "metadata": {
         "source_file": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main/tests/fixtures/sample.txt",
         "file_hash": "9d6e3f555127e5230c98369e4cc1039ce0cadd09ea702a5010ead0543f0a0c8e",
-        "processing_timestamp": "2026-02-12T01:33:02.019943+00:00",
+        "processing_timestamp": "2026-02-12T03:07:15.623103+00:00",
         "tool_version": "0.1.0",
         "config_version": "1.0.0",
         "document_type": "report",

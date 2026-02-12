@@ -8,7 +8,7 @@ identifies duplicates, and builds relationship graphs for navigation.
 import logging
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -42,7 +42,7 @@ class SimilarityConfig:
     compute_graph: bool = True
     min_similarity: float = 0.1
 
-    def get_cache_key_components(self) -> tuple:
+    def get_cache_key_components(self) -> tuple[Any, ...]:
         """Get components for cache key generation."""
         return (
             self.duplicate_threshold,
@@ -246,7 +246,8 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
             Symmetric matrix
         """
         # Average with transpose to ensure perfect symmetry
-        return (matrix + matrix.T) / 2
+        symmetric = (matrix + matrix.T) / 2
+        return cast(np.ndarray, symmetric)
 
     def _find_similar_pairs(
         self, similarity_matrix: np.ndarray, chunk_ids: List[str], threshold: float
@@ -293,7 +294,7 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
             return []
 
         # Build adjacency list
-        adjacency: Dict[str, set] = {}
+        adjacency: Dict[str, set[str]] = {}
         for id1, id2, _ in duplicate_pairs:
             if id1 not in adjacency:
                 adjacency[id1] = set()
@@ -303,7 +304,7 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
             adjacency[id2].add(id1)
 
         # Find connected components (transitive closure)
-        visited: set = set()
+        visited: set[str] = set()
         groups = []
 
         for node in adjacency:
@@ -313,7 +314,9 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
 
         return groups
 
-    def _dfs_component(self, node: str, adjacency: Dict[str, set], visited: set) -> set:
+    def _dfs_component(
+        self, node: str, adjacency: Dict[str, set[str]], visited: set[str]
+    ) -> set[str]:
         """Depth-first search to find connected component.
 
         Args:

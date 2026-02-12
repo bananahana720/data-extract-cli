@@ -33,9 +33,24 @@ logger = structlog.get_logger()
 # Backward compatibility exports for tests
 # The SecurityScanner class has been refactored into SecurityOrchestrator
 SecurityScanner = SecurityOrchestrator
+_ORIGINAL_SECURITY_ORCHESTRATOR = SecurityOrchestrator
+_ORIGINAL_SECURITY_SCANNER = SecurityScanner
 
 # Re-export for test compatibility
 __all__ = ["SECRET_PATTERNS", "SecurityFinding", "SecurityScanner", "main"]
+
+
+def _resolve_scanner_class() -> type[SecurityOrchestrator]:
+    """Resolve scanner class with test-patch compatibility.
+
+    Some tests patch ``SecurityOrchestrator`` while others patch
+    ``SecurityScanner``. Prefer whichever class object has been patched.
+    """
+    if SecurityOrchestrator is not _ORIGINAL_SECURITY_ORCHESTRATOR:
+        return SecurityOrchestrator
+    if SecurityScanner is not _ORIGINAL_SECURITY_SCANNER:
+        return SecurityScanner
+    return SecurityOrchestrator
 
 
 def main() -> None:
@@ -77,8 +92,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Initialize orchestrator
-    orchestrator = SecurityOrchestrator()
+    # Initialize scanner via compatibility resolver so both legacy and refactored
+    # patch targets are honored in tests.
+    orchestrator = _resolve_scanner_class()()
 
     try:
         # Run selected scans

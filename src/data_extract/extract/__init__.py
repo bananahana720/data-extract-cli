@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Type
+from typing import Callable
 
 from data_extract.extract.adapter import ExtractorAdapter
 from data_extract.extract.csv import CsvExtractorAdapter
@@ -13,7 +13,7 @@ from data_extract.extract.pdf import PdfExtractorAdapter
 from data_extract.extract.pptx import PptxExtractorAdapter
 from data_extract.extract.txt import TxtExtractorAdapter
 
-EXTRACTOR_REGISTRY: Dict[str, Type[ExtractorAdapter]] = {
+EXTRACTOR_REGISTRY: dict[str, Callable[[], ExtractorAdapter]] = {
     ".pdf": PdfExtractorAdapter,
     ".docx": DocxExtractorAdapter,
     ".xlsx": ExcelExtractorAdapter,

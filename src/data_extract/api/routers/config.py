@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import cast
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -24,7 +25,7 @@ class ApplyPresetResponse(BaseModel):
     """Preset apply response payload."""
 
     preset: str
-    effective_config: dict
+    effective_config: dict[str, object]
 
 
 class PresetSummary(BaseModel):
@@ -40,10 +41,10 @@ class PresetPreviewResponse(BaseModel):
     """Preset preview payload."""
 
     preset: str
-    effective_config: dict
+    effective_config: dict[str, object]
 
 
-def _preset_to_effective_config(name: str) -> dict:
+def _preset_to_effective_config(name: str) -> dict[str, object]:
     manager = PresetManager()
     try:
         preset = manager.load(name)
@@ -65,15 +66,19 @@ def _preset_to_effective_config(name: str) -> dict:
     config_presets = list_config_presets() if callable(list_config_presets) else []
     names = {entry.get("name") for entry in config_presets if isinstance(entry, dict)}
     if name in names:
-        return load_merged_config(preset_name=name).to_dict()
+        if load_merged_config is None:
+            raise HTTPException(status_code=500, detail="Configuration loader unavailable")
+        return cast(dict[str, object], load_merged_config(preset_name=name).to_dict())
 
     raise HTTPException(status_code=404, detail=f"Preset not found: {name}")
 
 
 @router.get("/effective")
-def get_effective_config() -> dict:
+def get_effective_config() -> dict[str, object]:
     """Return effective merged configuration."""
-    return load_merged_config().to_dict()
+    if load_merged_config is None:
+        raise HTTPException(status_code=500, detail="Configuration loader unavailable")
+    return cast(dict[str, object], load_merged_config().to_dict())
 
 
 @router.post("/presets/{name}/apply", response_model=ApplyPresetResponse)

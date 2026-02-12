@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from data_extract.app import app
 
 
 def main() -> int:
     """Execute the Typer CLI app."""
-    return app()
+    return cast(int, app())
 
 
 if __name__ == "__main__":

@@ -190,9 +190,9 @@ class CommandRouter:
                     hook(full_command, kwargs)
 
                 # Execute subcommand
-                handler = self._subcommands[command_name][subcommand_name]
+                subcommand_handler = self._subcommands[command_name][subcommand_name]
                 try:
-                    result = handler(*remaining_args[1:], **kwargs)
+                    result = subcommand_handler(*remaining_args[1:], **kwargs)
                 except Exception as e:
                     result = CommandResult(
                         success=False,
@@ -202,14 +202,14 @@ class CommandRouter:
                     )
 
                 # Run post-hooks
-                for hook in self._post_hooks:
-                    hook(full_command, result)
+                for post_hook in self._post_hooks:
+                    post_hook(full_command, result)
 
                 return result
 
         # Check for main command
-        handler = self._commands.get(command_name)
-        if handler is None:
+        command_handler = self._commands.get(command_name)
+        if command_handler is None:
             return CommandResult(
                 success=False,
                 exit_code=1,
@@ -218,12 +218,12 @@ class CommandRouter:
             )
 
         # Run pre-hooks
-        for hook in self._pre_hooks:
-            hook(command_name, kwargs)
+        for pre_hook in self._pre_hooks:
+            pre_hook(command_name, kwargs)
 
         # Execute command
         try:
-            result = handler(*remaining_args, **kwargs)
+            result = command_handler(*remaining_args, **kwargs)
         except Exception as e:
             result = CommandResult(
                 success=False,
@@ -233,8 +233,8 @@ class CommandRouter:
             )
 
         # Run post-hooks
-        for hook in self._post_hooks:
-            hook(command_name, result)
+        for post_hook in self._post_hooks:
+            post_hook(command_name, result)
 
         return result
 
@@ -309,7 +309,9 @@ class CommandRouter:
         """
         self._post_hooks.append(hook)
 
-    def command(self, name: str) -> Callable:
+    def command(
+        self, name: str
+    ) -> Callable[[Callable[..., CommandResult]], Callable[..., CommandResult]]:
         """Decorator to register a command.
 
         Args:

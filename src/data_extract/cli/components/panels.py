@@ -36,7 +36,7 @@ TIME_ESTIMATES = {
 }
 
 
-def _get_panel_box():
+def _get_panel_box() -> Any:
     """Get box style for panels based on NO_COLOR environment variable.
 
     Returns ASCII box for NO_COLOR compliance, otherwise default rounded box.
@@ -355,7 +355,7 @@ class QualityDashboard:
             ),
         )
 
-    def render(self, metrics: Optional[dict] = None) -> Panel:
+    def render(self, metrics: Optional[dict[str, Any]] = None) -> Panel:
         """Render quality dashboard panel.
 
         Args:

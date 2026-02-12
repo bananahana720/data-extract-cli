@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from data_extract.cli.session import SessionState  # type: ignore[import-not-found]
+    from data_extract.cli.session import SessionState
 
 
 # ==============================================================================

@@ -867,7 +867,7 @@ def _display_summary(results: Dict[str, Any], verbose: bool) -> None:
 
 def _display_duplicate_report(
     groups: List[List[str]],
-    pairs: List[tuple],
+    pairs: List[tuple[str, str, float]],
     threshold: float,
     verbose: bool,
 ) -> None:

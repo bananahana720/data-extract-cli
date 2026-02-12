@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -228,7 +228,7 @@ class TfidfVectorizationStage(PipelineStage[List[Chunk], SemanticResult]):
             logger.error(f"Transform failed: {e}")
             return None
 
-    def get_cache_stats(self) -> dict:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics.
 
         Returns:

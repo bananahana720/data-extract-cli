@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
@@ -39,7 +40,7 @@ def list_sessions() -> list[SessionSummary]:
 
 
 @router.get("/{session_id}")
-def get_session(session_id: str) -> dict:
+def get_session(session_id: str) -> dict[str, Any]:
     """Return detailed session payload."""
     details = None
     with SessionLocal() as db:

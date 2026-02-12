@@ -17,7 +17,6 @@ Usage:
 import argparse
 import json
 import platform
-import shutil
 import subprocess
 import sys
 import time
@@ -148,15 +147,17 @@ class EnvironmentSetup:
             return True
 
         if self.force and VENV_DIR.exists():
-            print("  🗑️  Removing existing virtual environment...")
-            shutil.rmtree(VENV_DIR)
+            print("  🔄 Recreating virtual environment (--force enabled)...")
 
         try:
             if self.use_uv:
                 # Use uv to create virtual environment (much faster)
                 print(f"  🔨 Creating virtual environment with uv at {VENV_DIR}...")
+                uv_cmd = ["uv", "venv", str(VENV_DIR)]
+                if self.force:
+                    uv_cmd.append("--clear")
                 result = subprocess.run(
-                    ["uv", "venv", str(VENV_DIR)],
+                    uv_cmd,
                     capture_output=True,
                     text=True,
                     cwd=PROJECT_ROOT,
@@ -167,16 +168,24 @@ class EnvironmentSetup:
                     if self.verbose:
                         print(f"      Error: {result.stderr}")
                     self.use_uv = False  # Fallback for subsequent operations
-                    venv.create(VENV_DIR, with_pip=True, clear=True)
+                    venv.create(VENV_DIR, with_pip=True, clear=self.force)
             else:
                 # Fallback to standard venv module
                 print(f"  🔨 Creating virtual environment with venv at {VENV_DIR}...")
-                venv.create(VENV_DIR, with_pip=True, clear=True)
+                venv.create(VENV_DIR, with_pip=True, clear=self.force)
 
             # Verify venv was created
             python_exe = self._get_python_executable()
             if not python_exe.exists():
-                raise FileNotFoundError(f"Python executable not found at {python_exe}")
+                alt_python = (
+                    VENV_DIR / "Scripts" / "python3.exe"
+                    if IS_WINDOWS
+                    else VENV_DIR / "bin" / "python3"
+                )
+                if alt_python.exists():
+                    python_exe = alt_python
+                else:
+                    raise FileNotFoundError(f"Python executable not found at {python_exe}")
 
             mode = "uv" if self.use_uv else "venv"
             print(f"  ✅ Virtual environment created successfully ({mode})")

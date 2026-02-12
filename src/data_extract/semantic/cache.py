@@ -240,7 +240,7 @@ class CacheManager:
             "cache_dir": str(self.cache_dir),
         }
 
-    def warm_cache(self, common_configs: list) -> None:
+    def warm_cache(self, common_configs: list[tuple[Any, ...]]) -> None:
         """Warm cache with common configurations.
 
         Args:

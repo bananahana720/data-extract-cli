@@ -82,6 +82,8 @@ class RunConfigResolver:
     """Resolve process runtime options from defaults + preset + env + request."""
 
     def resolve(self, request: ProcessJobRequest) -> ResolvedRunConfig:
+        if load_merged_config is None:
+            raise RuntimeError("Configuration loader is unavailable")
         cli_overrides = self._build_cli_overrides(request)
         merged = load_merged_config(
             cli_overrides=cli_overrides,

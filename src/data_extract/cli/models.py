@@ -437,7 +437,9 @@ class SemanticConfig(BaseModel):
         """Coerce dict to TfidfConfig."""
         if isinstance(v, dict):
             return TfidfConfig(**v)
-        return v
+        if isinstance(v, TfidfConfig):
+            return v
+        raise TypeError(f"tfidf must be TfidfConfig or dict, got {type(v)}")
 
     @field_validator("similarity", mode="before")
     @classmethod
@@ -445,7 +447,9 @@ class SemanticConfig(BaseModel):
         """Coerce dict to SimilarityConfig."""
         if isinstance(v, dict):
             return SimilarityConfig(**v)
-        return v
+        if isinstance(v, SimilarityConfig):
+            return v
+        raise TypeError(f"similarity must be SimilarityConfig or dict, got {type(v)}")
 
     @field_validator("lsa", mode="before")
     @classmethod
@@ -453,7 +457,9 @@ class SemanticConfig(BaseModel):
         """Coerce dict to LsaConfig."""
         if isinstance(v, dict):
             return LsaConfig(**v)
-        return v
+        if isinstance(v, LsaConfig):
+            return v
+        raise TypeError(f"lsa must be LsaConfig or dict, got {type(v)}")
 
     @field_validator("cache", mode="before")
     @classmethod
@@ -461,7 +467,9 @@ class SemanticConfig(BaseModel):
         """Coerce dict to CacheConfig."""
         if isinstance(v, dict):
             return CacheConfig(**v)
-        return v
+        if isinstance(v, CacheConfig):
+            return v
+        raise TypeError(f"cache must be CacheConfig or dict, got {type(v)}")
 
     @field_validator("quality", mode="before")
     @classmethod
@@ -469,7 +477,9 @@ class SemanticConfig(BaseModel):
         """Coerce dict to QualityConfig."""
         if isinstance(v, dict):
             return QualityConfig(**v)
-        return v
+        if isinstance(v, QualityConfig):
+            return v
+        raise TypeError(f"quality must be QualityConfig or dict, got {type(v)}")
 
 
 class ChunkConfig(BaseModel):
@@ -493,7 +503,9 @@ class ChunkConfig(BaseModel):
         """Coerce string to int for integer fields."""
         if isinstance(v, str):
             return int(v)
-        return v
+        if isinstance(v, int):
+            return v
+        raise TypeError(f"integer field must be int or str, got {type(v)}")
 
     @field_validator("size", mode="before")
     @classmethod
@@ -503,7 +515,9 @@ class ChunkConfig(BaseModel):
             return None
         if isinstance(v, str):
             return int(v)
-        return v
+        if isinstance(v, int):
+            return v
+        raise TypeError(f"size must be int, str, or None, got {type(v)}")
 
     @model_validator(mode="after")
     def sync_size_with_max_tokens(self) -> "ChunkConfig":
@@ -552,7 +566,9 @@ class ExportConfig(BaseModel):
             return None
         if isinstance(v, str):
             return Path(v)
-        return v
+        if isinstance(v, Path):
+            return v
+        raise TypeError(f"output_path must be Path, str, or None, got {type(v)}")
 
 
 class OutputConfig(BaseModel):
@@ -689,7 +705,9 @@ class ConfigModel(BaseModel):
         """Coerce dict to SemanticConfig."""
         if isinstance(v, dict):
             return SemanticConfig(**v)
-        return v
+        if isinstance(v, SemanticConfig):
+            return v
+        raise TypeError(f"semantic must be SemanticConfig or dict, got {type(v)}")
 
     @field_validator("chunk", mode="before")
     @classmethod
@@ -697,7 +715,9 @@ class ConfigModel(BaseModel):
         """Coerce dict to ChunkConfig."""
         if isinstance(v, dict):
             return ChunkConfig(**v)
-        return v
+        if isinstance(v, ChunkConfig):
+            return v
+        raise TypeError(f"chunk must be ChunkConfig or dict, got {type(v)}")
 
     @field_validator("quality", mode="before")
     @classmethod
@@ -705,7 +725,9 @@ class ConfigModel(BaseModel):
         """Coerce dict to QualityConfig."""
         if isinstance(v, dict):
             return QualityConfig(**v)
-        return v
+        if isinstance(v, QualityConfig):
+            return v
+        raise TypeError(f"quality must be QualityConfig or dict, got {type(v)}")
 
     @field_validator("cache", mode="before")
     @classmethod
@@ -713,7 +735,9 @@ class ConfigModel(BaseModel):
         """Coerce dict to CacheConfig."""
         if isinstance(v, dict):
             return CacheConfig(**v)
-        return v
+        if isinstance(v, CacheConfig):
+            return v
+        raise TypeError(f"cache must be CacheConfig or dict, got {type(v)}")
 
 
 class CliConfig(BaseModel):
@@ -740,7 +764,9 @@ class CliConfig(BaseModel):
         """Coerce dict to SemanticConfig."""
         if isinstance(v, dict):
             return SemanticConfig(**v)
-        return v
+        if isinstance(v, SemanticConfig):
+            return v
+        raise TypeError(f"semantic must be SemanticConfig or dict, got {type(v)}")
 
     @field_validator("cache", mode="before")
     @classmethod
@@ -748,7 +774,9 @@ class CliConfig(BaseModel):
         """Coerce dict to CacheConfig."""
         if isinstance(v, dict):
             return CacheConfig(**v)
-        return v
+        if isinstance(v, CacheConfig):
+            return v
+        raise TypeError(f"cache must be CacheConfig or dict, got {type(v)}")
 
     @field_validator("output", mode="before")
     @classmethod
@@ -756,4 +784,6 @@ class CliConfig(BaseModel):
         """Coerce dict to OutputConfig."""
         if isinstance(v, dict):
             return OutputConfig(**v)
-        return v
+        if isinstance(v, OutputConfig):
+            return v
+        raise TypeError(f"output must be OutputConfig or dict, got {type(v)}")

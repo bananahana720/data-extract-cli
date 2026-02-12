@@ -15,13 +15,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from data_extract.core.exceptions import ProcessingError
-from data_extract.core.models import (
+from ..core.exceptions import ProcessingError
+from ..core.models import (
     Entity,
     Metadata,
     ValidationReport,
 )
-from data_extract.normalize.config import NormalizationConfig
+from .config import NormalizationConfig
 
 
 def calculate_file_hash(file_path: Path, chunk_size: int = 8192) -> str:
@@ -315,6 +315,7 @@ class MetadataEnricher:
             completeness_ratio=(
                 quality_scores.get("completeness_ratio") if quality_scores else None
             ),
+            section_context=None,
         )
 
         # AC-2.6.8: Full audit trail support

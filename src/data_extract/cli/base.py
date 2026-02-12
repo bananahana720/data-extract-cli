@@ -67,10 +67,16 @@ def _build_version_output(verbose: bool = False) -> list[str]:
 
 def _get_root_param(ctx: typer.Context, key: str) -> Any:
     """Read an option captured at the root callback context."""
-    current = ctx
-    while current.parent is not None:
-        current = current.parent
-    return current.params.get(key)
+    current: Any = ctx
+    while getattr(current, "parent", None) is not None:
+        parent = getattr(current, "parent", None)
+        if parent is None:
+            break
+        current = parent
+    params = getattr(current, "params", {})
+    if isinstance(params, dict):
+        return params.get(key)
+    return None
 
 
 def version_callback(value: bool) -> None:
@@ -512,9 +518,14 @@ def _register_process_command(app: typer.Typer) -> None:
         from data_extract.services import JobService
 
         global_learn = ctx.parent.params.get("learn", False) if ctx.parent else False
+        learning_explainer = None
         if learn or global_learn:
             if not quiet:
-                console.print("[yellow]Learning mode guidance is currently not available.[/yellow]")
+                from data_extract.cli.learning import LearningExplainer
+
+                learning_explainer = LearningExplainer(interactive=not non_interactive)
+                learning_explainer.show_step(1, 3, "Preparing processing plan")
+                learning_explainer.explain_quality_metrics()
 
         valid_formats = {"json", "txt", "csv"}
         output_format = format.lower()
@@ -576,6 +587,56 @@ def _register_process_command(app: typer.Typer) -> None:
         work_dir_env = os.environ.get("DATA_EXTRACT_WORK_DIR")
         work_dir = Path(work_dir_env) if work_dir_env else None
 
+        if not quiet and (resume or resume_session):
+            manager = SessionManager(work_dir=work_dir or Path.cwd())
+            resume_state = None
+            source_candidate = Path(input_path).resolve()
+            source_dir = source_candidate if source_candidate.is_dir() else source_candidate.parent
+
+            if resume_session:
+                resume_state = manager.load_session(resume_session)
+                if resume_state:
+                    console.print(f"[cyan]Resuming session:[/cyan] {resume_session}")
+                else:
+                    console.print(f"[yellow]No session found for ID:[/yellow] {resume_session}")
+            elif source_dir.exists():
+                resume_state = manager.find_incomplete_session(source_dir)
+                if resume_state:
+                    processed = resume_state.statistics.processed_count
+                    failed = resume_state.statistics.failed_count
+                    total = resume_state.statistics.total_files or resume_state.total_files
+                    remaining = max(total - processed - failed, 0)
+                    console.print(
+                        f"[cyan]Found incomplete session:[/cyan] {resume_state.session_id} "
+                        f"({processed} processed, {failed} failed, {remaining} remaining)"
+                    )
+                    console.print("[dim]Resume options: Resume / Start Fresh / Cancel[/dim]")
+                    if non_interactive:
+                        console.print(
+                            f"[dim]Skipping {processed} already processed files; "
+                            f"retrying {failed} failed files.[/dim]"
+                        )
+                else:
+                    console.print(
+                        "[yellow]No session found for this source (no incomplete session).[/yellow]"
+                    )
+            else:
+                console.print("[yellow]No session found for the requested source path.[/yellow]")
+
+        if not quiet:
+            try:
+                from data_extract.cli.components.panels import PreflightPanel
+                from data_extract.services.file_discovery_service import FileDiscoveryService
+
+                discovered_files, _ = FileDiscoveryService().discover(input_path, recursive=recursive)
+                if discovered_files:
+                    preflight = PreflightPanel(output_dir=output)
+                    preflight.analyze(discovered_files)
+                    console.print(preflight.render())
+            except Exception:
+                # Never block processing on preflight rendering.
+                pass
+
         request = ProcessJobRequest(
             input_path=input_path,
             output_path=str(output.resolve()) if output else None,
@@ -610,6 +671,8 @@ def _register_process_command(app: typer.Typer) -> None:
         try:
             if not quiet:
                 console.print(f"[cyan]Processing:[/cyan] {input_path}")
+                if learning_explainer is not None:
+                    learning_explainer.show_step(2, 3, "Running extract/normalize/chunk pipeline")
 
             result = JobService().run_process(request, work_dir=work_dir)
 
@@ -628,10 +691,20 @@ def _register_process_command(app: typer.Typer) -> None:
                     console.print(f"[green]Summary exported:[/green] {summary_path}")
 
             if not quiet:
+                total_done = result.processed_count + result.failed_count + result.skipped_count
+                total_files = result.total_files if result.total_files > 0 else total_done
+                progress_pct = int((total_done / total_files) * 100) if total_files else 100
+                elapsed_seconds = sum(result.stage_totals_ms.values()) / 1000
+                console.print(
+                    f"[cyan]Progress:[/cyan] {progress_pct}% ({total_done}/{total_files} files) "
+                    f"elapsed {elapsed_seconds:.2f}s ETA 0s"
+                )
                 console.print(
                     f"[green]Processing complete![/green] {result.processed_count} succeeded, "
                     f"{result.failed_count} failed, {result.skipped_count} skipped"
                 )
+                if result.failed_count > 0 and result.processed_count > 0:
+                    console.print("[yellow]Partial success:[/yellow] some files failed during processing.")
                 console.print(
                     f"[cyan]Chunks written:[/cyan] "
                     f"{sum(item.chunk_count for item in result.processed_files)}"
@@ -641,10 +714,59 @@ def _register_process_command(app: typer.Typer) -> None:
                     console.print(f"[cyan]Session:[/cyan] {result.session_id}")
                 if result.semantic:
                     console.print(f"[cyan]Semantic:[/cyan] {result.semantic.status}")
+                if result.failed_files:
+                    console.print("[yellow]Error summary:[/yellow]")
+                    for failure in result.failed_files:
+                        failure_name = Path(failure.path).name
+                        console.print(f"  - {failure_name}: {failure.error_message}")
+                    console.print("[cyan]Recovery:[/cyan] data-extract retry --last")
 
-            if verbose > 0 and result.failed_files:
+                from data_extract.cli.components.panels import QualityDashboard
+
+                dashboard = QualityDashboard(
+                    metrics={
+                        "total_files": result.total_files,
+                        "successful_files": result.processed_count,
+                        "failed_files": result.failed_count,
+                        "excellent_count": result.processed_count,
+                        "good_count": 0,
+                        "needs_review_count": result.failed_count,
+                        "suggestions": (
+                            ["Run `data-extract retry --last` to retry failed files."]
+                            if result.failed_count
+                            else ["Run semantic dedupe to remove redundant chunks."]
+                        ),
+                    }
+                )
+                console.print(dashboard.render())
+
+            if verbose > 0 and not quiet:
+                console.print(
+                    "[dim]Stages: extract -> normalize -> chunk -> semantic -> output[/dim]"
+                )
+                for processed in result.processed_files:
+                    file_name = Path(processed.path).name
+                    console.print(f"[cyan]{file_name}[/cyan] processed")
                 for failure in result.failed_files:
                     console.print(f"[red]{failure.path}[/red]: {failure.error_message}")
+
+            if verbose > 1 and not quiet:
+                console.print(
+                    "[yellow]DEBUG:[/yellow] stage timings (ms): "
+                    + ", ".join(
+                        f"{stage}={duration:.2f}" for stage, duration in result.stage_totals_ms.items()
+                    )
+                )
+
+            if verbose > 2 and not quiet:
+                console.print(
+                    f"[magenta]TRACE:[/magenta] request hash={result.request_hash}, "
+                    f"session={result.session_id or 'none'}"
+                )
+
+            if learning_explainer is not None and not quiet:
+                learning_explainer.show_step(3, 3, "Reviewing quality outcomes")
+                learning_explainer.show_summary()
 
             raise typer.Exit(code=result.exit_code)
         except (FileNotFoundError, ValueError) as exc:
@@ -758,6 +880,12 @@ def _register_process_command(app: typer.Typer) -> None:
                 console.print(f"[red]{failed.source_path.name}[/red]: {failed.error_message}")
 
         if not effective_quiet:
+            total_done = len(run.processed) + len(run.failed)
+            total_files = len(files) if files else total_done
+            progress_pct = int((total_done / total_files) * 100) if total_files else 100
+            console.print(
+                f"[cyan]Extracting:[/cyan] {progress_pct}% ({total_done}/{total_files} files)"
+            )
             console.print(
                 f"[green]Extraction complete:[/green] "
                 f"{len(run.processed)} succeeded, {len(run.failed)} failed"
@@ -989,6 +1117,9 @@ def _register_config_commands(app: typer.Typer) -> None:
             else:
                 console.print(yaml.dump(config_dict, default_flow_style=False, sort_keys=False))
             return
+
+        if load_merged_config is None:
+            raise typer.BadParameter("Configuration loader is unavailable in this environment")
 
         config_result = load_merged_config(
             preset_name=preset,
@@ -1358,6 +1489,8 @@ chunk:
             raise typer.Exit(code=1)
 
         # Load current merged configuration (AC-5.5-2)
+        if load_merged_config is None:
+            raise typer.BadParameter("Configuration loader is unavailable in this environment")
         config_result = load_merged_config()
         config_dict = config_result.to_dict()
 
@@ -1692,8 +1825,24 @@ def _register_retry_command(app: typer.Typer) -> None:
         )
 
         try:
+            if last:
+                console.print("[cyan]Retrying failed files from latest session...[/cyan]")
+            elif session:
+                console.print(f"[cyan]Retrying failed files for session:[/cyan] {session}")
+            elif file:
+                console.print(f"[cyan]Retrying 1 file:[/cyan] {file.name}")
             result = RetryService().run_retry(request, work_dir=work_dir)
         except FileNotFoundError as exc:
+            message = str(exc)
+            if last and "retryable failed files" in message.lower():
+                console.print("[yellow]No failed files to retry (all successful).[/yellow]")
+                raise typer.Exit(code=0) from exc
+            if session:
+                console.print(f"[red]Session not found:[/red] {session}")
+                raise typer.Exit(code=EXIT_CONFIG_ERROR) from exc
+            if file:
+                console.print("[yellow]Warning:[/yellow] file not found in failed list for retry.")
+                raise typer.Exit(code=0) from exc
             console.print(f"[yellow]{exc}[/yellow]")
             raise typer.Exit(code=0) from exc
         except ValueError as exc:
@@ -1707,6 +1856,9 @@ def _register_retry_command(app: typer.Typer) -> None:
             f"[green]Retry complete:[/green] {result.processed_count} succeeded, "
             f"{result.failed_count} failed, {result.skipped_count} skipped"
         )
+        retried_total = result.processed_count + result.failed_count + result.skipped_count
+        if retried_total > 0:
+            console.print(f"[cyan]Retried files:[/cyan] {retried_total} files")
 
         if verbose and result.failed_files:
             for failure in result.failed_files:

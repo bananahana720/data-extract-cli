@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Protocol
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -28,8 +29,20 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 
+class _DBCursor(Protocol):
+    def execute(self, sql: str) -> object: ...
+
+    def close(self) -> None: ...
+
+
+class _SQLiteConnection(Protocol):
+    def cursor(self) -> _DBCursor: ...
+
+
 @event.listens_for(engine, "connect")
-def _configure_sqlite_pragmas(dbapi_connection: object, _connection_record: object) -> None:
+def _configure_sqlite_pragmas(
+    dbapi_connection: _SQLiteConnection, _connection_record: object
+) -> None:
     """Apply SQLite pragmas that reduce lock contention under concurrent access."""
     cursor = dbapi_connection.cursor()
     try:

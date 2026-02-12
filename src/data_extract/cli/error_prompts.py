@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 try:
-    from InquirerPy import inquirer  # type: ignore[import-not-found]
+    from InquirerPy import inquirer
 except ImportError:
     inquirer = None  # type: ignore[assignment]
 
@@ -26,6 +26,14 @@ from rich.panel import Panel
 from rich.text import Text
 
 from data_extract.cli.ocr_status import get_ocr_unavailable_suggestion
+
+
+def _inquirer_method(name: str) -> Any | None:
+    """Safely resolve an InquirerPy method when stubs are incomplete."""
+    if inquirer is None:
+        return None
+    method = getattr(inquirer, name, None)
+    return method if callable(method) else None
 
 # ==============================================================================
 # Error Action Enum
@@ -282,8 +290,9 @@ class ErrorPrompt:
         ]
 
         try:
-            if inquirer is not None:
-                result = inquirer.select(
+            select_prompt = _inquirer_method("select")
+            if select_prompt is not None:
+                result = select_prompt(
                     message="How would you like to proceed?",
                     choices=choices,
                 ).execute()
@@ -350,7 +359,8 @@ class ErrorPrompt:
         """
         settings: dict[str, Any] = {}
 
-        if inquirer is not None:
+        checkbox_prompt = _inquirer_method("checkbox")
+        if checkbox_prompt is not None:
             try:
                 # Show available settings to modify
                 choices = [
@@ -360,7 +370,7 @@ class ErrorPrompt:
                     {"name": "Done (apply settings)", "value": "done"},
                 ]
 
-                selected = inquirer.checkbox(
+                selected = checkbox_prompt(
                     message="Select settings to modify:",
                     choices=choices,
                 ).execute()
@@ -388,9 +398,10 @@ class ErrorPrompt:
         Returns:
             Dictionary with the modified setting
         """
-        if inquirer is not None:
+        text_prompt = _inquirer_method("text")
+        if text_prompt is not None:
             try:
-                new_value = inquirer.text(
+                new_value = text_prompt(
                     message=f"Enter new value for {setting} (current: {current_value}):",
                     default=str(current_value),
                 ).execute()
@@ -423,9 +434,10 @@ class ErrorPrompt:
             "chunk_size": 500,
         }
 
-        if inquirer is not None:
+        text_prompt = _inquirer_method("text")
+        if text_prompt is not None:
             try:
-                value = inquirer.text(
+                value = text_prompt(
                     message=f"Enter value for {setting}:",
                     default=str(defaults.get(setting, "")),
                 ).execute()
@@ -501,7 +513,8 @@ def prompt_resume_options(
     console.print("  3. [red]Cancel[/red]")
     console.print()
 
-    if inquirer is not None:
+    select_prompt = _inquirer_method("select")
+    if select_prompt is not None:
         try:
             choices = [
                 {"name": "Resume from last position", "value": "resume"},
@@ -509,7 +522,7 @@ def prompt_resume_options(
                 {"name": "Cancel", "value": "cancel"},
             ]
 
-            result = inquirer.select(
+            result = select_prompt(
                 message="How would you like to proceed?",
                 choices=choices,
                 default="resume",

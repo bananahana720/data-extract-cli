@@ -69,6 +69,9 @@ def chunk_to_dict(chunk: Any) -> Dict[str, Any]:
     if not isinstance(readability, dict):
         readability = {}
 
+    raw_entities = getattr(chunk, "entities", [])
+    entities = raw_entities if isinstance(raw_entities, list) else []
+
     return {
         "id": getattr(chunk, "id", None),
         "text": text,
@@ -76,7 +79,7 @@ def chunk_to_dict(chunk: Any) -> Dict[str, Any]:
         "position_index": _coerce_int(getattr(chunk, "position_index", 0), 0),
         "token_count": token_count,
         "word_count": word_count,
-        "entities": getattr(chunk, "entities", []) if isinstance(getattr(chunk, "entities", []), list) else [],
+        "entities": _to_json_safe(entities),
         "section_context": str(getattr(chunk, "section_context", "") or ""),
         "quality_score": _coerce_float(getattr(chunk, "quality_score", 0.0), 0.0),
         "readability_scores": _to_json_safe(readability),

@@ -20,7 +20,7 @@ Compliance:
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union, cast
 
 import structlog
 
@@ -1008,9 +1008,9 @@ class ChunkingEngine:
     def _resolve_source_hash(self, metadata: Any) -> str:
         """Extract file hash from metadata when available."""
         if metadata and hasattr(metadata, "file_hash") and metadata.file_hash:
-            return metadata.file_hash
+            return cast(str, metadata.file_hash)
         if metadata and hasattr(metadata, "hash") and metadata.hash:
-            return metadata.hash
+            return cast(str, metadata.hash)
         return ""
 
     def _resolve_document_type(self, result: ProcessingResult, metadata: Any) -> str:

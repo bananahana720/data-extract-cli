@@ -15,7 +15,7 @@ This module satisfies:
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
-import textstat  # type: ignore[import-untyped]
+import textstat
 
 from ..core.models import Chunk
 from .models import ChunkMetadata

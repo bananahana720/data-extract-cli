@@ -90,7 +90,7 @@ class TfidfConfig:
     max_features: int = 5000
     min_df: int = 2
     max_df: float = 0.95
-    ngram_range: tuple = (1, 2)
+    ngram_range: tuple[int, int] = (1, 2)
     sublinear_tf: bool = True
     use_cache: bool = True
     quality_threshold: float = 0.5
@@ -112,7 +112,7 @@ class TfidfConfig:
             "strip_accents": "unicode",
         }
 
-    def get_cache_key_components(self) -> tuple:
+    def get_cache_key_components(self) -> tuple[Any, ...]:
         """Get components for cache key generation.
 
         Returns:

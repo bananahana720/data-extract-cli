@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from data_extract.normalize.config import NormalizationConfig
+from .config import NormalizationConfig
 
 
 class CleaningResult(BaseModel):

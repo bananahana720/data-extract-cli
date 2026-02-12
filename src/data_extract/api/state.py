@@ -7,7 +7,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from sqlalchemy import delete, select
 
@@ -386,7 +386,8 @@ class ApiRuntime:
             files, _source_dir = self.job_service._resolve_files(request)
         except Exception:
             return None
-        return self.job_service._compute_request_hash(request, files)
+        request_hash = self.job_service._compute_request_hash(request, files)
+        return cast(str | None, request_hash)
 
     def _recover_inflight_jobs(self) -> None:
         """Recover jobs stranded in queued/running after unclean shutdown."""

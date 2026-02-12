@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from data_extract.cli.session import ErrorCategory, SessionManager, SessionState, SessionStatistics
 from data_extract.contracts import ProcessJobRequest, ProcessJobResult, RetryRequest
@@ -106,8 +106,10 @@ class RetryService:
 
         return max(sessions, key=lambda s: s.updated_at)
 
-    def _retryable_failures(self, session_state: SessionState, max_retries: int) -> list[dict]:
-        retryable: list[dict] = []
+    def _retryable_failures(
+        self, session_state: SessionState, max_retries: int
+    ) -> list[dict[str, Any]]:
+        retryable: list[dict[str, Any]] = []
         for failed_file in session_state.failed_files:
             if failed_file.get("category") == ErrorCategory.PERMANENT.value:
                 continue
@@ -183,7 +185,9 @@ class RetryService:
         )
 
     @staticmethod
-    def _normalize_session_status(status: str) -> str:
+    def _normalize_session_status(
+        status: str,
+    ) -> Literal["in_progress", "completed", "failed", "interrupted"]:
         """Map job-like statuses onto SessionState-compatible values."""
         value = status.strip().lower()
         if value in {"queued", "running", "in_progress"}:
@@ -204,7 +208,9 @@ class RetryService:
             statistics_dict = state_dict.get("statistics", {})
             return SessionState(
                 session_id=state_dict["session_id"],
-                status=state_dict.get("status", "in_progress"),
+                status=RetryService._normalize_session_status(
+                    str(state_dict.get("status", "in_progress"))
+                ),
                 source_directory=Path(state_dict["source_directory"]),
                 output_directory=(
                     Path(state_dict["output_directory"])

@@ -8,7 +8,12 @@ Implements AC-4.5-8: Export in multiple formats (JSON, CSV, HTML, graph).
 
 import json
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, cast
+
+
+def _sorted_pair(a: str, b: str) -> tuple[str, str]:
+    """Return a deterministic tuple key for an undirected edge."""
+    return cast(tuple[str, str], tuple(sorted((a, b))))
 
 
 def generate_html_report(results: Dict[str, Any]) -> str:
@@ -556,7 +561,7 @@ def export_similarity_graph(results: Dict[str, Any], output_format: str = "json"
                 except (TypeError, ValueError):
                     weight = 0.0
                 node_ids.add(target)
-                key = tuple(sorted((source, target)))
+                key = _sorted_pair(source, target)
                 existing = edges.get(key)
                 if existing is None or weight > float(existing.get("weight", 0.0)):
                     edges[key] = {
@@ -576,7 +581,7 @@ def export_similarity_graph(results: Dict[str, Any], output_format: str = "json"
         except (TypeError, ValueError):
             weight = 0.0
         node_ids.update({source, target})
-        key = tuple(sorted((source, target)))
+        key = _sorted_pair(source, target)
         existing = edges.get(key)
         if existing is None or weight > float(existing.get("weight", 0.0)):
             edges[key] = {
@@ -596,7 +601,7 @@ def export_similarity_graph(results: Dict[str, Any], output_format: str = "json"
                 node_ids.add(str(member))
             for index, node_a in enumerate(group):
                 for node_b in group[index + 1 :]:
-                    key = tuple(sorted((str(node_a), str(node_b))))
+                    key = _sorted_pair(str(node_a), str(node_b))
                     edges[key] = {
                         "source": key[0],
                         "target": key[1],

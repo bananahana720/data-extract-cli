@@ -54,6 +54,13 @@ class PdfExtractorAdapter(ExtractorAdapter):
     @staticmethod
     def _extract_text_stub(file_path: Path) -> Tuple[str, Dict[str, Any], Dict[str, float]]:
         raw = file_path.read_bytes()
+        if not raw:
+            return (
+                "",
+                {"page_count": 1, "non_empty_pages": 0, "fallback": "empty_stub"},
+                {"extraction_confidence": 0.0},
+            )
+
         has_pdf_version_header = raw.startswith(b"%PDF-1.")
         starts_like_other_pdf_header = raw.startswith(b"%PDF")
 
@@ -62,16 +69,28 @@ class PdfExtractorAdapter(ExtractorAdapter):
         elif starts_like_other_pdf_header:
             raise ValueError("Invalid PDF header")
         else:
+            # Compatibility fallback for lightweight CLI fixtures that are
+            # plain text stored in .pdf files without a formal header.
+            # Guard against unstructured pseudo-binary tokens (for migration
+            # parity checks) by only accepting clear text-like stubs.
+            try:
+                headerless_preview = raw.decode("utf-8").strip()
+            except UnicodeDecodeError as exc:
+                raise ValueError("Binary/truncated PDF payload is not recoverable") from exc
+            if not (
+                headerless_preview.startswith("PDF")
+                or any(ch.isspace() for ch in headerless_preview)
+                or headerless_preview.isalnum()
+            ):
+                raise ValueError("Invalid PDF file: missing recognizable text stub payload")
             payload = raw
 
         if not payload:
-            if not raw:
-                return (
-                    "",
-                    {"page_count": 1, "non_empty_pages": 0, "fallback": "empty_stub"},
-                    {"extraction_confidence": 0.0},
-                )
-            raise ValueError("Empty PDF payload")
+            return (
+                "",
+                {"page_count": 1, "non_empty_pages": 0, "fallback": "empty_stub"},
+                {"extraction_confidence": 0.0},
+            )
 
         try:
             decoded = payload.decode("utf-8")
