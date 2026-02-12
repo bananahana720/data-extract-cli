@@ -20,10 +20,12 @@ from __future__ import annotations
 import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
+from html import escape
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Iterator, Sequence
 
 from rich.console import Group
 from rich.panel import Panel
@@ -455,6 +457,78 @@ def _make_progress_bar(percentage: float, color: str = "green", width: int = 30)
 # ============================================================================
 
 
+def _iter_summary_section_data(report: SummaryReport) -> Iterator[tuple[str, list[str]]]:
+    """Yield summary sections as line collections for reuse across exporters."""
+    yield (
+        "header",
+        [
+            "=" * 60,
+            "PROCESSING SUMMARY REPORT",
+            "=" * 60,
+            f"Files Processed: {report.files_processed}",
+            f"Files Failed: {report.files_failed}",
+            f"Chunks Created: {report.chunks_created}",
+        ],
+    )
+
+    if report.quality_metrics:
+        metrics = report.quality_metrics
+        yield (
+            "quality",
+            [
+                "QUALITY METRICS",
+                "-" * 60,
+                f"Average Quality: {metrics.avg_quality:.2f}",
+                f"Excellent (>=90): {metrics.excellent_count}",
+                f"Good (70-90): {metrics.good_count}",
+                f"Review (<70): {metrics.review_count}",
+                f"Flagged: {metrics.flagged_count}",
+                f"Entities: {metrics.entity_count}",
+                f"Readability: {metrics.readability_score:.1f}",
+            ],
+        )
+
+    if report.timing:
+        timing_lines = [
+            "TIMING BREAKDOWN",
+            "-" * 60,
+        ]
+        total_ms = sum(report.timing.values())
+        for stage, duration_ms in report.timing.items():
+            percentage = (duration_ms / total_ms * 100) if total_ms > 0 else 0
+            duration_str = (
+                f"{duration_ms / 1000:.2f}s" if duration_ms >= 1000 else f"{duration_ms:.0f}ms"
+            )
+            timing_lines.append(f"{stage.capitalize():12s}: {duration_str:>10s} ({percentage:5.1f}%)")
+        yield ("timing", timing_lines)
+
+    if report.errors:
+        yield (
+            "errors",
+            [
+                "ERRORS",
+                "-" * 60,
+                *(f"  - {error}" for error in report.errors),
+            ],
+        )
+
+    if report.next_steps:
+        yield (
+            "next_steps",
+            [
+                "NEXT STEPS",
+                "-" * 60,
+                *(f"  • {step}" for step in report.next_steps),
+            ],
+        )
+
+
+def iter_summary_sections(report: SummaryReport) -> Iterator[str]:
+    """Yield progressively renderable text blocks for each summary section."""
+    for _, lines in _iter_summary_section_data(report):
+        yield "\n".join(lines)
+
+
 def export_summary(
     report: SummaryReport,
     output_path: Path,
@@ -483,6 +557,33 @@ def export_summary(
     return output_path
 
 
+def export_summary_parallel(
+    report: SummaryReport,
+    output_dir: Path,
+    formats: Sequence[ExportFormat],
+    max_workers: int = 3,
+) -> dict[ExportFormat, Path]:
+    """Export one report to multiple formats concurrently."""
+    normalized_formats: list[ExportFormat] = []
+    for format_item in formats:
+        if format_item not in normalized_formats:
+            normalized_formats.append(format_item)
+
+    if not normalized_formats:
+        return {}
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    worker_count = min(max(1, max_workers), len(normalized_formats))
+    futures = {}
+
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        for format_item in normalized_formats:
+            output_path = output_dir / f"summary.{format_item.value}"
+            futures[format_item] = executor.submit(export_summary, report, output_path, format_item)
+
+        return {format_item: future.result() for format_item, future in futures.items()}
+
+
 def _export_txt(report: SummaryReport, output_path: Path) -> None:
     """Export summary as plain text.
 
@@ -490,64 +591,7 @@ def _export_txt(report: SummaryReport, output_path: Path) -> None:
         report: SummaryReport to export
         output_path: Output file path
     """
-    lines = []
-
-    # Header
-    lines.append("=" * 60)
-    lines.append("PROCESSING SUMMARY REPORT")
-    lines.append("=" * 60)
-    lines.append("")
-
-    # Files processed
-    lines.append(f"Files Processed: {report.files_processed}")
-    lines.append(f"Files Failed: {report.files_failed}")
-    lines.append(f"Chunks Created: {report.chunks_created}")
-    lines.append("")
-
-    # Quality metrics
-    if report.quality_metrics:
-        lines.append("QUALITY METRICS")
-        lines.append("-" * 60)
-        m = report.quality_metrics
-        lines.append(f"Average Quality: {m.avg_quality:.2f}")
-        lines.append(f"Excellent (≥90): {m.excellent_count}")
-        lines.append(f"Good (70-90): {m.good_count}")
-        lines.append(f"Review (<70): {m.review_count}")
-        lines.append(f"Flagged: {m.flagged_count}")
-        lines.append(f"Entities: {m.entity_count}")
-        lines.append(f"Readability: {m.readability_score:.1f}")
-        lines.append("")
-
-    # Timing breakdown
-    if report.timing:
-        lines.append("TIMING BREAKDOWN")
-        lines.append("-" * 60)
-        total_ms = sum(report.timing.values())
-        for stage, duration_ms in report.timing.items():
-            percentage = (duration_ms / total_ms * 100) if total_ms > 0 else 0
-            duration_str = (
-                f"{duration_ms / 1000:.2f}s" if duration_ms >= 1000 else f"{duration_ms:.0f}ms"
-            )
-            lines.append(f"{stage.capitalize():12s}: {duration_str:>10s} ({percentage:5.1f}%)")
-        lines.append("")
-
-    # Errors
-    if report.errors:
-        lines.append("ERRORS")
-        lines.append("-" * 60)
-        for error in report.errors:
-            lines.append(f"  - {error}")
-        lines.append("")
-
-    # Next steps
-    if report.next_steps:
-        lines.append("NEXT STEPS")
-        lines.append("-" * 60)
-        for step in report.next_steps:
-            lines.append(f"  • {step}")
-        lines.append("")
-
-    output_path.write_text("\n".join(lines))
+    output_path.write_text("\n\n".join(iter_summary_sections(report)))
 
 
 def _export_json(report: SummaryReport, output_path: Path) -> None:
@@ -594,6 +638,8 @@ def _export_html(report: SummaryReport, output_path: Path) -> None:
     """
     from datetime import datetime
 
+    section_data = {section: lines for section, lines in _iter_summary_section_data(report)}
+
     # Build quality section
     quality_html = ""
     if report.quality_metrics:
@@ -632,25 +678,33 @@ def _export_html(report: SummaryReport, output_path: Path) -> None:
         """
 
     # Build timing section
-    timing_rows = ""
+    timing_row_items: list[str] = []
     total_ms = sum(report.timing.values())
     for stage, duration_ms in report.timing.items():
         percentage = (duration_ms / total_ms * 100) if total_ms > 0 else 0
         duration_str = (
             f"{duration_ms / 1000:.2f}s" if duration_ms >= 1000 else f"{duration_ms:.0f}ms"
         )
-        timing_rows += f"""
+        timing_row_items.append(
+            f"""
         <tr>
             <td>{stage.capitalize()}</td>
             <td>{duration_str}</td>
             <td>{percentage:.1f}%</td>
         </tr>
         """
+        )
+    timing_rows = "".join(timing_row_items)
 
     # Build errors section
     errors_html = ""
-    if report.errors:
-        error_items = "\n".join(f"<li>{error}</li>" for error in report.errors)
+    errors_section = section_data.get("errors")
+    if errors_section:
+        error_items = "\n".join(
+            f"<li>{escape(line.removeprefix('  - '))}</li>"
+            for line in errors_section
+            if line.startswith("  - ")
+        )
         errors_html = f"""
         <div class="section">
             <h2>Errors ({len(report.errors)})</h2>
@@ -662,8 +716,13 @@ def _export_html(report: SummaryReport, output_path: Path) -> None:
 
     # Build next steps section
     next_steps_html = ""
-    if report.next_steps:
-        step_items = "\n".join(f"<li>{step}</li>" for step in report.next_steps)
+    next_steps_section = section_data.get("next_steps")
+    if next_steps_section:
+        step_items = "\n".join(
+            f"<li>{escape(line.removeprefix('  • '))}</li>"
+            for line in next_steps_section
+            if line.startswith("  • ")
+        )
         next_steps_html = f"""
         <div class="section">
             <h2>Next Steps</h2>
@@ -838,5 +897,7 @@ __all__ = [
     "render_quality_dashboard",
     "render_timing_breakdown",
     "render_next_steps",
+    "iter_summary_sections",
     "export_summary",
+    "export_summary_parallel",
 ]

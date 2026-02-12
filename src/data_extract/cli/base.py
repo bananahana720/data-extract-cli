@@ -1015,7 +1015,7 @@ def _register_process_command(app: typer.Typer) -> None:
             int,
             typer.Option(
                 "--workers",
-                help="Worker count hint (compatibility option).",
+                help="Number of worker threads for batch processing.",
             ),
         ] = 1,
         quiet: Annotated[
@@ -1037,7 +1037,6 @@ def _register_process_command(app: typer.Typer) -> None:
         from data_extract.cli.exit_codes import determine_exit_code
         from data_extract.services import FileDiscoveryService, PipelineService
 
-        _ = workers  # Compatibility option accepted for subprocess tests.
         global_quiet = bool(ctx.parent.params.get("quiet", False)) if ctx.parent else False
         effective_quiet = quiet or global_quiet
         output_format = format.lower()
@@ -1072,6 +1071,7 @@ def _register_process_command(app: typer.Typer) -> None:
             output_dir=output_dir,
             output_format=output_format,
             chunk_size=500000,
+            workers=workers,
             include_semantic=False,
             continue_on_error=True,
             source_root=source_dir,

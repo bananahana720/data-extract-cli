@@ -29,12 +29,19 @@ BATCH_DIR = PROJECT_ROOT / "tests" / "performance" / "batch_100_files"
 (BATCH_DIR / "mixed").mkdir(parents=True, exist_ok=True)
 
 
+def reset_directory(path: Path) -> None:
+    """Remove existing files to keep batch composition deterministic."""
+    for child in path.glob("*"):
+        if child.is_file():
+            child.unlink()
+
+
 def copy_files_with_duplication(
     source_pattern: str, target_dir: Path, target_count: int, file_type: str
 ):
     """Copy files from source, duplicating as needed to reach target count."""
     # Find all source files
-    source_files = list(FIXTURES_DIR.rglob(source_pattern))
+    source_files = sorted(FIXTURES_DIR.rglob(source_pattern))
 
     if not source_files:
         print(f"Warning: No {file_type} files found matching {source_pattern}")
@@ -70,6 +77,12 @@ def main():
 
     total_files = 0
 
+    # Ensure previous runs do not leave unsupported/stale files behind.
+    reset_directory(BATCH_DIR / "pdfs")
+    reset_directory(BATCH_DIR / "docx")
+    reset_directory(BATCH_DIR / "xlsx")
+    reset_directory(BATCH_DIR / "mixed")
+
     # 40 PDFs
     print("1. Creating PDF batch (40 files)...")
     total_files += copy_files_with_duplication("*.pdf", BATCH_DIR / "pdfs", 40, "pdf")
@@ -85,12 +98,12 @@ def main():
     total_files += copy_files_with_duplication("*.xlsx", BATCH_DIR / "xlsx", 20, "xlsx")
     print()
 
-    # 10 mixed (PPTX, CSV, images)
+    # 10 mixed (PPTX, CSV, TXT - all supported by current extractor registry)
     print("4. Creating mixed batch (10 files)...")
     mixed_count = 0
 
     # PPTX files
-    pptx_files = list(FIXTURES_DIR.rglob("*.pptx"))
+    pptx_files = sorted(FIXTURES_DIR.rglob("*.pptx"))
     for i, source_file in enumerate(pptx_files[:5]):  # Up to 5 PPTX
         if mixed_count >= 10:
             break
@@ -106,7 +119,7 @@ def main():
         mixed_count += 1
 
     # CSV files (if any exist)
-    csv_files = list(FIXTURES_DIR.rglob("*.csv"))
+    csv_files = sorted(FIXTURES_DIR.rglob("*.csv"))
     for i, source_file in enumerate(csv_files[:3]):  # Up to 3 CSV
         if mixed_count >= 10:
             break
@@ -114,9 +127,9 @@ def main():
         shutil.copy2(source_file, target_file)
         mixed_count += 1
 
-    # Image files (PNG, JPG)
-    image_files = list(FIXTURES_DIR.rglob("*.png")) + list(FIXTURES_DIR.rglob("*.jpg"))
-    for i, source_file in enumerate(image_files):
+    # TXT files for additional variety
+    txt_files = sorted(FIXTURES_DIR.rglob("*.txt"))
+    for i, source_file in enumerate(txt_files[:5]):
         if mixed_count >= 10:
             break
         target_file = BATCH_DIR / "mixed" / f"mixed_{mixed_count + 1:03d}{source_file.suffix}"

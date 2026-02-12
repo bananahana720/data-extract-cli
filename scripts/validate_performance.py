@@ -14,7 +14,6 @@ Usage:
 """
 
 import argparse
-import json
 import re
 import subprocess
 import sys
@@ -46,11 +45,29 @@ NFR_P3_LATENCY = {
 
 # Component mapping for smart test detection
 COMPONENT_MAPPING = {
-    "extract": ["test_extract_performance", "test_pdf_performance", "test_docx_performance"],
-    "normalize": ["test_normalize_performance", "test_entity_performance"],
-    "chunk": ["test_chunking_performance", "test_entity_chunking_performance"],
-    "semantic": ["test_tfidf_performance", "test_lsa_performance"],
-    "output": ["test_json_performance", "test_csv_performance", "test_txt_performance"],
+    "extract": [
+        "test_extractor_benchmarks.py",
+        "test_throughput.py",
+    ],
+    "normalize": [
+        "test_quality_performance.py",
+    ],
+    "chunk": [
+        "test_chunk/test_chunking_latency.py",
+        "test_chunk/test_entity_aware_performance.py",
+        "test_chunk/test_memory_efficiency.py",
+    ],
+    "semantic": [
+        "test_lsa_performance.py",
+        "test_quality_performance.py",
+        "test_summary_performance.py",
+    ],
+    "output": [
+        "test_json_performance.py",
+        "test_txt_performance.py",
+        "test_pipeline_benchmarks.py",
+        "test_cli_benchmarks.py",
+    ],
 }
 
 
@@ -298,22 +315,24 @@ class PerformanceValidator:
         success = True
 
         for test_module in test_modules:
-            test_path = PERFORMANCE_TESTS_DIR / f"{test_module}.py"
+            test_path = PERFORMANCE_TESTS_DIR / test_module
 
             if not test_path.exists():
-                print(f"  ⚠️  Test file not found: {test_path}")
+                print(f"  ❌ Test file not found: {test_path}")
+                success = False
                 continue
 
             print(f"\n  🔬 Running {test_module}...")
 
             try:
-                # Run pytest with JSON output for parsing
+                # Run pytest and parse timing summary.
                 result = subprocess.run(
                     [
+                        sys.executable,
+                        "-m",
                         "pytest",
                         str(test_path),
                         "--tb=short",
-                        "--benchmark-json=performance_results.json",
                         "-v",
                     ],
                     capture_output=True,
@@ -324,23 +343,14 @@ class PerformanceValidator:
                 # Parse test output
                 if result.returncode == 0:
                     print(f"    ✅ {test_module} passed")
-                    self._parse_test_output(test_module, result.stdout)
+                    combined_output = f"{result.stdout}\n{result.stderr}"
+                    self._parse_test_output(test_module, combined_output)
                 else:
                     print(f"    ❌ {test_module} failed")
                     if self.verbose:
                         print(f"    Output: {result.stdout[:500]}")
+                        print(f"    Errors: {result.stderr[:500]}")
                     success = False
-
-                # Try to parse benchmark JSON if it exists
-                benchmark_file = PROJECT_ROOT / "performance_results.json"
-                if benchmark_file.exists():
-                    try:
-                        with open(benchmark_file) as f:
-                            benchmark_data = json.load(f)
-                            self._parse_benchmark_data(test_module, benchmark_data)
-                        benchmark_file.unlink()  # Clean up
-                    except Exception:
-                        pass
 
             except FileNotFoundError:
                 print("    ❌ pytest not found. Please install test dependencies.")
@@ -354,14 +364,11 @@ class PerformanceValidator:
 
     def _parse_test_output(self, test_module: str, output: str) -> None:
         """Parse test output for performance metrics."""
-        # Look for timing information in pytest output
-        timing_pattern = r"([\d.]+)s\s+call"
-        matches = re.findall(timing_pattern, output)
-
-        if matches:
-            avg_time = sum(float(m) for m in matches) / len(matches)
-            self.test_results[f"{test_module}_time"] = {
-                "value": avg_time,
+        # Parse pytest summary duration, e.g. "in 12.34s".
+        duration_matches = re.findall(r"in\s+([\d.]+)s", output)
+        if duration_matches:
+            self.test_results[f"module_duration::{test_module}"] = {
+                "value": float(duration_matches[-1]),
                 "unit": "seconds",
                 "test": test_module,
             }
@@ -375,22 +382,6 @@ class PerformanceValidator:
                 "unit": "MB",
                 "test": test_module,
             }
-
-    def _parse_benchmark_data(self, test_module: str, benchmark_data: dict) -> None:
-        """Parse pytest-benchmark JSON output."""
-        if "benchmarks" in benchmark_data:
-            for benchmark in benchmark_data["benchmarks"]:
-                name = benchmark.get("name", "unknown")
-                stats = benchmark.get("stats", {})
-
-                # Store timing stats
-                if "mean" in stats:
-                    key = f"{test_module}_{name}_mean"
-                    self.test_results[key] = {
-                        "value": stats["mean"],
-                        "unit": "seconds",
-                        "test": test_module,
-                    }
 
     def compare_with_baselines(self) -> bool:
         """
@@ -408,6 +399,11 @@ class PerformanceValidator:
         within_limits = True
 
         for test_key, test_result in self.test_results.items():
+            # Module-level durations are informational and not directly comparable
+            # to historical baseline metrics from markdown artifacts.
+            if test_key.startswith("module_duration::"):
+                continue
+
             # Find matching baseline
             baseline_key = None
             for bkey in self.baseline_data.keys():
@@ -464,7 +460,7 @@ class PerformanceValidator:
         nfr_pass = True
 
         # Check NFR-P1: Throughput
-        throughput_metrics = [k for k in self.test_results if "throughput" in k.lower()]
+        throughput_metrics = [k for k in self.test_results if k.startswith("metric::throughput")]
         for metric in throughput_metrics:
             value = self.test_results[metric]["value"]
             if value < NFR_P1_THROUGHPUT:
@@ -482,7 +478,7 @@ class PerformanceValidator:
                 nfr_pass = False
 
         # Check NFR-P2: Memory
-        memory_metrics = [k for k in self.test_results if "memory" in k.lower()]
+        memory_metrics = [k for k in self.test_results if k.startswith("metric::memory")]
         for metric in memory_metrics:
             value = self.test_results[metric]["value"]
             if value > NFR_P2_MEMORY_LIMIT:
@@ -501,7 +497,9 @@ class PerformanceValidator:
 
         # Check NFR-P3: Latency
         for component, max_latency in NFR_P3_LATENCY.items():
-            component_metrics = [k for k in self.test_results if component in k.lower()]
+            component_metrics = [
+                k for k in self.test_results if k.startswith(f"metric::latency::{component}")
+            ]
             for metric in component_metrics:
                 value = self.test_results[metric]["value"]
                 if value > max_latency:
@@ -628,12 +626,16 @@ class PerformanceValidator:
         elapsed = time.time() - self.start_time
         print(f"\n⏱️  Validation completed in {elapsed:.1f} seconds")
 
+        has_metrics = len(self.test_results) > 0
+
         # Overall status
-        if not self.regressions and not self.nfr_violations:
+        if has_metrics and not self.regressions and not self.nfr_violations:
             print("\n✅ Performance validation PASSED")
             print("All metrics within acceptable limits")
         else:
             print("\n❌ Performance validation FAILED")
+            if not has_metrics:
+                print("No performance metrics were collected from executed tests")
 
             if self.regressions:
                 print(f"\nRegressions detected in {len(self.regressions)} metrics:")
@@ -646,12 +648,15 @@ class PerformanceValidator:
                     print(f"  • {viol['nfr']}: {viol['metric']}")
 
         # CI/CD exit code
+        if not has_metrics:
+            print("\n❌ No performance metrics were collected")
+
         if self.ci_mode:
-            success = not self.regressions and not self.nfr_violations
+            success = has_metrics and not self.regressions and not self.nfr_violations
             print(f"\nCI/CD Exit Code: {0 if success else 1}")
             return success
 
-        return True
+        return has_metrics and not self.regressions and not self.nfr_violations
 
     def run(self) -> bool:
         """
@@ -685,7 +690,7 @@ class PerformanceValidator:
 
         tests_passed = self.run_performance_tests(test_modules)
 
-        if not tests_passed and self.ci_mode:
+        if not tests_passed:
             print("\n❌ Performance tests failed")
             return False
 

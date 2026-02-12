@@ -151,7 +151,9 @@ def get_test_files(fixture_dir: Path, pattern: str, limit: int = None) -> List[P
 class TestSingleFilePerformance:
     """Performance benchmarks for single file extraction via CLI."""
 
-    def test_cli_txt_extraction_performance(self, fixture_dir: Path, production_baseline_manager):
+    def test_cli_txt_extraction_performance(
+        self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
+    ):
         """Benchmark CLI TXT file extraction."""
         txt_file = fixture_dir / "sample.txt"
 
@@ -160,7 +162,7 @@ class TestSingleFilePerformance:
 
         # Run CLI command
         result = run_cli_command(
-            ["extract", str(txt_file), "--output", str(fixture_dir / "output.md"), "--quiet"]
+            ["extract", str(txt_file), "--output", str(tmp_path / "output.txt"), "--quiet"]
         )
 
         # Verify success
@@ -200,7 +202,9 @@ class TestSingleFilePerformance:
         production_baseline_manager.update_baseline("cli_extract_txt", benchmark)
         production_baseline_manager.save()
 
-    def test_cli_pdf_extraction_performance(self, fixture_dir: Path, production_baseline_manager):
+    def test_cli_pdf_extraction_performance(
+        self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
+    ):
         """Benchmark CLI PDF file extraction."""
         pdf_file = (
             fixture_dir
@@ -213,7 +217,7 @@ class TestSingleFilePerformance:
 
         # Run CLI command
         result = run_cli_command(
-            ["extract", str(pdf_file), "--output", str(fixture_dir / "output.md"), "--quiet"],
+            ["extract", str(pdf_file), "--output", str(tmp_path / "output.md"), "--quiet"],
             timeout=60,
         )
 
@@ -268,7 +272,11 @@ class TestBatchProcessingPerformance:
 
     @pytest.mark.parametrize("workers", [1, 4, 8, 16])
     def test_cli_batch_processing_workers(
-        self, fixture_dir: Path, workers: int, production_baseline_manager
+        self,
+        fixture_dir: Path,
+        workers: int,
+        production_baseline_manager,
+        tmp_path: Path,
     ):
         """Benchmark batch processing with different worker counts."""
         # Get deterministic test files (mix of formats) without recursive drift.
@@ -289,8 +297,8 @@ class TestBatchProcessingPerformance:
         import shutil  # noqa: E402
 
         # Create temporary output directory
-        output_dir = fixture_dir / f"batch_output_{workers}workers"
-        batch_input_dir = fixture_dir / f"batch_input_{workers}workers"
+        output_dir = tmp_path / f"batch_output_{workers}workers"
+        batch_input_dir = tmp_path / f"batch_input_{workers}workers"
         shutil.rmtree(output_dir, ignore_errors=True)
         shutil.rmtree(batch_input_dir, ignore_errors=True)
         output_dir.mkdir(exist_ok=True)
@@ -339,7 +347,6 @@ class TestBatchProcessingPerformance:
         )
 
         # Assert performance
-        # `--workers` is currently a compatibility hint in the CLI and may run serially.
         expected_time = BATCH_FILE_TARGET_MS * len(test_files)
         assert_performance_target(
             result["duration_ms"], expected_time, f"Batch with {workers} workers", tolerance=1.0
@@ -379,7 +386,9 @@ class TestBatchProcessingPerformance:
 class TestThreadSafetyStress:
     """Stress tests for thread safety and concurrency."""
 
-    def test_cli_high_concurrency_stress(self, fixture_dir: Path, production_baseline_manager):
+    def test_cli_high_concurrency_stress(
+        self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
+    ):
         """Stress test with maximum workers and many files."""
         # Get deterministic stress corpus without recursively including generated dirs.
         quality_docs = sorted((fixture_dir / "quality_test_documents").glob("*.txt"))
@@ -392,8 +401,8 @@ class TestThreadSafetyStress:
         import shutil  # noqa: E402
 
         # Create output directory
-        output_dir = fixture_dir / "stress_output"
-        stress_input_dir = fixture_dir / "stress_input"
+        output_dir = tmp_path / "stress_output"
+        stress_input_dir = tmp_path / "stress_input"
         shutil.rmtree(output_dir, ignore_errors=True)
         shutil.rmtree(stress_input_dir, ignore_errors=True)
         output_dir.mkdir(exist_ok=True)
@@ -502,12 +511,16 @@ class TestProgressDisplayOverhead:
         assert result_quiet["success"], f"Quiet run failed: {result_quiet['stderr']}"
 
         # Calculate overhead
-        overhead_ms = result_with_progress["duration_ms"] - result_quiet["duration_ms"]
-        overhead_pct = (
-            (overhead_ms / result_quiet["duration_ms"]) * 100
+        raw_overhead_ms = result_with_progress["duration_ms"] - result_quiet["duration_ms"]
+        raw_overhead_pct = (
+            (raw_overhead_ms / result_quiet["duration_ms"]) * 100
             if result_quiet["duration_ms"] > 0
             else 0
         )
+
+        # Keep baseline metrics non-negative so baseline comparisons stay valid.
+        overhead_ms = max(0.0, raw_overhead_ms)
+        overhead_pct = max(0.0, raw_overhead_pct)
 
         # Create benchmark
         benchmark = BenchmarkResult(
@@ -534,6 +547,7 @@ class TestProgressDisplayOverhead:
         print("Progress Display Overhead Test:")
         print(f"  With Progress: {result_with_progress['duration_ms']:.2f} ms")
         print(f"  Quiet Mode: {result_quiet['duration_ms']:.2f} ms")
+        print(f"  Raw Delta: {raw_overhead_ms:.2f} ms ({raw_overhead_pct:.1f}%)")
         print(f"  Overhead: {overhead_ms:.2f} ms ({overhead_pct:.1f}%)")
         print(f"  Limit: {PROGRESS_OVERHEAD_MAX_PCT}%")
         print(f"  Status: {'PASS' if overhead_pct < PROGRESS_OVERHEAD_MAX_PCT else 'FAIL'}")
@@ -554,7 +568,9 @@ class TestProgressDisplayOverhead:
 class TestEncodingPerformance:
     """Test encoding and Unicode performance."""
 
-    def test_unicode_heavy_content(self, fixture_dir: Path, production_baseline_manager):
+    def test_unicode_heavy_content(
+        self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
+    ):
         """Test performance with Unicode-heavy content."""
         # Use a file with lots of special characters (using complex_text as proxy)
         test_file = fixture_dir / "quality_test_documents" / "complex_text.txt"
@@ -568,7 +584,7 @@ class TestEncodingPerformance:
                 "extract",
                 str(test_file),
                 "--output",
-                str(fixture_dir / "unicode_output.md"),
+                str(tmp_path / "unicode_output.md"),
                 "--quiet",
             ]
         )

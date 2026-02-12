@@ -6,19 +6,24 @@ performance benchmarking tests. It includes timing utilities, memory
 measurement, and baseline comparison tools.
 """
 
+import os
+
 import pytest
+
+# In sandboxed environments joblib semaphore checks can fail with EACCES.
+# Explicit serial mode avoids noisy warnings during performance test collection.
+os.environ.setdefault("JOBLIB_MULTIPROCESSING", "0")
 
 pytestmark = pytest.mark.P0
 
 import json  # noqa: E402
+import shutil  # noqa: E402
 import time  # noqa: E402
 import tracemalloc  # noqa: E402
 from dataclasses import asdict, dataclass  # noqa: E402
 from datetime import datetime  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any, Callable  # noqa: E402
-
-import pytest  # noqa: E402
 
 # ============================================================================
 # Performance Measurement Models
@@ -235,10 +240,21 @@ class BaselineManager:
             }
 
         # Calculate percentage changes
-        duration_change = (
-            (current.duration_ms - baseline.duration_ms) / baseline.duration_ms
-        ) * 100
-        memory_change = ((current.memory_mb - baseline.memory_mb) / baseline.memory_mb) * 100
+        if baseline.duration_ms > 0:
+            duration_change = (
+                (current.duration_ms - baseline.duration_ms) / baseline.duration_ms
+            ) * 100
+        elif current.duration_ms > 0:
+            duration_change = float("inf")
+        else:
+            duration_change = 0.0
+
+        if baseline.memory_mb > 0:
+            memory_change = ((current.memory_mb - baseline.memory_mb) / baseline.memory_mb) * 100
+        elif current.memory_mb > 0:
+            memory_change = float("inf")
+        else:
+            memory_change = 0.0
 
         # Check if regression (>threshold% worse)
         is_duration_regression = duration_change > (threshold * 100)
@@ -302,7 +318,7 @@ def baseline_manager(tmp_path: Path) -> BaselineManager:
 
 
 @pytest.fixture
-def production_baseline_manager() -> BaselineManager:
+def production_baseline_manager(tmp_path_factory: pytest.TempPathFactory) -> BaselineManager:
     """
     Provide baseline manager with production baseline file.
 
@@ -312,7 +328,13 @@ def production_baseline_manager() -> BaselineManager:
     Returns:
         BaselineManager for production baselines
     """
-    baseline_file = Path(__file__).parent / "baselines.json"
+    source_baseline = Path(__file__).parent / "baselines.json"
+    baseline_dir = tmp_path_factory.mktemp("perf_baselines")
+    baseline_file = baseline_dir / "baselines.json"
+
+    if source_baseline.exists():
+        shutil.copy2(source_baseline, baseline_file)
+
     return BaselineManager(baseline_file)
 
 

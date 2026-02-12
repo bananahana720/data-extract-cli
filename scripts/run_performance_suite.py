@@ -12,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 def run_command(cmd: List[str], timeout: int = 600) -> Dict[str, Any]:
     """Run command and capture result."""
@@ -27,7 +29,7 @@ def run_command(cmd: List[str], timeout: int = 600) -> Dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=timeout,
-            cwd="C:\\Users\\Andrew\\Documents\\AI ideas for fun and work\\Prompt Research\\Data Extraction\\data-extractor-tool",
+            cwd=PROJECT_ROOT,
         )
 
         duration = time.time() - start_time

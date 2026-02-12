@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -62,6 +63,7 @@ class PipelineService:
         output_dir: Path,
         output_format: str,
         chunk_size: int,
+        workers: int = 1,
         include_metadata: bool = False,
         per_chunk: bool = False,
         organize: bool = False,
@@ -77,10 +79,51 @@ class PipelineService:
         """Process files and return per-file and aggregate details."""
         result = PipelineRunResult()
         output_dir.mkdir(parents=True, exist_ok=True)
+        file_list = list(files)
+        worker_count = max(1, int(workers))
 
-        for file_path in files:
-            try:
-                file_result = self.process_file(
+        if worker_count <= 1 or len(file_list) <= 1:
+            for file_path in file_list:
+                try:
+                    file_result = self.process_file(
+                        file_path=file_path,
+                        output_dir=output_dir,
+                        output_format=output_format,
+                        chunk_size=chunk_size,
+                        include_metadata=include_metadata,
+                        per_chunk=per_chunk,
+                        organize=organize,
+                        strategy=strategy,
+                        delimiter=delimiter,
+                        include_semantic=include_semantic,
+                        source_root=source_root,
+                        pipeline_profile=pipeline_profile,
+                        allow_advanced_fallback=allow_advanced_fallback,
+                        output_file_override=output_file_override,
+                    )
+                    result.processed.append(file_result)
+                    for stage, value in file_result.stage_timings_ms.items():
+                        result.stage_totals_ms[stage] = (
+                            result.stage_totals_ms.get(stage, 0.0) + value
+                        )
+                except Exception as exc:
+                    result.failed.append(
+                        PipelineFailure(
+                            source_path=file_path,
+                            error_type=type(exc).__name__,
+                            error_message=str(exc),
+                        )
+                    )
+                    if not continue_on_error:
+                        break
+            return result
+
+        # Process files in parallel when workers > 1. Each worker uses an isolated
+        # PipelineService instance to avoid sharing mutable normalizer/writer state.
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = {
+                executor.submit(
+                    self._process_file_isolated,
                     file_path=file_path,
                     output_dir=output_dir,
                     output_format=output_format,
@@ -95,22 +138,70 @@ class PipelineService:
                     pipeline_profile=pipeline_profile,
                     allow_advanced_fallback=allow_advanced_fallback,
                     output_file_override=output_file_override,
-                )
-                result.processed.append(file_result)
-                for stage, value in file_result.stage_timings_ms.items():
-                    result.stage_totals_ms[stage] = result.stage_totals_ms.get(stage, 0.0) + value
-            except Exception as exc:
-                result.failed.append(
-                    PipelineFailure(
-                        source_path=file_path,
-                        error_type=type(exc).__name__,
-                        error_message=str(exc),
+                ): file_path
+                for file_path in file_list
+            }
+
+            for future in as_completed(futures):
+                file_path = futures[future]
+                try:
+                    file_result = future.result()
+                    result.processed.append(file_result)
+                    for stage, value in file_result.stage_timings_ms.items():
+                        result.stage_totals_ms[stage] = (
+                            result.stage_totals_ms.get(stage, 0.0) + value
+                        )
+                except Exception as exc:
+                    result.failed.append(
+                        PipelineFailure(
+                            source_path=file_path,
+                            error_type=type(exc).__name__,
+                            error_message=str(exc),
+                        )
                     )
-                )
-                if not continue_on_error:
-                    break
+                    if not continue_on_error:
+                        for pending in futures:
+                            if not pending.done():
+                                pending.cancel()
+                        break
 
         return result
+
+    @staticmethod
+    def _process_file_isolated(
+        file_path: Path,
+        output_dir: Path,
+        output_format: str,
+        chunk_size: int,
+        include_metadata: bool,
+        per_chunk: bool,
+        organize: bool,
+        strategy: str | None,
+        delimiter: str,
+        include_semantic: bool,
+        source_root: Path | None,
+        pipeline_profile: str,
+        allow_advanced_fallback: bool,
+        output_file_override: Path | None,
+    ) -> PipelineFileResult:
+        """Process one file with an isolated service instance for thread safety."""
+        service = PipelineService()
+        return service.process_file(
+            file_path=file_path,
+            output_dir=output_dir,
+            output_format=output_format,
+            chunk_size=chunk_size,
+            include_metadata=include_metadata,
+            per_chunk=per_chunk,
+            organize=organize,
+            strategy=strategy,
+            delimiter=delimiter,
+            include_semantic=include_semantic,
+            source_root=source_root,
+            pipeline_profile=pipeline_profile,
+            allow_advanced_fallback=allow_advanced_fallback,
+            output_file_override=output_file_override,
+        )
 
     def process_file(
         self,

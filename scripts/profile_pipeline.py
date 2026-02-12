@@ -43,67 +43,11 @@ except ImportError:
     print("ERROR: psutil not installed. Run: pip install psutil")
     sys.exit(1)
 
-# Import greenfield extractors (at module level for worker processes)
-from src.data_extract.core.models import Document  # noqa: E402
-from src.data_extract.extract import get_extractor, is_supported  # noqa: E402
+# Import worker function from a real module so cProfile + multiprocessing
+# can pickle function references without __main__ resolution issues.
+from profile_pipeline_worker import BatchResult, extract_single_file  # noqa: E402
 
-
-class BatchResult:
-    """Container for batch processing results."""
-
-    def __init__(self, file_path: Path):
-        self.file_path = file_path
-        self.success = False
-        self.error_message = ""
-        self.processing_time_ms = 0.0
-        self.document_id = ""
-        self.text_length = 0
-        self.page_count = 0
-        self.word_count = 0
-        self.ocr_confidence = None
-        self.quality_flags = []
-
-
-def extract_single_file(file_path: Path) -> "BatchResult":
-    """
-    Worker function for parallel extraction. Must be top-level for pickling.
-
-    Args:
-        file_path: Path to file to extract
-
-    Returns:
-        BatchResult with extraction results
-    """
-    result = BatchResult(file_path)
-
-    # Check if format is supported
-    if not is_supported(file_path):
-        result.success = False
-        result.error_message = f"Unsupported format: {file_path.suffix}"
-        return result
-
-    # Extract document
-    try:
-        start_time = time.time()
-        adapter = get_extractor(file_path)
-        document: Document = adapter.process(file_path)
-        elapsed = time.time() - start_time
-
-        # Populate result
-        result.success = True
-        result.processing_time_ms = elapsed * 1000
-        result.document_id = document.id
-        result.text_length = len(document.text)
-        result.page_count = document.structure.get("page_count", 0)
-        result.word_count = document.structure.get("word_count", 0)
-        result.ocr_confidence = document.metadata.quality_scores.get("ocr_confidence")
-        result.quality_flags = document.metadata.quality_flags
-
-    except Exception as e:
-        result.success = False
-        result.error_message = str(e)
-
-    return result
+from src.data_extract.extract import is_supported  # noqa: E402
 
 
 def collect_batch_files() -> List[Path]:
@@ -122,7 +66,7 @@ def collect_batch_files() -> List[Path]:
         if subdir_path.exists():
             files.extend(list(subdir_path.glob("*")))
 
-    files = [f for f in files if f.is_file()]
+    files = [f for f in files if f.is_file() and is_supported(f)]
 
     print(f"Collected {len(files)} files from batch")
     return files

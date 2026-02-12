@@ -1,17 +1,26 @@
-"""Performance tests for summary report generation (Story 5-4).
+"""Performance tests for summary report generation (Story 5-4)."""
 
-Tests performance characteristics of summary statistics and reporting:
-- Summary generation time
-- Memory usage during export
-- HTML/JSON/TXT generation performance
-- Large-scale summary handling
+from __future__ import annotations
 
-Test markers: @pytest.mark.story_5_4, @pytest.mark.performance, @pytest.mark.slow
-"""
-
+import json
 import time
+import tracemalloc
+from pathlib import Path
 
 import pytest
+from rich.console import Console
+
+from data_extract.cli.summary import (
+    ExportFormat,
+    QualityMetrics,
+    SummaryReport,
+    export_summary,
+    export_summary_parallel,
+    iter_summary_sections,
+    render_quality_dashboard,
+    render_summary_panel,
+    render_timing_breakdown,
+)
 
 pytestmark = [
     pytest.mark.P2,
@@ -20,42 +29,75 @@ pytestmark = [
     pytest.mark.slow,
 ]
 
-# ============================================================================
-# FIXTURES
-# ============================================================================
+
+def _measure_total_ms(fn, iterations: int = 1) -> float:
+    start = time.perf_counter()
+    for _ in range(iterations):
+        fn()
+    return (time.perf_counter() - start) * 1000
 
 
 @pytest.fixture
-def large_summary_report():
-    """Create large summary report for performance testing.
-
-    GIVEN: Summary with maximum scale (100 files, 10k chunks)
-    """
-    return {
-        "files_processed": 100,
-        "files_failed": 3,
-        "chunks_created": 10000,
-        "errors": [
-            f"Error processing file{i}.pdf: {reason}"
-            for i, reason in enumerate(["OCR timeout"] * 50 + ["Invalid format"] * 50)
-        ],
-        "quality_metrics": {
-            "avg_quality": 0.75,
-            "excellent_count": 5000,
-            "good_count": 3500,
-            "review_count": 1200,
-            "flagged_count": 300,
-            "entity_count": 50000,
-            "readability_score": 65.5,
+def medium_summary_report() -> SummaryReport:
+    """Create medium-scale summary report."""
+    return SummaryReport(
+        files_processed=10,
+        files_failed=1,
+        chunks_created=1000,
+        errors=("Error processing file.pdf: OCR timeout",),
+        quality_metrics=QualityMetrics(
+            avg_quality=0.78,
+            excellent_count=500,
+            good_count=350,
+            review_count=100,
+            flagged_count=50,
+            entity_count=5000,
+            readability_score=68.5,
+            duplicate_percentage=3.2,
+        ),
+        timing={
+            "extract": 500.5,
+            "normalize": 200.2,
+            "chunk": 300.8,
+            "semantic": 800.1,
+            "output": 150.4,
         },
-        "timing": {
+        config={
+            "max_features": 5000,
+            "similarity_threshold": 0.95,
+            "n_components": 100,
+            "quality_min_score": 0.3,
+        },
+        next_steps=("Review 50 flagged items", "Analyze cluster quality"),
+    )
+
+
+@pytest.fixture
+def large_summary_report() -> SummaryReport:
+    """Create large summary report for performance testing."""
+    return SummaryReport(
+        files_processed=100,
+        files_failed=3,
+        chunks_created=10000,
+        errors=tuple(f"Error processing file{i}.pdf: OCR timeout" for i in range(250)),
+        quality_metrics=QualityMetrics(
+            avg_quality=0.75,
+            excellent_count=5000,
+            good_count=3500,
+            review_count=1200,
+            flagged_count=300,
+            entity_count=50000,
+            readability_score=65.5,
+            duplicate_percentage=8.7,
+        ),
+        timing={
             "extract": 5000.5,
             "normalize": 2000.2,
             "chunk": 3000.8,
             "semantic": 8000.1,
             "output": 1500.4,
         },
-        "config": {
+        config={
             "max_features": 5000,
             "similarity_threshold": 0.95,
             "n_components": 100,
@@ -63,415 +105,257 @@ def large_summary_report():
             "chunk_size": 512,
             "overlap": 128,
         },
-        "next_steps": [f"Review {i} flagged items" for i in [300, 250, 200, 150, 100]],
-    }
-
-
-@pytest.fixture
-def medium_summary_report():
-    """Create medium-scale summary report.
-
-    GIVEN: Summary with moderate scale (10 files, 1k chunks)
-    """
-    return {
-        "files_processed": 10,
-        "files_failed": 1,
-        "chunks_created": 1000,
-        "errors": ["Error processing file.pdf: OCR timeout"],
-        "quality_metrics": {
-            "avg_quality": 0.78,
-            "excellent_count": 500,
-            "good_count": 350,
-            "review_count": 100,
-            "flagged_count": 50,
-            "entity_count": 5000,
-            "readability_score": 68.5,
-        },
-        "timing": {
-            "extract": 500.5,
-            "normalize": 200.2,
-            "chunk": 300.8,
-            "semantic": 800.1,
-            "output": 150.4,
-        },
-        "config": {
-            "max_features": 5000,
-            "similarity_threshold": 0.95,
-            "n_components": 100,
-            "quality_min_score": 0.3,
-        },
-        "next_steps": ["Review 50 flagged items", "Analyze cluster quality"],
-    }
-
-
-# ============================================================================
-# TestSummaryGenerationPerformance
-# ============================================================================
+        next_steps=tuple(f"Review {i} flagged items" for i in [300, 250, 200, 150, 100]),
+    )
 
 
 class TestSummaryGenerationPerformance:
-    """Test performance of summary generation."""
+    """Test performance of real summary rendering primitives."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_summary_generation_under_100ms(self, medium_summary_report):
-        """Summary generation should complete in <100ms.
+    def test_summary_panel_render_under_100ms(self, medium_summary_report: SummaryReport) -> None:
+        console = Console(width=120, record=False)
 
-        GIVEN: Medium-scale summary (10 files, 1k chunks)
-        WHEN: Generating summary report
-        THEN: Should complete in under 100 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
+        # Warm-up for Rich internals.
+        console.print(render_summary_panel(medium_summary_report))
 
-        # Simulate summary generation
-        _summary_output = str(medium_summary_report)  # noqa: F841
+        elapsed_ms = _measure_total_ms(
+            lambda: console.print(render_summary_panel(medium_summary_report)),
+            iterations=10,
+        )
+        assert elapsed_ms < 100.0, f"Panel render took {elapsed_ms:.2f}ms for 10 iterations"
 
-        elapsed_ms = (time.perf_counter() - start) * 1000
+    def test_summary_generation_large_scale_under_500ms(
+        self, large_summary_report: SummaryReport
+    ) -> None:
+        console = Console(width=120, record=False)
+        console.print(render_summary_panel(large_summary_report))
 
-        # THEN
-        assert elapsed_ms < 100, f"Summary generation took {elapsed_ms:.2f}ms, should be <100ms"
+        elapsed_ms = _measure_total_ms(
+            lambda: console.print(render_summary_panel(large_summary_report)),
+            iterations=20,
+        )
+        assert elapsed_ms < 500.0, f"Large panel render took {elapsed_ms:.2f}ms for 20 iterations"
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_summary_generation_large_scale_under_500ms(self, large_summary_report):
-        """Summary generation should handle large scale in <500ms.
-
-        GIVEN: Large-scale summary (100 files, 10k chunks)
-        WHEN: Generating summary report
-        THEN: Should complete in under 500 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
-
-        # Simulate summary generation
-        _summary_output = str(large_summary_report)  # noqa: F841
-
-        elapsed_ms = (time.perf_counter() - start) * 1000
-
-        # THEN
-        assert (
-            elapsed_ms < 500
-        ), f"Large summary generation took {elapsed_ms:.2f}ms, should be <500ms"
-
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_summary_rendering_under_50ms(self, medium_summary_report):
-        """Summary rendering to string should be <50ms.
-
-        GIVEN: Medium summary report
-        WHEN: Rendering to console output
-        THEN: Should complete in under 50 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
-
-        # Simulate Rich panel rendering
-        _rendered = repr(medium_summary_report)  # noqa: F841
-
-        elapsed_ms = (time.perf_counter() - start) * 1000
-
-        # THEN
-        assert elapsed_ms < 50, f"Summary rendering took {elapsed_ms:.2f}ms, should be <50ms"
-
-
-# ============================================================================
-# TestExportPerformance
-# ============================================================================
+    def test_summary_rendering_under_50ms(self, medium_summary_report: SummaryReport) -> None:
+        elapsed_ms = _measure_total_ms(
+            lambda: (render_quality_dashboard(medium_summary_report.quality_metrics), render_timing_breakdown(medium_summary_report.timing)),
+            iterations=20,
+        )
+        assert elapsed_ms < 50.0, f"Dashboard render took {elapsed_ms:.2f}ms for 20 iterations"
 
 
 class TestExportPerformance:
     """Test performance of summary export to various formats."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_json_export_under_100ms(self, medium_summary_report):
-        """JSON export should complete in <100ms.
+    def test_json_export_under_100ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+        output_path = tmp_path / "summary.json"
+        elapsed_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, output_path, ExportFormat.JSON),
+            iterations=10,
+        )
 
-        GIVEN: Medium summary report
-        WHEN: Exporting to JSON format
-        THEN: Should complete in under 100 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
+        data = json.loads(output_path.read_text(encoding="utf-8"))
+        assert data["files_processed"] == 10
+        assert elapsed_ms < 100.0, f"JSON export took {elapsed_ms:.2f}ms for 10 iterations"
 
-        import json
+    def test_json_export_large_scale_under_300ms(
+        self, large_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
+        output_path = tmp_path / "large_summary.json"
+        elapsed_ms = _measure_total_ms(
+            lambda: export_summary(large_summary_report, output_path, ExportFormat.JSON),
+            iterations=20,
+        )
 
-        _json_output = json.dumps(medium_summary_report)  # noqa: F841
+        assert output_path.exists()
+        assert elapsed_ms < 300.0, f"Large JSON export took {elapsed_ms:.2f}ms for 20 iterations"
 
-        elapsed_ms = (time.perf_counter() - start) * 1000
+    def test_html_export_under_500ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+        output_path = tmp_path / "summary.html"
+        elapsed_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, output_path, ExportFormat.HTML),
+            iterations=20,
+        )
 
-        # THEN
-        assert elapsed_ms < 100, f"JSON export took {elapsed_ms:.2f}ms, should be <100ms"
+        content = output_path.read_text(encoding="utf-8")
+        assert "Processing Summary Report" in content
+        assert elapsed_ms < 500.0, f"HTML export took {elapsed_ms:.2f}ms for 20 iterations"
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_json_export_large_scale_under_300ms(self, large_summary_report):
-        """JSON export of large summary should be <300ms.
+    def test_txt_export_under_100ms(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+        output_path = tmp_path / "summary.txt"
+        elapsed_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, output_path, ExportFormat.TXT),
+            iterations=20,
+        )
 
-        GIVEN: Large-scale summary (100 files, 10k chunks)
-        WHEN: Exporting to JSON
-        THEN: Should complete in under 300 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
-
-        import json
-
-        _json_output = json.dumps(large_summary_report)  # noqa: F841
-
-        elapsed_ms = (time.perf_counter() - start) * 1000
-
-        # THEN
-        assert elapsed_ms < 300, f"Large JSON export took {elapsed_ms:.2f}ms, should be <300ms"
-
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_html_export_under_500ms(self, medium_summary_report):
-        """HTML export should complete in <500ms.
-
-        GIVEN: Medium summary report
-        WHEN: Exporting to HTML format
-        THEN: Should complete in under 500 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
-
-        # Simulate HTML generation with template
-        _html = f"""<!DOCTYPE html>
-<html>
-<head><title>Summary</title></head>
-<body>
-<h1>Summary Report</h1>
-<p>Files: {medium_summary_report['files_processed']}</p>
-</body>
-</html>"""  # noqa: F841
-
-        elapsed_ms = (time.perf_counter() - start) * 1000
-
-        # THEN
-        assert elapsed_ms < 500, f"HTML export took {elapsed_ms:.2f}ms, should be <500ms"
-
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_txt_export_under_100ms(self, medium_summary_report):
-        """TXT export should complete in <100ms.
-
-        GIVEN: Medium summary report
-        WHEN: Exporting to text format
-        THEN: Should complete in under 100 milliseconds
-        """
-        # WHEN
-        start = time.perf_counter()
-
-        # Simulate text formatting
-        _txt = f"""Summary Report  # noqa: F841
-===============
-Files Processed: {medium_summary_report['files_processed']}
-Chunks Created: {medium_summary_report['chunks_created']}
-"""
-
-        elapsed_ms = (time.perf_counter() - start) * 1000
-
-        # THEN
-        assert elapsed_ms < 100, f"TXT export took {elapsed_ms:.2f}ms, should be <100ms"
-
-
-# ============================================================================
-# TestMemoryUsage
-# ============================================================================
+        content = output_path.read_text(encoding="utf-8")
+        assert "PROCESSING SUMMARY REPORT" in content
+        assert elapsed_ms < 100.0, f"TXT export took {elapsed_ms:.2f}ms for 20 iterations"
 
 
 class TestMemoryUsage:
     """Test memory usage during summary operations."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_export_memory_usage_under_50mb(self, medium_summary_report, tmp_path):
-        """Export operation should use <50MB memory.
+    def test_export_memory_usage_under_50mb(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
+        tracemalloc.start()
+        export_summary(medium_summary_report, tmp_path / "summary.json", ExportFormat.JSON)
+        export_summary(medium_summary_report, tmp_path / "summary.html", ExportFormat.HTML)
+        export_summary(medium_summary_report, tmp_path / "summary.txt", ExportFormat.TXT)
+        _, peak_bytes = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
 
-        GIVEN: Medium summary report
-        WHEN: Exporting to JSON/HTML/TXT files
-        THEN: Should not consume more than 50MB memory
-        """
-        # Memory tracking would be implementation-specific
-        # Using psutil or similar would be ideal
-        # For now, test structure validates export doesn't balloon memory
+        peak_mb = peak_bytes / 1024 / 1024
+        assert peak_mb < 50.0, f"Peak export memory {peak_mb:.2f}MB exceeded 50MB"
 
-        import json
+    def test_large_scale_export_memory_reasonable(
+        self, large_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
+        tracemalloc.start()
+        export_summary(large_summary_report, tmp_path / "large_summary.html", ExportFormat.HTML)
+        _, peak_bytes = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
 
-        json_output = json.dumps(medium_summary_report)
-        assert len(json_output) < 50 * 1024 * 1024  # Less than 50MB
-
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_large_scale_export_memory_reasonable(self, large_summary_report):
-        """Large-scale export should still be memory-efficient.
-
-        GIVEN: Large summary (100 files, 10k chunks)
-        WHEN: Exporting all formats
-        THEN: Should handle without excessive memory allocation
-        """
-        # Size estimate for JSON
-        import json
-
-        json_output = json.dumps(large_summary_report)
-
-        # Should be under 1MB for reasonable data
-        assert len(json_output) < 1024 * 1024, "Export too large for JSON"
-
-
-# ============================================================================
-# TestConcurrentExport
-# ============================================================================
+        peak_mb = peak_bytes / 1024 / 1024
+        assert peak_mb < 64.0, f"Large HTML export peak memory {peak_mb:.2f}MB exceeded 64MB"
 
 
 class TestConcurrentExport:
     """Test performance with concurrent export operations."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_multiple_format_exports_under_1s(self, medium_summary_report, tmp_path):
-        """Exporting to multiple formats should complete <1s total.
-
-        GIVEN: Medium summary report
-        WHEN: Exporting to JSON, HTML, and TXT simultaneously
-        THEN: All formats should complete in under 1 second combined
-        """
-        # WHEN
+    def test_multiple_format_exports_under_1s(
+        self, medium_summary_report: SummaryReport, tmp_path: Path
+    ) -> None:
         start = time.perf_counter()
-
-        import json
-
-        # Simulate all three exports
-        _json_output = json.dumps(medium_summary_report)  # noqa: F841
-        _html_output = f"<html>{medium_summary_report}</html>"  # noqa: F841
-        _txt_output = str(medium_summary_report)  # noqa: F841
-
+        output = export_summary_parallel(
+            medium_summary_report,
+            tmp_path,
+            formats=[ExportFormat.JSON, ExportFormat.HTML, ExportFormat.TXT],
+            max_workers=3,
+        )
         elapsed_s = time.perf_counter() - start
 
-        # THEN
-        assert elapsed_s < 1.0, f"Multi-format export took {elapsed_s:.3f}s, should be <1s"
-
-
-# ============================================================================
-# TestScalability
-# ============================================================================
+        assert set(output.keys()) == {ExportFormat.JSON, ExportFormat.HTML, ExportFormat.TXT}
+        assert all(path.exists() for path in output.values())
+        assert elapsed_s < 1.0, f"Parallel export took {elapsed_s:.3f}s"
 
 
 class TestScalability:
-    """Test how performance scales with data size."""
+    """Test how summary generation scales with data size."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_summary_generation_scales_linearly(self, medium_summary_report, large_summary_report):
-        """Summary generation should scale linearly with data size.
+    def test_summary_generation_scales_linearly(
+        self,
+        medium_summary_report: SummaryReport,
+        large_summary_report: SummaryReport,
+    ) -> None:
+        time_med_ms = _measure_total_ms(lambda: render_summary_panel(medium_summary_report), iterations=500)
+        time_large_ms = _measure_total_ms(lambda: render_summary_panel(large_summary_report), iterations=500)
 
-        GIVEN: Medium and large summary reports
-        WHEN: Generating both summaries
-        THEN: Larger summary should take ~10x longer (10x data)
-        """
-        # WHEN
-        start_med = time.perf_counter()
-        str(medium_summary_report)
-        time_med = time.perf_counter() - start_med
+        ratio = time_large_ms / time_med_ms if time_med_ms > 0 else 1.0
+        assert 0.5 <= ratio <= 20.0, f"Scaling ratio {ratio:.2f}x out of expected range"
 
-        start_large = time.perf_counter()
-        str(large_summary_report)
-        time_large = time.perf_counter() - start_large
+    def test_export_memory_scales_linearly(
+        self,
+        medium_summary_report: SummaryReport,
+        large_summary_report: SummaryReport,
+        tmp_path: Path,
+    ) -> None:
+        medium_path = tmp_path / "medium.json"
+        large_path = tmp_path / "large.json"
 
-        # THEN
-        # Large is 10x bigger, so should take ~10x time
-        # Keep bounds broad because micro-benchmarks on tiny durations are noisy.
-        if time_med > 0:
-            ratio = time_large / time_med
-            assert 1.0 <= ratio <= 80, f"Scaling ratio {ratio:.1f}x not linear"
+        export_summary(medium_summary_report, medium_path, ExportFormat.JSON)
+        export_summary(large_summary_report, large_path, ExportFormat.JSON)
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_export_memory_scales_linearly(self, medium_summary_report, large_summary_report):
-        """Export size should scale linearly with data.
+        medium_size = medium_path.stat().st_size
+        large_size = large_path.stat().st_size
 
-        GIVEN: Medium and large summaries
-        WHEN: Exporting both to JSON
-        THEN: Large JSON should be ~10x larger than medium
-        """
-        # WHEN
-        import json
-
-        json_med = json.dumps(medium_summary_report)
-        json_large = json.dumps(large_summary_report)
-
-        # THEN
-        # Rough check: large should be significantly bigger
-        assert len(json_large) > len(json_med), "Large summary JSON should be bigger"
-        assert len(json_large) / len(json_med) > 5, "Large summary should be at least 5x bigger"
-
-
-# ============================================================================
-# TestOutputFormatPerformance
-# ============================================================================
+        assert large_size > medium_size, "Large summary JSON should be bigger"
+        assert large_size / medium_size > 2.0, "Large summary should be at least 2x bigger"
 
 
 class TestOutputFormatPerformance:
     """Test performance characteristics of different output formats."""
 
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_json_fastest_format(self, medium_summary_report):
-        """JSON export should be fastest format.
+    def test_json_fastest_format(self, medium_summary_report: SummaryReport, tmp_path: Path) -> None:
+        json_path = tmp_path / "summary.json"
+        txt_path = tmp_path / "summary.txt"
 
-        GIVEN: Summary report
-        WHEN: Exporting to JSON, HTML, TXT
-        THEN: JSON should be fastest of the three
-        """
-        import json
+        time_json_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, json_path, ExportFormat.JSON),
+            iterations=25,
+        )
+        time_txt_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, txt_path, ExportFormat.TXT),
+            iterations=25,
+        )
 
-        start = time.perf_counter()
-        json.dumps(medium_summary_report)
-        time_json = time.perf_counter() - start
+        assert time_json_ms <= time_txt_ms * 4.0, "JSON should remain in the same order as TXT"
 
-        start = time.perf_counter()
-        str(medium_summary_report)  # Simulate TXT
-        time_txt = time.perf_counter() - start
+    def test_html_generation_efficiency(
+        self,
+        medium_summary_report: SummaryReport,
+        tmp_path: Path,
+    ) -> None:
+        html_path = tmp_path / "summary.html"
+        elapsed_ms = _measure_total_ms(
+            lambda: export_summary(medium_summary_report, html_path, ExportFormat.HTML),
+            iterations=25,
+        )
 
-        # JSON should be competitive with TXT
-        assert time_json <= time_txt * 2, "JSON should be reasonably fast compared to TXT"
-
-    @pytest.mark.story_5_4
-    @pytest.mark.performance
-    def test_html_generation_efficiency(self, medium_summary_report):
-        """HTML generation should be efficient despite formatting.
-
-        GIVEN: Summary report
-        WHEN: Generating HTML with styling and formatting
-        THEN: Should still complete quickly (<500ms for medium)
-        """
-        # This is covered by test_html_export_under_500ms
-        pass
+        assert html_path.exists()
+        assert elapsed_ms < 500.0, f"HTML generation took {elapsed_ms:.2f}ms"
 
 
-# ============================================================================
-# IMPLEMENTATION PENDING MARKERS
-# ============================================================================
-
-
-@pytest.mark.skip(reason="Implementation pending - performance tuning")
 class TestPerformanceOptimizations:
-    """Performance optimization tests - deferred to implementation."""
+    """Performance optimization checks for summary rendering/export."""
 
-    def test_cached_summary_rendering(self):
-        """Summary rendering should cache rich objects."""
-        pass
+    def test_cached_summary_rendering(self, medium_summary_report: SummaryReport) -> None:
+        # Warm-up pass to stabilize imports and Rich internals.
+        render_summary_panel(medium_summary_report)
+        console = Console(width=120, record=False)
+        console.print(render_summary_panel(medium_summary_report))
 
-    def test_streaming_export_for_large_summaries(self):
-        """Large exports should stream data rather than buffering."""
-        pass
+        elapsed_ms = _measure_total_ms(
+            lambda: console.print(render_summary_panel(medium_summary_report)),
+            iterations=50,
+        )
+        average_ms = elapsed_ms / 50
 
-    def test_parallel_export_formats(self):
-        """Multiple format exports should execute in parallel."""
-        pass
+        assert average_ms < 5.0, f"Average render latency {average_ms:.3f}ms exceeded budget"
 
-    def test_progressive_summary_display(self):
-        """Summary should display progressively as data arrives."""
-        pass
+    def test_streaming_export_for_large_summaries(self, large_summary_report: SummaryReport) -> None:
+        section_iter = iter_summary_sections(large_summary_report)
+
+        start = time.perf_counter()
+        first_section = next(section_iter)
+        first_section_latency_ms = (time.perf_counter() - start) * 1000
+
+        assert "PROCESSING SUMMARY REPORT" in first_section
+        assert first_section_latency_ms < 10.0, (
+            f"First progressive section took {first_section_latency_ms:.2f}ms"
+        )
+
+    def test_parallel_export_formats(
+        self,
+        large_summary_report: SummaryReport,
+        tmp_path: Path,
+    ) -> None:
+        output = export_summary_parallel(
+            large_summary_report,
+            tmp_path,
+            formats=[ExportFormat.JSON, ExportFormat.HTML, ExportFormat.TXT],
+            max_workers=3,
+        )
+
+        assert output[ExportFormat.JSON].exists()
+        assert output[ExportFormat.HTML].exists()
+        assert output[ExportFormat.TXT].exists()
+
+    def test_progressive_summary_display(self, medium_summary_report: SummaryReport) -> None:
+        sections = list(iter_summary_sections(medium_summary_report))
+
+        assert len(sections) >= 4
+        assert sections[0].startswith("=")
+        assert any("QUALITY METRICS" in section for section in sections)
+        assert any("TIMING BREAKDOWN" in section for section in sections)

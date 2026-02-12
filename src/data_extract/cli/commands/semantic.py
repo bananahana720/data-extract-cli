@@ -6,9 +6,11 @@ Migrated from brownfield Click-based implementation.
 Implements AC-4.5-1 (analyze), AC-4.5-2 (deduplicate), AC-4.5-3 (cluster).
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import typer
 from rich.console import Console
@@ -18,12 +20,10 @@ from rich.table import Table
 
 from data_extract.chunk.models import Chunk
 from data_extract.cli.config import SemanticCliConfig, load_config_file, merge_config
-from data_extract.semantic.lsa import LsaConfig, LsaReductionStage
-from data_extract.semantic.models import SemanticResult, TfidfConfig
-from data_extract.semantic.quality_metrics import QualityConfig, QualityMetricsStage
-from data_extract.semantic.similarity import SimilarityAnalysisStage, SimilarityConfig
-from data_extract.semantic.tfidf import TfidfVectorizationStage
 from data_extract.services.chunk_io import chunk_to_dict, load_chunks
+
+if TYPE_CHECKING:
+    from data_extract.semantic.models import SemanticResult
 
 console = Console()
 semantic_app = typer.Typer(
@@ -104,6 +104,12 @@ def analyze(
         data-extract semantic analyze ./chunks/ --max-features 10000 --n-components 50
     """
     try:
+        from data_extract.semantic.lsa import LsaConfig, LsaReductionStage
+        from data_extract.semantic.models import TfidfConfig
+        from data_extract.semantic.quality_metrics import QualityConfig, QualityMetricsStage
+        from data_extract.semantic.similarity import SimilarityAnalysisStage, SimilarityConfig
+        from data_extract.semantic.tfidf import TfidfVectorizationStage
+
         # Validate output format
         valid_formats = ["json", "csv", "html"]
         if output_format.lower() not in valid_formats:
@@ -321,6 +327,9 @@ def deduplicate(
         data-extract semantic deduplicate ./chunks/ -v
     """
     try:
+        from data_extract.semantic.similarity import SimilarityAnalysisStage, SimilarityConfig
+        from data_extract.semantic.tfidf import TfidfVectorizationStage
+
         valid_formats = ["json", "csv", "html"]
         if output_format.lower() not in valid_formats:
             console.print(
@@ -478,6 +487,9 @@ def cluster(
         data-extract semantic cluster ./chunks/ -f html -o clusters.html
     """
     try:
+        from data_extract.semantic.lsa import LsaConfig, LsaReductionStage
+        from data_extract.semantic.tfidf import TfidfVectorizationStage
+
         # Validate output format
         valid_formats = ["json", "csv", "html"]
         if output_format.lower() not in valid_formats:
@@ -604,6 +616,9 @@ def topics(
         data-extract semantic topics ./chunks/ -n 20 -t 15 -o topics.json
     """
     try:
+        from data_extract.semantic.lsa import LsaConfig, LsaReductionStage
+        from data_extract.semantic.tfidf import TfidfVectorizationStage
+
         # Load chunks
         chunks = _load_chunks(input_path, verbose)
         if not chunks:
@@ -707,7 +722,7 @@ def _export_summary(
 
 
 def _compile_results(
-    semantic_result: SemanticResult,
+    semantic_result: "SemanticResult",
     enriched_chunks: List[Chunk],
     config: SemanticCliConfig,
 ) -> Dict[str, Any]:
