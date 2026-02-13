@@ -12,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
+from performance_catalog import RUN_PERFORMANCE_SUITE_NODEIDS
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -91,11 +93,7 @@ def main():
     print("TEST SUITE 1: EXTRACTOR PERFORMANCE BENCHMARKS")
     print("=" * 70)
 
-    extractor_tests = [
-        "tests/performance/test_extractor_benchmarks.py::TestTXTExtractorBenchmarks::test_txt_small_file_performance",
-        "tests/performance/test_extractor_benchmarks.py::TestTXTExtractorBenchmarks::test_txt_medium_file_performance",
-        "tests/performance/test_extractor_benchmarks.py::TestExcelExtractorBenchmarks::test_excel_small_file_performance",
-    ]
+    extractor_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["extractors"])
 
     for test in extractor_tests:
         result = run_command(
@@ -115,11 +113,7 @@ def main():
     print("TEST SUITE 2: PIPELINE PERFORMANCE BENCHMARKS")
     print("=" * 70)
 
-    pipeline_tests = [
-        "tests/performance/test_pipeline_benchmarks.py::TestProcessorChainBenchmarks::test_context_linker_performance",
-        "tests/performance/test_pipeline_benchmarks.py::TestProcessorChainBenchmarks::test_metadata_aggregator_performance",
-        "tests/performance/test_pipeline_benchmarks.py::TestFormatterBenchmarks::test_json_formatter_performance",
-    ]
+    pipeline_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["pipeline"])
 
     for test in pipeline_tests:
         result = run_command(
@@ -139,11 +133,7 @@ def main():
     print("TEST SUITE 3: CLI PERFORMANCE BENCHMARKS")
     print("=" * 70)
 
-    cli_tests = [
-        "tests/performance/test_cli_benchmarks.py::TestSingleFilePerformance::test_cli_txt_extraction_performance",
-        "tests/performance/test_cli_benchmarks.py::TestProgressDisplayOverhead::test_progress_vs_quiet_overhead",
-        "tests/performance/test_cli_benchmarks.py::TestEncodingPerformance::test_unicode_heavy_content",
-    ]
+    cli_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["cli"])
 
     for test in cli_tests:
         result = run_command(

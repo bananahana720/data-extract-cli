@@ -98,8 +98,8 @@ class TestPerformanceValidator:
 
         test_modules = validator.detect_changed_files()
 
-        assert "test_chunking_performance" in test_modules
-        assert "test_entity_chunking_performance" in test_modules
+        assert "test_chunk/test_chunking_latency.py" in test_modules
+        assert "test_chunk/test_entity_aware_performance.py" in test_modules
         mock_run.assert_called()
 
     @pytest.mark.unit
@@ -186,17 +186,23 @@ class TestPerformanceValidator:
 
                 # Create mock test file
                 test_file = (
-                    mock_project_root / "tests" / "performance" / "test_chunking_performance.py"
+                    mock_project_root
+                    / "tests"
+                    / "performance"
+                    / "test_chunk"
+                    / "test_chunking_latency.py"
                 )
                 test_file.parent.mkdir(parents=True, exist_ok=True)
                 test_file.touch()
 
                 # Mock successful test run
                 mock_run.return_value = MagicMock(
-                    returncode=0, stdout="3.5s call\ntest_chunking_performance PASSED", stderr=""
+                    returncode=0,
+                    stdout="3.5s call\ntest_chunking_latency PASSED",
+                    stderr="",
                 )
 
-                result = validator.run_performance_tests(["test_chunking_performance"])
+                result = validator.run_performance_tests(["test_chunk/test_chunking_latency.py"])
 
                 assert result is True
                 mock_run.assert_called()
@@ -248,6 +254,23 @@ class TestPerformanceValidator:
         """Test NFR violation checking - all pass."""
         validator = PerformanceValidator()
         validator.test_results = mock_test_results
+
+        result = validator.check_nfr_violations()
+
+        assert result is True
+        assert len(validator.nfr_violations) == 0
+
+    @pytest.mark.unit
+    def test_check_nfr_ignores_module_duration_throughput_name(self):
+        """Ensure module duration keys are not treated as throughput metrics."""
+        validator = PerformanceValidator()
+        validator.test_results = {
+            "module_duration::test_throughput.py": {
+                "value": 2.5,
+                "unit": "seconds",
+                "test": "test_throughput.py",
+            }
+        }
 
         result = validator.check_nfr_violations()
 
@@ -371,13 +394,19 @@ class TestPerformanceValidator:
 
         # Test each component has appropriate tests
         assert "chunk" in COMPONENT_MAPPING
-        assert "test_chunking_performance" in COMPONENT_MAPPING["chunk"]
+        assert "test_chunk/test_chunking_latency.py" in COMPONENT_MAPPING["chunk"]
 
         assert "semantic" in COMPONENT_MAPPING
-        assert "test_tfidf_performance" in COMPONENT_MAPPING["semantic"]
+        assert "test_lsa_performance.py" in COMPONENT_MAPPING["semantic"]
 
         assert "output" in COMPONENT_MAPPING
-        assert "test_json_performance" in COMPONENT_MAPPING["output"]
+        assert "test_json_performance.py" in COMPONENT_MAPPING["output"]
+
+        performance_dir = Path(__file__).resolve().parents[3] / "tests" / "performance"
+        for modules in COMPONENT_MAPPING.values():
+            for module in modules:
+                resolved = performance_dir / module
+                assert resolved.exists(), f"Mapped performance module missing: {module}"
 
 
 @pytest.mark.integration
@@ -403,7 +432,11 @@ class TestPerformanceValidatorIntegration:
 
                     # Create test file
                     test_file = (
-                        mock_project_root / "tests" / "performance" / "test_chunking_performance.py"
+                        mock_project_root
+                        / "tests"
+                        / "performance"
+                        / "test_chunk"
+                        / "test_chunking_latency.py"
                     )
                     test_file.parent.mkdir(parents=True, exist_ok=True)
                     test_file.touch()

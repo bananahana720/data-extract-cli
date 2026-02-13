@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import structlog  # type: ignore[import-not-found]
+from performance_catalog import COMPONENT_TEST_MODULES
 
 # Configure structured logging
 logger = structlog.get_logger()
@@ -43,39 +44,9 @@ NFR_P3_LATENCY = {
     "pipeline": 30.0,  # seconds end-to-end
 }
 
-# Component mapping for smart test detection
+# Component mapping for smart test detection.
 COMPONENT_MAPPING = {
-    "extract": [
-        "test_extract_performance",
-        "test_extractor_benchmarks.py",
-        "test_throughput.py",
-    ],
-    "normalize": [
-        "test_normalize_performance",
-        "test_quality_performance.py",
-    ],
-    "chunk": [
-        "test_chunking_performance",
-        "test_entity_chunking_performance",
-        "test_chunk/test_chunking_latency.py",
-        "test_chunk/test_entity_aware_performance.py",
-        "test_chunk/test_memory_efficiency.py",
-    ],
-    "semantic": [
-        "test_tfidf_performance",
-        "test_lsa_performance.py",
-        "test_quality_performance.py",
-        "test_summary_performance.py",
-    ],
-    "output": [
-        "test_output_performance",
-        "test_json_performance",
-        "test_json_performance.py",
-        "test_txt_performance",
-        "test_txt_performance.py",
-        "test_pipeline_benchmarks.py",
-        "test_cli_benchmarks.py",
-    ],
+    component: list(modules) for component, modules in COMPONENT_TEST_MODULES.items()
 }
 
 
@@ -489,7 +460,10 @@ class PerformanceValidator:
 
         # Check NFR-P1: Throughput
         throughput_metrics = [
-            k for k in self.test_results if k.startswith("metric::throughput") or "throughput" in k
+            k
+            for k, result in self.test_results.items()
+            if (k.startswith("metric::throughput") or "throughput" in k)
+            and "word" in str(result.get("unit", "")).lower()
         ]
         for metric in throughput_metrics:
             value = self.test_results[metric]["value"]
@@ -510,8 +484,9 @@ class PerformanceValidator:
         # Check NFR-P2: Memory
         memory_metrics = [
             k
-            for k in self.test_results
-            if k.startswith("metric::memory") or "memory" in k
+            for k, result in self.test_results.items()
+            if (k.startswith("metric::memory") or "memory" in k)
+            and "mb" in str(result.get("unit", "")).lower()
         ]
         for metric in memory_metrics:
             value = self.test_results[metric]["value"]

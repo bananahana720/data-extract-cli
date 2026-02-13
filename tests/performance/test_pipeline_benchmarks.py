@@ -138,3 +138,66 @@ class TestPipelineBenchmarks:
         assert len(run.processed) >= int(len(files) * 0.95)
         throughput_per_minute = (len(files) / elapsed_s) * 60 if elapsed_s > 0 else 0
         assert throughput_per_minute >= 10.0
+
+    @pytest.mark.slow
+    def test_pipeline_profile_visibility_auto_vs_legacy(
+        self, fixture_dir: Path, tmp_path: Path
+    ) -> None:
+        """Capture relative latency between auto and legacy profiles for PDF inputs."""
+        service = PipelineService()
+        file_path = fixture_dir / "pdfs" / "sample.pdf"
+
+        # Warm-up once to reduce one-time model initialization noise.
+        service.process_file(
+            file_path=file_path,
+            output_dir=tmp_path / "auto-warmup",
+            output_format="json",
+            chunk_size=500000,
+            include_semantic=False,
+            source_root=file_path.parent,
+            pipeline_profile="auto",
+        )
+        service.process_file(
+            file_path=file_path,
+            output_dir=tmp_path / "legacy-warmup",
+            output_format="json",
+            chunk_size=500000,
+            include_semantic=False,
+            source_root=file_path.parent,
+            pipeline_profile="legacy",
+        )
+
+        with PerformanceMeasurement() as auto_perf:
+            auto_result = service.process_file(
+                file_path=file_path,
+                output_dir=tmp_path / "auto",
+                output_format="json",
+                chunk_size=500000,
+                include_semantic=False,
+                source_root=file_path.parent,
+                pipeline_profile="auto",
+            )
+
+        with PerformanceMeasurement() as legacy_perf:
+            legacy_result = service.process_file(
+                file_path=file_path,
+                output_dir=tmp_path / "legacy",
+                output_format="json",
+                chunk_size=500000,
+                include_semantic=False,
+                source_root=file_path.parent,
+                pipeline_profile="legacy",
+            )
+
+        assert auto_result.chunk_count >= 1
+        assert legacy_result.chunk_count >= 1
+
+        ratio = (
+            auto_perf.duration_ms / legacy_perf.duration_ms if legacy_perf.duration_ms > 0 else 1.0
+        )
+        print(
+            f"\nProfile visibility: auto={auto_perf.duration_ms:.2f}ms "
+            f"legacy={legacy_perf.duration_ms:.2f}ms ratio={ratio:.2f}x"
+        )
+        # Visibility check only: ratio should always be positive.
+        assert ratio > 0

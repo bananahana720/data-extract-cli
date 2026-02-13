@@ -32,9 +32,11 @@ import psutil  # noqa: E402
 import pytest  # noqa: E402
 
 from tests.performance.conftest import (  # noqa: E402
+    BaselineManager,
     BenchmarkResult,
     assert_memory_limit,
     assert_performance_target,
+    baseline_write_enabled,
 )
 
 # ============================================================================
@@ -52,6 +54,12 @@ PROGRESS_OVERHEAD_MAX_PCT = 20  # Progress should add <20% overhead
 # Memory limits
 SINGLE_FILE_MEMORY_MB = 500
 BATCH_MEMORY_MB = 2000
+BATCH_WARMUP_RUNS = 1
+BATCH_MEASURED_RUNS = 3
+REGRESSION_THRESHOLD = 0.30
+REGRESSION_DURATION_FLOOR_MS = 50.0
+REGRESSION_MEMORY_FLOOR_MB = 5.0
+BASELINE_FILE = Path(__file__).parent / "baselines.json"
 
 
 # ============================================================================
@@ -134,10 +142,116 @@ def run_cli_command(
 
 def get_test_files(fixture_dir: Path, pattern: str, limit: int = None) -> List[Path]:
     """Get test files matching pattern."""
-    files = list(fixture_dir.rglob(pattern))
+    files = sorted(fixture_dir.rglob(pattern))
     if limit:
         files = files[:limit]
     return files
+
+
+def _assert_cli_no_regression(
+    operation: str,
+    benchmark: BenchmarkResult,
+    manager: BaselineManager,
+) -> None:
+    if baseline_write_enabled():
+        return
+
+    comparison = manager.compare(operation, benchmark, threshold=REGRESSION_THRESHOLD)
+    if not comparison["has_baseline"]:
+        return
+
+    baseline_duration = float(comparison["baseline_duration_ms"])
+    if (
+        baseline_duration >= REGRESSION_DURATION_FLOOR_MS
+        and float(comparison["duration_change_pct"]) > REGRESSION_THRESHOLD * 100
+    ):
+        raise AssertionError(
+            f"{operation} duration regression: +{comparison['duration_change_pct']:.2f}% "
+            f"(baseline={baseline_duration:.2f}ms, current={benchmark.duration_ms:.2f}ms)"
+        )
+
+    baseline_memory = float(comparison["baseline_memory_mb"])
+    if (
+        baseline_memory >= REGRESSION_MEMORY_FLOOR_MB
+        and float(comparison["memory_change_pct"]) > REGRESSION_THRESHOLD * 100
+    ):
+        raise AssertionError(
+            f"{operation} memory regression: +{comparison['memory_change_pct']:.2f}% "
+            f"(baseline={baseline_memory:.2f}MB, current={benchmark.memory_mb:.2f}MB)"
+        )
+
+
+def _persist_baseline_if_requested(
+    operation: str,
+    benchmark: BenchmarkResult,
+    manager: BaselineManager,
+) -> None:
+    if not baseline_write_enabled():
+        return
+    manager.update_baseline(operation, benchmark)
+    manager.save()
+
+
+def _representative_batch_files(fixture_dir: Path, max_files: int = 24) -> List[Path]:
+    """Build a deterministic, mixed-format corpus for CLI batch benchmarks."""
+    # Keep canonical tiny fixtures for compatibility with prior runs.
+    canonical = [
+        fixture_dir / "sample.txt",
+        fixture_dir / "quality_test_documents" / "complex_text.txt",
+        fixture_dir / "quality_test_documents" / "simple_text.txt",
+    ]
+
+    # Pull in a broader corpus to make startup overhead less dominant.
+    perf_batch_root = Path(__file__).parent / "batch_100_files"
+    batch_candidates = sorted(
+        [
+            path
+            for path in perf_batch_root.rglob("*")
+            if path.is_file() and path.suffix.lower() != ".png"
+        ]
+    )
+
+    files_by_suffix: dict[str, list[Path]] = {}
+    for candidate in batch_candidates:
+        suffix = candidate.suffix.lower()
+        files_by_suffix.setdefault(suffix, []).append(candidate)
+
+    ordered_suffixes = [".txt", ".pdf", ".docx", ".xlsx", ".pptx"]
+    ordered_suffixes.extend(
+        suffix for suffix in sorted(files_by_suffix.keys()) if suffix not in ordered_suffixes
+    )
+
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+
+    def _append_unique(file_path: Path) -> None:
+        resolved = file_path.resolve()
+        if resolved in seen:
+            return
+        seen.add(resolved)
+        deduped.append(file_path)
+
+    for file_path in canonical:
+        if file_path.exists():
+            _append_unique(file_path)
+        if len(deduped) >= max_files:
+            return deduped
+
+    while len(deduped) < max_files:
+        appended_this_round = False
+        for suffix in ordered_suffixes:
+            bucket = files_by_suffix.get(suffix)
+            if not bucket:
+                continue
+            candidate = bucket.pop(0)
+            _append_unique(candidate)
+            if len(deduped) >= max_files:
+                return deduped
+            appended_this_round = True
+        if not appended_this_round:
+            break
+
+    return deduped
 
 
 # ============================================================================
@@ -198,9 +312,8 @@ class TestSingleFilePerformance:
         print(f"  Throughput: {benchmark.throughput:.2f} KB/s")
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline("cli_extract_txt", benchmark)
-        production_baseline_manager.save()
+        _assert_cli_no_regression("cli_extract_txt", benchmark, production_baseline_manager)
+        _persist_baseline_if_requested("cli_extract_txt", benchmark, production_baseline_manager)
 
     def test_cli_pdf_extraction_performance(
         self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
@@ -250,9 +363,8 @@ class TestSingleFilePerformance:
         print(f"  Throughput: {benchmark.throughput:.2f} KB/s")
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline("cli_extract_pdf", benchmark)
-        production_baseline_manager.save()
+        _assert_cli_no_regression("cli_extract_pdf", benchmark, production_baseline_manager)
+        _persist_baseline_if_requested("cli_extract_pdf", benchmark, production_baseline_manager)
 
 
 # ============================================================================
@@ -275,19 +387,10 @@ class TestBatchProcessingPerformance:
         tmp_path: Path,
     ):
         """Benchmark batch processing with different worker counts."""
-        # Get deterministic test files (mix of formats) without recursive drift.
-        test_files = [
-            file_path
-            for file_path in [
-                fixture_dir / "sample.txt",
-                fixture_dir / "quality_test_documents" / "complex_text.txt",
-                fixture_dir / "quality_test_documents" / "simple_text.txt",
-            ]
-            if file_path.exists()
-        ]
-        test_files.extend(get_test_files(fixture_dir / "excel", "*.xlsx", limit=2))
+        # Use a broader deterministic corpus to reduce startup-noise dominance.
+        test_files = _representative_batch_files(fixture_dir, max_files=24)
 
-        if len(test_files) < 3:
+        if len(test_files) < 10:
             pytest.skip("Not enough test files for batch test")
 
         import shutil  # noqa: E402
@@ -303,22 +406,44 @@ class TestBatchProcessingPerformance:
         for test_file in test_files:
             shutil.copy2(test_file, batch_input_dir / test_file.name)
 
-        # Run batch command
-        result = run_cli_command(
-            [
-                "batch",
-                str(batch_input_dir),
-                "--output",
-                str(output_dir),
-                "--workers",
-                str(workers),
-                "--quiet",
-            ],
-            timeout=300,
-        )
+        batch_args = [
+            "batch",
+            str(batch_input_dir),
+            "--output",
+            str(output_dir),
+            "--workers",
+            str(workers),
+            "--quiet",
+        ]
 
-        # Verify success
-        assert result["success"], f"Batch failed: {result['stderr']}"
+        # Warmup and median-of-N measurement to reduce run-to-run timing noise.
+        for _ in range(BATCH_WARMUP_RUNS):
+            shutil.rmtree(output_dir, ignore_errors=True)
+            output_dir.mkdir(exist_ok=True)
+            warmup = run_cli_command(batch_args, timeout=300)
+            assert warmup["success"], f"Batch warmup failed: {warmup['stderr']}"
+
+        samples: list[Dict[str, Any]] = []
+        for _ in range(BATCH_MEASURED_RUNS):
+            shutil.rmtree(output_dir, ignore_errors=True)
+            output_dir.mkdir(exist_ok=True)
+            sample = run_cli_command(batch_args, timeout=300)
+            assert sample["success"], f"Batch failed: {sample['stderr']}"
+            samples.append(sample)
+
+        assert samples, "No batch samples collected"
+        duration_samples = sorted(float(sample["duration_ms"]) for sample in samples)
+        memory_samples = sorted(float(sample["memory_peak_mb"]) for sample in samples)
+        cpu_samples = [float(sample["cpu_percent"]) for sample in samples]
+        median_index = len(samples) // 2
+
+        result = {
+            "success": True,
+            "duration_ms": duration_samples[median_index],
+            "memory_peak_mb": memory_samples[median_index],
+            "cpu_percent": sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0.0,
+            "stderr": "",
+        }
 
         # Calculate metrics
         total_size_kb = sum(f.stat().st_size / 1024 for f in test_files)
@@ -360,11 +485,15 @@ class TestBatchProcessingPerformance:
         print(f"  CPU: {result['cpu_percent']:.1f}%")
         print(f"  Throughput: {files_per_second:.2f} files/s")
         print(f"  Per File: {result['duration_ms'] / len(test_files):.2f} ms/file")
+        print(
+            "  Sample Durations: "
+            + ", ".join(f"{sample['duration_ms']:.2f}ms" for sample in samples)
+        )
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline(f"cli_batch_{workers}workers", benchmark)
-        production_baseline_manager.save()
+        operation = f"cli_batch_{workers}workers"
+        _assert_cli_no_regression(operation, benchmark, production_baseline_manager)
+        _persist_baseline_if_requested(operation, benchmark, production_baseline_manager)
 
         # Cleanup
         shutil.rmtree(output_dir, ignore_errors=True)
@@ -386,12 +515,10 @@ class TestThreadSafetyStress:
         self, fixture_dir: Path, production_baseline_manager, tmp_path: Path
     ):
         """Stress test with maximum workers and many files."""
-        # Get deterministic stress corpus without recursively including generated dirs.
-        quality_docs = sorted((fixture_dir / "quality_test_documents").glob("*.txt"))
-        test_files = [fixture_dir / "sample.txt", *quality_docs][:10]
-        test_files = [file_path for file_path in test_files if file_path.exists()]
+        # Reuse broad corpus for more representative concurrency stress.
+        test_files = _representative_batch_files(fixture_dir, max_files=30)
 
-        if len(test_files) < 5:
+        if len(test_files) < 10:
             pytest.skip("Not enough test files for stress test")
 
         import shutil  # noqa: E402
@@ -460,9 +587,12 @@ class TestThreadSafetyStress:
         print(f"  Status: {'PASS - No deadlocks' if result['success'] else 'FAIL'}")
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline("cli_stress_high_concurrency", benchmark)
-        production_baseline_manager.save()
+        _assert_cli_no_regression(
+            "cli_stress_high_concurrency", benchmark, production_baseline_manager
+        )
+        _persist_baseline_if_requested(
+            "cli_stress_high_concurrency", benchmark, production_baseline_manager
+        )
 
         # Cleanup
         shutil.rmtree(output_dir, ignore_errors=True)
@@ -549,9 +679,10 @@ class TestProgressDisplayOverhead:
         print(f"  Status: {'PASS' if overhead_pct < PROGRESS_OVERHEAD_MAX_PCT else 'FAIL'}")
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline("cli_progress_overhead", benchmark)
-        production_baseline_manager.save()
+        _assert_cli_no_regression("cli_progress_overhead", benchmark, production_baseline_manager)
+        _persist_baseline_if_requested(
+            "cli_progress_overhead", benchmark, production_baseline_manager
+        )
 
 
 # ============================================================================
@@ -615,6 +746,7 @@ class TestEncodingPerformance:
         print(f"  Throughput: {benchmark.throughput:.2f} KB/s")
         print(f"{'='*60}")
 
-        # Save baseline
-        production_baseline_manager.update_baseline("cli_unicode_encoding", benchmark)
-        production_baseline_manager.save()
+        _assert_cli_no_regression("cli_unicode_encoding", benchmark, production_baseline_manager)
+        _persist_baseline_if_requested(
+            "cli_unicode_encoding", benchmark, production_baseline_manager
+        )

@@ -25,6 +25,51 @@ from datetime import datetime  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any, Callable  # noqa: E402
 
+# Environment switches for baseline refresh automation.
+_BASELINE_WRITE_MODE_ENV = "DATA_EXTRACT_BASELINE_WRITE_MODE"
+_BASELINE_TARGET_ENV = "DATA_EXTRACT_BASELINE_TARGET"
+
+
+def _env_truthy(name: str) -> bool:
+    return str(os.environ.get(name, "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def baseline_write_enabled() -> bool:
+    """Return True when tests should persist baselines to a real target file."""
+    return _env_truthy(_BASELINE_WRITE_MODE_ENV)
+
+
+def baseline_target_path(default_path: Path) -> Path:
+    """Return baseline destination path from environment or default."""
+    configured = str(os.environ.get(_BASELINE_TARGET_ENV, "")).strip()
+    if configured:
+        return Path(configured)
+    return default_path
+
+
+def _baseline_file_is_usable(path: Path) -> bool:
+    """Return True when path contains valid baseline JSON payload."""
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return False
+    baselines = payload.get("baselines")
+    return isinstance(baselines, dict)
+
+
+def _seed_baseline_file(path: Path) -> None:
+    """Initialize an empty but valid baseline payload."""
+    data = {
+        "baselines": {},
+        "updated_at": datetime.now().isoformat(),
+    }
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+
+
 # ============================================================================
 # Performance Measurement Models
 # ============================================================================
@@ -329,12 +374,25 @@ def production_baseline_manager(tmp_path_factory: pytest.TempPathFactory) -> Bas
         BaselineManager for production baselines
     """
     source_baseline = Path(__file__).parent / "baselines.json"
+
+    if baseline_write_enabled():
+        baseline_file = baseline_target_path(source_baseline)
+        baseline_file.parent.mkdir(parents=True, exist_ok=True)
+        if not _baseline_file_is_usable(baseline_file):
+            if (
+                source_baseline.exists()
+                and _baseline_file_is_usable(source_baseline)
+                and baseline_file != source_baseline
+            ):
+                shutil.copy2(source_baseline, baseline_file)
+            else:
+                _seed_baseline_file(baseline_file)
+        return BaselineManager(baseline_file)
+
     baseline_dir = tmp_path_factory.mktemp("perf_baselines")
     baseline_file = baseline_dir / "baselines.json"
-
     if source_baseline.exists():
         shutil.copy2(source_baseline, baseline_file)
-
     return BaselineManager(baseline_file)
 
 
