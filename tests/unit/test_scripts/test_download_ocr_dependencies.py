@@ -138,7 +138,9 @@ class TestPopplerVersionAndChecksum:
             max_retries=4,
             backoff_ms=300,
         )
-        mock_verify_checksum.assert_called_once_with(tmp_path / "poppler-windows.zip", expected_checksum)
+        mock_verify_checksum.assert_called_once_with(
+            tmp_path / "poppler-windows.zip", expected_checksum
+        )
 
     @pytest.mark.unit
     def test_download_poppler_uses_env_checksum_for_selected_version(self, tmp_path):
@@ -169,7 +171,9 @@ class TestPopplerVersionAndChecksum:
             )
 
         assert ok is True
-        mock_verify_checksum.assert_called_once_with(tmp_path / "poppler-windows.zip", expected_checksum)
+        mock_verify_checksum.assert_called_once_with(
+            tmp_path / "poppler-windows.zip", expected_checksum
+        )
 
     @pytest.mark.unit
     def test_download_poppler_fails_when_checksum_missing_for_selected_version(self, tmp_path):
