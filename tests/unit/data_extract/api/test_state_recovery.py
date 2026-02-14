@@ -105,7 +105,7 @@ def test_recover_inflight_jobs_requeues_queued_and_running(
 
 
 @pytest.mark.unit
-def test_enqueue_process_queue_full_discards_unaccepted_idempotent_job(
+def test_enqueue_process_queue_full_stages_job_for_later_dispatch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     from data_extract.api import state as state_module
@@ -127,12 +127,7 @@ def test_enqueue_process_queue_full_discards_unaccepted_idempotent_job(
     monkeypatch.setattr(runtime, "_write_job_log", lambda *args, **kwargs: None)
     monkeypatch.setattr(runtime, "_compute_request_hash", lambda _request: "hash-1")
 
-    first_request = ProcessJobRequest(
-        input_path=str(tmp_path / "input"),
-        output_format="json",
-        idempotency_key="idem-123",
-    )
-    second_request = ProcessJobRequest(
+    request = ProcessJobRequest(
         input_path=str(tmp_path / "input"),
         output_format="json",
         idempotency_key="idem-123",
@@ -142,14 +137,15 @@ def test_enqueue_process_queue_full_discards_unaccepted_idempotent_job(
         raise QueueFullError("Queue backlog is at capacity (1000); try again later.")
 
     monkeypatch.setattr(runtime.queue, "submit", reject_submit)
-    with pytest.raises(QueueCapacityError):
-        runtime.enqueue_process(first_request, job_id="job-full-1")
+    queued_job_id = runtime.enqueue_process(request, job_id="job-full-1")
+    assert queued_job_id == "job-full-1"
 
     with test_session_local() as db:
-        assert db.get(Job, "job-full-1") is None
-        stale_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-full-1"))
-    assert stale_events == []
-    assert not (jobs_home / "job-full-1").exists()
+        staged_job = db.get(Job, "job-full-1")
+    assert staged_job is not None
+    assert staged_job.status == "queued"
+    assert staged_job.dispatch_state in {"pending_dispatch", "pending"}
+    assert "Queue backlog is at capacity" in str(staged_job.dispatch_last_error or "")
 
     submitted: list[str] = []
 
@@ -157,14 +153,19 @@ def test_enqueue_process_queue_full_discards_unaccepted_idempotent_job(
         submitted.append(job_id)
 
     monkeypatch.setattr(runtime.queue, "submit", accept_submit)
-    queued_job_id = runtime.enqueue_process(second_request, job_id="job-full-2")
-
-    assert queued_job_id == "job-full-2"
-    assert submitted == ["job-full-2"]
     with test_session_local() as db:
-        persisted_job = db.get(Job, "job-full-2")
+        staged_job = db.get(Job, "job-full-1")
+        assert staged_job is not None
+        staged_job.dispatch_next_attempt_at = datetime.now(timezone.utc)
+        db.commit()
+    runtime._dispatch_pending_jobs_once(source="test_dispatch")
+    runtime._dispatch_pending_jobs_once(source="test_dispatch")
+    assert submitted == ["job-full-1"]
+    with test_session_local() as db:
+        persisted_job = db.get(Job, "job-full-1")
     assert persisted_job is not None
     assert persisted_job.status == "queued"
+    assert persisted_job.dispatch_state == "submitted"
 
 
 @pytest.mark.unit
@@ -209,18 +210,17 @@ def test_enqueue_retry_queue_full_preserves_existing_result_payload(
         raise QueueFullError("Queue backlog is at capacity (1000); try again later.")
 
     monkeypatch.setattr(runtime.queue, "submit", reject_submit)
-
-    with pytest.raises(QueueCapacityError):
-        runtime.enqueue_retry(
-            "retry-keep",
-            RetryRequest(session="sess-keep", non_interactive=True, last=False),
-        )
+    runtime.enqueue_retry(
+        "retry-keep",
+        RetryRequest(session="sess-keep", non_interactive=True, last=False),
+    )
 
     with test_session_local() as db:
         job = db.get(Job, "retry-keep")
 
     assert job is not None
-    assert job.status == "partial"
+    assert job.status == "queued"
+    assert job.dispatch_state in {"pending_dispatch", "pending"}
     assert json.loads(job.result_payload or "{}") == original_payload
 
 
@@ -417,17 +417,19 @@ def test_reconcile_terminal_artifacts_repairs_and_records_failures(
     test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     Base.metadata.create_all(bind=engine)
 
-    artifact_payload = {"status": "completed", "session_id": "sess-artifact"}
     db_payload = {"status": "failed", "error": "boom"}
 
-    artifact_source_dir = jobs_home / "job-db-repair"
-    artifact_source_dir.mkdir(parents=True, exist_ok=True)
-    (artifact_source_dir / "result.json").write_text(json.dumps(artifact_payload), encoding="utf-8")
+    mismatch_source_dir = jobs_home / "job-artifact-mismatch"
+    mismatch_source_dir.mkdir(parents=True, exist_ok=True)
+    (mismatch_source_dir / "result.json").write_text(
+        json.dumps({"status": "completed", "note": "old"}),
+        encoding="utf-8",
+    )
 
     with test_session_local() as db:
         db.add(
             Job(
-                id="job-db-repair",
+                id="job-db-invalid",
                 status="completed",
                 input_path=str(tmp_path / "input"),
                 output_dir=str(tmp_path / "output"),
@@ -435,7 +437,7 @@ def test_reconcile_terminal_artifacts_repairs_and_records_failures(
                 chunk_size=512,
                 request_payload="{}",
                 result_payload="{bad-json",
-                artifact_dir=str(artifact_source_dir),
+                artifact_dir=str(jobs_home / "job-db-invalid"),
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
             )
@@ -457,15 +459,15 @@ def test_reconcile_terminal_artifacts_repairs_and_records_failures(
         )
         db.add(
             Job(
-                id="job-repair-failure",
-                status="partial",
+                id="job-artifact-mismatch",
+                status="completed",
                 input_path=str(tmp_path / "input"),
                 output_dir=str(tmp_path / "output"),
                 requested_format="json",
                 chunk_size=512,
                 request_payload="{}",
-                result_payload="{still-bad-json",
-                artifact_dir=str(jobs_home / "job-repair-failure"),
+                result_payload=json.dumps(db_payload),
+                artifact_dir=str(mismatch_source_dir),
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
             )
@@ -483,24 +485,99 @@ def test_reconcile_terminal_artifacts_repairs_and_records_failures(
     assert stats["scanned"] == 3
     assert stats["repaired"] == 2
     assert stats["failed"] == 1
-    assert stats["db_repairs"] == 1
-    assert stats["artifact_repairs"] == 1
+    assert stats["db_repairs"] == 0
+    assert stats["artifact_repairs"] == 2
 
     repaired_artifact_path = jobs_home / "job-artifact-repair" / "result.json"
     assert repaired_artifact_path.exists()
     assert json.loads(repaired_artifact_path.read_text(encoding="utf-8")) == db_payload
+    mismatch_artifact_path = mismatch_source_dir / "result.json"
+    assert json.loads(mismatch_artifact_path.read_text(encoding="utf-8")) == db_payload
 
     with test_session_local() as db:
-        repaired_db_job = db.get(Job, "job-db-repair")
-        assert repaired_db_job is not None
-        assert json.loads(repaired_db_job.result_payload or "{}") == artifact_payload
+        invalid_db_job = db.get(Job, "job-db-invalid")
+        assert invalid_db_job is not None
+        assert invalid_db_job.artifact_sync_state == "failed"
 
-        db_repair_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-db-repair"))
+        invalid_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-db-invalid"))
         artifact_repair_events = list(
             db.query(JobEvent).filter(JobEvent.job_id == "job-artifact-repair")
         )
-        failure_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-repair-failure"))
+        mismatch_events = list(
+            db.query(JobEvent).filter(JobEvent.job_id == "job-artifact-mismatch")
+        )
 
-    assert any(event.event_type == "repair" for event in db_repair_events)
+    assert any(event.event_type == "error" for event in invalid_events)
     assert any(event.event_type == "repair" for event in artifact_repair_events)
-    assert any(event.event_type == "error" for event in failure_events)
+    assert any(event.event_type == "repair" for event in mismatch_events)
+
+
+@pytest.mark.unit
+def test_persist_result_keeps_terminal_status_when_artifact_sync_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from data_extract.api import state as state_module
+
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    with test_session_local() as db:
+        db.add(
+            Job(
+                id="job-artifact-fail",
+                status="queued",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload="{}",
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        db.commit()
+
+    monkeypatch.setattr(state_module, "SessionLocal", test_session_local)
+    runtime = ApiRuntime()
+    monkeypatch.setattr(runtime, "_write_job_log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        runtime,
+        "_write_job_artifact",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("disk full")),
+    )
+
+    runtime._persist_result(
+        "job-artifact-fail",
+        {
+            "job_id": "job-artifact-fail",
+            "status": "completed",
+            "total_files": 1,
+            "processed_count": 1,
+            "failed_count": 0,
+            "output_dir": str(tmp_path / "output"),
+            "artifact_dir": str(tmp_path / "artifacts"),
+            "processed_files": [
+                {
+                    "path": str(tmp_path / "input" / "a.txt"),
+                    "output_path": "a.json",
+                    "chunk_count": 1,
+                }
+            ],
+            "failed_files": [],
+        },
+    )
+
+    with test_session_local() as db:
+        job = db.get(Job, "job-artifact-fail")
+
+    assert job is not None
+    assert job.status == "completed"
+    assert job.artifact_sync_state == "failed"
+    assert "disk full" in str(job.artifact_sync_error or "")

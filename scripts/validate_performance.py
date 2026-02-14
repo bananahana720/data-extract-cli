@@ -14,16 +14,18 @@ Usage:
 """
 
 import argparse
+import json
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import structlog  # type: ignore[import-not-found]
-from performance_catalog import COMPONENT_TEST_MODULES
+from performance_catalog import COMPONENT_TEST_MODULES, RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS
 
 # Configure structured logging
 logger = structlog.get_logger()
@@ -34,6 +36,7 @@ TESTS_DIR = PROJECT_ROOT / "tests"
 PERFORMANCE_TESTS_DIR = TESTS_DIR / "performance"
 DOCS_DIR = PROJECT_ROOT / "docs"
 BASELINE_PATTERN = "performance-baselines-*.md"
+API_RUNTIME_LOAD_SCRIPT = PROJECT_ROOT / "scripts" / "run_api_load.py"
 
 # NFR thresholds from requirements
 NFR_P1_THROUGHPUT = 1000  # words per second minimum
@@ -59,6 +62,16 @@ class PerformanceValidator:
         update_baseline: bool = False,
         ci_mode: bool = False,
         verbose: bool = False,
+        run_api_runtime: bool = False,
+        api_base_url: str = "http://127.0.0.1:8000",
+        api_concurrency: int = 8,
+        api_duration_seconds: float = 15.0,
+        api_timeout_seconds: float = 5.0,
+        api_warmup_requests: int = 3,
+        api_max_error_rate_pct: float = 0.0,
+        api_max_p95_latency_ms: Optional[float] = None,
+        api_min_rps: Optional[float] = None,
+        api_output_json: Optional[Path] = None,
     ):
         """
         Initialize the performance validator.
@@ -68,11 +81,32 @@ class PerformanceValidator:
             update_baseline: Update baseline documentation
             ci_mode: CI/CD mode (strict failures)
             verbose: Enable verbose output
+            run_api_runtime: Execute API runtime load checks
+            api_base_url: Base URL for API runtime load checks
+            api_concurrency: API load worker count
+            api_duration_seconds: API load duration per selector
+            api_timeout_seconds: API request timeout
+            api_warmup_requests: Warmup request count per selector
+            api_max_error_rate_pct: Max allowed API error rate
+            api_max_p95_latency_ms: Optional API latency threshold
+            api_min_rps: Optional minimum API throughput
+            api_output_json: Optional JSON report path for API load data
         """
         self.component = component
         self.update_baseline = update_baseline
         self.ci_mode = ci_mode
         self.verbose = verbose
+        self.run_api_runtime = run_api_runtime
+        self.api_base_url = api_base_url
+        self.api_concurrency = max(1, api_concurrency)
+        self.api_duration_seconds = max(0.1, api_duration_seconds)
+        self.api_timeout_seconds = max(0.1, api_timeout_seconds)
+        self.api_warmup_requests = max(0, api_warmup_requests)
+        self.api_max_error_rate_pct = api_max_error_rate_pct
+        self.api_max_p95_latency_ms = api_max_p95_latency_ms
+        self.api_min_rps = api_min_rps
+        self.api_output_json = api_output_json
+        self.detected_api_runtime_change = False
         self.start_time = time.time()
         self.test_results: Dict[str, dict] = {}
         self.baseline_data: Dict[str, dict] = {}
@@ -83,6 +117,7 @@ class PerformanceValidator:
             component=component,
             update_baseline=update_baseline,
             ci_mode=ci_mode,
+            run_api_runtime=run_api_runtime,
         )
 
     def print_header(self) -> None:
@@ -123,10 +158,12 @@ class PerformanceValidator:
                 )
 
             changed_files = result.stdout.strip().split("\n") if result.stdout.strip() else []
+            self.detected_api_runtime_change = False
 
             # Map changed files to components
             affected_components = set()
             for file in changed_files:
+                normalized = file.replace("\\", "/").lower()
                 if "extract" in file.lower():
                     affected_components.add("extract")
                 if "normaliz" in file.lower():
@@ -137,6 +174,13 @@ class PerformanceValidator:
                     affected_components.add("semantic")
                 if "output" in file.lower() or "format" in file.lower():
                     affected_components.add("output")
+                if (
+                    "src/data_extract/api/" in normalized
+                    or normalized.startswith("scripts/run_api_load.py")
+                    or normalized.startswith("scripts/run_performance_suite.py")
+                ):
+                    self.detected_api_runtime_change = True
+                    affected_components.add("api_runtime")
 
             # Get test modules for affected components
             test_modules = []
@@ -152,6 +196,9 @@ class PerformanceValidator:
                 # Run all tests if no specific changes detected
                 for tests in COMPONENT_MAPPING.values():
                     test_modules.extend(tests)
+
+            if self.detected_api_runtime_change:
+                print("  🌐 API runtime changes detected; API load harness will be included")
 
             return list(set(test_modules))  # Remove duplicates
 
@@ -382,6 +429,132 @@ class PerformanceValidator:
                 "test": test_module,
             }
 
+    def _build_api_output_path(self, selector_name: str) -> tuple[Path, bool]:
+        """Return report path and whether it should be deleted after parsing."""
+        if self.api_output_json is not None:
+            if len(RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS) == 1:
+                return self.api_output_json, False
+            suffix = self.api_output_json.suffix or ".json"
+            stem = self.api_output_json.stem
+            output_path = self.api_output_json.with_name(f"{stem}_{selector_name}{suffix}")
+            return output_path, False
+
+        tmp = tempfile.NamedTemporaryFile(
+            prefix=f"api_runtime_{selector_name}_",
+            suffix=".json",
+            delete=False,
+        )
+        tmp.close()
+        return Path(tmp.name), True
+
+    def _record_api_runtime_metrics(self, selector_name: str, metrics: dict) -> None:
+        """Capture API runtime metrics in test_results format."""
+        p95_seconds = float(metrics.get("latency_p95_ms", 0.0)) / 1000.0
+        p50_seconds = float(metrics.get("latency_p50_ms", 0.0)) / 1000.0
+        throughput_rps = float(metrics.get("requests_per_second", 0.0))
+        error_rate_pct = float(metrics.get("error_rate_pct", 0.0))
+
+        self.test_results[f"metric::latency::api_runtime::{selector_name}::p95"] = {
+            "value": p95_seconds,
+            "unit": "seconds",
+            "test": f"api_runtime::{selector_name}",
+        }
+        self.test_results[f"metric::latency::api_runtime::{selector_name}::p50"] = {
+            "value": p50_seconds,
+            "unit": "seconds",
+            "test": f"api_runtime::{selector_name}",
+        }
+        self.test_results[f"metric::throughput::api_runtime::{selector_name}"] = {
+            "value": throughput_rps,
+            "unit": "requests/second",
+            "test": f"api_runtime::{selector_name}",
+        }
+        self.test_results[f"metric::error_rate::api_runtime::{selector_name}"] = {
+            "value": error_rate_pct,
+            "unit": "percent",
+            "test": f"api_runtime::{selector_name}",
+        }
+
+    def run_api_runtime_load(self) -> bool:
+        """Execute API runtime load checks and ingest resulting metrics."""
+        print("\n🌐 Running API runtime load checks...")
+
+        if not API_RUNTIME_LOAD_SCRIPT.exists():
+            print(f"  ❌ API load runner not found: {API_RUNTIME_LOAD_SCRIPT}")
+            return False
+
+        success = True
+        for selector_name, endpoint in RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS:
+            output_path, delete_after_read = self._build_api_output_path(selector_name)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            command = [
+                sys.executable,
+                str(API_RUNTIME_LOAD_SCRIPT),
+                "--name",
+                selector_name,
+                "--base-url",
+                self.api_base_url,
+                "--endpoint",
+                endpoint,
+                "--concurrency",
+                str(self.api_concurrency),
+                "--duration-seconds",
+                str(self.api_duration_seconds),
+                "--timeout-seconds",
+                str(self.api_timeout_seconds),
+                "--warmup-requests",
+                str(self.api_warmup_requests),
+                "--max-error-rate-pct",
+                str(self.api_max_error_rate_pct),
+                "--output-json",
+                str(output_path),
+            ]
+            if self.api_max_p95_latency_ms is not None:
+                command.extend(["--max-p95-latency-ms", str(self.api_max_p95_latency_ms)])
+            if self.api_min_rps is not None:
+                command.extend(["--min-rps", str(self.api_min_rps)])
+
+            print(f"  🔬 Running api_runtime::{selector_name} ({endpoint})...")
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                cwd=PROJECT_ROOT,
+            )
+
+            if self.verbose:
+                print(result.stdout[-500:])
+                if result.stderr:
+                    print(result.stderr[-500:])
+
+            if result.returncode != 0:
+                print(f"    ❌ api_runtime::{selector_name} failed")
+                success = False
+            else:
+                print(f"    ✅ api_runtime::{selector_name} passed")
+
+            try:
+                payload = json.loads(output_path.read_text(encoding="utf-8"))
+                metrics = payload.get("metrics")
+                if not isinstance(metrics, dict):
+                    raise ValueError("missing 'metrics' object in API runtime report")
+                self._record_api_runtime_metrics(selector_name, metrics)
+            except Exception as exc:
+                logger.error(
+                    "api_runtime_parse_error",
+                    selector=selector_name,
+                    report_path=str(output_path),
+                    error=str(exc),
+                )
+                print(f"    ❌ Failed to parse api_runtime::{selector_name} report: {exc}")
+                success = False
+            finally:
+                if delete_after_read and output_path.exists():
+                    output_path.unlink()
+
+        return success
+
     def compare_with_baselines(self) -> bool:
         """
         Compare test results against baselines.
@@ -511,7 +684,10 @@ class PerformanceValidator:
                 for k in self.test_results
                 if k.startswith(f"metric::latency::{component}")
                 or ("latency" in k and component in k)
-                or ("chunk" in component and ("chunk" in k or "time" in k))
+                or (
+                    component == "chunk"
+                    and ("chunk" in k or bool(re.search(r"(^|[_:])time($|[_:])", k)))
+                )
             ]
             for metric in component_metrics:
                 value = self.test_results[metric]["value"]
@@ -679,33 +855,48 @@ class PerformanceValidator:
             True if validation passed
         """
         self.print_header()
+        run_api_runtime = self.run_api_runtime
 
         # If component specified, use its tests
         if self.component:
-            if self.component in COMPONENT_MAPPING:
+            if self.component == "api_runtime":
+                test_modules = list(COMPONENT_MAPPING.get("api_runtime", []))
+                run_api_runtime = True
+                print("📦 Testing component: api_runtime")
+            elif self.component in COMPONENT_MAPPING:
                 test_modules = COMPONENT_MAPPING[self.component]
                 print(f"📦 Testing component: {self.component}")
             else:
                 print(f"❌ Unknown component: {self.component}")
-                print(f"   Available: {', '.join(COMPONENT_MAPPING.keys())}")
+                available = [*COMPONENT_MAPPING.keys(), "api_runtime"]
+                print(f"   Available: {', '.join(available)}")
                 return False
         else:
             # Detect changed files and determine tests
             test_modules = self.detect_changed_files()
+            run_api_runtime = run_api_runtime or self.detected_api_runtime_change
 
         # Parse baseline documents
         self.parse_baseline_documents()
 
         # Run performance tests
-        if not test_modules:
+        if not test_modules and not run_api_runtime:
             print("ℹ️  No performance tests to run")
             return True
 
-        tests_passed = self.run_performance_tests(test_modules)
+        tests_passed = True
+        if test_modules:
+            tests_passed = self.run_performance_tests(test_modules)
 
         if not tests_passed:
             print("\n❌ Performance tests failed")
             return False
+
+        if run_api_runtime:
+            api_runtime_passed = self.run_api_runtime_load()
+            if not api_runtime_passed:
+                print("\n❌ API runtime load checks failed")
+                return False
 
         # Compare with baselines
         if self.test_results:
@@ -733,7 +924,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--component",
-        choices=["extract", "normalize", "chunk", "semantic", "output"],
+        choices=["extract", "normalize", "chunk", "semantic", "output", "api_runtime"],
         help="Test specific component only",
     )
     parser.add_argument(
@@ -751,6 +942,64 @@ def main() -> None:
         action="store_true",
         help="Enable verbose output",
     )
+    parser.add_argument(
+        "--run-api-runtime",
+        action="store_true",
+        help="Run API runtime load harness in addition to module tests",
+    )
+    parser.add_argument(
+        "--api-base-url",
+        default="http://127.0.0.1:8000",
+        help="Base URL for API runtime load checks",
+    )
+    parser.add_argument(
+        "--api-concurrency",
+        type=int,
+        default=8,
+        help="API runtime load worker count",
+    )
+    parser.add_argument(
+        "--api-duration-seconds",
+        type=float,
+        default=15.0,
+        help="API runtime load duration per selector",
+    )
+    parser.add_argument(
+        "--api-timeout-seconds",
+        type=float,
+        default=5.0,
+        help="API runtime request timeout",
+    )
+    parser.add_argument(
+        "--api-warmup-requests",
+        type=int,
+        default=3,
+        help="Warmup requests per API runtime selector",
+    )
+    parser.add_argument(
+        "--api-max-error-rate-pct",
+        type=float,
+        default=0.0,
+        help="Maximum allowed API runtime error rate percentage",
+    )
+    parser.add_argument(
+        "--api-max-p95-latency-ms",
+        type=float,
+        default=None,
+        help="Optional API runtime p95 latency threshold in milliseconds",
+    )
+    parser.add_argument(
+        "--api-min-rps",
+        type=float,
+        default=None,
+        help="Optional API runtime minimum sustained requests/sec",
+    )
+    parser.add_argument(
+        "--api-output-json",
+        type=Path,
+        default=None,
+        help="Optional JSON report path prefix for API runtime selector reports",
+    )
 
     args = parser.parse_args()
 
@@ -760,6 +1009,16 @@ def main() -> None:
         update_baseline=args.update_baseline,
         ci_mode=args.ci_mode,
         verbose=args.verbose,
+        run_api_runtime=args.run_api_runtime,
+        api_base_url=args.api_base_url,
+        api_concurrency=args.api_concurrency,
+        api_duration_seconds=args.api_duration_seconds,
+        api_timeout_seconds=args.api_timeout_seconds,
+        api_warmup_requests=args.api_warmup_requests,
+        api_max_error_rate_pct=args.api_max_error_rate_pct,
+        api_max_p95_latency_ms=args.api_max_p95_latency_ms,
+        api_min_rps=args.api_min_rps,
+        api_output_json=args.api_output_json,
     )
 
     success = validator.run()

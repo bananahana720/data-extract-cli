@@ -1,0 +1,1431 @@
+{
+  "generated_at": "2026-02-14T23:44:51Z",
+  "workload": {
+    "endpoint": "/api/v1/jobs/process",
+    "concurrency": 16,
+    "total_requests": 240
+  },
+  "profiles": [
+    {
+      "name": "baseline",
+      "port": 8790,
+      "env": {
+        "DATA_EXTRACT_API_WORKERS": "2",
+        "DATA_EXTRACT_API_QUEUE_MAX_BACKLOG": "1000",
+        "DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK": "0.90",
+        "DATA_EXTRACT_API_DISPATCH_POLL_MS": "250",
+        "DATA_EXTRACT_API_DISPATCH_BATCH_SIZE": "50",
+        "DATA_EXTRACT_API_DB_LOCK_RETRIES": "5",
+        "DATA_EXTRACT_API_DB_LOCK_BACKOFF_MS": "100",
+        "DATA_EXTRACT_API_ARTIFACT_SYNC_INTERVAL_SECONDS": "30"
+      },
+      "load_exit_code": 0,
+      "load_stdout_tail": "======================================================================\nName: baseline_jobs_process\nTarget: http://127.0.0.1:8790/api/v1/jobs/process\nRequests: 240 total, 240 success, 0 failure\nLatency (ms): p50=145.01 p95=263.27 p99=274.95\nThroughput: 100.20 req/s | Error rate: 0.00%\nThreshold status: PASS\nJSON report: /tmp/phase2-matrix/baseline_load.json",
+      "load_stderr_tail": "",
+      "load_report": {
+        "config": {
+          "concurrency": 16,
+          "duration_seconds": 15.0,
+          "timeout_seconds": 10.0,
+          "total_requests": 240,
+          "warmup_requests": 3
+        },
+        "metrics": {
+          "elapsed_seconds": 2.3951877470026375,
+          "error_rate_pct": 0.0,
+          "failure_count": 0,
+          "latency_max_ms": 291.51879499841016,
+          "latency_mean_ms": 157.2900745956455,
+          "latency_min_ms": 9.343797995825298,
+          "latency_p50_ms": 145.01000000018394,
+          "latency_p90_ms": 196.63069059824917,
+          "latency_p95_ms": 263.2687109969993,
+          "latency_p99_ms": 274.95492001711665,
+          "requests_per_second": 100.20091339409133,
+          "success_count": 240,
+          "total_requests": 240
+        },
+        "name": "baseline_jobs_process",
+        "sample_failures": [],
+        "status": "pass",
+        "target": {
+          "base_url": "http://127.0.0.1:8790",
+          "endpoint": "/api/v1/jobs/process",
+          "method": "POST",
+          "resolved_url": "http://127.0.0.1:8790/api/v1/jobs/process"
+        },
+        "threshold_failures": [],
+        "thresholds": {
+          "max_error_rate_pct": 0.0,
+          "max_p95_latency_ms": null,
+          "min_rps": null
+        },
+        "timestamp": "2026-02-14T23:44:11.035594+00:00"
+      },
+      "drained": true,
+      "final_health": {
+        "status": "degraded",
+        "ready": true,
+        "timestamp": "2026-02-14T23:44:18.584729+00:00",
+        "workers": 2,
+        "alive_workers": 2,
+        "dead_workers": 0,
+        "worker_restarts": 0,
+        "queue_backlog": 0,
+        "queue_capacity": 1000,
+        "queue_utilization": 0.0,
+        "queue_overload": {
+          "throttle_rejections": 0,
+          "queue_full_rejections": 0,
+          "last_reason": null,
+          "last_rejected_at": null,
+          "last_retry_after_seconds": null,
+          "last_backlog": 0,
+          "last_capacity": 1000,
+          "last_utilization": 0.0,
+          "high_watermark": 0.9,
+          "retry_hint_seconds": 2,
+          "backlog": 0,
+          "capacity": 1000,
+          "utilization": 0.0,
+          "throttled": false
+        },
+        "recovery": {
+          "requeued": 0,
+          "failed": 0
+        },
+        "startup_terminal_reconciliation": {
+          "scanned": 0,
+          "repaired": 0,
+          "failed": 0,
+          "db_repairs": 0,
+          "artifact_repairs": 0,
+          "mismatch_repairs": 0,
+          "unsynced_scanned": 0,
+          "last_run_at": "2026-02-14T23:44:08.109340+00:00"
+        },
+        "db_lock_retry_stats": {
+          "attempts": 2536,
+          "retries": 0,
+          "successes": 2536,
+          "failures": 0,
+          "serialized_acquires": 1467,
+          "serialized_waits": 0,
+          "operations": {
+            "startup.recover_inflight.stage": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112648.0942743,
+              "last_retry_at": null
+            },
+            "runtime_counters.refresh_counts": {
+              "attempts": 533,
+              "retries": 0,
+              "successes": 533,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.5341125,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112648.1073425,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list_unsynced": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112648.1083617,
+              "last_retry_at": null
+            },
+            "startup.reconcile_sessions.rehydrate": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112648.110076,
+              "last_retry_at": null
+            },
+            "runtime_counters.session_drift.load": {
+              "attempts": 244,
+              "retries": 0,
+              "successes": 244,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.1403165,
+              "last_retry_at": null
+            },
+            "dispatch.load_pending_job_ids": {
+              "attempts": 43,
+              "retries": 0,
+              "successes": 43,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.5331166,
+              "last_retry_at": null
+            },
+            "background_artifact_sync.list_unsynced_terminal_jobs": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112648.1161907,
+              "last_retry_at": null
+            },
+            "jobs.resolve_default_preset": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112651.024043,
+              "last_retry_at": null
+            },
+            "enqueue_process.persist_queue_record": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112651.0252836,
+              "last_retry_at": null
+            },
+            "dispatch.claim_for_submit": {
+              "attempts": 246,
+              "retries": 0,
+              "successes": 246,
+              "failures": 0,
+              "serialized_acquires": 246,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112651.0269198,
+              "last_retry_at": null
+            },
+            "dispatch.mark_submitted": {
+              "attempts": 245,
+              "retries": 0,
+              "successes": 245,
+              "failures": 0,
+              "serialized_acquires": 245,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112651.0279317,
+              "last_retry_at": null
+            },
+            "worker.mark_running": {
+              "attempts": 245,
+              "retries": 0,
+              "successes": 245,
+              "failures": 0,
+              "serialized_acquires": 245,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.0839012,
+              "last_retry_at": null
+            },
+            "worker.persist_terminal_state": {
+              "attempts": 149,
+              "retries": 0,
+              "successes": 149,
+              "failures": 0,
+              "serialized_acquires": 149,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.1280344,
+              "last_retry_at": null
+            },
+            "worker.mark_artifact_synced": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112658.137552,
+              "last_retry_at": null
+            },
+            "worker.persist_exception": {
+              "attempts": 94,
+              "retries": 0,
+              "successes": 94,
+              "failures": 0,
+              "serialized_acquires": 94,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112657.8273191,
+              "last_retry_at": null
+            },
+            "dispatch.load_payload": {
+              "attempts": 3,
+              "retries": 0,
+              "successes": 3,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112650.9373603,
+              "last_retry_at": null
+            }
+          }
+        },
+        "pending_dispatch_jobs": 0,
+        "artifact_sync_backlog": 0,
+        "session_projection_drift": 149,
+        "security_policy": {
+          "remote_bind": false,
+          "remote_auth_ready": true,
+          "api_key_configured": false,
+          "session_secret_configured": false,
+          "require_session_secret_remote": true
+        },
+        "ocr_readiness": {
+          "status": "warning",
+          "available": false,
+          "strict": false,
+          "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+        },
+        "readiness": {
+          "status": "degraded",
+          "ready": true,
+          "errors": [],
+          "warnings": [
+            "spaCy model 'en_core_web_md' is not installed; sentence segmentation falls back to heuristics.",
+            "OCR dependencies unavailable: Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          ],
+          "checks": {
+            "runtime:fastapi": true,
+            "runtime:uvicorn": true,
+            "runtime:sqlalchemy": true,
+            "runtime:multipart": true,
+            "extractor:pypdf": true,
+            "extractor:docx": true,
+            "extractor:openpyxl": true,
+            "extractor:pptx": true,
+            "spacy_model:en_core_web_md": false,
+            "ocr:available": false
+          },
+          "ocr_readiness": {
+            "status": "warning",
+            "available": false,
+            "strict": false,
+            "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          },
+          "checked_at": "2026-02-14T23:44:08.403578+00:00"
+        },
+        "runtime_counters": {
+          "pending_dispatch_count": 0,
+          "artifact_sync_backlog_count": 0,
+          "session_projection_drift_count": 149
+        }
+      },
+      "max_observed": {
+        "queue_backlog": 195.0,
+        "queue_utilization": 0.195,
+        "pending_dispatch_jobs": 0.0,
+        "artifact_sync_backlog": 2.0,
+        "session_projection_drift": 149.0,
+        "worker_restarts": 0,
+        "db_lock_retries": 0,
+        "db_lock_failures": 0
+      },
+      "sample_count": 44,
+      "status": "pass"
+    },
+    {
+      "name": "dispatch_fast",
+      "port": 8791,
+      "env": {
+        "DATA_EXTRACT_API_WORKERS": "2",
+        "DATA_EXTRACT_API_QUEUE_MAX_BACKLOG": "1000",
+        "DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK": "0.90",
+        "DATA_EXTRACT_API_DISPATCH_POLL_MS": "100",
+        "DATA_EXTRACT_API_DISPATCH_BATCH_SIZE": "100",
+        "DATA_EXTRACT_API_DB_LOCK_RETRIES": "8",
+        "DATA_EXTRACT_API_DB_LOCK_BACKOFF_MS": "50",
+        "DATA_EXTRACT_API_ARTIFACT_SYNC_INTERVAL_SECONDS": "15"
+      },
+      "load_exit_code": 0,
+      "load_stdout_tail": "======================================================================\nName: dispatch_fast_jobs_process\nTarget: http://127.0.0.1:8791/api/v1/jobs/process\nRequests: 240 total, 240 success, 0 failure\nLatency (ms): p50=162.94 p95=309.03 p99=310.09\nThroughput: 93.41 req/s | Error rate: 0.00%\nThreshold status: PASS\nJSON report: /tmp/phase2-matrix/dispatch_fast_load.json",
+      "load_stderr_tail": "",
+      "load_report": {
+        "config": {
+          "concurrency": 16,
+          "duration_seconds": 15.0,
+          "timeout_seconds": 10.0,
+          "total_requests": 240,
+          "warmup_requests": 3
+        },
+        "metrics": {
+          "elapsed_seconds": 2.569336201995611,
+          "error_rate_pct": 0.0,
+          "failure_count": 0,
+          "latency_max_ms": 310.33918100001756,
+          "latency_mean_ms": 167.74689332499597,
+          "latency_min_ms": 12.86989700020058,
+          "latency_p50_ms": 162.9380489976029,
+          "latency_p90_ms": 208.05336200501188,
+          "latency_p95_ms": 309.02893589955056,
+          "latency_p99_ms": 310.0857762004307,
+          "requests_per_second": 93.40934044115802,
+          "success_count": 240,
+          "total_requests": 240
+        },
+        "name": "dispatch_fast_jobs_process",
+        "sample_failures": [],
+        "status": "pass",
+        "target": {
+          "base_url": "http://127.0.0.1:8791",
+          "endpoint": "/api/v1/jobs/process",
+          "method": "POST",
+          "resolved_url": "http://127.0.0.1:8791/api/v1/jobs/process"
+        },
+        "threshold_failures": [],
+        "thresholds": {
+          "max_error_rate_pct": 0.0,
+          "max_p95_latency_ms": null,
+          "min_rps": null
+        },
+        "timestamp": "2026-02-14T23:44:24.112007+00:00"
+      },
+      "drained": true,
+      "final_health": {
+        "status": "degraded",
+        "ready": true,
+        "timestamp": "2026-02-14T23:44:31.180853+00:00",
+        "workers": 2,
+        "alive_workers": 2,
+        "dead_workers": 0,
+        "worker_restarts": 0,
+        "queue_backlog": 0,
+        "queue_capacity": 1000,
+        "queue_utilization": 0.0,
+        "queue_overload": {
+          "throttle_rejections": 0,
+          "queue_full_rejections": 0,
+          "last_reason": null,
+          "last_rejected_at": null,
+          "last_retry_after_seconds": null,
+          "last_backlog": 0,
+          "last_capacity": 1000,
+          "last_utilization": 0.0,
+          "high_watermark": 0.9,
+          "retry_hint_seconds": 2,
+          "backlog": 0,
+          "capacity": 1000,
+          "utilization": 0.0,
+          "throttled": false
+        },
+        "recovery": {
+          "requeued": 0,
+          "failed": 0
+        },
+        "startup_terminal_reconciliation": {
+          "scanned": 0,
+          "repaired": 0,
+          "failed": 0,
+          "db_repairs": 0,
+          "artifact_repairs": 0,
+          "mismatch_repairs": 0,
+          "unsynced_scanned": 0,
+          "last_run_at": "2026-02-14T23:44:21.033465+00:00"
+        },
+        "db_lock_retry_stats": {
+          "attempts": 2672,
+          "retries": 0,
+          "successes": 2672,
+          "failures": 0,
+          "serialized_acquires": 1486,
+          "serialized_waits": 0,
+          "operations": {
+            "startup.recover_inflight.stage": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112661.0213187,
+              "last_retry_at": null
+            },
+            "runtime_counters.refresh_counts": {
+              "attempts": 586,
+              "retries": 0,
+              "successes": 586,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112671.096166,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112661.0321934,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list_unsynced": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112661.0327418,
+              "last_retry_at": null
+            },
+            "startup.reconcile_sessions.rehydrate": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112661.034107,
+              "last_retry_at": null
+            },
+            "runtime_counters.session_drift.load": {
+              "attempts": 244,
+              "retries": 0,
+              "successes": 244,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112670.8829482,
+              "last_retry_at": null
+            },
+            "dispatch.load_pending_job_ids": {
+              "attempts": 96,
+              "retries": 0,
+              "successes": 96,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112671.0951982,
+              "last_retry_at": null
+            },
+            "background_artifact_sync.list_unsynced_terminal_jobs": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112661.0404682,
+              "last_retry_at": null
+            },
+            "jobs.resolve_default_preset": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112664.0998776,
+              "last_retry_at": null
+            },
+            "enqueue_process.persist_queue_record": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112664.101189,
+              "last_retry_at": null
+            },
+            "dispatch.claim_for_submit": {
+              "attempts": 257,
+              "retries": 0,
+              "successes": 257,
+              "failures": 0,
+              "serialized_acquires": 257,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112664.1025395,
+              "last_retry_at": null
+            },
+            "dispatch.mark_submitted": {
+              "attempts": 249,
+              "retries": 0,
+              "successes": 249,
+              "failures": 0,
+              "serialized_acquires": 249,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112664.1034245,
+              "last_retry_at": null
+            },
+            "worker.mark_running": {
+              "attempts": 249,
+              "retries": 0,
+              "successes": 249,
+              "failures": 0,
+              "serialized_acquires": 249,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112670.8115551,
+              "last_retry_at": null
+            },
+            "worker.persist_terminal_state": {
+              "attempts": 145,
+              "retries": 0,
+              "successes": 145,
+              "failures": 0,
+              "serialized_acquires": 145,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112670.8583899,
+              "last_retry_at": null
+            },
+            "worker.mark_artifact_synced": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112670.867833,
+              "last_retry_at": null
+            },
+            "dispatch.load_payload": {
+              "attempts": 14,
+              "retries": 0,
+              "successes": 14,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112663.956581,
+              "last_retry_at": null
+            },
+            "worker.persist_exception": {
+              "attempts": 98,
+              "retries": 0,
+              "successes": 98,
+              "failures": 0,
+              "serialized_acquires": 98,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112670.8155906,
+              "last_retry_at": null
+            }
+          }
+        },
+        "pending_dispatch_jobs": 0,
+        "artifact_sync_backlog": 0,
+        "session_projection_drift": 145,
+        "security_policy": {
+          "remote_bind": false,
+          "remote_auth_ready": true,
+          "api_key_configured": false,
+          "session_secret_configured": false,
+          "require_session_secret_remote": true
+        },
+        "ocr_readiness": {
+          "status": "warning",
+          "available": false,
+          "strict": false,
+          "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+        },
+        "readiness": {
+          "status": "degraded",
+          "ready": true,
+          "errors": [],
+          "warnings": [
+            "spaCy model 'en_core_web_md' is not installed; sentence segmentation falls back to heuristics.",
+            "OCR dependencies unavailable: Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          ],
+          "checks": {
+            "runtime:fastapi": true,
+            "runtime:uvicorn": true,
+            "runtime:sqlalchemy": true,
+            "runtime:multipart": true,
+            "extractor:pypdf": true,
+            "extractor:docx": true,
+            "extractor:openpyxl": true,
+            "extractor:pptx": true,
+            "spacy_model:en_core_web_md": false,
+            "ocr:available": false
+          },
+          "ocr_readiness": {
+            "status": "warning",
+            "available": false,
+            "strict": false,
+            "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          },
+          "checked_at": "2026-02-14T23:44:21.316514+00:00"
+        },
+        "runtime_counters": {
+          "pending_dispatch_count": 0,
+          "artifact_sync_backlog_count": 0,
+          "session_projection_drift_count": 145
+        }
+      },
+      "max_observed": {
+        "queue_backlog": 186.0,
+        "queue_utilization": 0.186,
+        "pending_dispatch_jobs": 0.0,
+        "artifact_sync_backlog": 1.0,
+        "session_projection_drift": 145.0,
+        "worker_restarts": 0,
+        "db_lock_retries": 0,
+        "db_lock_failures": 0
+      },
+      "sample_count": 41,
+      "status": "pass"
+    },
+    {
+      "name": "dispatch_conservative",
+      "port": 8792,
+      "env": {
+        "DATA_EXTRACT_API_WORKERS": "2",
+        "DATA_EXTRACT_API_QUEUE_MAX_BACKLOG": "1000",
+        "DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK": "0.90",
+        "DATA_EXTRACT_API_DISPATCH_POLL_MS": "500",
+        "DATA_EXTRACT_API_DISPATCH_BATCH_SIZE": "25",
+        "DATA_EXTRACT_API_DB_LOCK_RETRIES": "10",
+        "DATA_EXTRACT_API_DB_LOCK_BACKOFF_MS": "150",
+        "DATA_EXTRACT_API_ARTIFACT_SYNC_INTERVAL_SECONDS": "45"
+      },
+      "load_exit_code": 0,
+      "load_stdout_tail": "======================================================================\nName: dispatch_conservative_jobs_process\nTarget: http://127.0.0.1:8792/api/v1/jobs/process\nRequests: 240 total, 240 success, 0 failure\nLatency (ms): p50=147.49 p95=294.96 p99=299.11\nThroughput: 97.99 req/s | Error rate: 0.00%\nThreshold status: PASS\nJSON report: /tmp/phase2-matrix/dispatch_conservative_load.json",
+      "load_stderr_tail": "",
+      "load_report": {
+        "config": {
+          "concurrency": 16,
+          "duration_seconds": 15.0,
+          "timeout_seconds": 10.0,
+          "total_requests": 240,
+          "warmup_requests": 3
+        },
+        "metrics": {
+          "elapsed_seconds": 2.4491998519952176,
+          "error_rate_pct": 0.0,
+          "failure_count": 0,
+          "latency_max_ms": 307.26876099652145,
+          "latency_mean_ms": 160.5198622539016,
+          "latency_min_ms": 12.66127599956235,
+          "latency_p50_ms": 147.4882214970421,
+          "latency_p90_ms": 198.60038589977194,
+          "latency_p95_ms": 294.9599075011065,
+          "latency_p99_ms": 299.11492879451544,
+          "requests_per_second": 97.99118671532104,
+          "success_count": 240,
+          "total_requests": 240
+        },
+        "name": "dispatch_conservative_jobs_process",
+        "sample_failures": [],
+        "status": "pass",
+        "target": {
+          "base_url": "http://127.0.0.1:8792",
+          "endpoint": "/api/v1/jobs/process",
+          "method": "POST",
+          "resolved_url": "http://127.0.0.1:8792/api/v1/jobs/process"
+        },
+        "threshold_failures": [],
+        "thresholds": {
+          "max_error_rate_pct": 0.0,
+          "max_p95_latency_ms": null,
+          "min_rps": null
+        },
+        "timestamp": "2026-02-14T23:44:36.439457+00:00"
+      },
+      "drained": true,
+      "final_health": {
+        "status": "degraded",
+        "ready": true,
+        "timestamp": "2026-02-14T23:44:44.045760+00:00",
+        "workers": 2,
+        "alive_workers": 2,
+        "dead_workers": 0,
+        "worker_restarts": 0,
+        "queue_backlog": 0,
+        "queue_capacity": 1000,
+        "queue_utilization": 0.0,
+        "queue_overload": {
+          "throttle_rejections": 0,
+          "queue_full_rejections": 0,
+          "last_reason": null,
+          "last_rejected_at": null,
+          "last_retry_after_seconds": null,
+          "last_backlog": 0,
+          "last_capacity": 1000,
+          "last_utilization": 0.0,
+          "high_watermark": 0.9,
+          "retry_hint_seconds": 2,
+          "backlog": 0,
+          "capacity": 1000,
+          "utilization": 0.0,
+          "throttled": false
+        },
+        "recovery": {
+          "requeued": 0,
+          "failed": 0
+        },
+        "startup_terminal_reconciliation": {
+          "scanned": 0,
+          "repaired": 0,
+          "failed": 0,
+          "db_repairs": 0,
+          "artifact_repairs": 0,
+          "mismatch_repairs": 0,
+          "unsynced_scanned": 0,
+          "last_run_at": "2026-02-14T23:44:33.534747+00:00"
+        },
+        "db_lock_retry_stats": {
+          "attempts": 2484,
+          "retries": 0,
+          "successes": 2484,
+          "failures": 0,
+          "serialized_acquires": 1460,
+          "serialized_waits": 0,
+          "operations": {
+            "startup.recover_inflight.stage": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112673.5228953,
+              "last_retry_at": null
+            },
+            "runtime_counters.refresh_counts": {
+              "attempts": 512,
+              "retries": 0,
+              "successes": 512,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.670229,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112673.5334904,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list_unsynced": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112673.5340488,
+              "last_retry_at": null
+            },
+            "startup.reconcile_sessions.rehydrate": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112673.535398,
+              "last_retry_at": null
+            },
+            "runtime_counters.session_drift.load": {
+              "attempts": 244,
+              "retries": 0,
+              "successes": 244,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.6721807,
+              "last_retry_at": null
+            },
+            "dispatch.load_pending_job_ids": {
+              "attempts": 22,
+              "retries": 0,
+              "successes": 22,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.6140199,
+              "last_retry_at": null
+            },
+            "background_artifact_sync.list_unsynced_terminal_jobs": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112673.5417497,
+              "last_retry_at": null
+            },
+            "jobs.resolve_default_preset": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112676.4271197,
+              "last_retry_at": null
+            },
+            "enqueue_process.persist_queue_record": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112676.4282625,
+              "last_retry_at": null
+            },
+            "dispatch.claim_for_submit": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112676.4293807,
+              "last_retry_at": null
+            },
+            "dispatch.mark_submitted": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112676.4302676,
+              "last_retry_at": null
+            },
+            "worker.mark_running": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.6200082,
+              "last_retry_at": null
+            },
+            "worker.persist_terminal_state": {
+              "attempts": 147,
+              "retries": 0,
+              "successes": 147,
+              "failures": 0,
+              "serialized_acquires": 147,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.6574817,
+              "last_retry_at": null
+            },
+            "worker.mark_artifact_synced": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.66833,
+              "last_retry_at": null
+            },
+            "worker.persist_exception": {
+              "attempts": 96,
+              "retries": 0,
+              "successes": 96,
+              "failures": 0,
+              "serialized_acquires": 96,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112683.6238894,
+              "last_retry_at": null
+            }
+          }
+        },
+        "pending_dispatch_jobs": 0,
+        "artifact_sync_backlog": 0,
+        "session_projection_drift": 147,
+        "security_policy": {
+          "remote_bind": false,
+          "remote_auth_ready": true,
+          "api_key_configured": false,
+          "session_secret_configured": false,
+          "require_session_secret_remote": true
+        },
+        "ocr_readiness": {
+          "status": "warning",
+          "available": false,
+          "strict": false,
+          "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+        },
+        "readiness": {
+          "status": "degraded",
+          "ready": true,
+          "errors": [],
+          "warnings": [
+            "spaCy model 'en_core_web_md' is not installed; sentence segmentation falls back to heuristics.",
+            "OCR dependencies unavailable: Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          ],
+          "checks": {
+            "runtime:fastapi": true,
+            "runtime:uvicorn": true,
+            "runtime:sqlalchemy": true,
+            "runtime:multipart": true,
+            "extractor:pypdf": true,
+            "extractor:docx": true,
+            "extractor:openpyxl": true,
+            "extractor:pptx": true,
+            "spacy_model:en_core_web_md": false,
+            "ocr:available": false
+          },
+          "ocr_readiness": {
+            "status": "warning",
+            "available": false,
+            "strict": false,
+            "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          },
+          "checked_at": "2026-02-14T23:44:33.816475+00:00"
+        },
+        "runtime_counters": {
+          "pending_dispatch_count": 0,
+          "artifact_sync_backlog_count": 0,
+          "session_projection_drift_count": 147
+        }
+      },
+      "max_observed": {
+        "queue_backlog": 191.0,
+        "queue_utilization": 0.191,
+        "pending_dispatch_jobs": 0.0,
+        "artifact_sync_backlog": 1.0,
+        "session_projection_drift": 147.0,
+        "worker_restarts": 0,
+        "db_lock_retries": 0,
+        "db_lock_failures": 0
+      },
+      "sample_count": 44,
+      "status": "pass"
+    },
+    {
+      "name": "high_workers",
+      "port": 8793,
+      "env": {
+        "DATA_EXTRACT_API_WORKERS": "4",
+        "DATA_EXTRACT_API_QUEUE_MAX_BACKLOG": "1500",
+        "DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK": "0.90",
+        "DATA_EXTRACT_API_DISPATCH_POLL_MS": "200",
+        "DATA_EXTRACT_API_DISPATCH_BATCH_SIZE": "80",
+        "DATA_EXTRACT_API_DB_LOCK_RETRIES": "6",
+        "DATA_EXTRACT_API_DB_LOCK_BACKOFF_MS": "100",
+        "DATA_EXTRACT_API_ARTIFACT_SYNC_INTERVAL_SECONDS": "20"
+      },
+      "load_exit_code": 0,
+      "load_stdout_tail": "======================================================================\nName: high_workers_jobs_process\nTarget: http://127.0.0.1:8793/api/v1/jobs/process\nRequests: 240 total, 240 success, 0 failure\nLatency (ms): p50=239.90 p95=454.66 p99=456.99\nThroughput: 62.30 req/s | Error rate: 0.00%\nThreshold status: PASS\nJSON report: /tmp/phase2-matrix/high_workers_load.json",
+      "load_stderr_tail": "",
+      "load_report": {
+        "config": {
+          "concurrency": 16,
+          "duration_seconds": 15.0,
+          "timeout_seconds": 10.0,
+          "total_requests": 240,
+          "warmup_requests": 3
+        },
+        "metrics": {
+          "elapsed_seconds": 3.852250923999236,
+          "error_rate_pct": 0.0,
+          "failure_count": 0,
+          "latency_max_ms": 488.9447219975409,
+          "latency_mean_ms": 251.76603150845645,
+          "latency_min_ms": 44.87841699301498,
+          "latency_p50_ms": 239.90485149988672,
+          "latency_p90_ms": 277.27810079813935,
+          "latency_p95_ms": 454.6643159494124,
+          "latency_p99_ms": 456.99329040064185,
+          "requests_per_second": 62.30123757121269,
+          "success_count": 240,
+          "total_requests": 240
+        },
+        "name": "high_workers_jobs_process",
+        "sample_failures": [],
+        "status": "pass",
+        "target": {
+          "base_url": "http://127.0.0.1:8793",
+          "endpoint": "/api/v1/jobs/process",
+          "method": "POST",
+          "resolved_url": "http://127.0.0.1:8793/api/v1/jobs/process"
+        },
+        "threshold_failures": [],
+        "thresholds": {
+          "max_error_rate_pct": 0.0,
+          "max_p95_latency_ms": null,
+          "min_rps": null
+        },
+        "timestamp": "2026-02-14T23:44:50.805421+00:00"
+      },
+      "drained": true,
+      "final_health": {
+        "status": "degraded",
+        "ready": true,
+        "timestamp": "2026-02-14T23:44:50.822171+00:00",
+        "workers": 4,
+        "alive_workers": 4,
+        "dead_workers": 0,
+        "worker_restarts": 0,
+        "queue_backlog": 0,
+        "queue_capacity": 1500,
+        "queue_utilization": 0.0,
+        "queue_overload": {
+          "throttle_rejections": 0,
+          "queue_full_rejections": 0,
+          "last_reason": null,
+          "last_rejected_at": null,
+          "last_retry_after_seconds": null,
+          "last_backlog": 0,
+          "last_capacity": 1500,
+          "last_utilization": 0.0,
+          "high_watermark": 0.9,
+          "retry_hint_seconds": 2,
+          "backlog": 0,
+          "capacity": 1500,
+          "utilization": 0.0,
+          "throttled": false
+        },
+        "recovery": {
+          "requeued": 0,
+          "failed": 0
+        },
+        "startup_terminal_reconciliation": {
+          "scanned": 0,
+          "repaired": 0,
+          "failed": 0,
+          "db_repairs": 0,
+          "artifact_repairs": 0,
+          "mismatch_repairs": 0,
+          "unsynced_scanned": 0,
+          "last_run_at": "2026-02-14T23:44:46.530430+00:00"
+        },
+        "db_lock_retry_stats": {
+          "attempts": 2506,
+          "retries": 0,
+          "successes": 2506,
+          "failures": 0,
+          "serialized_acquires": 1473,
+          "serialized_waits": 0,
+          "operations": {
+            "startup.recover_inflight.stage": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112686.5173893,
+              "last_retry_at": null
+            },
+            "runtime_counters.refresh_counts": {
+              "attempts": 512,
+              "retries": 0,
+              "successes": 512,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.8152237,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112686.5290368,
+              "last_retry_at": null
+            },
+            "startup.reconcile_terminal.list_unsynced": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112686.5297363,
+              "last_retry_at": null
+            },
+            "startup.reconcile_sessions.rehydrate": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 1,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112686.5310817,
+              "last_retry_at": null
+            },
+            "runtime_counters.session_drift.load": {
+              "attempts": 244,
+              "retries": 0,
+              "successes": 244,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.8166964,
+              "last_retry_at": null
+            },
+            "dispatch.load_pending_job_ids": {
+              "attempts": 22,
+              "retries": 0,
+              "successes": 22,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.6833482,
+              "last_retry_at": null
+            },
+            "background_artifact_sync.list_unsynced_terminal_jobs": {
+              "attempts": 1,
+              "retries": 0,
+              "successes": 1,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112686.5375202,
+              "last_retry_at": null
+            },
+            "jobs.resolve_default_preset": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.7832372,
+              "last_retry_at": null
+            },
+            "enqueue_process.persist_queue_record": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.7846951,
+              "last_retry_at": null
+            },
+            "dispatch.claim_for_submit": {
+              "attempts": 252,
+              "retries": 0,
+              "successes": 252,
+              "failures": 0,
+              "serialized_acquires": 252,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.7880287,
+              "last_retry_at": null
+            },
+            "dispatch.mark_submitted": {
+              "attempts": 245,
+              "retries": 0,
+              "successes": 245,
+              "failures": 0,
+              "serialized_acquires": 245,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.7904346,
+              "last_retry_at": null
+            },
+            "worker.mark_running": {
+              "attempts": 245,
+              "retries": 0,
+              "successes": 245,
+              "failures": 0,
+              "serialized_acquires": 245,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.7910323,
+              "last_retry_at": null
+            },
+            "worker.persist_exception": {
+              "attempts": 237,
+              "retries": 0,
+              "successes": 237,
+              "failures": 0,
+              "serialized_acquires": 237,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.8037703,
+              "last_retry_at": null
+            },
+            "worker.mark_artifact_synced": {
+              "attempts": 243,
+              "retries": 0,
+              "successes": 243,
+              "failures": 0,
+              "serialized_acquires": 243,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.81365,
+              "last_retry_at": null
+            },
+            "worker.persist_terminal_state": {
+              "attempts": 6,
+              "retries": 0,
+              "successes": 6,
+              "failures": 0,
+              "serialized_acquires": 6,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112687.3938434,
+              "last_retry_at": null
+            },
+            "dispatch.load_payload": {
+              "attempts": 9,
+              "retries": 0,
+              "successes": 9,
+              "failures": 0,
+              "serialized_acquires": 0,
+              "serialized_waits": 0,
+              "last_error": null,
+              "last_attempt_at": 1771112690.6847608,
+              "last_retry_at": null
+            }
+          }
+        },
+        "pending_dispatch_jobs": 0,
+        "artifact_sync_backlog": 0,
+        "session_projection_drift": 6,
+        "security_policy": {
+          "remote_bind": false,
+          "remote_auth_ready": true,
+          "api_key_configured": false,
+          "session_secret_configured": false,
+          "require_session_secret_remote": true
+        },
+        "ocr_readiness": {
+          "status": "warning",
+          "available": false,
+          "strict": false,
+          "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+        },
+        "readiness": {
+          "status": "degraded",
+          "ready": true,
+          "errors": [],
+          "warnings": [
+            "spaCy model 'en_core_web_md' is not installed; sentence segmentation falls back to heuristics.",
+            "OCR dependencies unavailable: Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          ],
+          "checks": {
+            "runtime:fastapi": true,
+            "runtime:uvicorn": true,
+            "runtime:sqlalchemy": true,
+            "runtime:multipart": true,
+            "extractor:pypdf": true,
+            "extractor:docx": true,
+            "extractor:openpyxl": true,
+            "extractor:pptx": true,
+            "spacy_model:en_core_web_md": false,
+            "ocr:available": false
+          },
+          "ocr_readiness": {
+            "status": "warning",
+            "available": false,
+            "strict": false,
+            "message": "Tesseract OCR not found.\nInstall Tesseract and ensure it's in your PATH:\n  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n  Linux: sudo apt install tesseract-ocr\n  macOS: brew install tesseract"
+          },
+          "checked_at": "2026-02-14T23:44:46.811178+00:00"
+        },
+        "runtime_counters": {
+          "pending_dispatch_count": 0,
+          "artifact_sync_backlog_count": 0,
+          "session_projection_drift_count": 6
+        }
+      },
+      "max_observed": {
+        "queue_backlog": 4.0,
+        "queue_utilization": 0.0026666666666666666,
+        "pending_dispatch_jobs": 1.0,
+        "artifact_sync_backlog": 2.0,
+        "session_projection_drift": 6.0,
+        "worker_restarts": 0,
+        "db_lock_retries": 0,
+        "db_lock_failures": 0
+      },
+      "sample_count": 9,
+      "status": "pass"
+    }
+  ]
+}

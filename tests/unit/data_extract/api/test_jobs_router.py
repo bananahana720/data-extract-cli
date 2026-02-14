@@ -20,6 +20,7 @@ from data_extract.api.routers.jobs import (
     _build_process_request_from_form,
     download_job_artifact,
     enqueue_process_job,
+    get_job,
     list_job_artifacts,
     list_jobs,
     retry_job_failures,
@@ -499,3 +500,50 @@ def test_list_jobs_supports_pagination(monkeypatch: pytest.MonkeyPatch, tmp_path
 
     jobs_page = list_jobs(limit=2, offset=1)
     assert len(jobs_page) == 2
+
+
+@pytest.mark.unit
+def test_get_job_exposes_dispatch_and_artifact_sync_fields(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    db_path = tmp_path / "jobs.db"
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    with test_session_local() as db:
+        db.add(
+            Job(
+                id="job-detail-1",
+                status="queued",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload="{}",
+                dispatch_state="pending_dispatch",
+                dispatch_attempts=2,
+                artifact_sync_state="failed",
+                artifact_sync_attempts=3,
+                artifact_sync_error="disk full",
+                result_checksum="abc123",
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        db.commit()
+
+    monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
+    payload = get_job("job-detail-1", file_limit=1000, event_limit=1000)
+
+    assert payload["dispatch_state"] == "pending_dispatch"
+    assert payload["dispatch_attempts"] == 2
+    assert payload["artifact_sync_state"] == "failed"
+    assert payload["artifact_sync_attempts"] == 3
+    assert payload["artifact_sync_error"] == "disk full"
+    assert payload["result_checksum"] == "abc123"

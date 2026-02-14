@@ -179,6 +179,35 @@ class CleanupResult:
 
 
 # ==============================================================================
+# Durability Helpers
+# ==============================================================================
+
+
+def _fsync_file(path: Path) -> None:
+    """Force file data+metadata to durable storage."""
+    with path.open("rb") as handle:
+        os.fsync(handle.fileno())
+
+
+def _fsync_parent_directory(path: Path) -> None:
+    """Force directory entry updates to durable storage when supported."""
+    flags = os.O_RDONLY
+    if hasattr(os, "O_DIRECTORY"):
+        flags |= os.O_DIRECTORY
+
+    try:
+        dir_fd = os.open(str(path), flags)
+    except OSError:
+        # Directory fsync is not available on all platforms/filesystems.
+        return
+
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
+
+
+# ==============================================================================
 # Session Manager
 # ==============================================================================
 
@@ -341,14 +370,26 @@ class SessionManager:
             prefix="session-",
             dir=self.session_dir,
         )
+        fd_open = True
         try:
             os.write(fd, json_content.encode("utf-8"))
+            os.fsync(fd)
             os.close(fd)
-            # Atomic rename
-            shutil.move(temp_path, session_file)
+            fd_open = False
+
+            # Atomic replace to avoid partial target updates.
+            os.replace(temp_path, session_file)
+
+            # Ensure file payload and directory entry are durable.
+            _fsync_file(session_file)
+            _fsync_parent_directory(self.session_dir)
         except Exception:
             # Clean up temp file on failure
-            os.close(fd) if fd else None
+            if fd_open:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
             if Path(temp_path).exists():
                 Path(temp_path).unlink()
             raise

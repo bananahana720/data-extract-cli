@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Protocol, TypeVar
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -79,6 +79,66 @@ def init_database() -> None:
     from data_extract.api import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _ensure_runtime_schema_compatibility()
+
+
+def _ensure_runtime_schema_compatibility() -> None:
+    """Apply additive runtime columns/indexes for legacy sqlite databases."""
+    jobs_columns = {
+        "dispatch_payload": "TEXT NOT NULL DEFAULT '{}'",
+        "dispatch_state": "VARCHAR(32) NOT NULL DEFAULT 'pending_dispatch'",
+        "dispatch_attempts": "INTEGER NOT NULL DEFAULT 0",
+        "dispatch_last_error": "TEXT",
+        "dispatch_last_attempt_at": "DATETIME",
+        "dispatch_next_attempt_at": "DATETIME",
+        "artifact_sync_state": "VARCHAR(32) NOT NULL DEFAULT 'pending'",
+        "artifact_sync_attempts": "INTEGER NOT NULL DEFAULT 0",
+        "artifact_sync_error": "TEXT",
+        "artifact_last_synced_at": "DATETIME",
+        "result_checksum": "VARCHAR(128)",
+    }
+    sessions_columns = {
+        "projection_source": "VARCHAR(64)",
+        "projection_error": "TEXT",
+        "last_reconciled_at": "DATETIME",
+    }
+    indexes = (
+        (
+            "ix_jobs_dispatch_state_next_attempt_at",
+            "CREATE INDEX IF NOT EXISTS ix_jobs_dispatch_state_next_attempt_at "
+            "ON jobs (dispatch_state, dispatch_next_attempt_at)",
+        ),
+        (
+            "ix_jobs_artifact_sync_state_updated_at",
+            "CREATE INDEX IF NOT EXISTS ix_jobs_artifact_sync_state_updated_at "
+            "ON jobs (artifact_sync_state, updated_at)",
+        ),
+        (
+            "ix_job_events_job_id_event_time",
+            "CREATE INDEX IF NOT EXISTS ix_job_events_job_id_event_time "
+            "ON job_events (job_id, event_time)",
+        ),
+    )
+
+    with engine.begin() as conn:
+        inspector = inspect(conn)
+        existing_tables = set(inspector.get_table_names())
+        if "jobs" in existing_tables:
+            existing = {column["name"] for column in inspector.get_columns("jobs")}
+            for name, ddl in jobs_columns.items():
+                if name in existing:
+                    continue
+                conn.execute(text(f"ALTER TABLE jobs ADD COLUMN {name} {ddl}"))
+
+        if "sessions" in existing_tables:
+            existing = {column["name"] for column in inspector.get_columns("sessions")}
+            for name, ddl in sessions_columns.items():
+                if name in existing:
+                    continue
+                conn.execute(text(f"ALTER TABLE sessions ADD COLUMN {name} {ddl}"))
+
+        for _name, ddl in indexes:
+            conn.execute(text(ddl))
 
 
 def _is_sqlite_locked_error(exc: Exception) -> bool:
@@ -110,7 +170,7 @@ def _resolve_db_lock_backoff_ms(explicit_value: int | None = None) -> int:
 def _resolve_db_serialize_writes(explicit_value: bool | None = None) -> bool:
     if explicit_value is not None:
         return bool(explicit_value)
-    raw = os.environ.get("DATA_EXTRACT_API_DB_SERIALIZE_WRITES", "0").strip().lower()
+    raw = os.environ.get("DATA_EXTRACT_API_DB_SERIALIZE_WRITES", "1").strip().lower()
     return raw in {"1", "true", "yes", "on"}
 
 

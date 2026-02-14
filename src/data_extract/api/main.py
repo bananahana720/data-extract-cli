@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from data_extract.api.readiness import evaluate_runtime_readiness
 from data_extract.api.routers.auth import (
     API_KEY_ENV,
+    SESSION_SECRET_ENV,
     has_valid_session_cookie,
 )
 from data_extract.api.routers.auth import (
@@ -32,6 +33,32 @@ app.include_router(sessions_router)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_DIST = PROJECT_ROOT / "ui" / "dist"
+REMOTE_BIND_ENV = "DATA_EXTRACT_API_REMOTE_BIND"
+REQUIRE_SESSION_SECRET_REMOTE_ENV = "DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE"
+
+
+def _env_flag_enabled(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _remote_security_errors() -> list[str]:
+    if not _env_flag_enabled(REMOTE_BIND_ENV, default=False):
+        return []
+
+    errors: list[str] = []
+    require_session_secret = _env_flag_enabled(REQUIRE_SESSION_SECRET_REMOTE_ENV, default=True)
+
+    if not os.environ.get(API_KEY_ENV, "").strip():
+        errors.append(f"{API_KEY_ENV} is required when {REMOTE_BIND_ENV}=1.")
+    if require_session_secret and not os.environ.get(SESSION_SECRET_ENV, "").strip():
+        errors.append(
+            f"{SESSION_SECRET_ENV} is required when {REMOTE_BIND_ENV}=1 "
+            f"unless {REQUIRE_SESSION_SECRET_REMOTE_ENV}=0."
+        )
+    return errors
 
 
 @app.middleware("http")
@@ -60,6 +87,9 @@ async def api_key_guard(request: Request, call_next):  # type: ignore[no-untyped
 @app.on_event("startup")
 def startup_event() -> None:
     """Initialize persistence and worker runtime."""
+    security_errors = _remote_security_errors()
+    if security_errors:
+        raise RuntimeError("Remote bind security policy violation: " + " ".join(security_errors))
     runtime.start()
     runtime.set_readiness_report(evaluate_runtime_readiness())
 

@@ -166,3 +166,44 @@ class TestSessionStateAtomicWrite:
         # Assert - original should still be readable
         current_content = original_file.read_text()
         assert current_content == original_content or json.loads(current_content)
+
+    @pytest.mark.test_id("5.6-UNIT-004")
+    def test_session_state_atomic_write_fsyncs_file_and_directory(
+        self,
+        session_directory_fixture: SessionDirectoryFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Verify durable fsync calls are made after atomic replace."""
+        import data_extract.cli.session as session_module
+        from data_extract.cli.session import SessionManager
+
+        work_dir = session_directory_fixture.work_dir
+        source_dir = work_dir / "source"
+        source_dir.mkdir()
+
+        fsync_file_calls = {"count": 0}
+        fsync_dir_calls = {"count": 0}
+        real_fsync_file = session_module._fsync_file
+        real_fsync_parent_directory = session_module._fsync_parent_directory
+
+        def _track_file(path: Path) -> None:
+            fsync_file_calls["count"] += 1
+            real_fsync_file(path)
+
+        def _track_parent(path: Path) -> None:
+            fsync_dir_calls["count"] += 1
+            real_fsync_parent_directory(path)
+
+        monkeypatch.setattr(session_module, "_fsync_file", _track_file)
+        monkeypatch.setattr(session_module, "_fsync_parent_directory", _track_parent)
+
+        manager = SessionManager(work_dir=work_dir)
+        manager.create_session(
+            source_directory=source_dir,
+            output_directory=work_dir / "output",
+            total_files=1,
+        )
+        manager.save()
+
+        assert fsync_file_calls["count"] == 1
+        assert fsync_dir_calls["count"] == 1

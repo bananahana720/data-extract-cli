@@ -8,7 +8,7 @@ from typing import cast
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from data_extract.api.database import SessionLocal
+from data_extract.api.database import SessionLocal, with_sqlite_lock_retry
 from data_extract.api.models import AppSetting
 from data_extract.cli.config import (
     PresetManager,
@@ -92,19 +92,26 @@ def apply_preset(name: str) -> ApplyPresetResponse:
     """Apply a preset and persist latest choice in app settings."""
     config = _preset_to_effective_config(name)
 
-    with SessionLocal() as db:
-        setting = db.get(AppSetting, "last_preset")
-        if setting is None:
-            setting = AppSetting(
-                key="last_preset",
-                value=name,
-                updated_at=datetime.now(timezone.utc),
-            )
-            db.add(setting)
-        else:
-            setting.value = name
-            setting.updated_at = datetime.now(timezone.utc)
-        db.commit()
+    def _persist_last_preset() -> None:
+        with SessionLocal() as db:
+            setting = db.get(AppSetting, "last_preset")
+            if setting is None:
+                setting = AppSetting(
+                    key="last_preset",
+                    value=name,
+                    updated_at=datetime.now(timezone.utc),
+                )
+                db.add(setting)
+            else:
+                setting.value = name
+                setting.updated_at = datetime.now(timezone.utc)
+            db.commit()
+
+    with_sqlite_lock_retry(
+        _persist_last_preset,
+        operation_name="config.apply_preset.persist",
+        serialize_writes=True,
+    )
 
     return ApplyPresetResponse(preset=name, effective_config=config)
 

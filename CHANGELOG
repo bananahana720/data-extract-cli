@@ -1,4 +1,12 @@
 2026-02-14
+- Implemented runtime hardening schema and state upgrades: staged durable dispatch metadata, explicit artifact sync state/checksum tracking, session projection reconciliation metadata, and supporting SQLite indexes/migration.
+- Hardened API runtime behavior across queue saturation, retry staging, DB-canonical result persistence, artifact reconciliation, and startup recovery/session projection paths.
+- Enforced secure-by-default remote runtime policy (API key + session secret requirements for remote bind) and added explicit OCR readiness signaling in health/readiness outputs.
+- Expanded API/runtime/CLI/unit coverage for startup security guards, readiness signals, jobs/health payload additions, queue staging/recovery semantics, and session durability fsync behavior.
+- Added Phase 2 load/chaos validation tooling and tests: `scripts/run_api_load.py`, API runtime suite wiring in performance scripts, runtime performance tests, and integration restart/artifact-sync telemetry tests.
+- Executed live Phase 2 tuning matrix against `POST /api/v1/jobs/process` with health telemetry sampling and published artifacts: `docs/artifacts/phase2-runtime-hardening-matrix-2026-02-14.json` and `docs/artifacts/phase2-runtime-hardening-report-2026-02-14.md`.
+
+2026-02-14
 - Replaced fragile regex-based performance log parsing with fixture-emitted JSON metrics (`DATA_EXTRACT_PERF_METRICS_FILE`) and updated `.github/workflows/performance.yml` to consume `perf-metrics-raw.json` for throughput/memory gating.
 - Fixed venv command availability in `.github/workflows/performance.yml` and `.github/workflows/security.yml` by seeding uv environments and exporting `.venv/bin` into `$GITHUB_PATH`, preventing `pytest`/`structlog` import-not-found failures in later steps.
 - Fixed CI virtualenv persistence in `.github/workflows/test.yml` by exporting `.venv/bin` to `$GITHUB_PATH`, ensuring subsequent steps run with installed dependencies (`numpy`, `pytest`, etc.).

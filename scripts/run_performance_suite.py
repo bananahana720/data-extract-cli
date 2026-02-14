@@ -4,6 +4,7 @@ Comprehensive Performance Benchmark Suite.
 Runs all performance tests and generates a detailed report.
 """
 
+import argparse
 import json
 import subprocess
 import sys
@@ -12,7 +13,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-from performance_catalog import RUN_PERFORMANCE_SUITE_NODEIDS
+from performance_catalog import (
+    RUN_PERFORMANCE_SUITE_ALL_SUITES,
+    RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS,
+    RUN_PERFORMANCE_SUITE_DEFAULT_SUITES,
+    RUN_PERFORMANCE_SUITE_NODEIDS,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -67,8 +73,189 @@ def parse_baseline_file(baseline_path: Path) -> Dict[str, Any]:
         return {}
 
 
-def main():
+def _parse_arguments(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run performance benchmark suites")
+    parser.add_argument(
+        "--suites",
+        nargs="+",
+        choices=list(RUN_PERFORMANCE_SUITE_ALL_SUITES),
+        default=list(RUN_PERFORMANCE_SUITE_DEFAULT_SUITES),
+        help="Suite selectors to execute",
+    )
+    parser.add_argument(
+        "--test-timeout",
+        type=int,
+        default=120,
+        help="Timeout in seconds for each pytest selector execution",
+    )
+    parser.add_argument(
+        "--api-base-url",
+        default="http://127.0.0.1:8000",
+        help="API base URL for api_runtime suite",
+    )
+    parser.add_argument(
+        "--api-concurrency",
+        type=int,
+        default=8,
+        help="Concurrency for api_runtime load checks",
+    )
+    parser.add_argument(
+        "--api-duration-seconds",
+        type=float,
+        default=15.0,
+        help="Duration for each api_runtime load check",
+    )
+    parser.add_argument(
+        "--api-timeout-seconds",
+        type=float,
+        default=5.0,
+        help="Per-request timeout for api_runtime checks",
+    )
+    parser.add_argument(
+        "--api-warmup-requests",
+        type=int,
+        default=3,
+        help="Warmup requests before each api_runtime load check",
+    )
+    parser.add_argument(
+        "--api-max-error-rate-pct",
+        type=float,
+        default=0.0,
+        help="Maximum allowed error rate for api_runtime checks",
+    )
+    parser.add_argument(
+        "--api-max-p95-latency-ms",
+        type=float,
+        default=None,
+        help="Optional p95 latency threshold for api_runtime checks",
+    )
+    parser.add_argument(
+        "--api-min-rps",
+        type=float,
+        default=None,
+        help="Optional minimum requests/sec threshold for api_runtime checks",
+    )
+    parser.add_argument(
+        "--api-output-dir",
+        type=Path,
+        default=None,
+        help="Optional directory for per-selector api_runtime JSON reports",
+    )
+    parser.add_argument(
+        "--output-json",
+        type=Path,
+        default=None,
+        help="Optional path for the consolidated suite JSON report",
+    )
+    return parser.parse_args(argv)
+
+
+def _run_pytest_suite(
+    suite_name: str,
+    selector_tests: list[str],
+    *,
+    timeout_seconds: int,
+    results: list[dict[str, Any]],
+) -> None:
+    print("\n" + "=" * 70)
+    print(f"TEST SUITE: {suite_name.upper()} PERFORMANCE BENCHMARKS")
+    print("=" * 70)
+
+    for test in selector_tests:
+        result = run_command(
+            [sys.executable, "-m", "pytest", test, "-v", "-s", "--tb=short"],
+            timeout=timeout_seconds,
+        )
+        results.append({"test": test.split("::")[-1], "suite": suite_name, "result": result})
+        if not result["success"]:
+            print("\n[!] WARNING: Test failed or had issues\n")
+
+
+def _api_result_path(output_dir: Path | None, selector_name: str) -> Path | None:
+    if output_dir is None:
+        return None
+    output_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = selector_name.replace("/", "_").replace("?", "_").replace("&", "_")
+    return output_dir / f"api_runtime_{safe_name}.json"
+
+
+def _run_api_runtime_suite(args: argparse.Namespace, results: list[dict[str, Any]]) -> None:
+    print("\n" + "=" * 70)
+    print("TEST SUITE: API_RUNTIME PERFORMANCE BENCHMARKS")
+    print("=" * 70)
+
+    runner = PROJECT_ROOT / "scripts" / "run_api_load.py"
+    base_timeout = int(max(30.0, args.api_duration_seconds + 20.0))
+
+    for selector_name, endpoint in RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS:
+        cmd = [
+            sys.executable,
+            str(runner),
+            "--name",
+            selector_name,
+            "--base-url",
+            str(args.api_base_url),
+            "--endpoint",
+            endpoint,
+            "--concurrency",
+            str(max(1, int(args.api_concurrency))),
+            "--duration-seconds",
+            str(max(0.1, float(args.api_duration_seconds))),
+            "--timeout-seconds",
+            str(max(0.1, float(args.api_timeout_seconds))),
+            "--warmup-requests",
+            str(max(0, int(args.api_warmup_requests))),
+            "--max-error-rate-pct",
+            str(float(args.api_max_error_rate_pct)),
+        ]
+
+        if args.api_max_p95_latency_ms is not None:
+            cmd.extend(["--max-p95-latency-ms", str(float(args.api_max_p95_latency_ms))])
+        if args.api_min_rps is not None:
+            cmd.extend(["--min-rps", str(float(args.api_min_rps))])
+
+        selector_output = _api_result_path(args.api_output_dir, selector_name)
+        if selector_output is not None:
+            cmd.extend(["--output-json", str(selector_output)])
+
+        result = run_command(cmd, timeout=base_timeout)
+        results.append(
+            {
+                "test": selector_name,
+                "suite": "api_runtime",
+                "selector": endpoint,
+                "result": result,
+                "json_output": None if selector_output is None else str(selector_output),
+            }
+        )
+        if not result["success"]:
+            print("\n[!] WARNING: API runtime load check failed or had issues\n")
+
+
+def _write_json_report(
+    *,
+    output_path: Path,
+    selected_suites: list[str],
+    results: list[dict[str, Any]],
+    baselines: dict[str, Any],
+) -> None:
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "selected_suites": selected_suites,
+        "total_results": len(results),
+        "passed_results": sum(1 for item in results if bool(item["result"]["success"])),
+        "failed_results": sum(1 for item in results if not bool(item["result"]["success"])),
+        "results": results,
+        "baseline_summary": baselines,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def main(argv: list[str] | None = None):
     """Run comprehensive performance benchmarks."""
+    args = _parse_arguments([] if argv is None else argv)
+    selected_suites = list(args.suites)
 
     print(
         """
@@ -85,65 +272,18 @@ def main():
     baseline_path = Path("tests/performance/baselines.json")
     results = []
 
-    # ========================================================================
-    # Test Suite 1: Extractor Benchmarks (Lightweight)
-    # ========================================================================
-
-    print("\n" + "=" * 70)
-    print("TEST SUITE 1: EXTRACTOR PERFORMANCE BENCHMARKS")
-    print("=" * 70)
-
-    extractor_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["extractors"])
-
-    for test in extractor_tests:
-        result = run_command(
-            [sys.executable, "-m", "pytest", test, "-v", "-s", "--tb=short"], timeout=120
-        )
-
-        results.append({"test": test.split("::")[-1], "suite": "extractors", "result": result})
-
-        if not result["success"]:
-            print("\n[!] WARNING: Test failed or had issues\n")
-
-    # ========================================================================
-    # Test Suite 2: Pipeline Benchmarks
-    # ========================================================================
-
-    print("\n" + "=" * 70)
-    print("TEST SUITE 2: PIPELINE PERFORMANCE BENCHMARKS")
-    print("=" * 70)
-
-    pipeline_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["pipeline"])
-
-    for test in pipeline_tests:
-        result = run_command(
-            [sys.executable, "-m", "pytest", test, "-v", "-s", "--tb=short"], timeout=120
-        )
-
-        results.append({"test": test.split("::")[-1], "suite": "pipeline", "result": result})
-
-        if not result["success"]:
-            print("\n[!] WARNING: Test failed or had issues\n")
-
-    # ========================================================================
-    # Test Suite 3: CLI Benchmarks (NEW)
-    # ========================================================================
-
-    print("\n" + "=" * 70)
-    print("TEST SUITE 3: CLI PERFORMANCE BENCHMARKS")
-    print("=" * 70)
-
-    cli_tests = list(RUN_PERFORMANCE_SUITE_NODEIDS["cli"])
-
-    for test in cli_tests:
-        result = run_command(
-            [sys.executable, "-m", "pytest", test, "-v", "-s", "--tb=short"], timeout=120
-        )
-
-        results.append({"test": test.split("::")[-1], "suite": "cli", "result": result})
-
-        if not result["success"]:
-            print("\n[!] WARNING: Test failed or had issues\n")
+    for suite in selected_suites:
+        if suite in RUN_PERFORMANCE_SUITE_NODEIDS:
+            _run_pytest_suite(
+                suite,
+                list(RUN_PERFORMANCE_SUITE_NODEIDS[suite]),
+                timeout_seconds=max(1, int(args.test_timeout)),
+                results=results,
+            )
+            continue
+        if suite == "api_runtime":
+            _run_api_runtime_suite(args, results)
+            continue
 
     # ========================================================================
     # Load and Display Baselines
@@ -189,7 +329,7 @@ def main():
     print("Test Results by Suite:")
     print("-" * 70 + "\n")
 
-    for suite in ["extractors", "pipeline", "cli"]:
+    for suite in selected_suites:
         suite_results = [r for r in results if r["suite"] == suite]
         suite_passed = sum(1 for r in suite_results if r["result"]["success"])
 
@@ -278,11 +418,19 @@ def main():
 
     print(f"Baseline file: {baseline_path}")
     print(f"Report generated: {datetime.now().isoformat()}")
+    if args.output_json is not None:
+        _write_json_report(
+            output_path=args.output_json,
+            selected_suites=selected_suites,
+            results=results,
+            baselines=baselines,
+        )
+        print(f"JSON report: {args.output_json}")
     print()
 
     return exit_code
 
 
 if __name__ == "__main__":
-    exit_code = main()
+    exit_code = main(sys.argv[1:])
     sys.exit(exit_code)

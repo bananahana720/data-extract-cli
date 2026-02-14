@@ -57,6 +57,17 @@ OCR_SENSITIVE_EXTENSIONS = {
     ".gif",
     ".webp",
 }
+API_KEY_ENV = "DATA_EXTRACT_API_KEY"
+API_SESSION_SECRET_ENV = "DATA_EXTRACT_API_SESSION_SECRET"
+API_REMOTE_BIND_ENV = "DATA_EXTRACT_API_REMOTE_BIND"
+API_REQUIRE_SESSION_SECRET_REMOTE_ENV = "DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE"
+
+
+def _env_flag_enabled(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _build_version_output(verbose: bool = False) -> list[str]:
@@ -2406,7 +2417,7 @@ def _register_ui_command(app: typer.Typer) -> None:
             bool,
             typer.Option(
                 "--allow-remote",
-                help="Allow non-localhost host bindings (requires DATA_EXTRACT_API_KEY).",
+                help="Allow non-localhost host bindings with explicit remote auth guards.",
             ),
         ] = False,
         check: Annotated[
@@ -2433,13 +2444,34 @@ def _register_ui_command(app: typer.Typer) -> None:
 
         local_hosts = {"127.0.0.1", "localhost", "::1"}
         remote_bind = host not in local_hosts
+        os.environ[API_REMOTE_BIND_ENV] = "1" if remote_bind else "0"
+
+        require_session_secret_remote = _env_flag_enabled(
+            API_REQUIRE_SESSION_SECRET_REMOTE_ENV,
+            default=True,
+        )
         if remote_bind and not allow_remote:
             errors.append(
                 "Refusing non-local host binding without --allow-remote. "
                 "Use localhost/127.0.0.1 or explicitly pass --allow-remote."
             )
-        if remote_bind and allow_remote and not os.environ.get("DATA_EXTRACT_API_KEY"):
-            errors.append("DATA_EXTRACT_API_KEY is required when using --allow-remote.")
+        if remote_bind and allow_remote and not os.environ.get(API_KEY_ENV, "").strip():
+            errors.append(f"{API_KEY_ENV} is required when using --allow-remote.")
+        if (
+            remote_bind
+            and allow_remote
+            and require_session_secret_remote
+            and not os.environ.get(API_SESSION_SECRET_ENV, "").strip()
+        ):
+            errors.append(
+                f"{API_SESSION_SECRET_ENV} is required when using --allow-remote "
+                f"unless {API_REQUIRE_SESSION_SECRET_REMOTE_ENV}=0."
+            )
+        if remote_bind and reload and os.environ.get("CODEX_ALLOW_REMOTE_RELOAD") != "1":
+            errors.append(
+                "Refusing --reload with non-local binding. "
+                "Set CODEX_ALLOW_REMOTE_RELOAD=1 to proceed."
+            )
 
         try:
             APP_HOME.mkdir(parents=True, exist_ok=True)

@@ -26,10 +26,21 @@ class Job(Base):
     requested_format: Mapped[str] = mapped_column(String(32), default="json")
     chunk_size: Mapped[int] = mapped_column(Integer, default=512)
     request_payload: Mapped[str] = mapped_column(Text, default="{}")
+    dispatch_payload: Mapped[str] = mapped_column(Text, default="{}")
     result_payload: Mapped[str] = mapped_column(Text, default="{}")
     request_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     attempt: Mapped[int] = mapped_column(Integer, default=1)
+    dispatch_state: Mapped[str] = mapped_column(String(32), default="pending_dispatch")
+    dispatch_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    dispatch_last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    dispatch_last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    dispatch_next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    artifact_sync_state: Mapped[str] = mapped_column(String(32), default="pending")
+    artifact_sync_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    artifact_sync_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    artifact_last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    result_checksum: Mapped[str | None] = mapped_column(String(128), nullable=True)
     artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
     session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -95,6 +106,9 @@ class SessionRecord(Base):
     artifact_dir: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_archived: Mapped[int] = mapped_column(Integer, default=0)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    projection_source: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    projection_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_reconciled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
@@ -127,4 +141,19 @@ Index(
     Job.request_hash,
     unique=True,
     sqlite_where=Job.idempotency_key.is_not(None),
+)
+Index(
+    "ix_jobs_dispatch_state_next_attempt_at",
+    Job.dispatch_state,
+    Job.dispatch_next_attempt_at,
+)
+Index(
+    "ix_jobs_artifact_sync_state_updated_at",
+    Job.artifact_sync_state,
+    Job.updated_at,
+)
+Index(
+    "ix_job_events_job_id_event_time",
+    JobEvent.job_id,
+    JobEvent.event_time,
 )

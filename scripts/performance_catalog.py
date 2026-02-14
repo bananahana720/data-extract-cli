@@ -25,6 +25,7 @@ COMPONENT_TEST_MODULES: dict[str, tuple[str, ...]] = {
         "test_pipeline_benchmarks.py",
         "test_cli_benchmarks.py",
     ),
+    "api_runtime": ("test_api_queue_dispatch_perf.py",),
 }
 
 
@@ -47,6 +48,22 @@ RUN_PERFORMANCE_SUITE_NODEIDS: dict[str, tuple[str, ...]] = {
         "tests/performance/test_cli_benchmarks.py::TestEncodingPerformance::test_unicode_heavy_content",
     ),
 }
+
+
+# Supported performance suite groups and defaults for run_performance_suite.py.
+RUN_PERFORMANCE_SUITE_DEFAULT_SUITES: tuple[str, ...] = ("extractors", "pipeline", "cli")
+RUN_PERFORMANCE_SUITE_ALL_SUITES: tuple[str, ...] = (
+    *RUN_PERFORMANCE_SUITE_DEFAULT_SUITES,
+    "api_runtime",
+)
+
+
+# API runtime load selectors consumed by run_performance_suite.py and validate_performance.py.
+# Tuple schema: (<selector name>, <endpoint path or absolute URL>)
+RUN_PERFORMANCE_SUITE_API_RUNTIME_SELECTORS: tuple[tuple[str, str], ...] = (
+    ("health", "/api/v1/health"),
+    ("health_detailed", "/api/v1/health?detailed=true"),
+)
 
 
 # Test selectors used to refresh all maintained baseline operations.

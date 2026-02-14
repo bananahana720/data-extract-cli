@@ -30,6 +30,26 @@ pytest tests/performance/test_pipeline_benchmarks.py -v -m formatting
 pytest tests/ -v -m "not performance"
 ```
 
+### Run Scripted Performance Suites
+
+```bash
+# Existing suites (extractors + pipeline + cli)
+python scripts/run_performance_suite.py
+
+# Include API runtime load suite and write consolidated JSON
+python scripts/run_performance_suite.py \
+  --suites extractors pipeline cli api_runtime \
+  --output-json tests/performance/performance_suite_report.json
+
+# Run API runtime load harness directly
+python scripts/run_api_load.py \
+  --base-url http://127.0.0.1:8000 \
+  --endpoint /api/v1/health \
+  --concurrency 8 \
+  --duration-seconds 15 \
+  --output-json tests/performance/api_runtime_health.json
+```
+
 ### View Results
 
 ```bash
