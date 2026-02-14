@@ -91,6 +91,8 @@ export interface SessionSummary {
   updated_at: string;
 }
 
-export interface ApiSecuritySettings {
+export interface AuthSessionStatus {
+  authenticated: boolean;
   api_key_configured: boolean;
+  expires_at: string | null;
 }

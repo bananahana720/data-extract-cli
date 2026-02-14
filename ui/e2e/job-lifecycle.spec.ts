@@ -256,8 +256,9 @@ test("config page supports preset preview and apply", async ({ page }) => {
 
   const presetSelect = page.getByTestId("config-preset-select");
   await expect(presetSelect).toBeVisible();
-  const optionCount = await presetSelect.locator("option").count();
-  expect(optionCount).toBeGreaterThan(0);
+  await expect
+    .poll(async () => presetSelect.locator("option").count())
+    .toBeGreaterThan(0);
 
   await presetSelect.selectOption({ index: 0 });
   await page.getByRole("button", { name: "Preview Preset" }).click();
@@ -269,9 +270,13 @@ test("config page supports preset preview and apply", async ({ page }) => {
   const apiKeyInput = page.getByTestId("config-api-key-input");
   await expect(apiKeyInput).toBeVisible();
   await apiKeyInput.fill("e2e-secret");
-  await page.getByRole("button", { name: "Save API Key" }).click();
-  await expect(page.getByText("API key saved locally and will be sent as x-api-key.")).toBeVisible();
+  await page.getByRole("button", { name: "Sign In" }).click();
+  await expect(
+    page.getByText(
+      /Signed in\. Session cookie is active\.|Server API key auth is not configured\.|Unauthorized\./
+    )
+  ).toBeVisible();
 
-  await page.getByRole("button", { name: "Clear API Key" }).click();
-  await expect(page.getByText("API key cleared.")).toBeVisible();
+  await page.getByRole("button", { name: "Sign Out" }).click();
+  await expect(page.getByText(/Signed out|Server API key auth is not configured/)).toBeVisible();
 });

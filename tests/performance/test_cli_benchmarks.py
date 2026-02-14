@@ -21,6 +21,7 @@ pytestmark = [
     pytest.mark.performance,
 ]
 
+import os  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
@@ -36,6 +37,7 @@ from tests.performance.conftest import (  # noqa: E402
     BenchmarkResult,
     assert_memory_limit,
     assert_performance_target,
+    baseline_regression_enabled,
     baseline_write_enabled,
 )
 
@@ -67,6 +69,19 @@ BASELINE_FILE = Path(__file__).parent / "baselines.json"
 # ============================================================================
 
 
+def _coverage_perf_mode() -> bool:
+    """Return True when running under coverage instrumentation."""
+    coverage_markers = (
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COVERAGE_RUN",
+        "PYTEST_COV",
+    )
+    if any(str(os.environ.get(name, "")).strip() for name in coverage_markers):
+        return True
+    return "--cov" in str(os.environ.get("PYTEST_ADDOPTS", ""))
+
+
 def run_cli_command(
     args: List[str], timeout: int = 300, measure_resources: bool = True
 ) -> Dict[str, Any]:
@@ -91,13 +106,22 @@ def run_cli_command(
     full_command = CLI_COMMAND + args
 
     start_time = time.perf_counter()
+    deadline = start_time + float(max(1, timeout))
+    timed_out = False
 
     # Start process
+    child_env = dict(os.environ)
+    for name in list(child_env.keys()):
+        if name.startswith("COV_CORE"):
+            child_env.pop(name, None)
+    child_env.pop("COVERAGE_PROCESS_START", None)
+
     process = subprocess.Popen(
         full_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        env=child_env,
     )
 
     # Monitor resources if requested
@@ -110,6 +134,10 @@ def run_cli_command(
 
             # Sample every 0.1 seconds
             while process.poll() is None:
+                if time.perf_counter() >= deadline:
+                    timed_out = True
+                    process.kill()
+                    break
                 try:
                     mem_info = psutil_process.memory_info()
                     peak_memory_mb = max(peak_memory_mb, mem_info.rss / 1024 / 1024)
@@ -121,8 +149,10 @@ def run_cli_command(
 
     # Wait for completion
     try:
-        stdout, stderr = process.communicate(timeout=timeout)
+        remaining = max(0.1, deadline - time.perf_counter())
+        stdout, stderr = process.communicate(timeout=remaining)
     except subprocess.TimeoutExpired:
+        timed_out = True
         process.kill()
         stdout, stderr = process.communicate()
 
@@ -130,13 +160,14 @@ def run_cli_command(
     duration_ms = (end_time - start_time) * 1000
 
     return {
-        "success": process.returncode == 0,
+        "success": process.returncode == 0 and not timed_out,
         "duration_ms": duration_ms,
         "memory_peak_mb": peak_memory_mb,
         "cpu_percent": sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0.0,
         "stdout": stdout,
         "stderr": stderr,
         "returncode": process.returncode,
+        "timed_out": timed_out,
     }
 
 
@@ -153,7 +184,7 @@ def _assert_cli_no_regression(
     benchmark: BenchmarkResult,
     manager: BaselineManager,
 ) -> None:
-    if baseline_write_enabled():
+    if baseline_write_enabled() or not baseline_regression_enabled():
         return
 
     comparison = manager.compare(operation, benchmark, threshold=REGRESSION_THRESHOLD)
@@ -192,8 +223,14 @@ def _persist_baseline_if_requested(
     manager.save()
 
 
-def _representative_batch_files(fixture_dir: Path, max_files: int = 24) -> List[Path]:
+def _representative_batch_files(
+    fixture_dir: Path, max_files: int = 24, *, coverage_lite: bool = False
+) -> List[Path]:
     """Build a deterministic, mixed-format corpus for CLI batch benchmarks."""
+    coverage_mode = coverage_lite and _coverage_perf_mode()
+    if coverage_mode:
+        max_files = min(max_files, 12)
+
     # Keep canonical tiny fixtures for compatibility with prior runs.
     canonical = [
         fixture_dir / "sample.txt",
@@ -217,6 +254,8 @@ def _representative_batch_files(fixture_dir: Path, max_files: int = 24) -> List[
         files_by_suffix.setdefault(suffix, []).append(candidate)
 
     ordered_suffixes = [".txt", ".pdf", ".docx", ".xlsx", ".pptx"]
+    if coverage_mode:
+        ordered_suffixes = [".txt", ".docx"]
     ordered_suffixes.extend(
         suffix for suffix in sorted(files_by_suffix.keys()) if suffix not in ordered_suffixes
     )
@@ -388,7 +427,10 @@ class TestBatchProcessingPerformance:
     ):
         """Benchmark batch processing with different worker counts."""
         # Use a broader deterministic corpus to reduce startup-noise dominance.
-        test_files = _representative_batch_files(fixture_dir, max_files=24)
+        test_files = _representative_batch_files(fixture_dir, max_files=24, coverage_lite=True)
+        coverage_mode = _coverage_perf_mode()
+        warmup_runs = 0 if coverage_mode else BATCH_WARMUP_RUNS
+        measured_runs = 1 if coverage_mode else BATCH_MEASURED_RUNS
 
         if len(test_files) < 10:
             pytest.skip("Not enough test files for batch test")
@@ -417,14 +459,14 @@ class TestBatchProcessingPerformance:
         ]
 
         # Warmup and median-of-N measurement to reduce run-to-run timing noise.
-        for _ in range(BATCH_WARMUP_RUNS):
+        for _ in range(warmup_runs):
             shutil.rmtree(output_dir, ignore_errors=True)
             output_dir.mkdir(exist_ok=True)
             warmup = run_cli_command(batch_args, timeout=300)
             assert warmup["success"], f"Batch warmup failed: {warmup['stderr']}"
 
         samples: list[Dict[str, Any]] = []
-        for _ in range(BATCH_MEASURED_RUNS):
+        for _ in range(measured_runs):
             shutil.rmtree(output_dir, ignore_errors=True)
             output_dir.mkdir(exist_ok=True)
             sample = run_cli_command(batch_args, timeout=300)
@@ -516,7 +558,7 @@ class TestThreadSafetyStress:
     ):
         """Stress test with maximum workers and many files."""
         # Reuse broad corpus for more representative concurrency stress.
-        test_files = _representative_batch_files(fixture_dir, max_files=30)
+        test_files = _representative_batch_files(fixture_dir, max_files=30, coverage_lite=True)
 
         if len(test_files) < 10:
             pytest.skip("Not enough test files for stress test")

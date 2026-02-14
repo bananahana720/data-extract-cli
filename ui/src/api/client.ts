@@ -1,4 +1,5 @@
 import {
+  AuthSessionStatus,
   ConfigPresetSummary,
   JobArtifactsResponse,
   JobDetail,
@@ -6,30 +7,31 @@ import {
   SessionSummary
 } from "../types";
 
-const API_KEY_STORAGE_KEY = "data_extract_api_key";
-
-function getStoredApiKey(): string {
-  if (typeof window === "undefined") {
-    return "";
-  }
-  try {
-    return (window.localStorage.getItem(API_KEY_STORAGE_KEY) || "").trim();
-  } catch {
-    return "";
-  }
-}
+const REQUEST_TIMEOUT_MS = 15_000;
+const READ_REQUEST_ATTEMPTS = 3;
+const WRITE_REQUEST_ATTEMPTS = 1;
 
 function requestHeaders(init?: RequestInit): Headers {
-  const headers = new Headers(init?.headers || {});
-  const apiKey = getStoredApiKey();
-  if (apiKey && !headers.has("x-api-key")) {
-    headers.set("x-api-key", apiKey);
-  }
-  return headers;
+  return new Headers(init?.headers || {});
 }
 
 function isDatabaseLocked(message: string): boolean {
   return /database is locked/i.test(message);
+}
+
+function isIdempotentReadMethod(method: string): boolean {
+  return method === "GET" || method === "HEAD" || method === "OPTIONS";
+}
+
+function parseRetryAfterMillis(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed * 1000;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -38,14 +40,40 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-async function request<T>(url: string, init?: RequestInit, attempts = 3): Promise<T> {
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method || "GET").toUpperCase();
+  const isReadMethod = isIdempotentReadMethod(method);
+  const attempts = isReadMethod ? READ_REQUEST_ATTEMPTS : WRITE_REQUEST_ATTEMPTS;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const response = await fetch(url, {
-      ...(init || {}),
-      headers: requestHeaders(init)
-    });
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...(init || {}),
+        method,
+        credentials: init?.credentials ?? "same-origin",
+        headers: requestHeaders(init),
+        signal: controller.signal
+      });
+    } catch (error) {
+      const baseMessage = error instanceof Error ? error.message : "Request failed";
+      const timeoutMessage =
+        error instanceof Error && error.name === "AbortError"
+          ? `Request timed out after ${REQUEST_TIMEOUT_MS}ms`
+          : baseMessage;
+      lastError = new Error(timeoutMessage);
+      if (!isReadMethod || attempt === attempts - 1) {
+        throw lastError;
+      }
+      await sleep(150 * (attempt + 1));
+      continue;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+
     if (response.ok) {
       return (await response.json()) as T;
     }
@@ -53,37 +81,33 @@ async function request<T>(url: string, init?: RequestInit, attempts = 3): Promis
     const text = await response.text();
     const error = new Error(text || `Request failed (${response.status})`);
     lastError = error;
-    if (!isDatabaseLocked(error.message) || attempt === attempts - 1) {
+    const retryableReadError =
+      isReadMethod && (response.status >= 500 || response.status === 429 || isDatabaseLocked(error.message));
+    if (!retryableReadError || attempt === attempts - 1) {
       throw error;
     }
 
-    await sleep(150 * (attempt + 1));
+    const retryAfterMillis = parseRetryAfterMillis(response.headers.get("Retry-After"));
+    await sleep(retryAfterMillis ?? 150 * (attempt + 1));
   }
 
   throw lastError ?? new Error("Request failed");
 }
 
-export function getApiKey(): string {
-  return getStoredApiKey();
+export function getAuthSessionStatus(): Promise<AuthSessionStatus> {
+  return request<AuthSessionStatus>("/api/v1/auth/session");
 }
 
-export function setApiKey(value: string): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const normalized = value.trim();
-  if (!normalized) {
-    window.localStorage.removeItem(API_KEY_STORAGE_KEY);
-    return;
-  }
-  window.localStorage.setItem(API_KEY_STORAGE_KEY, normalized);
+export function loginAuthSession(apiKey: string): Promise<AuthSessionStatus> {
+  return request<AuthSessionStatus>("/api/v1/auth/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey })
+  });
 }
 
-export function clearApiKey(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.localStorage.removeItem(API_KEY_STORAGE_KEY);
+export function logoutAuthSession(): Promise<AuthSessionStatus> {
+  return request<AuthSessionStatus>("/api/v1/auth/session", { method: "DELETE" });
 }
 
 export async function createProcessJob(payload: Record<string, unknown>): Promise<string> {

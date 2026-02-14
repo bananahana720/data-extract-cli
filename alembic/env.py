@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from data_extract.api.database import DATABASE_URL
 from data_extract.api.models import Base
 

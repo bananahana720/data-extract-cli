@@ -58,3 +58,4 @@
     - [ADR-005: Streaming Pipeline (Not Batch-Load)](./architecture-decision-records-adrs.md#adr-005-streaming-pipeline-not-batch-load)
     - [ADR-006: Continue-On-Error Batch Processing](./architecture-decision-records-adrs.md#adr-006-continue-on-error-batch-processing)
     - [ADR-011: Semantic Boundary-Aware Chunking](./architecture-decision-records-adrs.md#adr-011-semantic-boundary-aware-chunking)
+    - [ADR-013: Runtime Scaling Thresholds](./adr-013-runtime-scaling-thresholds.md)

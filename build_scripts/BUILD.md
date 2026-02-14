@@ -98,8 +98,20 @@ python build_scripts/build_orchestrator.py --clean --full
 # Download and verify Tesseract + Poppler
 python build_scripts/download_ocr_dependencies.py
 
-# Downloads are cached in build_scripts/downloads/
+# Override defaults for flaky networks or a specific Poppler release
+python build_scripts/download_ocr_dependencies.py --max-retries 5 --backoff-ms 1500 --poppler-version 24.08.0
+
+# Extracted dependencies default to build_scripts/vendor/
 ```
+
+### OCR Downloader Flags (`download_ocr_dependencies.py`)
+
+| Flag | Description |
+|------|-------------|
+| `--max-retries` | Number of retry attempts per network request after the first failure (default: `3`) |
+| `--backoff-ms` | Initial exponential backoff delay between retries in milliseconds (default: `500`) |
+| `--poppler-version` | Pinned Poppler version to download (default: `24.02.0`, not `latest`) |
+| `--skip-verify` | Explicitly disables checksum verification (unsafe; use only in trusted dev/test environments) |
 
 ### What Gets Downloaded
 
@@ -115,7 +127,8 @@ python build_scripts/download_ocr_dependencies.py
 
 - SHA256 checksums are verified automatically
 - Download failures will abort the build process
-- Cached downloads are reused if checksums match
+- Poppler checksum key is version-specific (`poppler-<version>`)
+- `--skip-verify` disables integrity checks and should only be used when you explicitly trust the source
 
 ## Troubleshooting
 

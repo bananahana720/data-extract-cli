@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
@@ -36,7 +36,7 @@ def list_sessions() -> list[SessionSummary]:
             for record in records
         ]
 
-    return list_session_summaries(Path.cwd())
+    return cast(list[SessionSummary], list_session_summaries(Path.cwd()))
 
 
 @router.get("/{session_id}")
@@ -52,4 +52,4 @@ def get_session(session_id: str) -> dict[str, Any]:
         details = load_session_details(Path.cwd(), session_id)
     if details is None:
         raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
-    return details
+    return cast(dict[str, Any], details)

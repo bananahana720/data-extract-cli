@@ -10,6 +10,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from data_extract.api.readiness import evaluate_runtime_readiness
+from data_extract.api.routers.auth import (
+    API_KEY_ENV,
+    has_valid_session_cookie,
+)
+from data_extract.api.routers.auth import (
+    router as auth_router,
+)
 from data_extract.api.routers.config import router as config_router
 from data_extract.api.routers.health import router as health_router
 from data_extract.api.routers.jobs import router as jobs_router
@@ -17,6 +24,7 @@ from data_extract.api.routers.sessions import router as sessions_router
 from data_extract.api.state import runtime
 
 app = FastAPI(title="Data Extract UI API", version="1.0.0")
+app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(config_router)
 app.include_router(jobs_router)
@@ -24,7 +32,6 @@ app.include_router(sessions_router)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_DIST = PROJECT_ROOT / "ui" / "dist"
-API_KEY_ENV = "DATA_EXTRACT_API_KEY"
 
 
 @app.middleware("http")
@@ -37,7 +44,13 @@ async def api_key_guard(request: Request, call_next):  # type: ignore[no-untyped
     path = request.url.path
     protected_prefixes = ("/api/", "/docs", "/redoc", "/openapi")
     if path.startswith(protected_prefixes):
+        if path.startswith("/api/v1/auth/session"):
+            return await call_next(request)
+
         provided_key = request.headers.get("x-api-key", "")
+        if provided_key == configured_key or has_valid_session_cookie(request):
+            return await call_next(request)
+
         if provided_key != configured_key:
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 

@@ -21,14 +21,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import our working examples
-from minimal_extractor import TextFileExtractor
-from minimal_processor import WordCountProcessor
-
 from core import (
     BaseFormatter,
     FormattedOutput,
     ProcessingResult,
 )
+from minimal_extractor import TextFileExtractor
+from minimal_processor import WordCountProcessor
 
 
 class JsonFormatter(BaseFormatter):

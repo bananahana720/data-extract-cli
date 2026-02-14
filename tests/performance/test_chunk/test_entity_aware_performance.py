@@ -8,6 +8,7 @@ Tests entity-aware chunking performance requirements:
 Performance baselines established for tracking regressions.
 """
 
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +22,18 @@ pytestmark = [
     pytest.mark.chunking,
     pytest.mark.entity_aware,
 ]
+
+
+def _coverage_perf_multiplier() -> float:
+    """Relax strict wall-clock thresholds when coverage instrumentation is active."""
+    coverage_markers = (
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COVERAGE_RUN",
+        "PYTEST_COV",
+    )
+    return 1.5 if any(str(os.environ.get(name, "")).strip() for name in coverage_markers) else 1.0
+
 
 from data_extract.chunk import ChunkingEngine, SentenceSegmenter  # noqa: E402
 from data_extract.core.models import (  # noqa: E402
@@ -200,8 +213,9 @@ class TestEntityAwareChunkingLatency:
         elapsed = time.perf_counter() - start_time
 
         # THEN: Latency <3.3s (Story 3.1 baseline 3.0s + 0.3s entity overhead)
-        assert elapsed < 3.3, (
-            f"Entity-aware chunking took {elapsed:.3f}s (target: <3.3s, NFR-P3). "
+        target_total_s = 3.3 * _coverage_perf_multiplier()
+        assert elapsed < target_total_s, (
+            f"Entity-aware chunking took {elapsed:.3f}s (target: <{target_total_s:.3f}s, NFR-P3). "
             f"Document: {word_count} words, {len(document.entities)} entities, {len(chunks)} chunks."
         )
 
@@ -247,8 +261,9 @@ class TestEntityAwareChunkingLatency:
         overhead = entity_time - baseline_time
         overhead_pct = (overhead / baseline_time * 100) if baseline_time > 0 else 0
 
-        assert overhead < 0.3, (
-            f"Entity analysis overhead: {overhead:.3f}s (target: <0.3s). "
+        target_overhead_s = 0.3 * _coverage_perf_multiplier()
+        assert overhead < target_overhead_s, (
+            f"Entity analysis overhead: {overhead:.3f}s (target: <{target_overhead_s:.3f}s). "
             f"Baseline: {baseline_time:.3f}s, Entity-aware: {entity_time:.3f}s, "
             f"Overhead: {overhead_pct:.1f}%"
         )
@@ -290,8 +305,9 @@ class TestEntityAwareChunkingLatency:
         # THEN: Total processing time should be reasonable
         # For a ~3k word document with 10 sections, expect <1.5s total
         # Section detection overhead should be negligible (<0.1s of total time)
-        assert total_time < 1.5, (
-            f"Multi-section document chunking took {total_time:.3f}s (expected <1.5s). "
+        section_target_s = 1.5 * _coverage_perf_multiplier()
+        assert total_time < section_target_s, (
+            f"Multi-section document chunking took {total_time:.3f}s (expected <{section_target_s:.3f}s). "
             f"Document: {len(document.text.split())} words, {section_count} sections, {len(chunks)} chunks."
         )
 

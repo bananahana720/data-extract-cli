@@ -234,7 +234,11 @@ def test_enqueue_process_job_returns_503_when_queue_is_full(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def fake_enqueue(_request: ProcessJobRequest, job_id: str | None = None) -> str:
-        raise QueueCapacityError("Queue backlog is at capacity (1000); try again later.")
+        raise QueueCapacityError(
+            "Queue backlog is at capacity (1000); try again later.",
+            retry_after_seconds=6,
+            reason="queue_full",
+        )
 
     monkeypatch.setattr(jobs_router_module.runtime, "enqueue_process", fake_enqueue)
     request = JsonRequestStub(
@@ -248,6 +252,8 @@ def test_enqueue_process_job_returns_503_when_queue_is_full(
     with pytest.raises(Exception) as exc_info:
         asyncio.run(enqueue_process_job(request))  # type: ignore[arg-type]
     assert getattr(exc_info.value, "status_code", None) == 503
+    assert getattr(exc_info.value, "headers", {}).get("Retry-After") == "6"
+    assert "Retry after ~6s" in str(getattr(exc_info.value, "detail", ""))
 
 
 @pytest.mark.unit
@@ -386,7 +392,11 @@ def test_retry_job_failures_returns_503_when_queue_is_full(
         db.commit()
 
     def fake_enqueue_retry(*, job_id: str, request: Any) -> None:
-        raise QueueCapacityError("Queue backlog is at capacity (1000); try again later.")
+        raise QueueCapacityError(
+            "Queue backlog is at capacity (1000); try again later.",
+            retry_after_seconds=4,
+            reason="queue_full",
+        )
 
     monkeypatch.setattr(jobs_router_module, "SessionLocal", test_session_local)
     monkeypatch.setattr(jobs_router_module.runtime, "enqueue_retry", fake_enqueue_retry)
@@ -394,6 +404,8 @@ def test_retry_job_failures_returns_503_when_queue_is_full(
     with pytest.raises(Exception) as exc_info:
         retry_job_failures(job_id)
     assert getattr(exc_info.value, "status_code", None) == 503
+    assert getattr(exc_info.value, "headers", {}).get("Retry-After") == "4"
+    assert "Retry after ~4s" in str(getattr(exc_info.value, "detail", ""))
     with test_session_local() as db:
         job = db.get(Job, job_id)
         events = list(

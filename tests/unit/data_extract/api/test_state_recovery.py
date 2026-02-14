@@ -291,3 +291,216 @@ def test_recover_inflight_jobs_submits_once_when_db_lock_retry_occurs(
 
     assert submitted == ["queued-job:process"]
     assert runtime.recovery_stats == {"requeued": 1, "failed": 0}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("existing_status", ["running", "completed"])
+def test_enqueue_process_idempotent_replay_returns_existing_job_when_throttled(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    existing_status: str,
+) -> None:
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_MAX_BACKLOG", "2")
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK", "0.5")
+
+    runtime = ApiRuntime()
+    runtime.queue.submit("seed-job", {"kind": "process"})
+    monkeypatch.setattr(runtime, "_compute_request_hash", lambda _request: "hash-replay")
+    monkeypatch.setattr(
+        runtime.persistence,
+        "find_idempotent_job",
+        lambda _idempotency_key, _request_hash: ("existing-job", existing_status, {}),
+    )
+    monkeypatch.setattr(
+        runtime.queue,
+        "submit",
+        lambda *_args, **_kwargs: pytest.fail(
+            "queue.submit must not be called for idempotent replay"
+        ),
+    )
+
+    replay_request = ProcessJobRequest(
+        input_path=str(tmp_path / "input"),
+        output_format="json",
+        idempotency_key="idem-replay",
+    )
+    resolved_job_id = runtime.enqueue_process(replay_request, job_id="new-job-id")
+
+    assert resolved_job_id == "existing-job"
+    overload = runtime.overload_stats
+    assert overload["throttle_rejections"] == 0
+    assert overload["last_reason"] is None
+
+
+@pytest.mark.unit
+def test_enqueue_process_new_work_still_throttles_at_high_watermark(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_MAX_BACKLOG", "2")
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK", "0.5")
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_RETRY_HINT_SECONDS", "4")
+
+    runtime = ApiRuntime()
+    runtime.queue.submit("seed-job", {"kind": "process"})
+    monkeypatch.setattr(runtime, "_compute_request_hash", lambda _request: "hash-new")
+    monkeypatch.setattr(
+        runtime.persistence,
+        "find_idempotent_job",
+        lambda _idempotency_key, _request_hash: None,
+    )
+    monkeypatch.setattr(
+        runtime.queue,
+        "submit",
+        lambda *_args, **_kwargs: pytest.fail(
+            "queue.submit should not be called when process enqueue is throttled"
+        ),
+    )
+
+    new_request = ProcessJobRequest(
+        input_path=str(tmp_path / "input"),
+        output_format="json",
+        idempotency_key="idem-new-work",
+    )
+    with pytest.raises(QueueCapacityError) as exc_info:
+        runtime.enqueue_process(new_request, job_id="new-work-job")
+
+    assert exc_info.value.reason == "process"
+    assert "above throttle watermark" in str(exc_info.value)
+    assert exc_info.value.retry_after_seconds == 4
+    overload = runtime.overload_stats
+    assert overload["throttle_rejections"] >= 1
+    assert overload["last_reason"] == "high_watermark"
+    assert overload["last_retry_after_seconds"] == 4
+
+
+@pytest.mark.unit
+def test_enqueue_retry_throttles_at_high_watermark_and_records_overload_stats(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_MAX_BACKLOG", "2")
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK", "0.5")
+    monkeypatch.setenv("DATA_EXTRACT_API_QUEUE_RETRY_HINT_SECONDS", "3")
+
+    runtime = ApiRuntime()
+    runtime.queue.submit("seed-job", {"kind": "process"})
+
+    with pytest.raises(QueueCapacityError) as exc_info:
+        runtime.enqueue_retry(
+            "retry-throttle",
+            RetryRequest(session="sess-throttle", non_interactive=True, last=False),
+        )
+
+    assert "Retry after ~3s" in str(exc_info.value)
+    assert exc_info.value.retry_after_seconds == 3
+
+    overload = runtime.overload_stats
+    assert overload["throttle_rejections"] >= 1
+    assert overload["last_reason"] == "high_watermark"
+    assert overload["last_retry_after_seconds"] == 3
+
+
+@pytest.mark.unit
+def test_reconcile_terminal_artifacts_repairs_and_records_failures(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from data_extract.api import state as state_module
+
+    db_path = tmp_path / "jobs.db"
+    jobs_home = tmp_path / "jobs-home"
+    jobs_home.mkdir(parents=True, exist_ok=True)
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    test_session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    Base.metadata.create_all(bind=engine)
+
+    artifact_payload = {"status": "completed", "session_id": "sess-artifact"}
+    db_payload = {"status": "failed", "error": "boom"}
+
+    artifact_source_dir = jobs_home / "job-db-repair"
+    artifact_source_dir.mkdir(parents=True, exist_ok=True)
+    (artifact_source_dir / "result.json").write_text(json.dumps(artifact_payload), encoding="utf-8")
+
+    with test_session_local() as db:
+        db.add(
+            Job(
+                id="job-db-repair",
+                status="completed",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload="{bad-json",
+                artifact_dir=str(artifact_source_dir),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        db.add(
+            Job(
+                id="job-artifact-repair",
+                status="failed",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload=json.dumps(db_payload),
+                artifact_dir=str(jobs_home / "job-artifact-repair"),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        db.add(
+            Job(
+                id="job-repair-failure",
+                status="partial",
+                input_path=str(tmp_path / "input"),
+                output_dir=str(tmp_path / "output"),
+                requested_format="json",
+                chunk_size=512,
+                request_payload="{}",
+                result_payload="{still-bad-json",
+                artifact_dir=str(jobs_home / "job-repair-failure"),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        db.commit()
+
+    monkeypatch.setattr(state_module, "SessionLocal", test_session_local)
+    monkeypatch.setattr(state_module, "JOBS_HOME", jobs_home)
+    runtime = ApiRuntime()
+    monkeypatch.setattr(runtime, "_write_job_log", lambda *args, **kwargs: None)
+
+    runtime._reconcile_terminal_artifacts()
+
+    stats = runtime.terminal_reconciliation_stats
+    assert stats["scanned"] == 3
+    assert stats["repaired"] == 2
+    assert stats["failed"] == 1
+    assert stats["db_repairs"] == 1
+    assert stats["artifact_repairs"] == 1
+
+    repaired_artifact_path = jobs_home / "job-artifact-repair" / "result.json"
+    assert repaired_artifact_path.exists()
+    assert json.loads(repaired_artifact_path.read_text(encoding="utf-8")) == db_payload
+
+    with test_session_local() as db:
+        repaired_db_job = db.get(Job, "job-db-repair")
+        assert repaired_db_job is not None
+        assert json.loads(repaired_db_job.result_payload or "{}") == artifact_payload
+
+        db_repair_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-db-repair"))
+        artifact_repair_events = list(
+            db.query(JobEvent).filter(JobEvent.job_id == "job-artifact-repair")
+        )
+        failure_events = list(db.query(JobEvent).filter(JobEvent.job_id == "job-repair-failure"))
+
+    assert any(event.event_type == "repair" for event in db_repair_events)
+    assert any(event.event_type == "repair" for event in artifact_repair_events)
+    assert any(event.event_type == "error" for event in failure_events)

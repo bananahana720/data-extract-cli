@@ -1,3 +1,14 @@
+2026-02-13
+- Implemented queue high-watermark throttling with explicit `Retry-After` hints and detailed overload counters surfaced in `GET /api/v1/health?detailed=true`.
+- Added operation-scoped SQLite lock retry telemetry and write-serialization support in `with_sqlite_lock_retry`, including per-operation retry/failure breakdowns.
+- Added startup terminal reconciliation for `result_payload` and `result.json`, including deterministic repair/failure events and reconciliation snapshot metrics.
+- Hardened jobs API queue-capacity responses to include retry guidance while preserving existing status-code contract (`503`).
+- Added auth session endpoints (`POST/GET/DELETE /api/v1/auth/session`) using short-lived signed HttpOnly session cookies, while retaining `x-api-key` compatibility in middleware.
+- Updated UI auth flow to session login/status/logout behavior and removed persistent API-key storage from browser local storage.
+- Hardened OCR dependency downloader with retry/backoff controls (`--max-retries`, `--backoff-ms`), pinned Poppler version selection (`--poppler-version`), and version-aligned checksum validation.
+- Added/updated unit coverage for health/queue/reconciliation behavior, auth middleware/session flow, OpenAPI contract paths, and OCR downloader retry/version logic.
+- Added operational artifacts and ADR documentation for baseline harness and scaling thresholds: `docs/artifacts/wave-0-baseline.md`, `docs/architecture/adr-013-runtime-scaling-thresholds.md`, and `docs/artifacts/wave-5-operational-readiness.md`.
+
 2026-02-10
 - Refactored GUI New Run and Job Detail lifecycle UX with explicit source-mode selection, inline validation, action-first layout, and lifecycle timeline.
 - Added stable UI test hooks and expanded lifecycle e2e assertions for source-mode clarity, validation, next-action guidance, and timeline presence.

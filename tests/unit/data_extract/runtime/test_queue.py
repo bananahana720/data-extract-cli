@@ -67,3 +67,13 @@ def test_local_job_queue_traps_handler_errors_and_continues() -> None:
     assert "job-good" in handled
     assert captured_errors == ["job-bad:boom"]
     assert queue.alive_workers <= queue.worker_count
+
+
+def test_local_job_queue_reports_full_utilization_when_saturated() -> None:
+    queue = LocalJobQueue(lambda _job_id, _payload: None, worker_count=1, max_backlog=2)
+    queue.submit("job-1", {"kind": "process"})
+    queue.submit("job-2", {"kind": "process"})
+
+    assert queue.backlog == 2
+    assert queue.capacity == 2
+    assert queue.utilization == 1.0

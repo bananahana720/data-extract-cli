@@ -33,11 +33,15 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 T = TypeVar("T")
 _DB_RETRY_STATS_LOCK = Lock()
-_DB_RETRY_STATS: dict[str, int] = {
+_DB_SERIALIZE_WRITE_LOCK = Lock()
+_DB_RETRY_STATS: dict[str, Any] = {
     "attempts": 0,
     "retries": 0,
     "successes": 0,
     "failures": 0,
+    "serialized_acquires": 0,
+    "serialized_waits": 0,
+    "operations": {},
 }
 
 
@@ -103,35 +107,112 @@ def _resolve_db_lock_backoff_ms(explicit_value: int | None = None) -> int:
         return 100
 
 
+def _resolve_db_serialize_writes(explicit_value: bool | None = None) -> bool:
+    if explicit_value is not None:
+        return bool(explicit_value)
+    raw = os.environ.get("DATA_EXTRACT_API_DB_SERIALIZE_WRITES", "0").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _normalize_operation_name(
+    operation: Callable[[], Any], explicit_value: str | None = None
+) -> str:
+    if explicit_value:
+        normalized = explicit_value.strip()
+        if normalized:
+            return normalized
+    inferred = getattr(operation, "__name__", "") or ""
+    normalized = inferred.strip()
+    return normalized or "anonymous"
+
+
+def _operation_stats_locked(operation_name: str) -> dict[str, Any]:
+    operations = _DB_RETRY_STATS.setdefault("operations", {})
+    if not isinstance(operations, dict):
+        operations = {}
+        _DB_RETRY_STATS["operations"] = operations
+    current = operations.get(operation_name)
+    if isinstance(current, dict):
+        return current
+    current = {
+        "attempts": 0,
+        "retries": 0,
+        "successes": 0,
+        "failures": 0,
+        "serialized_acquires": 0,
+        "serialized_waits": 0,
+        "last_error": None,
+        "last_attempt_at": None,
+        "last_retry_at": None,
+    }
+    operations[operation_name] = current
+    return current
+
+
 def with_sqlite_lock_retry(
     operation: Callable[[], T],
     retries: int | None = None,
     backoff_ms: int | None = None,
+    operation_name: str | None = None,
+    serialize_writes: bool | None = None,
 ) -> T:
     """Run an operation with bounded retry/backoff for transient sqlite locks."""
     max_retries = _resolve_db_lock_retries(retries)
     delay_ms = _resolve_db_lock_backoff_ms(backoff_ms)
+    op_name = _normalize_operation_name(operation, operation_name)
+    should_serialize = _resolve_db_serialize_writes(serialize_writes)
     attempt = 0
     while True:
+        now = time.time()
         with _DB_RETRY_STATS_LOCK:
             _DB_RETRY_STATS["attempts"] += 1
+            op_stats = _operation_stats_locked(op_name)
+            op_stats["attempts"] += 1
+            op_stats["last_attempt_at"] = now
         try:
-            result = operation()
+            if should_serialize:
+                with _DB_RETRY_STATS_LOCK:
+                    _DB_RETRY_STATS["serialized_acquires"] += 1
+                    _operation_stats_locked(op_name)["serialized_acquires"] += 1
+                with _DB_SERIALIZE_WRITE_LOCK:
+                    result = operation()
+            else:
+                result = operation()
             with _DB_RETRY_STATS_LOCK:
                 _DB_RETRY_STATS["successes"] += 1
+                _operation_stats_locked(op_name)["successes"] += 1
             return result
         except Exception as exc:
             if not _is_sqlite_locked_error(exc) or attempt >= max_retries:
                 with _DB_RETRY_STATS_LOCK:
                     _DB_RETRY_STATS["failures"] += 1
+                    op_stats = _operation_stats_locked(op_name)
+                    op_stats["failures"] += 1
+                    op_stats["last_error"] = f"{type(exc).__name__}: {exc}"
                 raise
             attempt += 1
             with _DB_RETRY_STATS_LOCK:
                 _DB_RETRY_STATS["retries"] += 1
+                op_stats = _operation_stats_locked(op_name)
+                op_stats["retries"] += 1
+                op_stats["last_retry_at"] = time.time()
+                op_stats["last_error"] = f"{type(exc).__name__}: {exc}"
+                if should_serialize:
+                    _DB_RETRY_STATS["serialized_waits"] += 1
+                    op_stats["serialized_waits"] += 1
             time.sleep((delay_ms / 1000.0) * attempt)
 
 
 def sqlite_lock_retry_stats() -> dict[str, Any]:
     """Return aggregated lock retry stats for health reporting."""
     with _DB_RETRY_STATS_LOCK:
-        return dict(_DB_RETRY_STATS)
+        snapshot = dict(_DB_RETRY_STATS)
+        operations = _DB_RETRY_STATS.get("operations", {})
+        if isinstance(operations, dict):
+            snapshot["operations"] = {
+                str(name): dict(stats) if isinstance(stats, dict) else {}
+                for name, stats in operations.items()
+            }
+        else:
+            snapshot["operations"] = {}
+        return snapshot

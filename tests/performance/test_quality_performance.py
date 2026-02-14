@@ -15,6 +15,7 @@ pytestmark = [
 
 import gc  # noqa: E402
 import time  # noqa: E402
+from statistics import median  # noqa: E402
 from typing import List  # noqa: E402
 
 from data_extract.core.models import Chunk  # noqa: E402
@@ -188,6 +189,11 @@ class TestQualityPerformance:
         # Test with cache enabled
         cached_config = QualityConfig(use_cache=True)
         cached_stage = QualityMetricsStage(config=cached_config)
+        assert cached_stage.cache_manager is not None
+
+        # CacheManager is a singleton with persistent disk state.
+        # Reset for deterministic miss/hit timing in full-suite runs.
+        cached_stage.cache_manager.clear()
 
         # Warmup run to avoid initialization overhead
         warmup = Chunk(
@@ -202,23 +208,56 @@ class TestQualityPerformance:
         )
         _ = cached_stage.process([warmup])
 
-        # First run (cache miss) - using the actual test chunk
-        start1 = time.perf_counter()
-        _ = cached_stage.process([single_chunk])
-        first_run = time.perf_counter() - start1
+        miss_times = []
+        hit_times = []
+        faster_pairs = 0
 
-        # Second run (cache hit)
-        start2 = time.perf_counter()
-        _ = cached_stage.process([single_chunk])
-        second_run = time.perf_counter() - start2
+        iterations = 9
+        for i in range(iterations):
+            # Unique text per iteration guarantees first call is a cache miss.
+            test_chunk = Chunk(
+                id=f"{single_chunk.id}_{i}",
+                text=f"{single_chunk.text} cache-iter-{i}",
+                document_id=single_chunk.document_id,
+                position_index=single_chunk.position_index,
+                token_count=single_chunk.token_count,
+                word_count=single_chunk.word_count,
+                quality_score=0.0,
+                metadata={},
+            )
+
+            start_miss = time.perf_counter()
+            miss_result = cached_stage.process([test_chunk])
+            miss_elapsed = time.perf_counter() - start_miss
+
+            start_hit = time.perf_counter()
+            hit_result = cached_stage.process([test_chunk])
+            hit_elapsed = time.perf_counter() - start_hit
+
+            miss_times.append(miss_elapsed)
+            hit_times.append(hit_elapsed)
+            if hit_elapsed < miss_elapsed:
+                faster_pairs += 1
+
+            assert len(miss_result) == 1
+            assert len(hit_result) == 1
+            assert miss_result[0].quality_score == hit_result[0].quality_score
+
+        median_miss = median(miss_times)
+        median_hit = median(hit_times)
+        speedup = median_miss / median_hit
 
         print("\nCache performance:")
-        print(f"  First run (miss): {first_run*1000:.2f}ms")
-        print(f"  Second run (hit): {second_run*1000:.2f}ms")
-        print(f"  Speedup: {first_run/second_run:.1f}x")
+        print(f"  Miss median: {median_miss*1000:.2f}ms")
+        print(f"  Hit median: {median_hit*1000:.2f}ms")
+        print(f"  Faster pairs: {faster_pairs}/{iterations}")
+        print(f"  Median speedup: {speedup:.2f}x")
 
-        # Cache hit should be significantly faster
-        assert second_run < first_run, "Cache hit should be faster than cache miss"
+        # Cache hits should be faster in aggregate and in most per-pair measurements.
+        assert faster_pairs >= 6, "Cache hit should be faster in the majority of runs"
+        assert (
+            median_hit <= median_miss * 0.95
+        ), "Cache median hit time should improve over miss time"
 
     def test_memory_efficiency(self, performance_config, large_corpus):
         """Test memory efficiency with large corpus."""

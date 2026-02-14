@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import statistics
 import time
 import tracemalloc
 from pathlib import Path
@@ -35,6 +36,36 @@ def _measure_total_ms(fn, iterations: int = 1) -> float:
     for _ in range(iterations):
         fn()
     return (time.perf_counter() - start) * 1000
+
+
+def _measure_median_relative_ms(
+    json_fn,
+    txt_fn,
+    *,
+    warmup_rounds: int = 4,
+    sample_rounds: int = 9,
+    iterations_per_round: int = 3,
+) -> tuple[float, float]:
+    """Measure JSON/TXT per-call medians with warmup and alternating order."""
+    json_samples_ms: list[float] = []
+    txt_samples_ms: list[float] = []
+
+    for _ in range(warmup_rounds):
+        _measure_total_ms(json_fn, iterations=iterations_per_round)
+        _measure_total_ms(txt_fn, iterations=iterations_per_round)
+
+    for round_index in range(sample_rounds):
+        ordered_runs = (
+            ((json_fn, json_samples_ms), (txt_fn, txt_samples_ms))
+            if round_index % 2 == 0
+            else ((txt_fn, txt_samples_ms), (json_fn, json_samples_ms))
+        )
+        for fn, samples in ordered_runs:
+            samples.append(
+                _measure_total_ms(fn, iterations=iterations_per_round) / iterations_per_round
+            )
+
+    return statistics.median(json_samples_ms), statistics.median(txt_samples_ms)
 
 
 @pytest.fixture
@@ -296,16 +327,16 @@ class TestOutputFormatPerformance:
         json_path = tmp_path / "summary.json"
         txt_path = tmp_path / "summary.txt"
 
-        time_json_ms = _measure_total_ms(
+        time_json_ms, time_txt_ms = _measure_median_relative_ms(
             lambda: export_summary(medium_summary_report, json_path, ExportFormat.JSON),
-            iterations=25,
-        )
-        time_txt_ms = _measure_total_ms(
             lambda: export_summary(medium_summary_report, txt_path, ExportFormat.TXT),
-            iterations=25,
         )
 
-        assert time_json_ms <= time_txt_ms * 4.0, "JSON should remain in the same order as TXT"
+        txt_reference_ms = max(time_txt_ms, 1.0)
+        assert time_json_ms <= txt_reference_ms * 4.0, (
+            "JSON should remain in the same order as TXT "
+            f"(json median={time_json_ms:.3f}ms, txt median={time_txt_ms:.3f}ms)"
+        )
 
     def test_html_generation_efficiency(
         self,

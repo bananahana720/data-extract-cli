@@ -8,7 +8,7 @@ import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Body, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
@@ -251,7 +251,25 @@ def _resolve_default_preset() -> str | None:
             preset_name = str(setting.value or "").strip()
             return preset_name or None
 
-    return with_sqlite_lock_retry(_load)
+    try:
+        return cast(
+            str | None,
+            with_sqlite_lock_retry(
+                _load,
+                operation_name="jobs.resolve_default_preset",
+                serialize_writes=False,
+            ),
+        )
+    except Exception:
+        return None
+
+
+def _queue_capacity_http_exception(exc: QueueCapacityError) -> HTTPException:
+    retry_after = getattr(exc, "retry_after_seconds", None)
+    headers: dict[str, str] | None = None
+    if isinstance(retry_after, int) and retry_after > 0:
+        headers = {"Retry-After": str(retry_after)}
+    return HTTPException(status_code=503, detail=str(exc), headers=headers)
 
 
 @router.post("/process", response_model=EnqueueJobResponse)
@@ -283,7 +301,7 @@ async def enqueue_process_job(
     try:
         queued_job_id = runtime.enqueue_process(process_request, job_id=job_id)
     except QueueCapacityError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise _queue_capacity_http_exception(exc) from exc
     return EnqueueJobResponse(job_id=queued_job_id, status="queued")
 
 
@@ -452,7 +470,11 @@ def retry_job_failures(job_id: str) -> EnqueueJobResponse:
                 )
             db.commit()
 
-    with_sqlite_lock_retry(_persist_retry_queue_state)
+    with_sqlite_lock_retry(
+        _persist_retry_queue_state,
+        operation_name="jobs.retry.persist_queue_state",
+        serialize_writes=True,
+    )
     if not captured_session_id:
         raise HTTPException(status_code=400, detail="Job has no session context for retry")
 
@@ -460,8 +482,12 @@ def retry_job_failures(job_id: str) -> EnqueueJobResponse:
     try:
         runtime.enqueue_retry(job_id=job_id, request=retry_request)
     except QueueCapacityError as exc:
-        with_sqlite_lock_retry(_rollback_retry_queue_state)
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        with_sqlite_lock_retry(
+            _rollback_retry_queue_state,
+            operation_name="jobs.retry.rollback_queue_state",
+            serialize_writes=True,
+        )
+        raise _queue_capacity_http_exception(exc) from exc
 
     return EnqueueJobResponse(job_id=job_id, status="queued")
 
@@ -494,7 +520,11 @@ def cleanup_job_artifacts(job_id: str) -> CleanupResponse:
             )
             db.commit()
 
-    with_sqlite_lock_retry(_cleanup)
+    with_sqlite_lock_retry(
+        _cleanup,
+        operation_name="jobs.artifacts.cleanup",
+        serialize_writes=True,
+    )
 
     return CleanupResponse(job_id=job_id, removed=removed)
 

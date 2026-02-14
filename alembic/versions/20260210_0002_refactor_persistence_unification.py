@@ -7,9 +7,9 @@ Create Date: 2026-02-10
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "20260210_0002"
 down_revision = "20260210_0001"
@@ -34,12 +34,16 @@ def upgrade() -> None:
     op.alter_column("jobs", "attempt", server_default=None)
 
     op.add_column("sessions", sa.Column("artifact_dir", sa.Text(), nullable=True))
-    op.add_column("sessions", sa.Column("is_archived", sa.Integer(), nullable=False, server_default="0"))
+    op.add_column(
+        "sessions", sa.Column("is_archived", sa.Integer(), nullable=False, server_default="0")
+    )
     op.add_column("sessions", sa.Column("archived_at", sa.DateTime(), nullable=True))
     op.alter_column("sessions", "is_archived", server_default=None)
 
     op.add_column("job_files", sa.Column("normalized_source_path", sa.Text(), nullable=True))
-    op.add_column("job_files", sa.Column("retry_count", sa.Integer(), nullable=False, server_default="0"))
+    op.add_column(
+        "job_files", sa.Column("retry_count", sa.Integer(), nullable=False, server_default="0")
+    )
     op.create_unique_constraint(
         "uq_job_files_job_norm_path",
         "job_files",

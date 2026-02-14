@@ -21,12 +21,13 @@ from typing import Any, Dict, List
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from examples.minimal_extractor import TextFileExtractor
 from src.extractors import DocxExtractor, PdfExtractor
 from src.formatters import JsonFormatter, MarkdownFormatter
 from src.infrastructure import get_logger
 from src.pipeline import ExtractionPipeline
 from src.processors import ContextLinker, MetadataAggregator, QualityValidator
+
+from examples.minimal_extractor import TextFileExtractor
 
 # Try to import optional extractors
 try:

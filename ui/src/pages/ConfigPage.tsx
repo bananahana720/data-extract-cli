@@ -2,20 +2,36 @@ import { useEffect, useState } from "react";
 
 import {
   applyConfigPreset,
-  clearApiKey,
-  getApiKey,
+  getAuthSessionStatus,
   getEffectiveConfig,
+  loginAuthSession,
   listConfigPresets,
+  logoutAuthSession,
   previewConfigPreset,
-  setApiKey
 } from "../api/client";
-import { ConfigPresetSummary } from "../types";
+import { AuthSessionStatus, ConfigPresetSummary } from "../types";
 
 function prettyJson(payload: Record<string, unknown> | null): string {
   if (!payload) {
     return "{}";
   }
   return JSON.stringify(payload, null, 2);
+}
+
+function describeAuthSession(status: AuthSessionStatus | null): string {
+  if (!status) {
+    return "Session status unavailable.";
+  }
+  if (!status.api_key_configured) {
+    return "Server API key auth is not configured.";
+  }
+  if (!status.authenticated) {
+    return "Session inactive. Sign in with API key to access secured endpoints.";
+  }
+  if (!status.expires_at) {
+    return "Session active.";
+  }
+  return `Session active until ${new Date(status.expires_at).toLocaleString()}.`;
 }
 
 export function ConfigPage() {
@@ -27,21 +43,22 @@ export function ConfigPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState("");
-  const [apiKeyStatus, setApiKeyStatus] = useState<string | null>(null);
+  const [authStatus, setAuthStatus] = useState<AuthSessionStatus | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setApiKeyInput(getApiKey());
-
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const [effective, presetList] = await Promise.all([
+        const [effective, presetList, sessionStatus] = await Promise.all([
           getEffectiveConfig(),
-          listConfigPresets()
+          listConfigPresets(),
+          getAuthSessionStatus()
         ]);
         setEffectiveConfig(effective);
         setPresets(presetList);
+        setAuthStatus(sessionStatus);
         if (presetList.length > 0) {
           setSelectedPreset((current) => current || presetList[0].name);
         }
@@ -50,7 +67,7 @@ export function ConfigPage() {
           requestError instanceof Error ? requestError.message : "Unable to load configuration";
         setError(
           /Unauthorized/i.test(message)
-            ? "Unauthorized. Set API key below to access secured API endpoints."
+            ? "Unauthorized. Sign in below to access secured API endpoints."
             : message
         );
       } finally {
@@ -76,7 +93,7 @@ export function ConfigPage() {
         requestError instanceof Error ? requestError.message : "Unable to preview preset";
       setError(
         /Unauthorized/i.test(message)
-          ? "Unauthorized. Set API key below to preview secured endpoints."
+          ? "Unauthorized. Sign in below to preview secured endpoints."
           : message
       );
     }
@@ -97,25 +114,37 @@ export function ConfigPage() {
       const message = requestError instanceof Error ? requestError.message : "Unable to apply preset";
       setError(
         /Unauthorized/i.test(message)
-          ? "Unauthorized. Set API key below to apply secured endpoints."
+          ? "Unauthorized. Sign in below to apply secured endpoints."
           : message
       );
     }
   }
 
-  function saveApiKey() {
-    setApiKey(apiKeyInput);
-    setApiKeyStatus(
-      apiKeyInput.trim()
-        ? "API key saved locally and will be sent as x-api-key."
-        : "API key cleared."
-    );
+  async function signInWithApiKey() {
+    setError(null);
+    setAuthMessage(null);
+    try {
+      const sessionStatus = await loginAuthSession(apiKeyInput);
+      setAuthStatus(sessionStatus);
+      setApiKeyInput("");
+      setAuthMessage("Signed in. Session cookie is active.");
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Unable to sign in";
+      setError(/Unauthorized/i.test(message) ? "Unauthorized. API key is invalid." : message);
+    }
   }
 
-  function clearApiKeySetting() {
-    clearApiKey();
-    setApiKeyInput("");
-    setApiKeyStatus("API key cleared.");
+  async function signOutSession() {
+    setError(null);
+    setAuthMessage(null);
+    try {
+      const sessionStatus = await logoutAuthSession();
+      setAuthStatus(sessionStatus);
+      setAuthMessage("Signed out. Session cookie cleared.");
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Unable to sign out";
+      setError(message);
+    }
   }
 
   return (
@@ -164,19 +193,20 @@ export function ConfigPage() {
           type="password"
           value={apiKeyInput}
           onChange={(event) => setApiKeyInput(event.target.value)}
-          placeholder="Optional x-api-key for secured API mode"
+          placeholder="Enter API key to create session"
           data-testid="config-api-key-input"
           autoComplete="off"
         />
         <div className="actions-inline">
-          <button type="button" className="secondary" onClick={saveApiKey}>
-            Save API Key
+          <button type="button" className="secondary" onClick={signInWithApiKey}>
+            Sign In
           </button>
-          <button type="button" onClick={clearApiKeySetting}>
-            Clear API Key
+          <button type="button" onClick={signOutSession}>
+            Sign Out
           </button>
         </div>
-        {apiKeyStatus ? <p className="help-text">{apiKeyStatus}</p> : null}
+        <p className="help-text">{describeAuthSession(authStatus)}</p>
+        {authMessage ? <p className="help-text">{authMessage}</p> : null}
       </fieldset>
 
       {error ? (

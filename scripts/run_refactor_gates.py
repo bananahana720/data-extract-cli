@@ -37,7 +37,9 @@ def _run(command: list[str], cwd: Path | None = None, env: dict[str, str] | None
     merged_env = dict(os.environ)
     if env:
         merged_env.update(env)
-    merged_env["PYTHONPATH"] = str(PROJECT_ROOT / "src") + os.pathsep + merged_env.get("PYTHONPATH", "")
+    merged_env["PYTHONPATH"] = (
+        str(PROJECT_ROOT / "src") + os.pathsep + merged_env.get("PYTHONPATH", "")
+    )
     print(f"$ {' '.join(command)}")
     completed = subprocess.run(command, cwd=cwd or PROJECT_ROOT, env=merged_env)
     return completed.returncode == 0

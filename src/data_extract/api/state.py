@@ -8,6 +8,7 @@ import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any, Dict, cast
 
 from sqlalchemy import delete, select
@@ -34,6 +35,20 @@ from data_extract.services.persistence_repository import (
 class QueueCapacityError(RuntimeError):
     """Raised when queue capacity is exhausted and request cannot be accepted."""
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        retry_after_seconds: int | None = None,
+        reason: str = "queue_capacity",
+    ) -> None:
+        normalized = message.strip()
+        if retry_after_seconds is not None and "retry after" not in normalized.lower():
+            normalized = f"{normalized.rstrip('.')} Retry after ~{retry_after_seconds}s."
+        super().__init__(normalized)
+        self.retry_after_seconds = retry_after_seconds
+        self.reason = reason
+
 
 class ApiRuntime:
     """Owns queue lifecycle and background job handlers."""
@@ -43,13 +58,36 @@ class ApiRuntime:
         self.persistence = PersistenceRepository()
         self._worker_count = self._resolve_worker_count()
         self._max_backlog = self._resolve_max_backlog()
-        self.queue = LocalJobQueue(
+        self._queue_high_watermark = self._resolve_queue_high_watermark()
+        self._queue_retry_hint_seconds = self._resolve_queue_retry_hint_seconds()
+        self.queue: LocalJobQueue = LocalJobQueue(
             self._handle_job,
             worker_count=self._worker_count,
             max_backlog=self._max_backlog,
             error_handler=self._handle_queue_error,
         )
+        self._overload_stats_lock = Lock()
+        self._overload_stats: dict[str, Any] = {
+            "throttle_rejections": 0,
+            "queue_full_rejections": 0,
+            "last_reason": None,
+            "last_rejected_at": None,
+            "last_retry_after_seconds": None,
+            "last_backlog": 0,
+            "last_capacity": self._max_backlog,
+            "last_utilization": 0.0,
+        }
         self._recovery_stats = {"requeued": 0, "failed": 0}
+        self._startup_stats_lock = Lock()
+        self._terminal_reconciliation_stats: dict[str, Any] = {
+            "scanned": 0,
+            "repaired": 0,
+            "failed": 0,
+            "db_repairs": 0,
+            "artifact_repairs": 0,
+            "mismatch_repairs": 0,
+            "last_run_at": None,
+        }
         self._readiness_report: dict[str, Any] = {
             "status": "unknown",
             "ready": False,
@@ -64,6 +102,7 @@ class ApiRuntime:
         init_database()
         self.queue.start()
         self._recover_inflight_jobs()
+        self._reconcile_terminal_artifacts()
 
     def stop(self) -> None:
         """Stop background worker."""
@@ -77,42 +116,61 @@ class ApiRuntime:
     @property
     def queue_backlog(self) -> int:
         """Approximate number of jobs pending in queue memory."""
-        return self.queue.backlog
+        return int(self.queue.backlog)
 
     @property
     def queue_capacity(self) -> int:
         """Maximum in-memory queue capacity."""
-        return self.queue.capacity
+        return int(self.queue.capacity)
 
     @property
     def queue_utilization(self) -> float:
         """Queue utilization ratio."""
-        return self.queue.utilization
+        return float(self.queue.utilization)
 
     @property
     def alive_workers(self) -> int:
         """Number of currently alive worker threads."""
-        return self.queue.alive_workers
+        return int(self.queue.alive_workers)
 
     @property
     def dead_workers(self) -> int:
         """Number of workers currently not alive."""
-        return self.queue.dead_workers
+        return int(self.queue.dead_workers)
 
     @property
     def worker_restarts(self) -> int:
         """Number of worker restarts handled by watchdog."""
-        return self.queue.worker_restarts
+        return int(self.queue.worker_restarts)
 
     @property
     def db_lock_retry_stats(self) -> dict[str, Any]:
         """SQLite lock retry counters."""
-        return sqlite_lock_retry_stats()
+        return cast(dict[str, Any], sqlite_lock_retry_stats())
 
     @property
     def recovery_stats(self) -> dict[str, int]:
         """Snapshot of last startup recovery actions."""
         return dict(self._recovery_stats)
+
+    @property
+    def overload_stats(self) -> dict[str, Any]:
+        """Queue overload/throttle counters and latest snapshot."""
+        with self._overload_stats_lock:
+            snapshot = dict(self._overload_stats)
+        snapshot["high_watermark"] = self._queue_high_watermark
+        snapshot["retry_hint_seconds"] = self._queue_retry_hint_seconds
+        snapshot["backlog"] = self.queue_backlog
+        snapshot["capacity"] = self.queue_capacity
+        snapshot["utilization"] = self.queue_utilization
+        snapshot["throttled"] = self._is_queue_above_high_watermark()
+        return snapshot
+
+    @property
+    def terminal_reconciliation_stats(self) -> dict[str, Any]:
+        """Startup terminal payload/artifact reconciliation stats."""
+        with self._startup_stats_lock:
+            return dict(self._terminal_reconciliation_stats)
 
     def set_readiness_report(self, report: dict[str, Any]) -> None:
         """Store startup readiness report snapshot."""
@@ -140,8 +198,12 @@ class ApiRuntime:
             )
             if existing:
                 existing_job_id, status, _payload = existing
-                if status in TERMINAL_STATUSES or status in RUNNING_STATUSES:
-                    return existing_job_id
+                resolved_job_id = str(existing_job_id)
+                resolved_status = str(status)
+                if resolved_status in TERMINAL_STATUSES or resolved_status in RUNNING_STATUSES:
+                    return resolved_job_id
+
+        self._raise_if_queue_throttled(reason="process")
 
         def _persist_queue_record() -> None:
             with SessionLocal() as db:
@@ -172,7 +234,11 @@ class ApiRuntime:
                 )
                 db.commit()
 
-        with_sqlite_lock_retry(_persist_queue_record)
+        with_sqlite_lock_retry(
+            _persist_queue_record,
+            operation_name="enqueue_process.persist_queue_record",
+            serialize_writes=True,
+        )
 
         self._write_job_log(effective_job_id, "Job queued for processing")
         try:
@@ -181,16 +247,27 @@ class ApiRuntime:
             )
         except QueueFullError as exc:
             self._discard_unaccepted_process_job(effective_job_id)
-            raise QueueCapacityError(str(exc)) from exc
+            retry_after_seconds = self._record_queue_rejection(reason="queue_full")
+            raise QueueCapacityError(
+                str(exc),
+                retry_after_seconds=retry_after_seconds,
+                reason="queue_full",
+            ) from exc
         return effective_job_id
 
     def enqueue_retry(self, job_id: str, request: RetryRequest) -> None:
         """Submit retry action to worker for existing job id."""
+        self._raise_if_queue_throttled(reason="retry")
         self._write_job_log(job_id, "Retry queued")
         try:
             self.queue.submit(job_id, {"kind": "retry", "request": request.model_dump()})
         except QueueFullError as exc:
-            raise QueueCapacityError(str(exc)) from exc
+            retry_after_seconds = self._record_queue_rejection(reason="queue_full")
+            raise QueueCapacityError(
+                str(exc),
+                retry_after_seconds=retry_after_seconds,
+                reason="queue_full",
+            ) from exc
 
     def _handle_job(self, job_id: str, payload: Dict[str, Any]) -> None:
         """Worker callback for process/retry execution."""
@@ -218,9 +295,13 @@ class ApiRuntime:
                     )
                 )
                 db.commit()
-                return input_path_value
+                return str(input_path_value or "")
 
-        input_path = with_sqlite_lock_retry(_mark_running)
+        input_path = with_sqlite_lock_retry(
+            _mark_running,
+            operation_name="worker.mark_running",
+            serialize_writes=True,
+        )
         if not input_path:
             return
         self._write_job_log(job_id, "Job started")
@@ -339,7 +420,11 @@ class ApiRuntime:
 
                 db.commit()
 
-        with_sqlite_lock_retry(_persist_terminal_state)
+        with_sqlite_lock_retry(
+            _persist_terminal_state,
+            operation_name="worker.persist_terminal_state",
+            serialize_writes=True,
+        )
         self._write_job_log(job_id, f"Job finished with status={status}")
 
     def _persist_exception(self, job_id: str, exc: Exception) -> None:
@@ -366,7 +451,11 @@ class ApiRuntime:
                 )
                 db.commit()
 
-        with_sqlite_lock_retry(_persist_error)
+        with_sqlite_lock_retry(
+            _persist_error,
+            operation_name="worker.persist_exception",
+            serialize_writes=True,
+        )
         self._write_job_log(job_id, f"Job failed: {exc}")
 
     @staticmethod
@@ -439,10 +528,52 @@ class ApiRuntime:
             path.mkdir(parents=True, exist_ok=True)
         return {"root": root, "inputs": inputs, "outputs": outputs, "logs": logs}
 
-    def _write_job_artifact(self, job_id: str, payload: dict[str, Any]) -> None:
+    @staticmethod
+    def _resolve_artifact_root(job_id: str, artifact_dir: str | None = None) -> Path:
+        if artifact_dir:
+            root = Path(artifact_dir).expanduser()
+            if not root.is_absolute():
+                root = JOBS_HOME / root
+            return root.resolve()
+        return cast(Path, (JOBS_HOME / job_id).resolve())
+
+    @staticmethod
+    def _read_json_object_from_path(path: Path) -> tuple[dict[str, Any] | None, str | None]:
+        if not path.exists():
+            return None, "missing"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return None, f"invalid_json:{exc}"
+        if not isinstance(payload, dict):
+            return None, "not_object"
+        return payload, None
+
+    @staticmethod
+    def _load_json_object(raw_payload: str | None) -> tuple[dict[str, Any] | None, str | None]:
+        if raw_payload is None:
+            return None, "missing"
+        text = raw_payload.strip()
+        if not text:
+            return None, "missing"
+        try:
+            payload = json.loads(text)
+        except Exception as exc:
+            return None, f"invalid_json:{exc}"
+        if not isinstance(payload, dict):
+            return None, "not_object"
+        return payload, None
+
+    def _write_job_artifact(
+        self,
+        job_id: str,
+        payload: dict[str, Any],
+        artifact_dir: str | None = None,
+    ) -> None:
         """Persist canonical per-job artifact payload."""
-        job_dirs = self._job_dirs(job_id)
-        artifact_path = job_dirs["root"] / "result.json"
+        artifact_root = self._resolve_artifact_root(job_id, artifact_dir=artifact_dir)
+        artifact_root.mkdir(parents=True, exist_ok=True)
+        artifact_path = artifact_root / "result.json"
         temp_path = artifact_path.with_suffix(".tmp")
         try:
             with temp_path.open("w", encoding="utf-8") as handle:
@@ -534,7 +665,11 @@ class ApiRuntime:
                 db.commit()
             return recovered_failed, staged_submissions
 
-        recovered_failed, staged_submissions = with_sqlite_lock_retry(_stage_recovery)
+        recovered_failed, staged_submissions = with_sqlite_lock_retry(
+            _stage_recovery,
+            operation_name="startup.recover_inflight.stage",
+            serialize_writes=True,
+        )
         recovered_requeued = 0
         for job_id, payload, message in staged_submissions:
             try:
@@ -549,6 +684,168 @@ class ApiRuntime:
             recovered_requeued += 1
 
         self._recovery_stats = {"requeued": recovered_requeued, "failed": recovered_failed}
+
+    def _reconcile_terminal_artifacts(self) -> None:
+        """Reconcile terminal job result_payload rows against result.json artifacts."""
+
+        def _load_terminal_job_ids() -> list[str]:
+            with SessionLocal() as db:
+                return list(
+                    db.scalars(
+                        select(Job.id)
+                        .where(Job.status.in_(TERMINAL_STATUSES))
+                        .order_by(Job.created_at.asc())
+                    )
+                )
+
+        job_ids = with_sqlite_lock_retry(
+            _load_terminal_job_ids,
+            operation_name="startup.reconcile_terminal.list",
+            serialize_writes=False,
+        )
+        stats: dict[str, Any] = {
+            "scanned": 0,
+            "repaired": 0,
+            "failed": 0,
+            "db_repairs": 0,
+            "artifact_repairs": 0,
+            "mismatch_repairs": 0,
+            "last_run_at": datetime.now(timezone.utc).isoformat(),
+        }
+        for job_id in job_ids:
+            stats["scanned"] += 1
+            try:
+                outcome = self._reconcile_terminal_artifact_for_job(job_id)
+            except Exception as exc:
+                stats["failed"] += 1
+                self._write_job_log(
+                    job_id,
+                    f"Startup reconciliation failed with exception: {exc}",
+                )
+                continue
+            if outcome == "repair_db":
+                stats["repaired"] += 1
+                stats["db_repairs"] += 1
+            elif outcome == "repair_artifact":
+                stats["repaired"] += 1
+                stats["artifact_repairs"] += 1
+            elif outcome == "repair_mismatch":
+                stats["repaired"] += 1
+                stats["db_repairs"] += 1
+                stats["mismatch_repairs"] += 1
+            elif outcome == "failed":
+                stats["failed"] += 1
+        with self._startup_stats_lock:
+            self._terminal_reconciliation_stats = stats
+
+    def _reconcile_terminal_artifact_for_job(self, job_id: str) -> str:
+        """Reconcile a single terminal job row and artifact, returning outcome key."""
+
+        def _load_snapshot() -> tuple[str | None, str | None] | None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if job is None or job.status not in TERMINAL_STATUSES:
+                    return None
+                return job.result_payload, job.artifact_dir
+
+        snapshot = with_sqlite_lock_retry(
+            _load_snapshot,
+            operation_name="startup.reconcile_terminal.snapshot",
+            serialize_writes=False,
+        )
+        if snapshot is None:
+            return "noop"
+        raw_result_payload, artifact_dir = snapshot
+        db_payload, db_error = self._load_json_object(raw_result_payload)
+        artifact_path = (
+            self._resolve_artifact_root(job_id, artifact_dir=artifact_dir) / "result.json"
+        )
+        artifact_payload, artifact_error = self._read_json_object_from_path(artifact_path)
+
+        if db_payload is not None and artifact_payload is not None:
+            if self._canonical_payload(db_payload) == self._canonical_payload(artifact_payload):
+                return "noop"
+            self._record_terminal_repair_event(
+                job_id,
+                message="Startup reconciliation repaired result_payload from artifact mismatch",
+                payload={
+                    "phase": "startup_terminal_reconciliation",
+                    "repair": "db_from_artifact_mismatch",
+                },
+                repaired_payload=artifact_payload,
+            )
+            self._write_job_log(
+                job_id,
+                "Startup reconciliation repaired result_payload from artifact mismatch",
+            )
+            return "repair_mismatch"
+
+        if db_payload is not None and artifact_payload is None:
+            try:
+                self._write_job_artifact(job_id, db_payload, artifact_dir=artifact_dir)
+            except Exception as exc:
+                self._record_terminal_failure_event(
+                    job_id,
+                    message="Startup reconciliation failed to repair result.json from result_payload",
+                    payload={
+                        "phase": "startup_terminal_reconciliation",
+                        "failure": "artifact_write_failed",
+                        "artifact_error": artifact_error,
+                        "exception": str(exc),
+                    },
+                )
+                self._write_job_log(
+                    job_id,
+                    "Startup reconciliation failed to repair result.json from result_payload",
+                )
+                return "failed"
+            self._record_terminal_repair_event(
+                job_id,
+                message="Startup reconciliation repaired missing result.json from result_payload",
+                payload={
+                    "phase": "startup_terminal_reconciliation",
+                    "repair": "artifact_from_db",
+                    "artifact_error": artifact_error,
+                },
+            )
+            self._write_job_log(
+                job_id,
+                "Startup reconciliation repaired missing result.json from result_payload",
+            )
+            return "repair_artifact"
+
+        if db_payload is None and artifact_payload is not None:
+            self._record_terminal_repair_event(
+                job_id,
+                message="Startup reconciliation repaired result_payload from result.json",
+                payload={
+                    "phase": "startup_terminal_reconciliation",
+                    "repair": "db_from_artifact",
+                    "result_payload_error": db_error,
+                },
+                repaired_payload=artifact_payload,
+            )
+            self._write_job_log(
+                job_id,
+                "Startup reconciliation repaired result_payload from result.json",
+            )
+            return "repair_db"
+
+        self._record_terminal_failure_event(
+            job_id,
+            message="Startup reconciliation failed: no valid terminal result payload/artifact",
+            payload={
+                "phase": "startup_terminal_reconciliation",
+                "failure": "both_missing_or_invalid",
+                "result_payload_error": db_error,
+                "artifact_error": artifact_error,
+            },
+        )
+        self._write_job_log(
+            job_id,
+            "Startup reconciliation failed: no valid terminal result payload/artifact",
+        )
+        return "failed"
 
     def _handle_queue_error(self, job_id: str, payload: dict[str, Any], exc: Exception) -> None:
         """Persist uncaught queue worker failures as terminal errors."""
@@ -570,7 +867,73 @@ class ApiRuntime:
             validated = ProcessJobRequest.model_validate(payload)
         except Exception:
             return None
-        return validated.model_dump()
+        return cast(dict[str, Any], validated.model_dump())
+
+    @staticmethod
+    def _canonical_payload(payload: dict[str, Any]) -> str:
+        return json.dumps(payload, default=str, sort_keys=True, separators=(",", ":"))
+
+    def _record_terminal_repair_event(
+        self,
+        job_id: str,
+        *,
+        message: str,
+        payload: dict[str, Any],
+        repaired_payload: dict[str, Any] | None = None,
+    ) -> None:
+        def _persist() -> None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if job is None:
+                    return
+                if repaired_payload is not None:
+                    job.result_payload = json.dumps(repaired_payload, default=str)
+                    job.updated_at = datetime.now(timezone.utc)
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="repair",
+                        message=message,
+                        payload=json.dumps(payload, default=str),
+                        event_time=datetime.now(timezone.utc),
+                    )
+                )
+                db.commit()
+
+        with_sqlite_lock_retry(
+            _persist,
+            operation_name="startup.reconcile_terminal.repair_event",
+            serialize_writes=True,
+        )
+
+    def _record_terminal_failure_event(
+        self,
+        job_id: str,
+        *,
+        message: str,
+        payload: dict[str, Any],
+    ) -> None:
+        def _persist() -> None:
+            with SessionLocal() as db:
+                job = db.get(Job, job_id)
+                if job is None:
+                    return
+                db.add(
+                    JobEvent(
+                        job_id=job_id,
+                        event_type="error",
+                        message=message,
+                        payload=json.dumps(payload, default=str),
+                        event_time=datetime.now(timezone.utc),
+                    )
+                )
+                db.commit()
+
+        with_sqlite_lock_retry(
+            _persist,
+            operation_name="startup.reconcile_terminal.failure_event",
+            serialize_writes=True,
+        )
 
     def _mark_recovery_failed(self, db: Any, job: Job, message: str) -> int:
         job.status = JobStatus.FAILED.value
@@ -623,7 +986,14 @@ class ApiRuntime:
                 db.commit()
                 return 1
 
-        failed_count = with_sqlite_lock_retry(_persist)
+        failed_count = cast(
+            int,
+            with_sqlite_lock_retry(
+                _persist,
+                operation_name="startup.recover_inflight.persist_submission_failure",
+                serialize_writes=True,
+            ),
+        )
         if failed_count:
             self._write_job_log(job_id, message)
         return failed_count
@@ -641,8 +1011,54 @@ class ApiRuntime:
                 db.delete(job)
                 db.commit()
 
-        with_sqlite_lock_retry(_discard)
+        with_sqlite_lock_retry(
+            _discard,
+            operation_name="enqueue_process.discard_unaccepted",
+            serialize_writes=True,
+        )
         shutil.rmtree(JOBS_HOME / job_id, ignore_errors=True)
+
+    def _raise_if_queue_throttled(self, reason: str) -> None:
+        if not self._is_queue_above_high_watermark():
+            return
+        retry_after_seconds = self._record_queue_rejection(reason="high_watermark")
+        raise QueueCapacityError(
+            (
+                "Queue backlog is above throttle watermark "
+                f"({self.queue_backlog}/{self.queue_capacity}, "
+                f"utilization={self.queue_utilization:.2f}, "
+                f"watermark={self._queue_high_watermark:.2f}); try again later."
+            ),
+            retry_after_seconds=retry_after_seconds,
+            reason=reason,
+        )
+
+    def _is_queue_above_high_watermark(self) -> bool:
+        if self.queue_capacity <= 0:
+            return False
+        return self.queue_utilization >= self._queue_high_watermark
+
+    def _record_queue_rejection(self, reason: str) -> int:
+        retry_after_seconds = self._estimate_retry_after_seconds()
+        now = datetime.now(timezone.utc).isoformat()
+        with self._overload_stats_lock:
+            if reason == "queue_full":
+                self._overload_stats["queue_full_rejections"] += 1
+            else:
+                self._overload_stats["throttle_rejections"] += 1
+            self._overload_stats["last_reason"] = reason
+            self._overload_stats["last_rejected_at"] = now
+            self._overload_stats["last_retry_after_seconds"] = retry_after_seconds
+            self._overload_stats["last_backlog"] = self.queue_backlog
+            self._overload_stats["last_capacity"] = self.queue_capacity
+            self._overload_stats["last_utilization"] = self.queue_utilization
+        return retry_after_seconds
+
+    def _estimate_retry_after_seconds(self) -> int:
+        workers = max(1, self.worker_count)
+        backlog = max(1, self.queue_backlog)
+        estimated = (backlog // workers) + 1
+        return max(self._queue_retry_hint_seconds, min(estimated, 60))
 
     @staticmethod
     def _resolve_worker_count() -> int:
@@ -659,6 +1075,25 @@ class ApiRuntime:
             return max(1, int(raw_value))
         except ValueError:
             return 1000
+
+    @staticmethod
+    def _resolve_queue_high_watermark() -> float:
+        raw_value = os.environ.get("DATA_EXTRACT_API_QUEUE_HIGH_WATERMARK", "0.9").strip()
+        try:
+            value = float(raw_value)
+        except ValueError:
+            return 0.9
+        if value <= 0.0:
+            return 0.9
+        return min(1.0, max(0.1, value))
+
+    @staticmethod
+    def _resolve_queue_retry_hint_seconds() -> int:
+        raw_value = os.environ.get("DATA_EXTRACT_API_QUEUE_RETRY_HINT_SECONDS", "2").strip()
+        try:
+            return max(1, int(raw_value))
+        except ValueError:
+            return 2
 
     @staticmethod
     def _resolve_work_dir(input_path: str) -> Path:

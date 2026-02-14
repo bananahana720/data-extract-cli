@@ -20,6 +20,7 @@ def test_openapi_exposes_v1_contract_paths() -> None:
         "/api/v1/jobs/{job_id}/artifacts/{artifact_path}": {"get"},
         "/api/v1/sessions": {"get"},
         "/api/v1/sessions/{session_id}": {"get"},
+        "/api/v1/auth/session": {"post", "get", "delete"},
         "/api/v1/config/effective": {"get"},
         "/api/v1/config/current-preset": {"get"},
         "/api/v1/config/presets": {"get"},

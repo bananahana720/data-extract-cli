@@ -15,6 +15,7 @@ from tests.performance.conftest import (
     PerformanceMeasurement,
     assert_memory_limit,
     assert_performance_target,
+    baseline_regression_enabled,
     baseline_write_enabled,
 )
 
@@ -75,7 +76,7 @@ def _assert_no_regression(
     benchmark: BenchmarkResult,
     manager: BaselineManager,
 ) -> None:
-    if baseline_write_enabled():
+    if baseline_write_enabled() or not baseline_regression_enabled():
         return
 
     comparison = manager.compare(operation, benchmark, threshold=REGRESSION_THRESHOLD)

@@ -49,7 +49,9 @@ def _normalize_status(value: Any, failed_count: int) -> str:
 def _summary_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     stats = payload.get("statistics", {})
     total_files = _safe_int(stats.get("total_files", payload.get("total_files", 0)))
-    processed_count = _safe_int(stats.get("processed_count", len(payload.get("processed_files", []))))
+    processed_count = _safe_int(
+        stats.get("processed_count", len(payload.get("processed_files", [])))
+    )
     failed_count = _safe_int(stats.get("failed_count", len(payload.get("failed_files", []))))
     return {
         "status": _normalize_status(payload.get("status", ""), failed_count),
@@ -121,7 +123,9 @@ def _canonical_projection(session_id: str) -> dict[str, Any] | None:
     init_database()
     with SessionLocal() as db:
         session_row = db.get(SessionRecord, session_id)
-        latest_job = db.scalar(select(Job).where(Job.session_id == session_id).order_by(Job.updated_at.desc()))
+        latest_job = db.scalar(
+            select(Job).where(Job.session_id == session_id).order_by(Job.updated_at.desc())
+        )
 
     if session_row is None and latest_job is None:
         return None
@@ -144,9 +148,13 @@ def _canonical_projection(session_id: str) -> dict[str, Any] | None:
 
     summary = {
         "status": _normalize_status(
-            session_row.status
-            if session_row is not None
-            else result_payload.get("status", latest_job.status if latest_job is not None else ""),
+            (
+                session_row.status
+                if session_row is not None
+                else result_payload.get(
+                    "status", latest_job.status if latest_job is not None else ""
+                )
+            ),
             _safe_int(
                 session_row.failed_count
                 if session_row is not None
@@ -168,9 +176,7 @@ def _canonical_projection(session_id: str) -> dict[str, Any] | None:
             if session_row is not None
             else result_payload.get("failed_count", len(failed_files))
         ),
-        "source_directory": str(
-            session_row.source_directory if session_row is not None else ""
-        ),
+        "source_directory": str(session_row.source_directory if session_row is not None else ""),
     }
 
     return {
@@ -185,8 +191,14 @@ def _report_parity(legacy: dict[str, Any], canonical: dict[str, Any] | None) -> 
     if canonical is None:
         return {
             "status": "missing_canonical",
-            "session_level": {"matches": False, "deltas": [{"field": "canonical", "legacy": "present", "canonical": "missing"}]},
-            "file_level": {"matches": False, "deltas": [{"field": "canonical", "legacy": "present", "canonical": "missing"}]},
+            "session_level": {
+                "matches": False,
+                "deltas": [{"field": "canonical", "legacy": "present", "canonical": "missing"}],
+            },
+            "file_level": {
+                "matches": False,
+                "deltas": [{"field": "canonical", "legacy": "present", "canonical": "missing"}],
+            },
         }
 
     session_deltas: list[dict[str, Any]] = []
@@ -194,7 +206,9 @@ def _report_parity(legacy: dict[str, Any], canonical: dict[str, Any] | None) -> 
         legacy_value = legacy["summary"].get(field)
         canonical_value = canonical["summary"].get(field)
         if legacy_value != canonical_value:
-            session_deltas.append({"field": field, "legacy": legacy_value, "canonical": canonical_value})
+            session_deltas.append(
+                {"field": field, "legacy": legacy_value, "canonical": canonical_value}
+            )
 
     processed_missing = sorted(legacy["processed_paths"] - canonical["processed_paths"])
     processed_extra = sorted(canonical["processed_paths"] - legacy["processed_paths"])
@@ -211,9 +225,13 @@ def _report_parity(legacy: dict[str, Any], canonical: dict[str, Any] | None) -> 
 
     file_deltas: list[dict[str, Any]] = []
     if processed_missing:
-        file_deltas.append({"field": "processed_paths_missing_in_canonical", "paths": processed_missing})
+        file_deltas.append(
+            {"field": "processed_paths_missing_in_canonical", "paths": processed_missing}
+        )
     if processed_extra:
-        file_deltas.append({"field": "processed_paths_extra_in_canonical", "paths": processed_extra})
+        file_deltas.append(
+            {"field": "processed_paths_extra_in_canonical", "paths": processed_extra}
+        )
     if failed_missing:
         file_deltas.append({"field": "failed_paths_missing_in_canonical", "paths": failed_missing})
     if failed_extra:
@@ -293,9 +311,17 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("root", nargs="?", default=".", help="Search root (default: current directory)")
-    parser.add_argument("--dry-run", action="store_true", help="Analyze and report without writing to canonical DB")
-    parser.add_argument("--audit-parity", action="store_true", help="Compare legacy sessions against canonical dual-write projections")
+    parser.add_argument(
+        "root", nargs="?", default=".", help="Search root (default: current directory)"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Analyze and report without writing to canonical DB"
+    )
+    parser.add_argument(
+        "--audit-parity",
+        action="store_true",
+        help="Compare legacy sessions against canonical dual-write projections",
+    )
     parser.add_argument("--report-json", type=Path, help="Optional JSON report output path")
     parser.add_argument("--report-md", type=Path, help="Optional Markdown report output path")
     parser.add_argument(
@@ -365,8 +391,16 @@ def main() -> int:
             )
 
         is_archived = session_file.parent.name == "archive"
-        artifact_dir = str(payload.get("output_directory") or payload.get("configuration", {}).get("output_path") or "")
-        archived_at = datetime.fromtimestamp(session_file.stat().st_mtime, timezone.utc) if is_archived else None
+        artifact_dir = str(
+            payload.get("output_directory")
+            or payload.get("configuration", {}).get("output_path")
+            or ""
+        )
+        archived_at = (
+            datetime.fromtimestamp(session_file.stat().st_mtime, timezone.utc)
+            if is_archived
+            else None
+        )
 
         if not args.dry_run:
             repository.upsert_session_record(

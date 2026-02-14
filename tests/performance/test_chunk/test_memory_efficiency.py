@@ -9,6 +9,7 @@ Uses get_total_memory() pattern from scripts/profile_pipeline.py for
 accurate memory tracking across main + worker processes.
 """
 
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,17 @@ pytestmark = [
     pytest.mark.performance,
     pytest.mark.chunking,
 ]
+
+
+def _coverage_perf_multiplier() -> float:
+    """Relax strict wall-clock thresholds when coverage instrumentation is active."""
+    coverage_markers = (
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COVERAGE_RUN",
+        "PYTEST_COV",
+    )
+    return 2.0 if any(str(os.environ.get(name, "")).strip() for name in coverage_markers) else 1.0
 
 
 def get_total_memory() -> int:
@@ -325,8 +337,11 @@ class TestMemoryProfilingUtility:
         elapsed = time.perf_counter() - start
         per_call = (elapsed / iterations) * 1000  # Convert to milliseconds
 
-        # THEN: Each measurement is fast (<15ms per call - acceptable overhead)
-        assert per_call < 15, f"Memory measurement: {per_call:.2f}ms/call (expected: <15ms)"
+        # THEN: Each measurement is fast (<15ms per call in normal mode)
+        max_per_call_ms = 15 * _coverage_perf_multiplier()
+        assert per_call < max_per_call_ms, (
+            f"Memory measurement: {per_call:.2f}ms/call " f"(expected: <{max_per_call_ms:.1f}ms)"
+        )
 
         print(f"\n[Memory Measurement] Overhead: {per_call:.2f}ms per call")
 

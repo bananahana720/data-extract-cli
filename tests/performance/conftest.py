@@ -39,6 +39,26 @@ def baseline_write_enabled() -> bool:
     return _env_truthy(_BASELINE_WRITE_MODE_ENV)
 
 
+def baseline_regression_enabled() -> bool:
+    """
+    Return True when runtime baseline comparisons should be enforced.
+
+    Baselines in this repository are captured from non-coverage runs.
+    Coverage instrumentation adds significant runtime overhead and
+    creates false-positive regression failures. We still keep absolute
+    performance targets active under coverage.
+    """
+    coverage_markers = (
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COVERAGE_RUN",
+        "PYTEST_COV",
+    )
+    if any(str(os.environ.get(name, "")).strip() for name in coverage_markers):
+        return False
+    return "--cov" not in str(os.environ.get("PYTEST_ADDOPTS", ""))
+
+
 def baseline_target_path(default_path: Path) -> Path:
     """Return baseline destination path from environment or default."""
     configured = str(os.environ.get(_BASELINE_TARGET_ENV, "")).strip()

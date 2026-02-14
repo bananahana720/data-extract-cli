@@ -1,5 +1,6 @@
 """Performance tests for LSA reduction stage."""
 
+import os
 import time
 
 import numpy as np
@@ -16,6 +17,17 @@ pytestmark = [
     pytest.mark.semantic,
     pytest.mark.epic4,
 ]
+
+
+def _coverage_perf_multiplier() -> float:
+    """Relax strict wall-clock thresholds when coverage instrumentation is active."""
+    coverage_markers = (
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COVERAGE_RUN",
+        "PYTEST_COV",
+    )
+    return 2.0 if any(str(os.environ.get(name, "")).strip() for name in coverage_markers) else 1.0
 
 
 class TestLsaPerformance:
@@ -111,10 +123,13 @@ class TestLsaPerformance:
         assert actual_components <= 100
 
         # Log performance metrics
-        print(f"\n1000 documents LSA performance: {elapsed_ms:.2f}ms (target: <300ms)")
+        target_ms = 300 * _coverage_perf_multiplier()
+        print(f"\n1000 documents LSA performance: {elapsed_ms:.2f}ms (target: <{target_ms:.0f}ms)")
 
         # Assert performance requirement
-        assert elapsed_ms < 300, f"Performance {elapsed_ms:.2f}ms exceeds 300ms target"
+        assert (
+            elapsed_ms < target_ms
+        ), f"Performance {elapsed_ms:.2f}ms exceeds {target_ms:.0f}ms target"
 
     def test_performance_10k_documents(self):
         """Test AC-4.3-5: Performance <3s for 10k documents."""
@@ -167,12 +182,13 @@ class TestLsaPerformance:
         assert actual_components <= 100
 
         # Log performance metrics
+        target_s = 3.0 * _coverage_perf_multiplier()
         print("\n10,000 documents LSA performance:")
-        print(f"  Time: {elapsed_s:.2f}s (target: <3s)")
+        print(f"  Time: {elapsed_s:.2f}s (target: <{target_s:.1f}s)")
         print(f"  Memory: {mem_used:.2f}MB (target: <500MB)")
 
         # Assert performance requirements
-        assert elapsed_s < 3.0, f"Performance {elapsed_s:.2f}s exceeds 3s target"
+        assert elapsed_s < target_s, f"Performance {elapsed_s:.2f}s exceeds {target_s:.1f}s target"
         assert mem_used < 500, f"Memory usage {mem_used:.2f}MB exceeds 500MB target"
 
     def test_variance_explained_threshold(self):
