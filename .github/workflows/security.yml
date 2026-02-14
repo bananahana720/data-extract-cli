@@ -56,19 +56,19 @@ jobs:
           gitleaks version
 
       - name: Run Security Scanner - Secrets
-        id: secrets-scan
+        id: secrets_scan
         run: |
           python scripts/scan_security.py --secrets-only --format json --output security-report-secrets.json
         continue-on-error: true
 
       - name: Run Security Scanner - Dependencies
-        id: deps-scan
+        id: deps_scan
         run: |
           python scripts/scan_security.py --deps-only --format json --output security-report-deps.json
         continue-on-error: true
 
       - name: Run Security Scanner - Git History
-        id: history-scan
+        id: history_scan
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
           python scripts/scan_security.py --history --max-commits 500 --format json --output security-report-history.json
@@ -97,7 +97,7 @@ jobs:
           retention-days: 7
 
       - name: Comment on PR with Security Findings
-        if: github.event_name == 'pull_request' && (steps.secrets-scan.outcome == 'failure' || steps.deps-scan.outcome == 'failure')
+        if: github.event_name == 'pull_request' && (steps.secrets_scan.outcome == 'failure' || steps.deps_scan.outcome == 'failure')
         uses: actions/github-script@v7
         with:
           script: |
@@ -144,7 +144,7 @@ jobs:
             });
 
       - name: Fail if critical findings
-        if: steps.secrets-scan.outcome == 'failure' || steps.deps-scan.outcome == 'failure'
+        if: steps.secrets_scan.outcome == 'failure' || steps.deps_scan.outcome == 'failure'
         run: |
           echo "❌ Security scan failed - Critical/High security issues found"
           exit 1

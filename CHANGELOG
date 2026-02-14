@@ -1,4 +1,7 @@
 2026-02-14
+- Fixed CI virtualenv persistence in `.github/workflows/test.yml` by exporting `.venv/bin` to `$GITHUB_PATH`, ensuring subsequent steps run with installed dependencies (`numpy`, `pytest`, etc.).
+- Corrected security workflow step-id condition wiring in `.github/workflows/security.yml` (`secrets_scan` / `deps_scan`) so the final fail gate triggers only on actual scanner failures.
+- Hardened `.github/workflows/uat.yaml` setup by seeding the uv venv, exporting venv binaries to `$GITHUB_PATH`, making `tmux-cli` installation best-effort, and guarding missing `uat-results.txt` in failure reporting.
 - Fixed `.gitignore` scope for runtime artifacts by anchoring `/output/` to repo root, then added the previously ignored `src/data_extract/output/` package and `tests/unit/data_extract/output/` test suite to version control.
 - Stabilized GitHub Actions Python jobs that install spaCy models by switching `uv venv` to `uv venv --seed` in test workflows so `python -m spacy download ...` can invoke `pip`.
 - Updated performance workflow setup to install the spaCy model via `python -m spacy download en_core_web_md` and replaced inline expression args with shell gating for `workflow_dispatch` verbose mode.

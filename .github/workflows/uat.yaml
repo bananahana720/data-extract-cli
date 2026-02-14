@@ -53,17 +53,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv venv
+          uv venv --seed
           uv pip install -e ".[dev]"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
-      - name: Install tmux-cli
+      - name: Install tmux-cli (best effort)
         run: |
-          uv tool install tmux-cli
+          uv tool install tmux-cli || echo "tmux-cli not available; continuing with tmux only"
 
       - name: Verify tmux installation
         run: |
           tmux -V
-          which tmux-cli || echo "tmux-cli installed via uv tool"
+          which tmux-cli || echo "tmux-cli unavailable"
 
       - name: Run UAT framework tests
         run: |
@@ -89,7 +90,9 @@ jobs:
         if: failure()
         run: |
           echo "::error::UAT tests failed. Check the uploaded artifacts for details."
-          cat uat-results.txt
+          if [ -f uat-results.txt ]; then
+            cat uat-results.txt
+          fi
 
   uat-lint:
     name: UAT Code Quality
@@ -112,8 +115,9 @@ jobs:
 
       - name: Install dev dependencies
         run: |
-          uv venv
+          uv venv --seed
           uv pip install black ruff mypy
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Check Black formatting
         run: black --check tests/uat/
