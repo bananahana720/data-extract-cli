@@ -61,6 +61,7 @@ jobs:
         run: |
           uv venv --seed
           uv pip install -e ".[dev]"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           source .venv/bin/activate
           python -m spacy download en_core_web_md
 

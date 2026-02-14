@@ -1,4 +1,5 @@
 2026-02-14
+- Fixed venv command availability in `.github/workflows/performance.yml` and `.github/workflows/security.yml` by seeding uv environments and exporting `.venv/bin` into `$GITHUB_PATH`, preventing `pytest`/`structlog` import-not-found failures in later steps.
 - Fixed CI virtualenv persistence in `.github/workflows/test.yml` by exporting `.venv/bin` to `$GITHUB_PATH`, ensuring subsequent steps run with installed dependencies (`numpy`, `pytest`, etc.).
 - Corrected security workflow step-id condition wiring in `.github/workflows/security.yml` (`secrets_scan` / `deps_scan`) so the final fail gate triggers only on actual scanner failures.
 - Hardened `.github/workflows/uat.yaml` setup by seeding the uv venv, exporting venv binaries to `$GITHUB_PATH`, making `tmux-cli` installation best-effort, and guarding missing `uat-results.txt` in failure reporting.
