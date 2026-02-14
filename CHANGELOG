@@ -1,4 +1,5 @@
 2026-02-14
+- Replaced fragile regex-based performance log parsing with fixture-emitted JSON metrics (`DATA_EXTRACT_PERF_METRICS_FILE`) and updated `.github/workflows/performance.yml` to consume `perf-metrics-raw.json` for throughput/memory gating.
 - Fixed venv command availability in `.github/workflows/performance.yml` and `.github/workflows/security.yml` by seeding uv environments and exporting `.venv/bin` into `$GITHUB_PATH`, preventing `pytest`/`structlog` import-not-found failures in later steps.
 - Fixed CI virtualenv persistence in `.github/workflows/test.yml` by exporting `.venv/bin` to `$GITHUB_PATH`, ensuring subsequent steps run with installed dependencies (`numpy`, `pytest`, etc.).
 - Corrected security workflow step-id condition wiring in `.github/workflows/security.yml` (`secrets_scan` / `deps_scan`) so the final fail gate triggers only on actual scanner failures.

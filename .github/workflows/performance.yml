@@ -77,6 +77,7 @@ jobs:
              [ "${{ github.event.inputs.verbose }}" = "true" ]; then
             PYTEST_ARGS="-s"
           fi
+          DATA_EXTRACT_PERF_METRICS_FILE=perf-metrics-raw.json \
           pytest -m performance tests/performance/test_throughput.py \
             -v \
             --tb=short \
@@ -89,22 +90,18 @@ jobs:
           python - <<'PY'
           import json
           import os
-          import re
           import sys
           from pathlib import Path
 
-          text = Path('performance_output.txt').read_text()
-          throughput_matches = re.findall(r"Throughput:\s+([0-9]+(?:\.[0-9]+)?)\s+files/s", text)
-          memory_matches = re.findall(r"Memory:\s+([0-9]+(?:\.[0-9]+)?)\s+MB", text)
-          if not throughput_matches:
-              print("::error::Unable to parse throughput from performance output")
+          metrics_raw_path = Path('perf-metrics-raw.json')
+          if not metrics_raw_path.exists():
+              print("::error::Missing perf-metrics-raw.json from throughput test fixture")
               sys.exit(1)
-          if not memory_matches:
-              print("::error::Unable to parse memory usage from performance output")
-              sys.exit(1)
-          files_per_sec = float(throughput_matches[-1])
-          files_per_min = files_per_sec * 60
-          memory_gb = float(memory_matches[-1]) / 1024
+
+          raw_metrics = json.loads(metrics_raw_path.read_text())
+          files_per_sec = float(raw_metrics["throughput_files_per_sec"])
+          files_per_min = float(raw_metrics["throughput_files_per_min"])
+          memory_gb = float(raw_metrics["peak_rss_mb"]) / 1024
           baseline_throughput = float(os.environ['BASELINE_THROUGHPUT'])
           baseline_memory = float(os.environ['BASELINE_MEMORY_GB'])
           min_throughput = float(os.environ['MIN_THROUGHPUT'])
@@ -114,6 +111,7 @@ jobs:
                   'throughput_files_per_sec': files_per_sec,
                   'throughput_files_per_min': files_per_min,
                   'memory_gb': memory_gb,
+                  'raw_metrics_file': str(metrics_raw_path),
               },
               'baseline': {
                   'throughput_files_per_min': baseline_throughput,
@@ -150,6 +148,7 @@ jobs:
           name: performance-results-${{ github.run_number }}
           path: |
             performance_output.txt
+            perf-metrics-raw.json
             perf-metrics.json
             tests/performance/
             !tests/performance/batch_100_files/

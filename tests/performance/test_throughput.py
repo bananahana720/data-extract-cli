@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import os
 import threading
 import time
 from pathlib import Path
@@ -64,6 +66,23 @@ def _run_full_batch(output_dir: Path) -> dict[str, object]:
     start = time.perf_counter()
     run, peak_rss_mb = _measure_peak_rss_mb(_run)
     elapsed_s = time.perf_counter() - start
+    throughput_files_per_sec = len(files) / elapsed_s if elapsed_s > 0 else 0.0
+
+    metrics_path = os.getenv("DATA_EXTRACT_PERF_METRICS_FILE")
+    if metrics_path:
+        Path(metrics_path).write_text(
+            json.dumps(
+                {
+                    "files_total": len(files),
+                    "elapsed_s": elapsed_s,
+                    "throughput_files_per_sec": throughput_files_per_sec,
+                    "throughput_files_per_min": throughput_files_per_sec * 60,
+                    "peak_rss_mb": peak_rss_mb,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
 
     return {
         "files": files,
