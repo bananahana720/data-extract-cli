@@ -44,7 +44,7 @@ Thumbs.db
 # Project-specific
 test-extraction-outputs/
 test-files-assesses-extraction-tool/
-output/
+/output/
 .ui-home/
 .codex/
 .env

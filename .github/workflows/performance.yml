@@ -59,10 +59,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv venv
+          uv venv --seed
           uv pip install -e ".[dev]"
           source .venv/bin/activate
-          python -m spacy download en_core_web_md==${SPACY_MODEL_VERSION}
+          python -m spacy download en_core_web_md
 
       - name: Create 100-file performance batch
         run: |
@@ -71,11 +71,16 @@ jobs:
       - name: Run performance tests
         run: |
           set -o pipefail
+          PYTEST_ARGS=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && \
+             [ "${{ github.event.inputs.verbose }}" = "true" ]; then
+            PYTEST_ARGS="-s"
+          fi
           pytest -m performance tests/performance/test_throughput.py \
             -v \
             --tb=short \
             --no-cov \
-            ${{ github.event.inputs.verbose == 'true' && '-s' || '' }} 2>&1 | tee performance_output.txt
+            ${PYTEST_ARGS} 2>&1 | tee performance_output.txt
 
       - name: Analyze performance metrics
         id: analyze

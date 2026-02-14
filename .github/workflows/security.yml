@@ -45,11 +45,14 @@ jobs:
 
       - name: Install GitLeaks
         run: |
-          # Install latest GitLeaks
-          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_amd64.tar.gz
-          tar -xzf gitleaks_linux_amd64.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-          rm gitleaks_linux_amd64.tar.gz
+          set -euo pipefail
+          ASSET_URL="$(
+            python -c "import json, urllib.request; release = json.load(urllib.request.urlopen('https://api.github.com/repos/gitleaks/gitleaks/releases/latest')); print(next(asset['browser_download_url'] for asset in release.get('assets', []) if asset.get('name', '').endswith('linux_x64.tar.gz')))"
+          )"
+          curl -fsSL "$ASSET_URL" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          rm -f gitleaks gitleaks.tar.gz
           gitleaks version
 
       - name: Run Security Scanner - Secrets

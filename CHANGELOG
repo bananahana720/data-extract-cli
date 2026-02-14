@@ -1,3 +1,9 @@
+2026-02-14
+- Fixed `.gitignore` scope for runtime artifacts by anchoring `/output/` to repo root, then added the previously ignored `src/data_extract/output/` package and `tests/unit/data_extract/output/` test suite to version control.
+- Stabilized GitHub Actions Python jobs that install spaCy models by switching `uv venv` to `uv venv --seed` in test workflows so `python -m spacy download ...` can invoke `pip`.
+- Updated performance workflow setup to install the spaCy model via `python -m spacy download en_core_web_md` and replaced inline expression args with shell gating for `workflow_dispatch` verbose mode.
+- Reworked security workflow GitLeaks installation to resolve and download the current `linux_x64` release asset from the GitHub Releases API instead of the deprecated static `latest/download` tarball path.
+
 2026-02-13
 - Implemented queue high-watermark throttling with explicit `Retry-After` hints and detailed overload counters surfaced in `GET /api/v1/health?detailed=true`.
 - Added operation-scoped SQLite lock retry telemetry and write-serialization support in `with_sqlite_lock_retry`, including per-operation retry/failure breakdowns.
