@@ -63,7 +63,7 @@ Like Epic 2.5 (performance/spaCy prep), Epic 3.5:
    - Referenced by template scripts for enforced compliance
 
 3. **Test Dependency Audit Documentation**
-   - Process doc: `docs/processes/test-dependency-audit.md`
+   - Process/tool reference: `scripts/audit_dependencies.py`
    - Automated checklist hook for dependency validation
    - Examples from Epic 2.5 spaCy integration
 
@@ -108,7 +108,7 @@ Epic 3.5 is complete when:
 3. ✅ Semantic dependencies smoke test passes in CI with <100ms TF-IDF baseline
 4. ✅ Semantic QA fixtures repository contains ≥50 documents with gold annotations
 5. ✅ Epic 4 developers can reference playbook/ADR without asking questions
-6. ✅ Zero new technical debt items added to `docs/backlog.md`
+6. ✅ Zero new technical debt items added in active tracking (`CHANGELOG`, `docs/DOC_STATUS.md`)
 
 ---
 
@@ -144,7 +144,7 @@ scripts/
 scripts/new-story --id 4.1 --title "TF-IDF Vectorization Engine" --owner Charlie
 
 # Generator outputs:
-# - docs/stories/4-1-tf-idf-vectorization-engine.md (with AC table)
+# - docs/tech-spec-epic-4.md (with AC table)
 # - Pre-commit hook validates AC table completeness before commit
 ```
 
@@ -176,7 +176,7 @@ scripts/new-story --id 4.1 --title "TF-IDF Vectorization Engine" --owner Charlie
 ### Documentation
 - ADRs are code - require owners and deadlines
 - Update CLAUDE.md when adding new patterns
-- Performance baselines go in docs/performance-baselines-epic-X.md
+- Performance baselines go in `docs/architecture/epic-4-performance-baselines.md`
 - Examples/samples in docs/examples/ for downstream teams
 ```
 
@@ -457,12 +457,12 @@ textstat = ">=0.7.3"              # Readability metrics
 |-------|-------------|------------|
 | **AC-3.5-1** | Story template generator creates valid markdown with AC tables, wiring checklists, submission summaries | `scripts/new-story --id 4.1 ...` outputs valid story file |
 | **AC-3.5-2** | CLAUDE.md contains ≤100-line "Lessons & Reminders" section consolidating Epic 1-3 learnings | Section exists, word count ≤100 lines, referenced by scripts |
-| **AC-3.5-3** | Test dependency audit process doc exists with automated checklist hook | `docs/processes/test-dependency-audit.md` committed, hook functional |
+| **AC-3.5-3** | Test dependency audit process/tool exists with automated checklist hook | `scripts/audit_dependencies.py` committed, hook functional |
 | **AC-3.5-4** | Semantic dependencies installed and smoke tested with <100ms TF-IDF baseline | `scripts/smoke-test-semantic.py` passes in CI |
 | **AC-3.5-5** | Model/cache ADR defines storage paths, versioning, CLI integration, size limits | ADR-012 committed, reviewed by architect |
 | **AC-3.5-6** | Semantic QA fixtures contain ≥50 documents with gold annotations for TF-IDF/LSA/entities | `tests/fixtures/semantic/corpus/` validated |
 | **AC-3.5-7** | TF-IDF/LSA playbook (Jupyter notebook + markdown) enables junior devs to understand patterns in <30 min | Playbook reviewed by QA, feedback positive |
-| **AC-3.5-8** | Zero new technical debt items added during Epic 3.5 | `docs/backlog.md` unchanged or items closed |
+| **AC-3.5-8** | Zero new technical debt items added during Epic 3.5 | No new debt items added in active trackers (`CHANGELOG`, `docs/DOC_STATUS.md`) |
 
 ---
 
@@ -596,7 +596,7 @@ Epic 3.5 is **DONE** when:
 
 ### 12.2 Documentation Complete
 - ✅ CLAUDE.md "Lessons & Reminders" section added (≤100 lines)
-- ✅ Test dependency audit process doc (`docs/processes/test-dependency-audit.md`)
+- ✅ Test dependency audit tooling (`scripts/audit_dependencies.py`)
 - ✅ Model/cache ADR (`docs/architecture/adr-012-semantic-model-cache.md`)
 - ✅ TF-IDF/LSA playbook (`docs/playbooks/semantic-analysis-intro.ipynb`)
 - ✅ All 7 story files have AC tables filled with evidence
@@ -625,18 +625,16 @@ Epic 3.5 is **DONE** when:
 ### 13.1 References
 
 **Retrospective Documents:**
-- `docs/retrospectives/epic-3-retro-2025-11-16.md` (source of action plan)
-- `docs/retrospectives/epic-2-retro-*.md` (dependency audit examples)
-- `docs/retrospectives/epic-1-retro-*.md` (lessons learned)
+- Historical retrospective set removed from active docs scope; see `docs/DOC_STATUS.md` for archive policy and retained context notes.
 
 **Related Specs:**
 - `docs/tech-spec-epic-1.md` (project foundation)
-- `docs/archive/tech-spec-epic-2.5.md` (bridge epic pattern)
+- `docs/tech-spec-epic-2.5/index.md` (bridge epic pattern)
 - `docs/PRD/index.md` (product vision)
 
 **Architecture Docs:**
-- `docs/architecture.md` (ADR repository)
-- `docs/CLAUDE.md` (development guidelines)
+- `docs/architecture/index.md` (ADR repository)
+- `CLAUDE.md` (development guidelines)
 
 ### 13.2 Glossary
 

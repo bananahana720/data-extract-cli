@@ -2,14 +2,14 @@
 
 ## Documentation
 
-- **Architecture**: `docs/architecture.md` - System design and ADRs
+- **Architecture**: `docs/architecture/index.md` - System design and ADRs
 - **PRD**: `docs/PRD/index.md` - Product requirements
 - **Tech Spec**: `docs/tech-spec-epic-1.md` - Epic 1 technical specification
-- **Epics & Stories**: `docs/epics.md`, `docs/stories/` - Implementation roadmap
+- **Epics & Stories**: `docs/epics.md`, `docs/tech-spec-epic-*/` - Implementation roadmap
 - **CI/CD**: `docs/ci-cd-pipeline.md` - Detailed CI/CD documentation
 - **Testing**: `docs/TESTING-README.md` - Comprehensive test guide
 - **spaCy**: `docs/troubleshooting-spacy.md` - spaCy troubleshooting
-- **Performance**: `docs/performance-baselines-story-2.5.1.md` - Performance metrics
+- **Performance**: `docs/architecture/epic-4-performance-baselines.md` - Performance metrics
 
 ## Quick Reference
 
@@ -80,10 +80,10 @@ rm -rf venv __pycache__ .pytest_cache htmlcov *.egg-info
 ## Getting Help
 
 1. **Setup Issues**: Review prerequisites and installation steps above
-2. **Test Failures**: Check `docs/TESTING-README.md` and `docs/test-quick-wins.md`
+2. **Test Failures**: Check `docs/TESTING-README.md`
 3. **spaCy Problems**: See `docs/troubleshooting-spacy.md`
-4. **Architecture Questions**: Review `docs/architecture.md` and CLAUDE.md
-5. **Story Context**: Check `docs/stories/` for implementation details
-6. **Performance**: See `docs/performance-baselines-story-2.5.1.md`
+4. **Architecture Questions**: Review `docs/architecture/index.md` and CLAUDE.md
+5. **Story Context**: Check `docs/epics.md` and `docs/tech-spec-epic-*/`
+6. **Performance**: See `docs/architecture/epic-4-performance-baselines.md`
 
 ---

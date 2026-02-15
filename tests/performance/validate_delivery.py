@@ -70,10 +70,9 @@ def validate_delivery():
 
     # Check documentation
     print("\n3. Documentation:")
-    docs_dir = project_root / "docs" / "reports"
+    docs_dir = project_root / "docs" / "architecture"
     doc_files = {
-        "PERFORMANCE_BASELINE.md": "Comprehensive performance report",
-        "PERFORMANCE_BASELINE_DELIVERY.md": "Delivery summary",
+        "epic-4-performance-baselines.md": "Comprehensive performance report",
     }
 
     for filename, description in doc_files.items():

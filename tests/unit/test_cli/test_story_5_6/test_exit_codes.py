@@ -8,7 +8,7 @@ Focuses on standardized exit codes:
 - Exit code 2: Complete failure (no files processed)
 - Exit code 3: Configuration error
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

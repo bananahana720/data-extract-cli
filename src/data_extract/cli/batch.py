@@ -6,7 +6,7 @@ Provides incremental processing capabilities with:
 - Glob pattern expansion for batch input
 - Corpus sync status tracking
 
-Reference: docs/stories/5-7-batch-processing-optimization-and-incremental-updates.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

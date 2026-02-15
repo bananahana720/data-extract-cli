@@ -163,7 +163,7 @@ Epic 3 comprises 7 stories with comprehensive acceptance criteria mapped to the 
 
 **10-Step UAT Workflow (Approved in Party-Mode Discussion):**
 
-1. **Drafted** → SM creates story from epic, saves to `docs/stories/`
+1. **Drafted** → SM creates story context from epic, records in `docs/epics.md` and relevant `docs/tech-spec-epic-*/`
 2. **Ready for Dev** → SM marks story ready, updates sprint status
 3. **Dev Codes** → Dev implements story following tech spec
 4. **Pre-commit** → Dev runs pre-commit hooks (0 violations gate)

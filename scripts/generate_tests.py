@@ -9,9 +9,9 @@ This tool accelerates test-driven development by creating structured test
 files directly from story specifications.
 
 Usage:
-    python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md
-    python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md --output tests/unit/data_extract/semantic/
-    python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md --markers auto
+    python scripts/generate_tests.py --story docs/tech-spec-epic-4.md
+    python scripts/generate_tests.py --story docs/tech-spec-epic-4.md --output tests/unit/data_extract/semantic/
+    python scripts/generate_tests.py --story docs/tech-spec-epic-4.md --markers auto
 """
 
 import argparse
@@ -28,7 +28,7 @@ logger = structlog.get_logger()
 
 # Constants
 PROJECT_ROOT = Path(__file__).parent.parent
-STORIES_DIR = PROJECT_ROOT / "docs" / "stories"
+STORIES_DIR = PROJECT_ROOT / "docs"
 TESTS_DIR = PROJECT_ROOT / "tests"
 FIXTURES_DIR = TESTS_DIR / "fixtures"
 
@@ -703,18 +703,18 @@ def main() -> None:
         epilog="""
 Examples:
   # Generate test from story
-  python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md
+  python scripts/generate_tests.py --story docs/tech-spec-epic-4.md
 
   # Specify output directory
-  python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md \\
+  python scripts/generate_tests.py --story docs/tech-spec-epic-4.md \\
     --output tests/integration/
 
   # Auto-detect test markers
-  python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md \\
+  python scripts/generate_tests.py --story docs/tech-spec-epic-4.md \\
     --markers auto
 
   # Generate only fixtures
-  python scripts/generate_tests.py --story docs/stories/4-1-tf-idf.md \\
+  python scripts/generate_tests.py --story docs/tech-spec-epic-4.md \\
     --fixtures-only
         """,
     )

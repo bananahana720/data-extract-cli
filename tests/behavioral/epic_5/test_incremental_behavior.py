@@ -4,7 +4,7 @@ This behavioral test suite validates that incremental processing correctly
 identifies file changes and only processes modified documents, reducing
 processing time while maintaining data consistency.
 
-Reference: docs/stories/5-7-batch-processing-optimization.md
+Reference: docs/tech-spec-epic-5.md
 Story 5-7: Batch Processing Optimization and Incremental Updates
 """
 

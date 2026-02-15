@@ -132,12 +132,14 @@ Local UI/API runtime now includes queue, upload, and SQLite contention guardrail
 
 ## Documentation
 
-- **Quick Start**: This README
-- **User Guide**: `docs/user-guide.md` - Complete CLI reference with examples
-- **Architecture**: `docs/architecture.md` - Technical design and ADRs
-- **Development**: `docs/development-operations-guide-*.md` - Contributing guide
-- **Automation**: `docs/automation-guide.md` - P0-P2 automation scripts
-- **UX Design**: `docs/ux-design-specification.md` - 7 user journeys with UAT tests
+- **Quick Start**: This README `[current]`
+- **Documentation Index**: `docs/index.md` `[current]` - Canonical docs map with status tags
+- **User Guide**: `docs/USER_GUIDE.md` `[current]` - Complete CLI reference with examples
+- **Architecture**: `docs/architecture/index.md` `[current]` - Technical design and ADRs
+- **Development**: `docs/development-operations-guide.md` `[needs-update]` - Contributing and ops guide
+- **Development (Sharded)**: `docs/development-operations-guide-2025-11-13/table-of-contents.md` `[needs-update]`
+- **Automation**: `docs/automation-guide.md` `[needs-update]` - P0-P2 automation scripts
+- **Doc Status**: `docs/DOC_STATUS.md` `[current]` - Current vs needs-update tracking
 
 ## Development
 
@@ -213,13 +215,15 @@ Automatically enforced on every commit:
 
 ## Project Status
 
-### V1.0 Release Metrics (2025-12-01)
+### V1.0 Release Metrics (2025-12-01) `[needs-update]`
 
-**Completion**: 100% (All 5 epics delivered)
+**Last Verified**: 2026-02-15
+
+**Completion**: 100% (All 7 epics delivered)
 
 **Codebase**:
 - Greenfield: 74 Python files, ~19,700 LOC (primary & active)
-- Brownfield: Archived in TRASH-FILES.md (migration complete)
+- Brownfield: Archived under `TRASH/` (migration complete)
 
 **Testing**:
 - Total Tests: 3,575 (Core: 971, CLI: 674, UAT: 66, Scripts: 170)
@@ -250,7 +254,7 @@ Automatically enforced on every commit:
 **Epic 4**: Knowledge Curation (6 stories) - Classical NLP semantic analysis
 **Epic 5**: Enhanced CLI UX (8 stories) - Rich UI, batch processing, config management
 
-See `docs/sprint-status.yaml` for detailed tracking.
+See `docs/epics.md` for epic context and `docs/DOC_STATUS.md` for documentation status.
 
 ## Contributing
 
@@ -288,9 +292,9 @@ MIT - see `LICENSE`
 For questions or issues:
 
 1. Check documentation in `docs/`
-2. Review user guide: `docs/user-guide.md`
-3. Consult architecture: `docs/architecture.md`
-4. Review retrospectives: `docs/retrospectives/`
+2. Review user guide: `docs/USER_GUIDE.md`
+3. Consult architecture: `docs/architecture/index.md`
+4. Check doc status: `docs/DOC_STATUS.md`
 
 ---
 

@@ -531,3 +531,9 @@ jobs:
 *Baseline Recommendations Complete: 2025-11-20*
 *Must Implement Before: Epic 4 Story 4.1*
 *Time Required: 4 hours*
+
+## Updated Baselines (2026-02-15 16:56)
+
+| Metric | Value | Unit | Component |
+|--------|-------|------|----------|
+| test_metric | 1.500 | seconds | test |

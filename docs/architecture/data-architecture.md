@@ -216,7 +216,7 @@ Epic 2 Output (ProcessingResult)
 | Batch memory | ≤7.8 MB variance | <100 MB | ✅ Constant |
 | Scaling | 0.19s per 1k words | Linear | ✅ Validated |
 
-See `docs/performance-baselines-epic-3.md` for detailed benchmarks.
+See `docs/architecture/epic-4-performance-baselines.md` for detailed benchmarks.
 
 ## JSON Output Format (Story 3.4)
 
@@ -253,7 +253,7 @@ See `docs/performance-baselines-epic-3.md` for detailed benchmarks.
 - Schema reference for consumers documented in `docs/json-schema-reference.md`.
 - Brownfield compatibility: `data_extract.chunk.engine` normalizes metadata emanating from both `data_extract.core` Pydantic objects and the legacy `src.core` dataclasses so JsonFormatter always receives a canonical `Metadata`.
 - Validation/compatibility tests: `tests/unit/test_output/test_json_schema.py`, `tests/unit/test_output/test_json_formatter.py`, `tests/integration/test_output/test_json_output_pipeline.py`, and `tests/integration/test_output/test_json_compatibility.py`.
-- Performance baselines (<1 second per document) tracked in `tests/performance/test_json_performance.py` with summary metrics published in `docs/performance-baselines-epic-3.md`.
+- Performance baselines (<1 second per document) tracked in `tests/performance/test_json_performance.py` with summary metrics published in `docs/architecture/epic-4-performance-baselines.md`.
 ## Entity Relationships
 
 **Six Audit Entity Types** (Domain-Specific):

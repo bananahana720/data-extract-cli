@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Data Extraction Tool** - Enterprise document processing pipeline for RAG workflows. Transforms messy corporate audit documents into AI-optimized outputs using a five-stage modular pipeline architecture.
 
-**Status**: V1.0 RELEASE - Enhanced CLI UX & Batch Processing (COMPLETE - all 5 epics done)
+**Status**: V1.0 RELEASE - Enhanced CLI UX & Batch Processing (COMPLETE - all 7 epics done)
 **Python**: 3.11+ (minimum version requirement)
 **Architecture**: `Extract → Normalize → Chunk → Semantic → Output`
 <!-- END MODULE: CORE-OVERVIEW -->
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **[CRITICAL]** Mirror test structure to src/ exactly - prevents test organization issues
 **[CRITICAL]** Never break brownfield code during greenfield migration - both systems must coexist
 
-For complete lessons learned, see `docs/retrospective-lessons.md`.
+For canonical guidance and active documentation status, see `docs/index.md` and `docs/DOC_STATUS.md`.
 <!-- END MODULE: CRITICAL-RULES -->
 
 <!-- MODULE: ARCHITECTURE -->
@@ -47,10 +47,10 @@ Each stage is a composable, testable component using frozen dataclasses and ABC 
 
 ### Greenfield-Only Structure (V1.0)
 
-**Greenfield** (`src/data_extract/`) - Primary codebase (74 Python files, ~19,700 LOC)
-**Brownfield** (`src/{cli,core,extractors,processors,formatters,infrastructure,pipeline}/`) - Archived in TRASH (legacy code, no longer active)
+**Greenfield** (`src/data_extract/`) - Primary active codebase
+**Brownfield** (legacy modules and historical artifacts) - Archived in `TRASH/` and no longer active
 
-**[MIGRATION COMPLETE]** Brownfield code moved to TRASH-FILES.md. All new development uses greenfield exclusively.
+**[MIGRATION COMPLETE]** Brownfield code moved under `TRASH/`. All new development uses greenfield exclusively.
 <!-- END MODULE: ARCHITECTURE -->
 
 <!-- MODULE: COMMANDS -->
@@ -168,7 +168,7 @@ data-extract    # Typer-based CLI (full implementation in Epic 5)
 **[REQUIRED]** Classes: `PascalCase` (e.g., `DocxExtractor`)
 **[REQUIRED]** Functions/methods: `snake_case` (e.g., `extract_content`)
 **[REQUIRED]** Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_CHUNK_SIZE`)
-**[REQUIRED]** Modules: `snake_case` (e.g., `context_linker.py`)
+**[REQUIRED]** Modules: `snake_case` (e.g., `batch_processor.py`)
 
 ### Required Standards
 **[REQUIRED]** Type hints on all public functions
@@ -195,7 +195,9 @@ data-extract    # Typer-based CLI (full implementation in Epic 5)
 <!-- MODULE: CURRENT-STATE -->
 ## Epic Status
 
-### V1.0 Release (2025-12-01)
+### V1.0 Release (2025-12-01) `[needs-update]`
+
+**Last Verified**: 2026-02-15
 
 **All Epics Complete:**
 - **Epic 1**: Foundation (4 stories - COMPLETE)
@@ -239,7 +241,7 @@ data-extract    # Typer-based CLI (full implementation in Epic 5)
 - **Brownfield Migration**: COMPLETE (legacy code archived, greenfield is primary)
 - **CLI Entry Point**: `data-extract` with 9 commands operational
 
-See `docs/sprint-status.yaml` and `docs/retrospectives/epic-5-retro-2025-11-30.md` for complete details.
+See `docs/index.md` and `docs/epics.md` for current planning and documentation entry points.
 <!-- END MODULE: CURRENT-STATE -->
 
 <!-- MODULE: QUALITY-GATES -->
@@ -283,24 +285,21 @@ See `docs/sprint-status.yaml` and `docs/retrospectives/epic-5-retro-2025-11-30.m
 **[CRITICAL]** ADR-004: Classical NLP only (enterprise constraint)
 **[CRITICAL]** ADR-005: Gradual brownfield modernization
 
-See `docs/architecture.md` for full details.
+See `docs/architecture/index.md` for full details.
 <!-- END MODULE: KEY-DECISIONS -->
 
 <!-- MODULE: REFERENCES -->
 ## Documentation References
 
 ### Core Documentation
-- `docs/epic-3-reference.md` - Complete Epic 3 implementation guide
+- `docs/index.md` - Canonical documentation index
 - `docs/automation-guide.md` - P0 scripts and automation tools
-- `docs/retrospective-lessons.md` - Comprehensive lessons from Epics 1-4
-- `docs/architecture.md` - Technical architecture and ADRs
-- `docs/sprint-status.yaml` - Current development status (authoritative)
-- `docs/ux-design-specification.md` - CLI UX design with 7 user journeys
+- `docs/architecture/index.md` - Technical architecture and ADRs
+- `docs/DOC_STATUS.md` - Documentation freshness and update tags
 
 ### Epic Documentation
 - `docs/tech-spec-epic-*.md` - Epic technical specifications
-- `docs/stories/` - Story-level implementation specs
-- `docs/performance-baselines-epic-*.md` - Performance benchmarks
+- `docs/tech-spec-epic-2/`, `docs/tech-spec-epic-2.5/`, `docs/tech-spec-epic-3/` - Sharded epic specs
 
 ### Playbooks and Guides
 - `docs/playbooks/semantic-analysis-intro.ipynb` - TF-IDF/LSA interactive tutorial (Epic 4 prep)
@@ -319,7 +318,7 @@ See `docs/architecture.md` for full details.
 - `/bmad:bmm:workflows:code-review` - Senior Developer code review with AC validation
 - `/bmad:bmm:workflows:dev-story` - Story implementation workflow
 - `/bmad:core:agents:bmad-master` - Master orchestration agent for multi-agent taskforce coordination
-- See `.claude/commands/` for all available BMAD workflows
+- See `bmad/` for available BMAD workflows and command references
 - For AI agent orchestration, use the bmad-master agent with model=opus and ultrathink protocols
 
 ### Search Tools
@@ -337,6 +336,6 @@ See `docs/architecture.md` for full details.
 ### UAT Testing (Epic 5)
 **[AVAILABLE]** tmux-cli based automated UAT testing for CLI validation
 - Instructions: `docs/tmux-cli-instructions.md`
-- Framework: `tests/uat/` (to be created in Story 5-0)
+- Framework: `tests/uat/` (active)
 - Runs on every PR to validate user journeys
 <!-- END MODULE: IMPORTANT-NOTES -->

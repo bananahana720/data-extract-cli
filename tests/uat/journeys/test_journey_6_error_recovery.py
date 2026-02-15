@@ -8,7 +8,7 @@ Tests the error handling and recovery flow including:
 - Error summary with actionable recovery commands
 - Retry command to re-process only failed files
 
-Reference: docs/ux-design-specification.md - Journey 6
+Reference: docs/USER_GUIDE.md - Journey 6
 """
 
 import pytest

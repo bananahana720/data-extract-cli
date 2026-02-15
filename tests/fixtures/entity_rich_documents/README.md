@@ -168,7 +168,7 @@ These fixtures support entity-aware chunking tests that validate:
 
 ## Related Documentation
 
-- Story 3.2 specification: `docs/stories/3-2-entity-aware-chunking.md`
-- Story 3.2 context: `docs/stories/3-2-entity-aware-chunking.context.xml`
+- Story 3.2 specification: `docs/tech-spec-epic-3/2-detailed-design.md`
+- Story 3.2 context: `docs/tech-spec-epic-3/2-detailed-design.md`
 - Test implementation: `tests/integration/test_chunk/test_entity_aware_integration.py`
-- ATDD checklist: `docs/atdd-checklist-3.2.md`
+- ATDD checklist: `docs/TESTING-README.md`

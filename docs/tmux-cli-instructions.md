@@ -25,9 +25,9 @@ cd /mnt/c/Users/{username}/projects/{project-name}
 tmux-cli launch "zsh"
 ```
 
-**Option 2**: Install tmux in WSL, configure .tmux.conf bridge
-- See `docs/uat/tmux-cli-windows-setup.md` for detailed setup instructions
-- This allows WSL tmux to control Windows applications
+**Option 2**: Install tmux in WSL, configure a `.tmux.conf` bridge
+- Use the same WSL-first workflow documented in this file
+- This allows WSL tmux to control Windows-mounted project files
 
 **Limitation**: tmux-cli cannot be called directly from Windows CMD/PowerShell due to subprocess requirements. Always run tmux-cli commands from within WSL on Windows systems.
 

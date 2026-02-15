@@ -168,9 +168,9 @@ task_organization:
 references:
   required_links:
     - epic_spec: "docs/tech-spec-epic-*.md"
-    - related_stories: "docs/stories/*.md"
-    - architecture: "docs/architecture.md"
-    - retrospectives: "docs/retrospectives/*.md"
+    - related_stories: "docs/tech-spec-epic-*.md"
+    - architecture: "docs/architecture/index.md"
+    - retrospectives: "docs/.archive/pre-bmad/reports/*.md"
 
   format:
     inline: "[Source: {path}#L{line}]"

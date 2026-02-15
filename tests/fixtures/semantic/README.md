@@ -181,7 +181,7 @@ python harness/compare-entities.py 0.8 risk-matrix-0001 compliance-doc-0002
 
 The corpus was generated through the following process:
 
-1. **Document Generation** (`generate_full_corpus.py`)
+1. **Document Generation** (`scripts/generate_fixtures.py --semantic-corpus`)
    - Created synthetic audit-domain documents using templates
    - Ensured balanced distribution across document types
    - Generated entity references following consistent patterns
@@ -191,7 +191,7 @@ The corpus was generated through the following process:
    - Verified no real names, SSNs, or personal data
    - Confirmed synthetic entity patterns are safe
 
-3. **Gold-Standard Generation** (`generate_gold_standard.py`)
+3. **Gold-Standard Generation** (`tests/fixtures/semantic/harness/compare-*.py` + serialized gold-standard outputs)
    - Applied validated TF-IDF vectorizer from Story 3.5-4
    - Generated LSA topic assignments with 10 topics
    - Extracted entity references using regex patterns
@@ -250,22 +250,22 @@ All comparison harness scripts pass with 100% success rate when run against gold
 
 ### Adding New Documents
 
-1. Generate documents using `generate_full_corpus.py` as template
+1. Generate documents using `scripts/generate_fixtures.py --semantic-corpus`
 2. Validate PII-free status with `validate_pii.py`
-3. Regenerate gold-standard annotations with `generate_gold_standard.py`
+3. Refresh gold-standard annotations in `tests/fixtures/semantic/gold-standard/`
 4. Test comparison harness scripts to ensure compatibility
 
 ### Updating Gold-Standard
 
-1. Modify annotation generation logic in `generate_gold_standard.py`
+1. Modify annotation generation logic in `tests/fixtures/semantic/harness/compare-*.py`
 2. Re-run to generate new annotations
 3. Update harness scripts if annotation schema changes
 4. Document changes in this README
 
 ## Related Documentation
 
-- Story specification: `docs/stories/3.5-6-semantic-qa-fixtures.md`
-- Story context: `docs/stories/3.5-6-semantic-qa-fixtures.context.xml`
+- Story specification: `docs/tech-spec-epic-3.5.md`
+- Story context: `docs/tech-spec-epic-3.5.md`
 - Tech spec: `docs/tech-spec-epic-3.5.md`
 - Semantic smoke test: `scripts/smoke_test_semantic.py`
 - PII scanner utility: `tests/fixtures/greenfield/pii_scanner.py`

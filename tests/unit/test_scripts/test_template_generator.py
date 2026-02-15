@@ -362,7 +362,7 @@ Estimate: {{ estimate }}
         project_root = temp_dir / "project"
         scripts_dir = project_root / "scripts"
         templates_dir = scripts_dir / "templates"
-        docs_dir = project_root / "docs" / "stories"
+        docs_dir = project_root / "docs" / "tech-spec-drafts"
 
         # Create directories
         for directory in [scripts_dir, templates_dir, docs_dir]:
@@ -372,7 +372,7 @@ Estimate: {{ estimate }}
         template_file = templates_dir / "story.md.j2"
         template_file.write_text(
             """# Story {{ story_number }}: {{ title }}
-Path Test: Stories should go to docs/stories/
+Path Test: Stories should go to docs/tech-spec-drafts/
 Epic: {{ epic }}
 """
         )
@@ -386,7 +386,7 @@ Epic: {{ epic }}
 
         # Verify correct path structure
         assert result_path.parent == docs_dir
-        assert "docs/stories" in str(result_path)
+        assert "docs/tech-spec-drafts" in str(result_path)
         assert result_path.name == "5.0-integration-test.md"
 
         # Test dry-run mode

@@ -177,7 +177,7 @@ class ApiRuntime:
     @property
     def db_lock_retry_stats(self) -> dict[str, Any]:
         """SQLite lock retry counters."""
-        return cast(dict[str, Any], sqlite_lock_retry_stats())
+        return sqlite_lock_retry_stats()
 
     @property
     def recovery_stats(self) -> dict[str, int]:
@@ -342,13 +342,10 @@ class ApiRuntime:
                 db.commit()
                 return True
 
-        persisted = cast(
-            bool,
-            with_sqlite_lock_retry(
-                _persist_retry_intent,
-                operation_name="enqueue_retry.persist_queue_intent",
-                serialize_writes=True,
-            ),
+        persisted = with_sqlite_lock_retry(
+            _persist_retry_intent,
+            operation_name="enqueue_retry.persist_queue_intent",
+            serialize_writes=True,
         )
         if not persisted:
             raise ValueError(f"Job not found for retry dispatch: {job_id}")
@@ -480,13 +477,10 @@ class ApiRuntime:
                     )
                 )
 
-        return cast(
-            list[str],
-            with_sqlite_lock_retry(
-                _load,
-                operation_name="dispatch.load_pending_job_ids",
-                serialize_writes=False,
-            ),
+        return with_sqlite_lock_retry(
+            _load,
+            operation_name="dispatch.load_pending_job_ids",
+            serialize_writes=False,
         )
 
     def _load_dispatch_payload_for_job(self, job_id: str) -> dict[str, Any] | None:
@@ -570,13 +564,10 @@ class ApiRuntime:
                 db.commit()
                 return True
 
-        return cast(
-            bool,
-            with_sqlite_lock_retry(
-                _claim,
-                operation_name="dispatch.claim_for_submit",
-                serialize_writes=True,
-            ),
+        return with_sqlite_lock_retry(
+            _claim,
+            operation_name="dispatch.claim_for_submit",
+            serialize_writes=True,
         )
 
     def _mark_dispatch_submitted(self, job_id: str, *, source: str) -> None:
@@ -1086,7 +1077,7 @@ class ApiRuntime:
             if not root.is_absolute():
                 root = JOBS_HOME / root
             return root.resolve()
-        return cast(Path, (JOBS_HOME / job_id).resolve())
+        return (JOBS_HOME / job_id).resolve()
 
     @staticmethod
     def _read_json_object_from_path(path: Path) -> tuple[dict[str, Any] | None, str | None]:
@@ -1611,7 +1602,7 @@ class ApiRuntime:
             validated = ProcessJobRequest.model_validate(payload)
         except Exception:
             return None
-        return cast(dict[str, Any], validated.model_dump())
+        return validated.model_dump()
 
     @staticmethod
     def _canonical_payload(payload: dict[str, Any]) -> str:
@@ -1764,13 +1755,10 @@ class ApiRuntime:
                 db.commit()
                 return 1
 
-        failed_count = cast(
-            int,
-            with_sqlite_lock_retry(
-                _persist,
-                operation_name="startup.recover_inflight.persist_submission_failure",
-                serialize_writes=True,
-            ),
+        failed_count = with_sqlite_lock_retry(
+            _persist,
+            operation_name="startup.recover_inflight.persist_submission_failure",
+            serialize_writes=True,
         )
         if failed_count:
             self._write_job_log(job_id, message)

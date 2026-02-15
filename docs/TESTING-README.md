@@ -265,17 +265,17 @@ pytest -m extraction
 1. **PDF Path Handling** (15 tests)
    - Issue: PyMuPDF can't handle WindowsPath objects
    - Fix: Convert `Path` to `str` before passing to PyMuPDF
-   - See: `docs/test-quick-wins.md`
+   - See: `docs/development-operations-guide-2025-11-13/testing-strategy.md`
 
 2. **Tuple vs. Object Returns** (9 tests)
    - Issue: Some extractors return tuples instead of data models
    - Fix: Ensure all extractors return `ExtractionResult`/`ProcessingResult`
-   - See: `docs/test-quick-wins.md`
+   - See: `docs/development-operations-guide-2025-11-13/testing-strategy.md`
 
 3. **TxtExtractor Import** (3 tests)
    - Issue: Incorrect import path in test file
    - Fix: Update import statement
-   - See: `docs/test-quick-wins.md`
+   - See: `docs/development-operations-guide-2025-11-13/testing-strategy.md`
 
 ### Priority 2 - Fix in Epic 2 (4 hours)
 4. **Processor Implementations** (4 tests)
@@ -494,9 +494,9 @@ def test_extraction(sample_docx):
 ## Resources
 
 ### Documentation
-- **Full Analysis:** `docs/test-triage-analysis.md`
-- **Quick Wins:** `docs/test-quick-wins.md`
-- **Known Issues:** `docs/test-known-issues.md` (TODO)
+- **Testing Strategy:** `docs/development-operations-guide-2025-11-13/testing-strategy.md`
+- **Canonical Doc Map:** `docs/index.md`
+- **Doc Status Tracking:** `docs/DOC_STATUS.md`
 - **Test Strategy:** `docs/tech-spec-epic-1.md#testing-strategy`
 
 ### External Links
@@ -538,8 +538,8 @@ pytest --junitxml=test-results.xml
 ## Getting Help
 
 ### Test Failures
-1. Check `docs/test-triage-analysis.md` for known issues
-2. Check `docs/test-quick-wins.md` for common fixes
+1. Check `docs/development-operations-guide-2025-11-13/testing-strategy.md` for known patterns
+2. Check `docs/DOC_STATUS.md` for current vs needs-update documentation
 3. Run test with `-vv --tb=long --showlocals` for details
 4. Check if issue is already documented in GitHub issues
 
@@ -572,7 +572,7 @@ pytest --junitxml=test-results.xml
 - 🚨 Performance tests disabled (PDF hanging issue)
 
 **Next Steps:**
-1. Apply quick wins from `docs/test-quick-wins.md` (2 hours → 90%)
+1. Apply fixes using `docs/development-operations-guide-2025-11-13/testing-strategy.md`
 2. Complete Epic 2-3 fixes (7 hours → 92%)
 3. Re-enable performance tests with fixes (Epic 2)
 4. Polish CLI and reach >95% coverage (Epic 5)

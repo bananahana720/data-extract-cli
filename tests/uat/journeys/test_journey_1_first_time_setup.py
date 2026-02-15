@@ -7,7 +7,7 @@ Tests the complete first-run experience including:
 - Sample file processing demonstration
 - Success summary with next steps
 
-Reference: docs/ux-design-specification.md - Journey 1
+Reference: docs/USER_GUIDE.md - Journey 1
 """
 
 import pytest
@@ -40,7 +40,7 @@ class TestJourney1FirstTimeSetup:
         - Multiple command options shown in command panels
         - Proper formatting of options and commands
 
-        Reference: docs/ux-design-specification.md - Journey 1, Step 1
+        Reference: docs/USER_GUIDE.md - Journey 1, Step 1
         """
         # Activate venv and send the help command to display welcome panel
         output = tmux_session.send_and_capture(
@@ -70,7 +70,7 @@ class TestJourney1FirstTimeSetup:
         - Semantic analysis settings (TF-IDF, LSA configuration)
         - Properly formatted YAML-style output
 
-        Reference: docs/ux-design-specification.md - Journey 1, Step 2
+        Reference: docs/USER_GUIDE.md - Journey 1, Step 2
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract config show",
@@ -103,7 +103,7 @@ class TestJourney1FirstTimeSetup:
         - Documentation of the learning mode in help text
         - Clear indication that learning content is available
 
-        Reference: docs/ux-design-specification.md - Journey 1, Step 3
+        Reference: docs/USER_GUIDE.md - Journey 1, Step 3
         """
         # Activate venv and send the help command which documents all available flags
         output = tmux_session.send_and_capture(
@@ -133,7 +133,7 @@ class TestJourney1FirstTimeSetup:
         - Learning mode integration (--learn)
         - Proper usage documentation
 
-        Reference: docs/ux-design-specification.md - Journey 1, Step 4
+        Reference: docs/USER_GUIDE.md - Journey 1, Step 4
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -169,7 +169,7 @@ class TestJourney1FirstTimeSetup:
         - Cache configuration (enabled status, size limits)
         - Properly structured hierarchical output
 
-        Reference: docs/ux-design-specification.md - Journey 1, Step 5
+        Reference: docs/USER_GUIDE.md - Journey 1, Step 5
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract config show",

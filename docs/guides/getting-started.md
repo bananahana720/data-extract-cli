@@ -275,8 +275,8 @@ export DATA_EXTRACT_MAX_WORKERS=4
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 
 **Advanced usage:**
-- See `docs/architecture.md` for pipeline internals
-- See `docs/ux-design-specification.md` for CLI design principles
+- See `docs/architecture/index.md` for pipeline internals
+- See `docs/ux-design-directions.html` for CLI design principles
 - See `docs/automation-guide.md` for scripting and automation
 
 ## Quick Reference

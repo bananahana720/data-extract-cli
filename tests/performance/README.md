@@ -56,8 +56,8 @@ python scripts/run_api_load.py \
 # Check baselines
 cat tests/performance/baselines.json
 
-# Read comprehensive report
-cat docs/reports/PERFORMANCE_BASELINE.md
+# Read canonical baseline reference
+cat docs/architecture/epic-4-performance-baselines.md
 ```
 
 ## Test Files
@@ -355,10 +355,10 @@ Based on V1.0 baseline analysis:
 
 ## References
 
-- **Baseline Report**: `docs/reports/PERFORMANCE_BASELINE.md`
+- **Baseline Report**: `docs/architecture/epic-4-performance-baselines.md`
 - **Test Infrastructure**: `tests/performance/conftest.py`
 - **Baseline Data**: `tests/performance/baselines.json`
-- **Project State**: `PROJECT_STATE.md`
+- **Project State**: `docs/index.md`
 
 ---
 

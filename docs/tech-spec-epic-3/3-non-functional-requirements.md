@@ -17,7 +17,7 @@
 - **Story 3-7:** Measure organization strategy overhead (by_document vs by_entity vs flat)
 - **Epic-End Integration Test:** Full pipeline benchmark vs <10 min target on standard 100-PDF corpus
 
-**Tracking:** `docs/performance-baselines-epic-3.md` (created in Story 3-1)
+**Tracking:** `docs/architecture/epic-4-performance-baselines.md`
 
 **Target Breakdown:**
 - Extract + Normalize: 6.86 min (Epic 2 actual)
@@ -31,7 +31,7 @@
 - Full pipeline completes 100 PDFs in ≤10 minutes (600 seconds) on reference hardware
 - Individual chunking operations complete in <2 seconds per 10,000-word document
 - Output format generation completes in <1 second per document (all 3 formats parallel)
-- Performance baselines documented in `docs/performance-baselines-epic-3.md`
+- Performance baselines documented in `docs/architecture/epic-4-performance-baselines.md`
 - Regression tests fail if performance degrades >10% from baseline
 
 ### NFR-P2-E3: Memory Efficiency
@@ -201,7 +201,7 @@
 - Metrics logged for every document processed
 - Summary report includes aggregate metrics across batch
 - Metrics exportable to CSV for trend analysis
-- Metrics schema documented in `docs/observability.md`
+- Metrics schema documented in `docs/LOGGING_GUIDE.md`
 
 ### NFR-O2: Output Format Metrics
 **Requirement:** Track output generation performance and file sizes

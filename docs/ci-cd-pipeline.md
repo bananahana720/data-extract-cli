@@ -88,7 +88,7 @@ Coverage is tracked in CI and uploaded to Codecov:
 
 ## Performance Monitoring
 
-Performance baselines are documented in `docs/performance-baselines-story-2.5.1.md`.
+Performance baselines are documented in `docs/architecture/epic-4-performance-baselines.md`.
 
 **Key metrics tracked**:
 - Throughput (files/min)
@@ -120,7 +120,7 @@ Performance baselines are documented in `docs/performance-baselines-story-2.5.1.
 ### "Performance regression detected"
 
 1. Review performance test results in Actions artifacts
-2. Compare against baselines in `docs/performance-baselines-story-2.5.1.md`
+2. Compare against baselines in `docs/architecture/epic-4-performance-baselines.md`
 3. Profile code changes: Use `scripts/profile_pipeline.py`
 4. If regression is intentional (new features), update baselines with justification
 

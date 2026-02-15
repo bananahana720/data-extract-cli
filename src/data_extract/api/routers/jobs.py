@@ -8,7 +8,7 @@ import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
@@ -252,13 +252,10 @@ def _resolve_default_preset() -> str | None:
             return preset_name or None
 
     try:
-        return cast(
-            str | None,
-            with_sqlite_lock_retry(
-                _load,
-                operation_name="jobs.resolve_default_preset",
-                serialize_writes=False,
-            ),
+        return with_sqlite_lock_retry(
+            _load,
+            operation_name="jobs.resolve_default_preset",
+            serialize_writes=False,
         )
     except Exception:
         return None

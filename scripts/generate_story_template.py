@@ -23,7 +23,7 @@ logger = structlog.get_logger()
 
 # Constants
 TEMPLATE_DIR = Path(__file__).parent / "templates"
-OUTPUT_DIR = Path(__file__).parent.parent / "docs" / "stories"
+OUTPUT_DIR = Path(__file__).parent.parent / "docs" / "tech-spec-drafts"
 DEFAULT_OWNER = "Team"
 DEFAULT_ESTIMATE = 4
 
@@ -144,7 +144,7 @@ class StoryTemplateGenerator:
                 )
             if with_uat:
                 print(
-                    f"Would generate UAT test cases: docs/uat/test-cases/{story_key}-test-cases.md"
+                    f"Would generate UAT test cases under tests/uat/generated-cases/ for: {story_key}"
                 )
             if update_status:
                 print(f"Would update sprint-status.yaml with story: {story_key}")
@@ -221,10 +221,10 @@ class StoryTemplateGenerator:
     def _generate_wiring_checklist(self) -> dict:
         """Generate wiring checklist template."""
         return {
-            "bom": [
-                "TODO: List new dependencies/packages",
-                "If adding dependencies, follow docs/processes/test-dependency-audit.md",
-            ],
+                "bom": [
+                    "TODO: List new dependencies/packages",
+                    "If adding dependencies, run scripts/audit_dependencies.py and update docs/DOC_STATUS.md",
+                ],
             "logging": ["TODO: Add structured logging points"],
             "cli": ["TODO: Define CLI flags/commands"],
             "testing": ["TODO: List test requirements"],
@@ -482,7 +482,7 @@ def temp_dir(tmp_path):
         Returns:
             Path to generated UAT test case file
         """
-        uat_dir = output_dir.parent.parent / "docs" / "uat" / "test-cases"
+        uat_dir = output_dir.parent.parent / "tests" / "uat" / "generated-cases"
         uat_dir.mkdir(parents=True, exist_ok=True)
 
         uat_file_path = uat_dir / f"{story_key}-test-cases.md"

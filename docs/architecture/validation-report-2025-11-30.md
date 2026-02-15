@@ -79,7 +79,7 @@ The data-extraction-tool architecture documentation has been comprehensively val
 
 **Recommendation:**
 1. Verify all technology versions via WebSearch
-2. Create `docs/architecture/version-verification-log.md` with timestamps
+2. Add version verification timestamps to `docs/architecture/technology-stack-details.md`
 3. Update `decision-summary.md` with verification dates
 
 ---
@@ -114,7 +114,7 @@ All items appropriately marked N/A. Brownfield status documented in `project-ini
 | Explicit integration points | PARTIAL | Cache↔batch interaction not documented |
 
 **Recommendation:**
-1. Create `docs/architecture/cross-epic-integration.md`
+1. Expand cross-epic integration notes in `docs/architecture/index.md`
 2. Add Mermaid sequence diagrams for complex flows
 3. Add state machine diagrams for cache lifecycle and batch processing
 4. Document algorithm selection criteria (when LSA, num_topics, quality thresholds)
@@ -214,7 +214,7 @@ All items appropriately marked N/A. Brownfield status documented in `project-ini
 | Testing patterns documented | PARTIAL | Missing mocking, fixture creation, integration test patterns |
 
 **Recommendation:**
-1. Create `docs/architecture/testing-patterns.md`
+1. Consolidate testing patterns in `docs/TESTING-README.md`
 2. Expand error handling patterns with retry logic and resource cleanup
 
 ---

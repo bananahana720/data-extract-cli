@@ -321,7 +321,7 @@ def test_corpus_hash_stable():
 - [Epic 3.5 Tech Spec - Cache ADR Requirements](../tech-spec-epic-3.5.md#L186-L222)
 - [joblib Documentation - Persistence](https://joblib.readthedocs.io/en/latest/persistence.html)
 - [scikit-learn Model Persistence Guide](https://scikit-learn.org/stable/model_persistence.html)
-- [Epic 3 Retrospective - Performance Findings](../retrospectives/epic-3-retro-2025-11-16.md#L57)
+- [Documentation Status (historical retrospectives)](../DOC_STATUS.md)
 
 ---
 

@@ -290,11 +290,11 @@ Code is considered production-ready when:
 
 ## References
 
-- Project Documentation: `/docs/`
-- Architecture Decisions: `/docs/architecture.md`
-- Epic Specifications: `/docs/tech-spec-epic-*.md`
-- Story Templates: `/docs/stories/`
-- Performance Baselines: `/docs/performance-baselines-epic-*.md`
+- Project Documentation: `docs/`
+- Architecture Decisions: `docs/architecture/index.md`
+- Epic Specifications: `docs/tech-spec-epic-*/`
+- Story Templates: `docs/tech-spec-drafts/`
+- Performance Baselines: `docs/architecture/epic-4-performance-baselines.md`
 
 ---
 

@@ -7,7 +7,7 @@ Tests individual components of the incremental processing system:
 - GlobPatternExpander: Pattern matching and expansion
 
 Story 5-7: Batch Processing Optimization and Incremental Updates
-Reference: docs/stories/5-7-batch-processing-optimization.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

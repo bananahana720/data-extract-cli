@@ -6,7 +6,7 @@ Standardized exit codes for CLI batch processing:
 - EXIT_FAILURE (2): Complete failure (no files processed)
 - EXIT_CONFIG_ERROR (3): Configuration error
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

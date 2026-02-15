@@ -5,7 +5,7 @@ Provides failure categorization and retry functionality:
 - record_failure function for tracking failures
 - get_retryable_files function for retry command support
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

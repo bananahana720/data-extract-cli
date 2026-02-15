@@ -2,7 +2,7 @@
 
 **Epic ID**: Epic 5
 **Epic Type**: Feature Epic (CLI Experience Enhancement)
-**Dependencies**: Epic 4 (complete), UX Design Specification (complete)
+**Dependencies**: Epic 4 (complete), UX design directions (complete)
 **Owner**: PM (John) + Dev (Charlie, Elena) + QA (Dana)
 **Status**: Specification Draft - Ready for Story Implementation
 **Created**: 2025-11-25
@@ -31,7 +31,7 @@ Epic 5 transforms the data-extraction-tool CLI from functional to professional-g
 
 ### 1.3 Strategic Foundation
 
-**UX Design Specification**: `docs/ux-design-specification.md`
+**UX Design Specification**: `docs/ux-design-directions.html`
 - 7 user journeys defined with UAT assertions
 - Component library (Rich panels, progress bars, tables)
 - Git-style subcommand pattern
@@ -197,7 +197,7 @@ with Progress(
 
 ### 4.1 Story 5-0: UAT Testing Framework
 
-**File**: `docs/stories/5-0-uat-testing-framework.md`
+**File**: `tests/uat/README.md`
 
 **Purpose**: Foundation story that enables automated validation of all subsequent CLI work.
 
@@ -212,7 +212,7 @@ with Progress(
 
 ### 4.2 Story 5-1 through 5-7
 
-See individual story files in `docs/stories/` (to be created as needed).
+See story tracking in `docs/epics.md` and implementation details in this specification.
 
 **Story Creation Pattern**:
 ```bash
@@ -301,9 +301,9 @@ python scripts/generate_story_template.py \
 
 ### 8.1 Related Documents
 
-- UX Design Specification: `docs/ux-design-specification.md`
+- UX Design Specification: `docs/ux-design-directions.html`
 - tmux-cli Instructions: `docs/tmux-cli-instructions.md`
-- Epic 4 Retrospective: `docs/retrospectives/epic-4-retro-2025-11-25.md`
+- Epic 4 Retrospective: historical context tracked in `docs/DOC_STATUS.md`
 - Epic 4 Tech Spec: `docs/tech-spec-epic-4.md`
 
 ### 8.2 External References

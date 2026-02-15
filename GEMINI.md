@@ -254,7 +254,7 @@ Remaining: Q tasks
 
 ##### File Organization
 
-- Artifacts (summaries, READMEs) → `./docs/artifacts/`
+- Artifacts (summaries, READMEs) → `./docs/` (record status in `./docs/DOC_STATUS.md`)
 - Utility scripts → `./scripts/`
 - Documentation → `./docs/`
 - NEVER create artifacts in project root
@@ -283,7 +283,7 @@ Remaining: Q tasks
 - [ ] No errors/warnings in logs?
 - [ ] Fixed ALL related issues (searched codebase)?
 - [ ] Updated ALL affected layers?
-- [ ] Files organized per standards (`docs/artifacts/`, `scripts/`, `docs/`)?
+- [ ] Files organized per standards (`docs/`, `scripts/`)?
 - [ ] CHANGELOG updated (if committing)?
 - [ ] Pre-commit hooks will NOT be bypassed?
 - [ ] Used correct tools (`fd`, `rg`)?

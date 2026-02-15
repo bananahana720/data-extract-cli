@@ -577,7 +577,7 @@ writer.write(
 - **CSV Format:** See `docs/csv-format-reference.md`
 - **JSON Format:** See `docs/json-schema-reference.md`
 - **TXT Format:** See `docs/txt-format-reference.md`
-- **Performance:** See `docs/performance-baselines-epic-3.md`
+- **Performance:** See `docs/architecture/epic-4-performance-baselines.md`
 - **Architecture:** See `docs/architecture/architecture-decision-records-adrs.md` (ADR-005, ADR-006)
 
 ## Testing

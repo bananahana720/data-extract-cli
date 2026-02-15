@@ -9,7 +9,7 @@
 
 ## Overview
 
-This document provides the complete epic and story breakdown for data-extraction-tool, decomposing the requirements from the [PRD](./PRD.md) into implementable stories.
+This document provides the complete epic and story breakdown for data-extraction-tool, decomposing the requirements from the [PRD](./PRD/index.md) into implementable stories.
 
 ## Epic Summary
 
@@ -126,7 +126,7 @@ So that I can build composable components (extract → normalize → chunk → a
 **And** Pipeline configuration is centralized and type-safe
 **And** Architecture supports both pipeline and single-command execution
 **And** Error handling strategy is consistent across all stages
-**And** Architecture documentation exists in docs/architecture.md
+**And** Architecture documentation exists in `docs/architecture/index.md`
 
 **Prerequisites:** Story 1.2 (brownfield assessment to understand existing patterns)
 
@@ -659,7 +659,7 @@ So that I can explore relationships in my document corpus.
 
 **Value:** Removes usability blocker, makes tool production-ready for daily use. Delivers on PRD requirement for "improved CLI UX" and batch processing efficiency.
 
-**UX Design Specification:** `docs/ux-design-specification.md` - 7 user journeys defined with UAT assertions.
+**User Guide:** `docs/USER_GUIDE.md` - CLI usage and workflows.
 
 **UAT Strategy:** tmux-cli based automated testing validates CLI user journeys on every PR.
 
@@ -681,7 +681,7 @@ So that every PR ensures the interactive CLI experience matches our design inten
 **Priority:** P0 - Blocks all other Epic 5 stories
 **Estimate:** 8 hours
 **Status:** drafted
-**Story File:** `docs/stories/5-0-uat-testing-framework.md`
+**Reference:** `docs/tech-spec-epic-5.md`
 
 **Key Dependencies:**
 - tmux-cli tool (`uv tool install tmux-cli`)

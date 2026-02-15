@@ -21,7 +21,7 @@
 
 **For AI-Assisted Development:**
 7. [Data Models Reference](./bmm-data-models.md) - All 22 data models
-8. [Test Infrastructure](./bmm-test-infrastructure.md) - 229 test files documented
+8. [Testing Guide](./TESTING-README.md) - test execution and validation workflow
 
 ---
 
@@ -70,7 +70,7 @@ Extract → Normalize → Chunk → Semantic → Output
 | [bmm-project-overview.md](./bmm-project-overview.md) | Project summary with strategic context | ~300 |
 | [bmm-source-tree-analysis.md](./bmm-source-tree-analysis.md) | Complete source code organization | ~500 |
 | [bmm-data-models.md](./bmm-data-models.md) | All 22 data models documented | ~400 |
-| [bmm-test-infrastructure.md](./bmm-test-infrastructure.md) | 229 test files, CI/CD workflows | ~500 |
+| [TESTING-README.md](./TESTING-README.md) | Test execution and quality gates | ~300 |
 | [bmm-index.md](./bmm-index.md) | This navigation index | ~250 |
 
 ### Legacy BMM Documents (Historical Reference)
@@ -187,8 +187,8 @@ python scripts/init_claude_session.py
 
 ### Epic Documentation
 - **[tech-spec-epic-4.md](./tech-spec-epic-4.md)** - Classical NLP (COMPLETE)
-- **[tech-spec-epic-5.md](./tech-spec-epic-5.md)** - Enhanced CLI (IN PROGRESS)
-- **[ux-design-specification.md](./ux-design-specification.md)** - 7 user journeys
+- **[tech-spec-epic-5.md](./tech-spec-epic-5.md)** - Enhanced CLI (COMPLETE)
+- **[USER_GUIDE.md](./USER_GUIDE.md)** - CLI user workflows
 
 ### Playbooks
 - **[playbooks/semantic-analysis-intro.ipynb](./playbooks/semantic-analysis-intro.ipynb)** - TF-IDF/LSA tutorial
@@ -209,7 +209,7 @@ python scripts/init_claude_session.py
 | **Check project status** | [sprint-status.yaml](./sprint-status.yaml) |
 | **Understand data models** | [bmm-data-models.md](./bmm-data-models.md) |
 | **Navigate source code** | [bmm-source-tree-analysis.md](./bmm-source-tree-analysis.md) |
-| **Understand test setup** | [bmm-test-infrastructure.md](./bmm-test-infrastructure.md) |
+| **Understand test setup** | [TESTING-README.md](./TESTING-README.md) |
 
 ---
 

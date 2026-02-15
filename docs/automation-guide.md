@@ -27,7 +27,7 @@ python scripts/generate_story_template.py \
   --title "Document Similarity Analysis" \
   --owner Elena \
   --estimate 12 \
-  --output-dir docs/stories \
+  --output-dir docs/tech-spec-drafts \
   --dry-run  # Preview without creating files
 ```
 
@@ -36,7 +36,7 @@ python scripts/generate_story_template.py \
 - Creates test file stubs at `tests/unit/test_{module}/`
 - Generates fixtures at `tests/fixtures/{story_key}_fixtures.py`
 - Updates sprint-status.yaml automatically
-- Creates UAT test cases at `docs/uat/test-cases/`
+- Creates UAT test case drafts aligned to `tests/uat/journeys/`
 - Validates epic dependencies before creation
 
 ### 2. Quality Gate Runner
@@ -173,7 +173,7 @@ python scripts/run_quality_gates.py --ci
 The template generator creates a complete story structure with:
 
 #### Generated Files
-1. **Story Markdown** (`docs/stories/{story_key}.md`)
+1. **Story Markdown** (`docs/tech-spec-drafts/{story_key}.md`)
    - Complete 14-section template
    - AC evidence table with checkboxes
    - Pre-filled metadata headers
@@ -188,7 +188,7 @@ The template generator creates a complete story structure with:
    - Mock objects for testing
    - Validation helpers
 
-4. **UAT Test Cases** (`docs/uat/test-cases/{story_key}-test-cases.md`)
+4. **UAT Test Cases** (`tests/uat/journeys/test_journey_*.py` pattern)
    - Test scenarios for each AC
    - Expected results documented
    - Manual/automated test flags
@@ -217,8 +217,8 @@ The quality gate runner enforces all code quality standards:
 
 #### Output Reports
 - **Console**: Color-coded pass/fail summary
-- **JSON**: Machine-readable results at `.quality-reports/latest.json`
-- **Markdown**: Human-readable report at `.quality-reports/latest.md`
+- **JSON**: Machine-readable results at `.quality-reports/quality_report_<timestamp>.json`
+- **Markdown**: Human-readable report at `.quality-reports/quality_report_<timestamp>.md`
 
 ### Session Initializer Deep Dive
 
@@ -265,5 +265,5 @@ The session initializer ensures consistent development environment:
 
 - Complete script source: `scripts/` directory
 - Test examples: `tests/unit/test_scripts/`
-- Epic 3.5 implementation: `docs/stories/3.5-1-story-review-template-generator.md`
+- Epic 3.5 implementation: `docs/tech-spec-epic-3.5.md`
 - All scripts support `--help` for detailed options

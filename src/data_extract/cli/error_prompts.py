@@ -6,7 +6,7 @@ Provides interactive error handling with InquirerPy-style prompts:
 - Retry with different settings flow
 - TTY detection for interactive/non-interactive modes
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

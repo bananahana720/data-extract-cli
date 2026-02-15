@@ -16,5 +16,5 @@ Test Philosophy:
 - Tests MUST FAIL initially - this is RED phase
 - Implementation follows in GREEN phase
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """

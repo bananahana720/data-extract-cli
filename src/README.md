@@ -184,6 +184,6 @@ tests/
 
 ## Quick Reference
 
-**See**: `/home/andrew/dev/data-extraction-tool/CLAUDE.md` for project conventions
-**See**: `/home/andrew/dev/data-extraction-tool/docs/architecture.md` for technical architecture
-**See**: `/home/andrew/dev/data-extraction-tool/docs/ux-design-specification.md` for CLI usage
+**See**: `../CLAUDE.md` for project conventions
+**See**: `../docs/architecture/index.md` for technical architecture
+**See**: `../docs/USER_GUIDE.md` for CLI usage

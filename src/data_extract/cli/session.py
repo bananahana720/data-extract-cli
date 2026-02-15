@@ -6,7 +6,7 @@ Provides session state persistence for:
 - Failed file tracking with retry support
 - Session cleanup and archival
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

@@ -541,7 +541,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("quality-reports"),
+        default=Path(".quality-reports"),
         help="Directory for report files",
     )
 

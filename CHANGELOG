@@ -1,3 +1,12 @@
+2026-02-15
+- Completed a second-pass documentation and artifact housekeeping sweep across repository docs, tests, and automation references; removed stale links to deleted `docs/stories`, `docs/uat`, legacy architecture paths, and obsolete baseline/report files.
+- Added/normalized documentation status tagging and alignment: updated `README.md`, `CLAUDE.md`, `docs/index.md`, and `docs/DOC_STATUS.md` for current vs needs-update signaling and corrected epic completion counts/metadata verification notes.
+- Updated automation and fixture documentation/tooling paths to current structure: story template outputs now target `docs/tech-spec-drafts`, generated UAT cases target `tests/uat/generated-cases`, and quality reports default to ignored `.quality-reports/`.
+- Reconciled governance and reference docs (PRD, tech-specs, BMM, testing docs) to canonical paths (`docs/architecture/index.md`, `docs/architecture/epic-4-performance-baselines.md`, `docs/epics.md`, `tests/uat/README.md`).
+- Fixed strict quality gate blockers surfaced during verification (ruff import ordering, mypy redundant casts/unused ignore comments) and made performance-baseline parsing path resolution dynamic in `scripts/validate_performance.py`.
+- Hardened environment-sensitive performance tests for deterministic local execution by adding an RSS-observability skip guard and gating strict baseline-regression enforcement behind `DATA_EXTRACT_ENFORCE_PERF_BASELINE`.
+- Verification rerun complete: `./.venv/bin/ruff check src tests scripts`, `./.venv/bin/mypy src/data_extract/ --strict`, and `./.venv/bin/pytest -q` (`2805 passed, 258 skipped, 6 xfailed`).
+
 2026-02-14
 - Fixed pytest source-layout discovery by adding `pythonpath = src` in `pytest.ini`, resolving `ModuleNotFoundError: data_extract` during test collection in clean checkout runs.
 - Fixed migration parity script test seeding to match current `jobs` schema by populating required dispatch/artifact fields (`dispatch_payload`, dispatch state/attempt counters, artifact sync state/attempt counters) in `tests/unit/test_scripts/test_migrate_legacy_sessions.py`.

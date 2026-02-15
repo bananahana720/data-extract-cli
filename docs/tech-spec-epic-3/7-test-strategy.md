@@ -9,7 +9,7 @@ Epic 3 test strategy follows the approved 10-step UAT workflow and Murat's hybri
 2. **Hybrid Benchmarking**: Measure critical paths (Stories 3-1, 3-4/5/6, 3-7), skip negligible overhead (Stories 3-2, 3-3)
 3. **UAT Selective Application**: Not all ACs require UAT (see Section 5.1)
 4. **Dev-Driven Test Execution**: Dev runs automated tests + manual UAT, SM reviews results
-5. **Performance Baseline Tracking**: Document in `docs/performance-baselines-epic-3.md` (created Story 3-1)
+5. **Performance Baseline Tracking**: Document in `docs/architecture/epic-4-performance-baselines.md`
 
 ## 7.2 Test Categories and Coverage
 
@@ -165,7 +165,7 @@ tests/performance/
 
 **Performance Baseline Tracking:**
 
-All performance tests log results to `docs/performance-baselines-epic-3.md`:
+All performance tests log results to `docs/architecture/epic-4-performance-baselines.md`:
 
 ```markdown
 # Epic 3 Performance Baselines
@@ -446,7 +446,7 @@ git push origin story-3-1
 /bmad:bmm:workflows:execute-tests story_key=3-1 test_execution_mode=hybrid
 
 # 7. Review results
-cat docs/uat/test-results/3-1-test-results.md
+pytest tests/uat/ -v
 
 # 8. Fix issues if needed, re-run UAT
 # Otherwise, wait for SM approval
@@ -458,18 +458,18 @@ cat docs/uat/test-results/3-1-test-results.md
 
 # 1. Create test cases
 /bmad:bmm:workflows:create-test-cases story_key=3-1
-# Generates: docs/uat/test-cases/3-1-test-cases.md
+# Generates: test journeys under tests/uat/journeys/
 
 # 2. Build test context
 /bmad:bmm:workflows:build-test-context story_key=3-1
-# Generates: docs/uat/test-context/3-1-test-context.xml
+# Uses fixtures/context from tests/uat/ and tests/fixtures/
 
 # 3. Notify Dev to execute tests
 # Dev runs /bmad:bmm:workflows:execute-tests
 
 # 4. Review UAT results
 /bmad:bmm:workflows:review-uat-results story_key=3-1 quality_gate_level=standard
-# Generates: docs/uat/reviews/3-1-uat-review.md
+# Review against tests/uat/README.md workflow expectations
 
 # 5. Approve or request changes
 # If approved: Update docs/sprint-status.yaml: story-3-1: ready_for_review → done
@@ -478,7 +478,7 @@ cat docs/uat/test-results/3-1-test-results.md
 
 ## 7.6 Performance Baseline Documentation
 
-All performance measurements documented in `docs/performance-baselines-epic-3.md`:
+All performance measurements documented in `docs/architecture/epic-4-performance-baselines.md`:
 
 **Template:**
 ```markdown

@@ -25,11 +25,11 @@ def mock_project_root(tmp_path):
 
     # Create test directories
     (project / "tests" / "performance").mkdir(parents=True)
-    (project / "docs").mkdir()
+    (project / "docs" / "architecture").mkdir(parents=True)
     (project / "scripts").mkdir()
 
     # Create mock baseline document
-    baseline_file = project / "docs" / "performance-baselines-epic-3.md"
+    baseline_file = project / "docs" / "architecture" / "epic-4-performance-baselines.md"
     baseline_file.write_text(
         """
 # Performance Baselines - Epic 3
@@ -354,7 +354,7 @@ class TestPerformanceValidator:
                 assert result is True
 
                 # Check file was created
-                baseline_file = tmp_path / "performance-baselines-epic-current.md"
+                baseline_file = tmp_path / "architecture" / "epic-4-performance-baselines.md"
                 assert baseline_file.exists()
 
                 content = baseline_file.read_text()

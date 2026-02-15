@@ -2,10 +2,10 @@
 
 **Recommended Reading Order**:
 1. `docs/bmm-project-overview.md` - Project context
-2. `docs/bmm-processor-chain-analysis.md` - Detailed processor analysis
-3. `docs/architecture/FOUNDATION.md` - Core interfaces and data models
-4. `src/processors/context_linker.py` - Example processor implementation
-5. `src/processors/metadata_aggregator.py` - Example with metadata enrichment
+2. `docs/bmm-processor-chain-analysis/index.md` - Detailed processor analysis
+3. `docs/architecture/data-architecture.md` - Core interfaces and data models
+4. `src/data_extract/semantic/tfidf.py` - Example semantic processor implementation
+5. `src/data_extract/semantic/similarity.py` - Example with scoring and reporting
 
 **Prototyping**:
 1. Start with a simple proof-of-concept processor

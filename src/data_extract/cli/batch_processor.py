@@ -6,7 +6,7 @@ Provides per-file error handling with continue-on-error pattern:
 - Graceful degradation when files fail
 - Integration with session state for failure tracking
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

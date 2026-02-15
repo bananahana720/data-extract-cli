@@ -8,7 +8,7 @@ Focuses on detection of interrupted sessions:
 - Matching by source directory
 - Returning most recent session
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 Source module: src/data_extract/cli/session.py
 """
 

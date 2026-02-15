@@ -60,7 +60,7 @@ tests/fixtures/
 ### Large PDF Fixture (`audit-report-large.pdf`)
 
 **Generated**: 2025-11-12 (Story 2.5.3)
-**Script**: `scripts/generate_large_pdf_fixture.py`
+**Script**: `scripts/generate_fixtures.py`
 **Library**: reportlab 3.5.0+
 
 **Structure**:
@@ -88,7 +88,7 @@ tests/fixtures/
 
 **Regeneration**:
 ```bash
-python scripts/generate_large_pdf_fixture.py
+python scripts/generate_fixtures.py --types pdf --count 1 --output-dir tests/fixtures/generated
 ```
 
 Expected output: 60+ page PDF, ~0.03 MB size
@@ -96,7 +96,7 @@ Expected output: 60+ page PDF, ~0.03 MB size
 ### Large Excel Fixture (`audit-data-10k-rows.xlsx`)
 
 **Generated**: 2025-11-12 (Story 2.5.3)
-**Script**: `scripts/generate_large_excel_fixture.py`
+**Script**: `scripts/generate_fixtures.py`
 **Library**: openpyxl 3.0.10+
 
 **Structure**:
@@ -129,7 +129,7 @@ Expected output: 60+ page PDF, ~0.03 MB size
 
 **Regeneration**:
 ```bash
-python scripts/generate_large_excel_fixture.py
+python scripts/generate_fixtures.py --types xlsx --count 1 --output-dir tests/fixtures/generated
 ```
 
 Expected output: 10,240 rows, ~0.67 MB size
@@ -137,7 +137,7 @@ Expected output: 10,240 rows, ~0.67 MB size
 ### Scanned PDF Fixture (`audit-scan.pdf`)
 
 **Generated**: 2025-11-12 (Story 2.5.3)
-**Script**: `scripts/generate_scanned_pdf_fixture.py`
+**Script**: `scripts/generate_fixtures.py`
 **Libraries**: PIL (Pillow) 10.0.0+, reportlab 3.5.0+
 
 **Structure**:
@@ -163,7 +163,7 @@ Expected output: 10,240 rows, ~0.67 MB size
 
 **Regeneration**:
 ```bash
-python scripts/generate_scanned_pdf_fixture.py
+python scripts/generate_fixtures.py --types pdf --edge-cases --count 1 --output-dir tests/fixtures/generated
 ```
 
 Expected output: 5-page image-based PDF, ~0.25 MB size
@@ -257,37 +257,22 @@ When adding new test fixtures to this directory, follow these guidelines:
 ### Example: Adding a New Large DOCX Fixture
 
 ```bash
-# 1. Create generation script
-cat > scripts/generate_large_docx_fixture.py << 'EOF'
-"""Generate large DOCX fixture for testing."""
-from pathlib import Path
-from docx import Document
+# 1. Generate DOCX fixture via canonical fixture generator
+python scripts/generate_fixtures.py --types docx --count 1 --output-dir tests/fixtures/generated
 
-def generate_large_docx(output_path: Path, num_pages: int = 100):
-    doc = Document()
-    # ... generation logic ...
-    doc.save(output_path)
+# 2. Verify size
+ls -lh tests/fixtures/generated/docx
 
-if __name__ == "__main__":
-    output_dir = Path(__file__).parent.parent / "tests" / "fixtures" / "docx" / "large"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    generate_large_docx(output_dir / "report-large.docx", num_pages=100)
-EOF
-
-# 2. Generate fixture
-python scripts/generate_large_docx_fixture.py
-
-# 3. Verify size
-ls -lh tests/fixtures/docx/large/report-large.docx
+# 3. Move/rename into curated fixture tree if needed
 
 # 4. Update this README with inventory entry
 
 # 5. Commit with descriptive message
-git add tests/fixtures/docx/large/report-large.docx scripts/generate_large_docx_fixture.py tests/fixtures/README.md
+git add tests/fixtures/generated/docx tests/fixtures/README.md
 git commit -m "Add large DOCX fixture for Story X.Y.Z
 
 - 100+ page synthetic document (~5 MB)
-- Generated with python-docx
+- Generated with scripts/generate_fixtures.py
 - All content sanitized (no PII)
 - Purpose: Large document processing validation"
 ```
@@ -299,9 +284,7 @@ git commit -m "Add large DOCX fixture for Story X.Y.Z
 To regenerate all large fixtures (useful after library updates):
 
 ```bash
-python scripts/generate_large_pdf_fixture.py
-python scripts/generate_large_excel_fixture.py
-python scripts/generate_scanned_pdf_fixture.py
+python scripts/generate_fixtures.py --types pdf xlsx docx --count 1 --edge-cases --output-dir tests/fixtures/generated
 ```
 
 ### Validating Fixture Integrity
@@ -328,8 +311,8 @@ python -c "from pathlib import Path; fixtures = sorted([(f, f.stat().st_size) fo
 
 - **Testing Strategy**: `docs/TESTING-README.md` - Overall testing framework and standards
 - **CLAUDE.md**: Testing organization, markers, and coverage requirements
-- **Architecture**: `docs/architecture.md` - ADR-005 (Streaming Pipeline), ADR-006 (Continue-On-Error)
-- **Performance Baselines**: `docs/performance-baselines-story-2.5.1.md` - NFR validation benchmarks
+- **Architecture**: `docs/architecture/index.md` - ADR-005 (Streaming Pipeline), ADR-006 (Continue-On-Error)
+- **Performance Baselines**: `docs/architecture/epic-4-performance-baselines.md` - NFR validation benchmarks
 
 ## Story History
 

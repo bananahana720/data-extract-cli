@@ -862,8 +862,8 @@ pytest -m "not slow"
 - [Pytest Fixtures](https://docs.pytest.org/en/stable/fixture.html)
 - [Pytest Markers](https://docs.pytest.org/en/stable/mark.html)
 - [Coverage.py](https://coverage.readthedocs.io/)
-- Project Foundation: `../FOUNDATION.md`
-- Development Guide: `../GETTING_STARTED.md`
+- Project Foundation: `../docs/QUICKSTART.md`
+- Development Guide: `../docs/development-operations-guide-2025-11-13/table-of-contents.md`
 
 ## Next Steps
 

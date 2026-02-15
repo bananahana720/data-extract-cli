@@ -5,7 +5,7 @@ This module provides fixtures for incremental batch processing integration tests
 - mixed_corpus: A corpus with new, modified, and unchanged files
 - orphan_corpus: A corpus with orphaned output files
 
-Reference: docs/stories/5-7-batch-processing-optimization.md
+Reference: docs/tech-spec-epic-5.md
 """
 
 from __future__ import annotations

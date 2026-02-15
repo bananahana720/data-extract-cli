@@ -8,7 +8,7 @@ Focuses on session lifecycle completion:
 - Failure details preservation
 - Completed status setting
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 Source module: src/data_extract/cli/session.py
 """
 

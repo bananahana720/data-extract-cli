@@ -108,6 +108,6 @@ data-extract
 ## References
 
 - [PRD Index](./index.md)
-- [Architecture](../architecture.md)
-- [UX Design Specification](../ux-design-specification.md)
-- [Epic 5 Retrospective](../retrospectives/epic-5-retro-2025-11-30.md)
+- [Architecture](../architecture/index.md)
+- [User Guide](../USER_GUIDE.md)
+- [Documentation Status](../DOC_STATUS.md)

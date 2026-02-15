@@ -8,7 +8,7 @@ Entry: User runs data-extract with --learn flag
 Exit: User understands pipeline, ready to experiment more
 
 Story 5-0: UAT Testing Framework
-Reference: docs/ux-design-specification.md - Journey 4
+Reference: docs/USER_GUIDE.md - Journey 4
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ class TestJourney4LearningMode:
     4. Educational content accurate in help text
     5. Insights summary blocked by Story 5-4 (Summary Statistics)
 
-    Reference: docs/ux-design-specification.md - Journey 4
+    Reference: docs/USER_GUIDE.md - Journey 4
     """
 
     def test_learn_flag_activates_mode(self, tmux_session: TmuxSession) -> None:
@@ -63,7 +63,7 @@ class TestJourney4LearningMode:
         - Description mentions "learning mode" or "educational"
         - Command executes successfully
 
-        Reference: docs/ux-design-specification.md - Journey 4, Step 1
+        Reference: docs/USER_GUIDE.md - Journey 4, Step 1
         """
         # Activate venv and send the help command which documents all flags
         output = tmux_session.send_and_capture(
@@ -94,7 +94,7 @@ class TestJourney4LearningMode:
         - Help uses Rich panel formatting
         - Command structure clear for learners
 
-        Reference: docs/ux-design-specification.md - Journey 4, Step 2
+        Reference: docs/USER_GUIDE.md - Journey 4, Step 2
         """
         # Activate venv and send the semantic help command
         output = tmux_session.send_and_capture(
@@ -131,7 +131,7 @@ class TestJourney4LearningMode:
         - Description mentions prompts or pauses
         - Options panel displayed
 
-        Reference: docs/ux-design-specification.md - Journey 4, Step 3
+        Reference: docs/USER_GUIDE.md - Journey 4, Step 3
         """
         # Activate venv and send the help command
         output = tmux_session.send_and_capture(
@@ -162,7 +162,7 @@ class TestJourney4LearningMode:
         - Input/output clearly documented
         - Options panel with Rich formatting
 
-        Reference: docs/ux-design-specification.md - Journey 4, Step 4
+        Reference: docs/USER_GUIDE.md - Journey 4, Step 4
         """
         # Activate venv and send the semantic analyze help command
         output = tmux_session.send_and_capture(

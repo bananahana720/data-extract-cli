@@ -239,5 +239,5 @@ pytest tests/performance/test_txt_performance.py -v
 ## See Also
 - **JSON Output Format**: `docs/json-schema-reference.md`
 - **Chunking Engine**: `CLAUDE.md` (Epic 3: Chunking Engine section)
-- **Architecture**: `docs/architecture.md` (Output Pipeline section)
-- **Tech Spec**: `docs/tech-spec-epic-3.md` (Story 3.5 specification)
+- **Architecture**: `docs/architecture/index.md`
+- **Tech Spec**: `docs/tech-spec-epic-3/index.md`

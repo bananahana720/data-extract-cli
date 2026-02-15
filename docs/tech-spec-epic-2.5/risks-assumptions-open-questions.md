@@ -64,4 +64,4 @@
 **Question-4:** How should performance baselines be stored long-term?
 - **Context:** Baselines needed for trend analysis, but test docstrings may not be sufficient
 - **Decision Needed By:** Story 2.5.1
-- **Recommendation:** Store in separate `docs/performance-baselines.md` or CI artifact storage. Include timestamp, hardware specs, Epic/Story context.
+- **Recommendation:** Store in `docs/architecture/epic-4-performance-baselines.md` or CI artifact storage. Include timestamp, hardware specs, Epic/Story context.

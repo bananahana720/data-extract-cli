@@ -329,7 +329,7 @@ The UAT framework follows a linear 4-stage pipeline:
 - Optional: Test coverage level preference
 
 **Output:**
-- File: `docs/uat/test-cases/{story_key}-test-cases.md`
+- File: `tests/uat/journeys/{story_key}.py`
 - Contents:
   - Structured test cases with preconditions, steps, expected results
   - Test coverage matrix showing AC → test mapping
@@ -345,7 +345,7 @@ workflow create-test-cases
 
 # Specify story and coverage level
 workflow create-test-cases \
-  story_path=docs/stories/2.5-3.1-uat-workflow-framework.md \
+  story_path=docs/epics.md \
   test_coverage_level=comprehensive
 
 # Minimal coverage for quick validation
@@ -411,7 +411,7 @@ Each generated test case follows this format:
 - Optional: Story context XML (reuses development context if available)
 
 **Output:**
-- File: `docs/uat/test-context/{story_key}-test-context.xml`
+- File: `tests/fixtures/{story_key}-test-context.xml`
 - Contents:
   - Test fixtures inventory with paths and descriptions
   - Helper functions from conftest.py files
@@ -461,7 +461,7 @@ workflow build-test-context
 
 # Specify test cases file
 workflow build-test-context \
-  test_cases_file=docs/uat/test-cases/2.5-3.1-test-cases.md
+  test_cases_file=tests/uat/journeys/
 
 # Include story context
 workflow build-test-context include_story_context=true
@@ -539,7 +539,7 @@ workflow build-test-context include_story_context=false
 - Optional: Screenshot capture setting for CLI tests
 
 **Output:**
-- File: `docs/uat/test-results/{story_key}-test-results.md`
+- Output: pytest results for `tests/uat/` (terminal + CI artifacts)
 - Contents:
   - Execution summary with pass/fail/blocked counts
   - Acceptance criteria validation status
@@ -591,7 +591,7 @@ workflow build-test-context include_story_context=false
    workflow execute-tests
    ```
 
-   See `docs/tmux-cli-instructions.md` for full tmux-cli reference and `docs/uat/tmux-cli-windows-setup.md` for Windows setup.
+   See `docs/tmux-cli-instructions.md` for full tmux-cli reference and `tests/uat/README.md` for Windows/WSL setup guidance.
 
 3. **Manual Tests**
    - Tests requiring human verification
@@ -631,8 +631,8 @@ workflow execute-tests continue_on_failure=false
 
 # Specific test files
 workflow execute-tests \
-  test_cases_file=docs/uat/test-cases/2.5-2-test-cases.md \
-  test_context_file=docs/uat/test-context/2.5-2-test-context.xml
+  test_cases_file=tests/uat/journeys/ \
+  test_context_file=tests/fixtures/
 ```
 
 #### 4. Review UAT Results Workflow
@@ -662,7 +662,7 @@ workflow execute-tests \
 - Optional: Reviewer name (defaults to config user_name)
 
 **Output:**
-- File: `docs/uat/reviews/{story_key}-uat-review.md`
+- Output: review notes aligned with `tests/uat/README.md` quality gates
 - Contents:
   - UAT status (APPROVED, CHANGES REQUESTED, BLOCKED)
   - Pass/fail ratio analysis with quality gate comparison
@@ -742,7 +742,7 @@ workflow review-uat-results quality_gate_level=minimal
 
 # Specific test results with auto-approval
 workflow review-uat-results \
-  test_results_file=docs/uat/test-results/2.5-2-test-results.md \
+  test_results_file=tests/uat/ \
   auto_approve_if_all_pass=true
 ```
 
@@ -870,25 +870,25 @@ docs/
 ```bash
 # Step 1: Generate test cases from story
 workflow create-test-cases \
-  story_path=docs/stories/2.5-3.1-uat-workflow-framework.md \
+  story_path=docs/epics.md \
   test_coverage_level=standard
 
-# Output: docs/uat/test-cases/2.5-3.1-test-cases.md
+# Output: tests/uat/journeys/ (story-specific journey tests)
 
 # Step 2: Build test context
 workflow build-test-context
 
-# Output: docs/uat/test-context/2.5-3.1-test-context.xml
+# Output: tests/fixtures/ (story-specific test context fixtures)
 
 # Step 3: Execute tests
 workflow execute-tests test_execution_mode=hybrid
 
-# Output: docs/uat/test-results/2.5-3.1-test-results.md
+# Output: pytest tests/uat/ -v results
 
 # Step 4: Review UAT results
 workflow review-uat-results quality_gate_level=standard
 
-# Output: docs/uat/reviews/2.5-3.1-uat-review.md
+# Output: review notes against tests/uat quality gates
 # Status: APPROVED / CHANGES REQUESTED / BLOCKED
 ```
 

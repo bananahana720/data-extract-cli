@@ -9,7 +9,7 @@ Focuses on session state save/load operations:
 - Update on progress
 - Schema version compatibility
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 Source module: src/data_extract/cli/session.py
 """
 

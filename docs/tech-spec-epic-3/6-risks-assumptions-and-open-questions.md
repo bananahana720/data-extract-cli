@@ -19,7 +19,7 @@ NFR-P1-E3 targets <10 minutes for 100 PDFs (full pipeline). This is ~33% improve
 - Output format generation >1.5 minutes → Risk materializes
 
 **Contingency:**
-- If target missed: Document actual performance in `docs/performance-baselines-epic-3.md`
+- If target missed: Document actual performance in `docs/architecture/epic-4-performance-baselines.md`
 - Negotiate target adjustment with stakeholders (e.g., <12 minutes acceptable for MVP)
 - Identify optimization opportunities for post-MVP (e.g., C extensions, Cython for hotspots)
 

@@ -133,7 +133,7 @@ To add new integration tests:
 ## Test Fixtures
 
 ### Location
-`tests/fixtures/integration/`
+`tests/fixtures/semantic/` and `tests/fixtures/entity_rich_documents/`
 
 ### Available Fixtures
 - Edge case chunks (empty, single word, max size)

@@ -254,6 +254,6 @@ When implementing tests:
 
 ## References
 
-- [Epic 4 Integration Test Design](../../../docs/epic-4-integration-test-design.md)
+- [Epic 4 Integration Test Design](../../../docs/architecture/epic-4-integration-test-requirements.md)
 - [Semantic Analysis Playbook](../../../docs/playbooks/semantic-analysis-intro.ipynb)
-- [Project Testing Strategy](../../../docs/testing-strategy.md)
+- [Project Testing Strategy](../../../docs/development-operations-guide-2025-11-13/testing-strategy.md)

@@ -281,7 +281,7 @@ class ValidationError(ProcessingError):
 4. Define exception hierarchy in core/exceptions.py
 5. Create module structure (extract/, normalize/, chunk/, semantic/, output/)
 6. Create placeholder __init__.py in each module
-7. Write architecture.md documenting patterns
+7. Write `docs/architecture/index.md` documenting patterns
 8. Create example integration test demonstrating pipeline flow
 
 ## Non-Functional Requirements
@@ -347,7 +347,7 @@ class ValidationError(ProcessingError):
 **Logging Foundation:**
 - structlog configured for structured logging (JSON output)
 - Log levels defined (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- Logging patterns documented in architecture.md
+- Logging patterns documented in `docs/architecture/index.md`
 
 **Metrics Foundation:**
 - ProcessingContext model includes metrics dictionary
@@ -432,7 +432,7 @@ class ValidationError(ProcessingError):
 **AC-1.1.5:** Project structure follows modern Python conventions
 - src/data_extract/ package created
 - tests/ directory created
-- docs/ directory contains architecture.md, PRD.md
+- docs/ directory contains `docs/architecture/` and `docs/PRD/index.md`
 - config/ directory for configuration templates
 
 **AC-1.1.6:** README.md documents setup and quick start
@@ -547,7 +547,7 @@ class ValidationError(ProcessingError):
 - CriticalError for unrecoverable errors
 - All exceptions documented
 
-**AC-1.4.7:** Architecture documented in docs/architecture.md
+**AC-1.4.7:** Architecture documented in `docs/architecture/index.md`
 - Pipeline pattern explained
 - Data models documented
 - Error handling strategy described
@@ -582,7 +582,7 @@ class ValidationError(ProcessingError):
 | AC-1.4.4: Config centralized | Data Models | core/models.py | Create ProcessingContext instance |
 | AC-1.4.5: Pipeline execution | APIs and Interfaces | core/pipeline.py | Example pipeline test |
 | AC-1.4.6: Error handling | APIs and Interfaces | core/exceptions.py | Raise and catch each exception type |
-| AC-1.4.7: Architecture docs | Documentation | docs/architecture.md | File exists, sections complete |
+| AC-1.4.7: Architecture docs | Documentation | docs/architecture/index.md | File exists, sections complete |
 
 **PRD → Epic → Story Traceability:**
 - **PRD Success Criteria** → **Epic 1** → Establish reliable development foundation

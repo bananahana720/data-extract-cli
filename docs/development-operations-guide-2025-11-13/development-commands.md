@@ -231,7 +231,7 @@ pytest tests/performance/ --timeout=300
 python scripts/profile_pipeline.py
 
 # View performance baselines
-cat docs/performance-baselines-story-2.5.1.md
+cat docs/architecture/epic-4-performance-baselines.md
 ```
 
 **Note:** Performance tests may hang due to PDF processing complexity. See Troubleshooting section.

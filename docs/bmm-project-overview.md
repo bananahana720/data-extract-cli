@@ -2,7 +2,7 @@
 
 **Generated**: 2025-11-30
 **Project Type**: CLI Tool / Data Processing Pipeline
-**Status**: Epic 4 COMPLETE, Epic 5 IN PROGRESS
+**Status**: V1.0 RELEASED (All 5 Epics COMPLETE)
 **Primary Language**: Python 3.11+ (minimum), 3.12+ recommended
 
 ---
@@ -240,7 +240,7 @@ python scripts/smoke_test_semantic.py   # P1: Semantic validation
 - [bmm-index.md](./bmm-index.md) - Master navigation
 - [bmm-source-tree-analysis.md](./bmm-source-tree-analysis.md) - Source code organization
 - [bmm-data-models.md](./bmm-data-models.md) - All 22 data models
-- [bmm-test-infrastructure.md](./bmm-test-infrastructure.md) - Test infrastructure
+- [TESTING-README.md](./TESTING-README.md) - Test infrastructure and execution
 
 ### Architecture
 - [architecture/](./architecture/) - Technical architecture (19 files)
@@ -254,8 +254,8 @@ python scripts/smoke_test_semantic.py   # P1: Semantic validation
 
 ### Epic Documentation
 - [tech-spec-epic-4.md](./tech-spec-epic-4.md) - Classical NLP (COMPLETE)
-- [tech-spec-epic-5.md](./tech-spec-epic-5.md) - Enhanced CLI (IN PROGRESS)
-- [ux-design-specification.md](./ux-design-specification.md) - 7 user journeys
+- [tech-spec-epic-5.md](./tech-spec-epic-5.md) - Enhanced CLI (COMPLETE)
+- [USER_GUIDE.md](./USER_GUIDE.md) - CLI workflows and usage
 
 ### Playbooks
 - [playbooks/semantic-analysis-intro.ipynb](./playbooks/semantic-analysis-intro.ipynb) - TF-IDF/LSA tutorial
@@ -275,7 +275,7 @@ python scripts/smoke_test_semantic.py   # P1: Semantic validation
 
 ### Strategic Planning
 - See [sprint-status.yaml](./sprint-status.yaml) for authoritative status
-- See [ux-design-specification.md](./ux-design-specification.md) for user journeys
+- See [USER_GUIDE.md](./USER_GUIDE.md) for user workflows
 
 ---
 

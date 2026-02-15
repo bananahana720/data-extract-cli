@@ -311,7 +311,7 @@ csvjson output.csv > output.json
 - **JSON Format:** See `docs/json-schema-reference.md`
 - **TXT Format:** See `docs/txt-format-reference.md`
 - **Organization:** See `docs/organizer-reference.md`
-- **Performance:** See `docs/performance-baselines-epic-3.md`
+- **Performance:** See `docs/architecture/epic-4-performance-baselines.md`
 - **Testing:** See `tests/unit/test_output/test_csv_formatter.py`, `tests/integration/test_output/test_csv_pipeline.py`
 
 ## Version History

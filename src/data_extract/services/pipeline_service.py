@@ -7,7 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, cast
+from typing import Dict, Iterable, List
 
 import structlog
 
@@ -401,7 +401,7 @@ class PipelineService:
             )
         )
         context = ProcessingContext(config={}, logger=self.logger, metrics={})
-        return cast(List[Chunk], engine.process(document, context))
+        return engine.process(document, context)
 
     @staticmethod
     def _semantic(chunks: List[Chunk]) -> List[Chunk]:

@@ -95,8 +95,8 @@ data-extraction-tool/
 │       └── test_throughput.py
 │
 ├── docs/                       # Project documentation
-│   ├── architecture.md         # This file
-│   ├── PRD.md                  # Product requirements
+│   ├── architecture/index.md   # Architecture index and ADR map
+│   ├── PRD/index.md            # Product requirements
 │   ├── epics.md                # Epic breakdown
 │   └── brownfield-assessment.md # Brownfield codebase analysis
 │

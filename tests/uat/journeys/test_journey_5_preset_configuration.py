@@ -7,7 +7,7 @@ Tests the complete user journey for preset configuration:
 - User uses preset flag with process command
 - System handles invalid preset names gracefully
 
-Reference: docs/ux-design-specification.md - Story 5-5
+Reference: docs/USER_GUIDE.md - Story 5-5
 """
 
 import pytest

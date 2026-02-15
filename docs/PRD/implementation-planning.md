@@ -8,7 +8,7 @@ This PRD contains comprehensive requirements that must be decomposed into epics 
 
 ## Technology Stack (From Technical Research)
 
-The technical research document (`docs/research-technical-2025-11-08.md`) has already identified the optimal technology stack:
+The architecture technology stack reference (`docs/architecture/technology-stack-details.md`) identifies the active implementation stack:
 
 **Core Stack:**
 - **Layer 1 (Document Extraction):** PyMuPDF + python-docx + pytesseract

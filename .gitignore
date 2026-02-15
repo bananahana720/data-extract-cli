@@ -59,6 +59,7 @@ tests/fixtures/real_world_files/*
 # Automation script caches and reports (Epic 3.5)
 .cache/
 docs/reports/
+.quality-reports/
 
 # Build artifacts
 dist/

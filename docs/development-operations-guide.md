@@ -791,8 +791,8 @@ pip install python-dotenv
 
 ### Documentation
 - **User Guide**: `docs/USER_GUIDE.md`
-- **Architecture**: `docs/architecture.md`
-- **API Reference**: `docs/architecture/QUICK_REFERENCE.md`
+- **Architecture**: `docs/architecture/index.md`
+- **API Reference**: `docs/api/`
 - **Error Handling**: `docs/ERROR_HANDLING_GUIDE.md`
 - **Logging**: `docs/LOGGING_GUIDE.md`
 - **Configuration**: `docs/CONFIG_GUIDE.md`
@@ -804,8 +804,8 @@ pip install python-dotenv
 - **UAT Testing**: `/bmad:bmm:workflows:execute-tests`
 
 ### Community
-- **Issues**: [GitHub Issues](repository-url/issues)
-- **Discussions**: [GitHub Discussions](repository-url/discussions) (if enabled)
+- **Issues**: Use your configured Git remote repository issue tracker
+- **Discussions**: Use repository discussions (if enabled)
 
 ---
 

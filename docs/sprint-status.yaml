@@ -2,7 +2,7 @@
 # project: data-extraction-tool
 # project_key: data-extraction-tool
 # tracking_system: file-system
-# story_location: {project-root}/docs/stories
+# story_location: {project-root}/docs/epics.md
 
 # STATUS DEFINITIONS:
 # ==================
@@ -33,7 +33,7 @@ generated: 2025-12-01
 project: data-extraction-tool
 project_key: data-extraction-tool
 tracking_system: file-system
-story_location: "{project-root}/docs/stories"
+story_location: "{project-root}/docs/epics.md"
 release_version: V1.0
 
 deployment_metrics:
@@ -78,7 +78,7 @@ development_status:
   2.5-2.1-pipeline-throughput-optimization: done  # Code review APPROVED (3rd review): NFR-P1 PASS (+148% throughput, 6.86min), NFR-P2 trade-off documented (4.15GB vs 2GB), AC-2.5-2.1-3 deferred (stakeholder decision required). Production-ready, 16/16 previous action items resolved.
   2.5-3-quality-gate-automation-and-documentation: done  # Re-review complete: APPROVED - All 3 action items resolved excellently (CLAUDE.md 263→51 lines/80% reduction, mypy guidance added, brownfield tracking created). 8/8 ACs satisfied, quality gates pass (Black/Ruff/Mypy 0 violations), 4/4 integration tests pass, 292/292 unit tests pass. Production-ready, no regressions.
   2.5-3.1-uat-workflow-framework: done  # Implementation complete: 4 UAT workflows created (20 files), audited (90.75/100 avg quality), documented in tech-spec and CLAUDE.md. All 5 ACs satisfied.
-  2.5-4-ci-cd-enhancement-for-epic-3-readiness: done  # Story file exists in docs/stories/
+  2.5-4-ci-cd-enhancement-for-epic-3-readiness: done  # Story context tracked in docs/epics.md
   epic-2.5-retrospective: completed  # Retrospective completed 2025-11-13: All 6 stories reviewed, +148% throughput achieved, spaCy 100% accuracy, UAT framework operational, Epic 3 ready
 
   epic-3: contexted  # Tech spec complete 2025-11-13: All sections generated (Overview, Detailed Design, NFRs, Dependencies, Traceability, Risks, Test Strategy), incorporates party-mode operational decisions (10-step UAT workflow, hybrid benchmarking, Winston's optimizations)

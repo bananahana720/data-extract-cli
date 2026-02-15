@@ -116,7 +116,7 @@ src/data_extract/semantic/   - 75%+
 ### Performance regression detected
 
 1. Review results in Actions artifacts
-2. Compare against baselines: `docs/performance-baselines-story-2.5.1.md`
+2. Compare against baselines: `docs/architecture/epic-4-performance-baselines.md`
 3. Profile changes: `python scripts/profile_pipeline.py`
 4. Update baselines if regression is intentional (with justification)
 

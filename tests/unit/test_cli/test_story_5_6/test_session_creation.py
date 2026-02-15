@@ -10,7 +10,7 @@ Focuses on SessionState dataclass creation:
 - Status initialization
 - Configuration storage
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 Source module: src/data_extract/cli/session.py
 """
 

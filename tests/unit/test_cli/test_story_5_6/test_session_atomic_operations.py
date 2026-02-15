@@ -7,7 +7,7 @@ Focuses on atomic file writes for crash safety:
 - Recovery from partial/interrupted writes
 - Original file preservation on failure
 
-Reference: docs/stories/5-6-graceful-error-handling-and-recovery.md
+Reference: docs/tech-spec-epic-5.md
 Source module: src/data_extract/cli/session.py
 """
 

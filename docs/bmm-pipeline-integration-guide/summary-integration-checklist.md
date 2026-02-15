@@ -1,7 +1,7 @@
 # Summary: Integration Checklist
 
 ✅ **Before You Start**:
-- [ ] Read `docs/architecture.md` (data models and interfaces)
+- [ ] Read `docs/architecture/index.md` (data models and interfaces)
 - [ ] Review active orchestration services (`src/data_extract/services/*.py`)
 - [ ] Understand process flow in `src/data_extract/services/pipeline_service.py`
 - [ ] Study data flow through pipeline (this doc)

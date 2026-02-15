@@ -53,6 +53,11 @@ COMPONENT_MAPPING = {
 }
 
 
+def get_canonical_baseline_file() -> Path:
+    """Return canonical baseline path resolved from current DOCS_DIR."""
+    return DOCS_DIR / "architecture" / "epic-4-performance-baselines.md"
+
+
 class PerformanceValidator:
     """Validates performance against established baselines."""
 
@@ -215,17 +220,22 @@ class PerformanceValidator:
 
     def parse_baseline_documents(self) -> bool:
         """
-        Parse baseline documents from docs/performance-baselines-*.md.
+        Parse baseline documents from canonical docs baselines.
 
         Returns:
             True if baselines parsed successfully
         """
         print("📖 Parsing performance baselines...")
 
-        baseline_files = list(DOCS_DIR.glob(BASELINE_PATTERN))
+        canonical_baseline = get_canonical_baseline_file()
+        baseline_files = []
+        if canonical_baseline.exists():
+            baseline_files.append(canonical_baseline)
+        else:
+            baseline_files = list(DOCS_DIR.glob(BASELINE_PATTERN))
 
         if not baseline_files:
-            print(f"  ⚠️  No baseline files found matching {BASELINE_PATTERN}")
+            print(f"  ⚠️  No baseline files found ({canonical_baseline} or {BASELINE_PATTERN})")
             return False
 
         for baseline_file in baseline_files:
@@ -767,14 +777,15 @@ class PerformanceValidator:
         print("\n📝 Updating baseline documentation...")
 
         # Find or create baseline file for current epic
-        baseline_file = DOCS_DIR / "performance-baselines-epic-current.md"
+        baseline_file = get_canonical_baseline_file()
 
         try:
+            baseline_file.parent.mkdir(parents=True, exist_ok=True)
             # Read existing content or create new
             if baseline_file.exists():
                 content = baseline_file.read_text()
             else:
-                content = "# Performance Baselines - Current\n\n"
+                content = "# Epic 4 Performance Baselines\n\n"
                 content += f"**Date:** {datetime.now().strftime('%Y-%m-%d')}\n"
                 content += "**Status:** Auto-generated\n\n"
 
