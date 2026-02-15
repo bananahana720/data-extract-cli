@@ -114,6 +114,13 @@ def _insert_canonical_seed(
 ) -> None:
     now = datetime.now(timezone.utc).isoformat()
     total_files = len(processed_paths) + len(failed_paths)
+    request_payload = {
+        "input_path": str(source_directory),
+        "output_path": str(source_directory / "output"),
+        "output_format": "json",
+        "chunk_size": 64,
+    }
+    dispatch_payload = {"kind": "process", "request": request_payload}
     result_payload = {
         "status": status,
         "total_files": total_files,
@@ -160,9 +167,11 @@ def _insert_canonical_seed(
             """
             INSERT OR REPLACE INTO jobs (
                 id, status, input_path, output_dir, requested_format, chunk_size,
-                request_payload, result_payload, request_hash, idempotency_key,
-                attempt, artifact_dir, session_id, created_at, started_at, finished_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                request_payload, dispatch_payload, result_payload, request_hash, idempotency_key,
+                attempt, dispatch_state, dispatch_attempts,
+                artifact_sync_state, artifact_sync_attempts,
+                artifact_dir, session_id, created_at, started_at, finished_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 f"job-{session_id}",
@@ -171,11 +180,16 @@ def _insert_canonical_seed(
                 str(source_directory / "output"),
                 "json",
                 64,
-                "{}",
+                json.dumps(request_payload),
+                json.dumps(dispatch_payload),
                 json.dumps(result_payload),
                 "seed-hash",
                 None,
                 1,
+                "pending_dispatch",
+                0,
+                "pending",
+                0,
                 str(source_directory / "output"),
                 session_id,
                 now,

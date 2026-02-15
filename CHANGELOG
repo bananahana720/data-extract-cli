@@ -1,4 +1,9 @@
 2026-02-14
+- Fixed pytest source-layout discovery by adding `pythonpath = src` in `pytest.ini`, resolving `ModuleNotFoundError: data_extract` during test collection in clean checkout runs.
+- Fixed migration parity script test seeding to match current `jobs` schema by populating required dispatch/artifact fields (`dispatch_payload`, dispatch state/attempt counters, artifact sync state/attempt counters) in `tests/unit/test_scripts/test_migrate_legacy_sessions.py`.
+- Re-validated quality gates in project venv after fixes: `ruff`, `mypy`, full non-performance pytest suite, and focused semantic-corpus fixture integration tests.
+
+2026-02-14
 - Implemented runtime hardening schema and state upgrades: staged durable dispatch metadata, explicit artifact sync state/checksum tracking, session projection reconciliation metadata, and supporting SQLite indexes/migration.
 - Hardened API runtime behavior across queue saturation, retry staging, DB-canonical result persistence, artifact reconciliation, and startup recovery/session projection paths.
 - Enforced secure-by-default remote runtime policy (API key + session secret requirements for remote bind) and added explicit OCR readiness signaling in health/readiness outputs.
