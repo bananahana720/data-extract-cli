@@ -1,0 +1,41 @@
+{
+  "repository_type": "multi-part",
+  "parts": [
+    {
+      "part_id": "backend",
+      "display_name": "Backend",
+      "root_path": ".",
+      "project_type_id": "backend",
+      "architecture_file": "architecture-backend.md",
+      "api_contracts_file": "api-contracts-backend.md",
+      "data_models_file": "data-models-backend.md",
+      "development_guide_file": "development-guide-backend.md"
+    },
+    {
+      "part_id": "ui",
+      "display_name": "UI",
+      "root_path": "ui",
+      "project_type_id": "web",
+      "architecture_file": "architecture-ui.md",
+      "api_contracts_file": "api-contracts-ui.md",
+      "data_models_file": "data-models-ui.md",
+      "component_inventory_file": "component-inventory-ui.md",
+      "development_guide_file": "development-guide-ui.md",
+      "state_management_file": "state-management-patterns-ui.md"
+    }
+  ],
+  "integration_points": [
+    {
+      "from": "ui",
+      "to": "backend",
+      "type": "REST",
+      "details": "UI calls /api/v1 auth/jobs/sessions/config endpoints"
+    },
+    {
+      "from": "backend",
+      "to": "ui",
+      "type": "Static hosting",
+      "details": "FastAPI serves built UI assets from ui/dist"
+    }
+  ]
+}
