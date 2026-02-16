@@ -16,8 +16,8 @@ from data_extract.cli.exit_codes import EXIT_CONFIG_ERROR, EXIT_FAILURE
 from data_extract.contracts import (
     FileFailure,
     JobStatus,
-    ProcessJobResult,
     ProcessedFileOutcome,
+    ProcessJobResult,
     SemanticOutcome,
 )
 

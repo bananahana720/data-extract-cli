@@ -161,7 +161,9 @@ class TestRenderFunctions:
         assert "error-4" in output
         assert "and 2 more" in output
 
-    def test_render_quality_dashboard_outputs_distribution(self, quality_metrics: QualityMetrics) -> None:
+    def test_render_quality_dashboard_outputs_distribution(
+        self, quality_metrics: QualityMetrics
+    ) -> None:
         table = render_quality_dashboard(quality_metrics)
         assert isinstance(table, Table)
         output = _render_text(table)
@@ -172,7 +174,9 @@ class TestRenderFunctions:
         assert "Total" in output
         assert "Avg: 0.81" in output
 
-    def test_render_timing_breakdown_outputs_all_stages(self, summary_report: SummaryReport) -> None:
+    def test_render_timing_breakdown_outputs_all_stages(
+        self, summary_report: SummaryReport
+    ) -> None:
         table = render_timing_breakdown(summary_report.timing)
         assert isinstance(table, Table)
         output = _render_text(table)
@@ -187,7 +191,9 @@ class TestRenderFunctions:
         assert "step one" in steps_output
         assert "step two" in steps_output
 
-    def test_render_respects_no_color_ascii_box(self, summary_report: SummaryReport, monkeypatch) -> None:
+    def test_render_respects_no_color_ascii_box(
+        self, summary_report: SummaryReport, monkeypatch
+    ) -> None:
         monkeypatch.setenv("NO_COLOR", "1")
         panel = render_summary_panel(summary_report)
         assert panel.box is box.ASCII
@@ -204,9 +210,7 @@ class TestExportFunctions:
         assert any("TIMING BREAKDOWN" in section for section in sections)
         assert any("NEXT STEPS" in section for section in sections)
 
-    def test_export_summary_txt_json_html(
-        self, summary_report: SummaryReport, tmp_path
-    ) -> None:
+    def test_export_summary_txt_json_html(self, summary_report: SummaryReport, tmp_path) -> None:
         txt_path = export_summary(summary_report, tmp_path / "summary.txt", ExportFormat.TXT)
         json_path = export_summary(summary_report, tmp_path / "summary.json", ExportFormat.JSON)
         html_path = export_summary(summary_report, tmp_path / "summary.html", ExportFormat.HTML)

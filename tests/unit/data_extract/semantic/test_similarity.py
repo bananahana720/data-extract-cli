@@ -350,6 +350,47 @@ class TestSimilarityAnalysisStage:
         sim_matrix = result.data["similarity_matrix"]
         assert sim_matrix.min() >= 0  # All similarities computed
 
+    def test_min_similarity_sparsifies_pairs_graph_and_stats(self):
+        """min_similarity should zero low similarities before downstream outputs."""
+        corpus = [
+            "apple banana cherry",
+            "apple banana",
+            "grape orange",
+        ]
+        vectorizer = TfidfVectorizer()
+        matrix = vectorizer.fit_transform(corpus)
+
+        def create_input() -> SemanticResult:
+            return SemanticResult(
+                tfidf_matrix=matrix,
+                chunk_ids=[f"doc_{i}" for i in range(len(corpus))],
+                success=True,
+            )
+
+        baseline_stage = SimilarityAnalysisStage(
+            config=SimilarityConfig(related_threshold=0.2, min_similarity=0.0, use_cache=False)
+        )
+        baseline_result = baseline_stage.process(create_input())
+        assert baseline_result.success is True
+        assert baseline_result.data["similar_pairs"] != []
+
+        sparsified_stage = SimilarityAnalysisStage(
+            config=SimilarityConfig(related_threshold=0.2, min_similarity=0.9, use_cache=False)
+        )
+        sparsified_result = sparsified_stage.process(create_input())
+
+        assert sparsified_result.success is True
+        sim_matrix = sparsified_result.data["similarity_matrix"]
+        off_diagonal = sim_matrix[np.triu_indices(sim_matrix.shape[0], k=1)]
+        assert np.allclose(off_diagonal, 0.0)
+        assert sparsified_result.data["similar_pairs"] == []
+        assert sparsified_result.data["similarity_graph"] == {}
+
+        stats = sparsified_result.data["similarity_statistics"]
+        assert stats["n_similar_pairs"] == 0
+        assert stats["pairs_above_0.5"] == 0
+        assert stats["max"] == 0.0
+
     def test_duplicate_groups_transitive(self):
         """Test that duplicate groups handle transitive relationships."""
         # Create corpus with transitive duplicates

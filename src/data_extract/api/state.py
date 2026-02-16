@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -73,6 +74,17 @@ class ApiRuntime:
         self._max_backlog = self._resolve_max_backlog()
         self._queue_high_watermark = self._resolve_queue_high_watermark()
         self._queue_retry_hint_seconds = self._resolve_queue_retry_hint_seconds()
+        self._disk_pressure_threshold = self._resolve_disk_pressure_threshold()
+        self._storage_stats_lock = Lock()
+        self._storage_stats: dict[str, Any] = {
+            "disk_pressure_rejections": 0,
+            "threshold": self._disk_pressure_threshold,
+            "last_total_bytes": 0,
+            "last_free_bytes": 0,
+            "last_used_ratio": 0.0,
+            "last_checked_at": None,
+            "last_error": None,
+        }
         self.queue: LocalJobQueue = LocalJobQueue(
             self._handle_job,
             worker_count=self._worker_count,
@@ -89,6 +101,7 @@ class ApiRuntime:
         self._overload_stats: dict[str, Any] = {
             "throttle_rejections": 0,
             "queue_full_rejections": 0,
+            "disk_pressure_rejections": 0,
             "last_reason": None,
             "last_rejected_at": None,
             "last_retry_after_seconds": None,
@@ -189,6 +202,8 @@ class ApiRuntime:
         """Queue overload/throttle counters and latest snapshot."""
         with self._overload_stats_lock:
             snapshot = dict(self._overload_stats)
+        snapshot["disk_pressure_threshold"] = self._disk_pressure_threshold
+        snapshot["storage_stats"] = self.storage_stats
         snapshot["high_watermark"] = self._queue_high_watermark
         snapshot["retry_hint_seconds"] = self._queue_retry_hint_seconds
         snapshot["backlog"] = self.queue_backlog
@@ -196,6 +211,12 @@ class ApiRuntime:
         snapshot["utilization"] = self.queue_utilization
         snapshot["throttled"] = self._is_queue_above_high_watermark()
         return snapshot
+
+    @property
+    def storage_stats(self) -> dict[str, Any]:
+        """Snapshot of the latest storage usage measurements."""
+        with self._storage_stats_lock:
+            return dict(self._storage_stats)
 
     @property
     def terminal_reconciliation_stats(self) -> dict[str, Any]:
@@ -258,6 +279,7 @@ class ApiRuntime:
                 if resolved_status in TERMINAL_STATUSES or resolved_status in RUNNING_STATUSES:
                     return resolved_job_id
 
+        self._assert_storage_available()
         self._raise_if_queue_throttled(reason="process")
         dispatch_payload = {"kind": "process", "request": normalized_request.model_dump()}
 
@@ -310,6 +332,7 @@ class ApiRuntime:
 
     def enqueue_retry(self, job_id: str, request: RetryRequest) -> None:
         """Submit retry action to worker for existing job id."""
+        self._assert_storage_available()
         self._raise_if_queue_throttled(reason="retry")
         dispatch_payload = {"kind": "retry", "request": request.model_dump()}
 
@@ -1764,6 +1787,57 @@ class ApiRuntime:
             self._write_job_log(job_id, message)
         return failed_count
 
+    def _capture_storage_stats(self) -> tuple[int, int, int]:
+        usage = shutil.disk_usage(JOBS_HOME)
+        total_bytes = int(usage.total)
+        used_bytes = int(usage.used)
+        free_bytes = int(usage.free)
+        used_ratio = (used_bytes / total_bytes) if total_bytes > 0 else 0.0
+        with self._storage_stats_lock:
+            self._storage_stats["threshold"] = self._disk_pressure_threshold
+            self._storage_stats["last_total_bytes"] = total_bytes
+            self._storage_stats["last_free_bytes"] = free_bytes
+            self._storage_stats["last_used_ratio"] = float(used_ratio)
+            self._storage_stats["last_checked_at"] = datetime.now(timezone.utc).isoformat()
+            self._storage_stats["last_error"] = None
+        return total_bytes, used_bytes, free_bytes
+
+    def _assert_storage_available(self) -> None:
+        if self._disk_pressure_threshold <= 0:
+            return
+        try:
+            _total_bytes, _used_bytes, free_bytes = self._capture_storage_stats()
+        except OSError as exc:
+            with self._storage_stats_lock:
+                self._storage_stats["last_checked_at"] = datetime.now(timezone.utc).isoformat()
+                self._storage_stats["last_error"] = str(exc)
+                self._storage_stats["disk_pressure_rejections"] += 1
+            retry_after_seconds = self._record_queue_rejection(reason="disk_pressure")
+            raise QueueCapacityError(
+                (
+                    "Unable to verify available disk space for job admission; "
+                    f"storage probe failed: {exc}"
+                ),
+                retry_after_seconds=retry_after_seconds,
+                reason="disk_pressure",
+            ) from exc
+
+        if free_bytes >= self._disk_pressure_threshold:
+            return
+
+        with self._storage_stats_lock:
+            self._storage_stats["disk_pressure_rejections"] += 1
+        retry_after_seconds = self._record_queue_rejection(reason="disk_pressure")
+        raise QueueCapacityError(
+            (
+                "Available disk space is below the admission threshold "
+                f"(free={free_bytes} bytes, required>={self._disk_pressure_threshold} bytes). "
+                "Cleanup artifacts and retry."
+            ),
+            retry_after_seconds=retry_after_seconds,
+            reason="disk_pressure",
+        )
+
     def _raise_if_queue_throttled(self, reason: str) -> None:
         if not self._is_queue_above_high_watermark():
             return
@@ -1790,6 +1864,8 @@ class ApiRuntime:
         with self._overload_stats_lock:
             if reason == "queue_full":
                 self._overload_stats["queue_full_rejections"] += 1
+            elif reason == "disk_pressure":
+                self._overload_stats["disk_pressure_rejections"] += 1
             else:
                 self._overload_stats["throttle_rejections"] += 1
             self._overload_stats["last_reason"] = reason
@@ -1840,6 +1916,14 @@ class ApiRuntime:
             return max(1, int(raw_value))
         except ValueError:
             return 2
+
+    @staticmethod
+    def _resolve_disk_pressure_threshold() -> int:
+        raw_value = os.environ.get("DATA_EXTRACT_API_MIN_FREE_DISK_BYTES", str(64 * 1024 * 1024))
+        try:
+            return max(0, int(str(raw_value).strip()))
+        except ValueError:
+            return 64 * 1024 * 1024
 
     @staticmethod
     def _resolve_dispatch_poll_interval_seconds() -> float:

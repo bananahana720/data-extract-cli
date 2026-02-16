@@ -21,7 +21,7 @@ from unittest.mock import patch
 import pytest
 
 import data_extract.services as services
-from data_extract.contracts import JobStatus, ProcessJobResult, ProcessedFileOutcome
+from data_extract.contracts import JobStatus, ProcessedFileOutcome, ProcessJobResult
 
 # P1: Core functionality - run on PR
 pytestmark = [
@@ -67,15 +67,17 @@ def _build_process_result(
         failed_count=failed,
         skipped_count=skipped,
         output_dir=str(tmp_path / "output"),
-        processed_files=[
-            ProcessedFileOutcome(
-                path=str(tmp_path / "docs" / "good.txt"),
-                output_path=str(tmp_path / "output" / "good.json"),
-                chunk_count=2,
-            )
-        ]
-        if processed
-        else [],
+        processed_files=(
+            [
+                ProcessedFileOutcome(
+                    path=str(tmp_path / "docs" / "good.txt"),
+                    output_path=str(tmp_path / "output" / "good.json"),
+                    chunk_count=2,
+                )
+            ]
+            if processed
+            else []
+        ),
         failed_files=[],
         stage_totals_ms={"extract": 10.0, "chunk": 5.0, "output": 2.0},
         request_hash="req-story-5-6",

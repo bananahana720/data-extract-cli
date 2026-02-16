@@ -15,6 +15,10 @@ from data_extract.api.state import runtime
 router = APIRouter(prefix="/api/v1", tags=["health"])
 REMOTE_BIND_ENV = "DATA_EXTRACT_API_REMOTE_BIND"
 REQUIRE_SESSION_SECRET_REMOTE_ENV = "DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE"
+REMOTE_BIND_MIN_API_KEY_LENGTH_ENV = "DATA_EXTRACT_API_REMOTE_BIND_MIN_API_KEY_LENGTH"
+REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_ENV = "DATA_EXTRACT_API_REMOTE_BIND_MIN_SESSION_SECRET_LENGTH"
+REMOTE_BIND_MIN_API_KEY_LENGTH_DEFAULT = 32
+REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_DEFAULT = 32
 
 _CORE_COUNTER_ATTRS = {
     "worker_count",
@@ -38,22 +42,57 @@ def _env_flag_enabled(name: str, default: bool = False) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        resolved = int(str(raw).strip())
+    except ValueError:
+        return default
+    return max(0, resolved)
+
+
 def _build_security_policy_snapshot() -> dict[str, Any]:
     remote_bind = _env_flag_enabled(REMOTE_BIND_ENV, default=False)
     require_session_secret_remote = _env_flag_enabled(
         REQUIRE_SESSION_SECRET_REMOTE_ENV,
         default=True,
     )
-    api_key_configured = bool(os.environ.get(API_KEY_ENV, "").strip())
-    session_secret_configured = bool(os.environ.get(SESSION_SECRET_ENV, "").strip())
-    remote_auth_ready = not remote_bind or (
-        api_key_configured and (session_secret_configured or not require_session_secret_remote)
+    min_api_key_length = _env_int(
+        REMOTE_BIND_MIN_API_KEY_LENGTH_ENV,
+        REMOTE_BIND_MIN_API_KEY_LENGTH_DEFAULT,
     )
+    min_session_secret_length = _env_int(
+        REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_ENV,
+        REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_DEFAULT,
+    )
+    api_key = os.environ.get(API_KEY_ENV, "").strip()
+    session_secret = os.environ.get(SESSION_SECRET_ENV, "").strip()
+    api_key_configured = bool(api_key)
+    session_secret_configured = bool(session_secret)
+    api_key_length = len(api_key)
+    session_secret_length = len(session_secret)
+    api_key_length_compliant = api_key_length >= min_api_key_length
+    session_secret_length_compliant = session_secret_configured and (
+        session_secret_length >= min_session_secret_length
+    )
+    session_secret_ready = not require_session_secret_remote or (
+        session_secret_configured and session_secret_length_compliant
+    )
+    api_key_ready = api_key_configured and api_key_length_compliant
+    remote_auth_ready = not remote_bind or (api_key_ready and session_secret_ready)
     return {
         "remote_bind": remote_bind,
         "remote_auth_ready": remote_auth_ready,
         "api_key_configured": api_key_configured,
+        "api_key_length": api_key_length,
+        "min_api_key_length": min_api_key_length,
+        "api_key_length_compliant": api_key_length_compliant,
         "session_secret_configured": session_secret_configured,
+        "session_secret_length": session_secret_length,
+        "min_session_secret_length": min_session_secret_length,
+        "session_secret_length_compliant": session_secret_length_compliant,
         "require_session_secret_remote": require_session_secret_remote,
     }
 

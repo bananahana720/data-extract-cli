@@ -39,12 +39,18 @@ class RetryService:
         )
 
         if request.file:
-            target = Path(request.file)
+            target_paths = self._candidate_paths_for_requested_file(
+                request.file,
+                session_state.source_directory,
+            )
             retryable = [
                 failed
                 for failed in retryable
-                if Path(failed.get("path", "")).resolve() == target.resolve()
-                or Path(failed.get("path", "")).name == target.name
+                if self._failed_entry_matches_targets(
+                    str(failed.get("path", "")).strip(),
+                    session_state.source_directory,
+                    target_paths,
+                )
             ]
 
         source_files = sorted({failed["path"] for failed in retryable if failed.get("path")})
@@ -148,6 +154,33 @@ class RetryService:
         archive_dir = manager.session_dir / "archive"
         archived = list(archive_dir.glob("session-*.json")) if archive_dir.exists() else []
         return [path for path in active + archived if path.suffix == ".json"]
+
+    @staticmethod
+    def _candidate_paths_for_requested_file(
+        requested_file: str, source_directory: Path
+    ) -> set[str]:
+        """Build normalized candidate paths for --file matching."""
+        request_path = Path(requested_file).expanduser()
+        candidates = {normalized_path_text(request_path)}
+        if not request_path.is_absolute():
+            candidates.add(normalized_path_text(source_directory / request_path))
+        return candidates
+
+    @staticmethod
+    def _failed_entry_matches_targets(
+        failed_path: str,
+        source_directory: Path,
+        target_paths: set[str],
+    ) -> bool:
+        """Return True when a failed entry matches the requested file selector."""
+        if not failed_path:
+            return False
+
+        path = Path(failed_path).expanduser()
+        failed_candidates = {normalized_path_text(path)}
+        if not path.is_absolute():
+            failed_candidates.add(normalized_path_text(source_directory / path))
+        return bool(failed_candidates.intersection(target_paths))
 
     @staticmethod
     def _state_from_payload(payload: dict[str, Any]) -> SessionState:

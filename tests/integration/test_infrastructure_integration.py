@@ -1,6 +1,7 @@
 """Integration tests for JobService/session infrastructure behavior."""
 
 from __future__ import annotations
+
 from pathlib import Path
 
 import pytest

@@ -630,3 +630,48 @@ class TestPresetManager:
         # When/Then - should raise error or silently reject
         with pytest.raises(Exception):  # PermissionError or ValueError
             manager.save(malicious_preset, force=False)
+
+    @pytest.mark.parametrize("invalid_name", ["../../etc/passwd", "/abs/path", "nested/name"])
+    def test_preset_manager_save_rejects_invalid_names(self, tmp_path, monkeypatch, invalid_name):
+        """PresetManager.save should reject path traversal and nested path names."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        from data_extract.cli.config.models import PresetConfig, ValidationLevel
+        from data_extract.cli.config.presets import PresetManager
+
+        manager = PresetManager()
+        preset = PresetConfig(
+            name=invalid_name,
+            description="Invalid name test",
+            chunk_size=512,
+            quality_threshold=0.75,
+            output_format="json",
+            dedup_threshold=0.8,
+            include_metadata=True,
+            validation_level=ValidationLevel.STANDARD,
+        )
+
+        with pytest.raises(ValueError, match="Invalid preset name"):
+            manager.save(preset)
+
+    @pytest.mark.parametrize("invalid_name", ["../../etc/passwd", "/abs/path", "nested/name"])
+    def test_preset_manager_load_rejects_invalid_names(self, tmp_path, monkeypatch, invalid_name):
+        """PresetManager.load should reject path traversal and nested path names."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        from data_extract.cli.config.presets import PresetManager
+
+        manager = PresetManager()
+        with pytest.raises(ValueError, match="Invalid preset name"):
+            manager.load(invalid_name)
+
+    @pytest.mark.parametrize("invalid_name", ["../../etc/passwd", "/abs/path", "nested/name"])
+    def test_preset_manager_delete_rejects_invalid_names(self, tmp_path, monkeypatch, invalid_name):
+        """PresetManager.delete should reject path traversal and nested path names."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        from data_extract.cli.config.presets import PresetManager
+
+        manager = PresetManager()
+        with pytest.raises(ValueError, match="Invalid preset name"):
+            manager.delete(invalid_name)

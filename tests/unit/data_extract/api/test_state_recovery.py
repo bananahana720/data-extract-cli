@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections import namedtuple
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -398,6 +399,77 @@ def test_enqueue_retry_throttles_at_high_watermark_and_records_overload_stats(
     assert overload["throttle_rejections"] >= 1
     assert overload["last_reason"] == "high_watermark"
     assert overload["last_retry_after_seconds"] == 3
+
+
+@pytest.mark.unit
+def test_enqueue_process_rejects_when_storage_below_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from data_extract.api import state as state_module
+
+    monkeypatch.setenv("DATA_EXTRACT_API_MIN_FREE_DISK_BYTES", "500")
+    runtime = ApiRuntime()
+    monkeypatch.setattr(runtime, "_compute_request_hash", lambda _request: None)
+    monkeypatch.setattr(
+        runtime.queue,
+        "submit",
+        lambda *_args, **_kwargs: pytest.fail("queue.submit should not run under disk pressure"),
+    )
+    disk_usage = namedtuple("DiskUsage", ["total", "used", "free"])
+    monkeypatch.setattr(
+        state_module.shutil,
+        "disk_usage",
+        lambda _path: disk_usage(total=10_000, used=9_700, free=300),
+    )
+
+    with pytest.raises(QueueCapacityError) as exc_info:
+        runtime.enqueue_process(
+            ProcessJobRequest(input_path=str(tmp_path / "input"), output_format="json"),
+            job_id="disk-pressure-job",
+        )
+
+    assert exc_info.value.reason == "disk_pressure"
+    assert "below the admission threshold" in str(exc_info.value)
+    overload = runtime.overload_stats
+    assert overload["disk_pressure_rejections"] >= 1
+    assert overload["last_reason"] == "disk_pressure"
+    storage = runtime.storage_stats
+    assert storage["threshold"] == 500
+    assert storage["last_free_bytes"] == 300
+    assert storage["disk_pressure_rejections"] >= 1
+
+
+@pytest.mark.unit
+def test_enqueue_process_rejects_when_storage_probe_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from data_extract.api import state as state_module
+
+    monkeypatch.setenv("DATA_EXTRACT_API_MIN_FREE_DISK_BYTES", "1")
+    runtime = ApiRuntime()
+    monkeypatch.setattr(runtime, "_compute_request_hash", lambda _request: None)
+    monkeypatch.setattr(
+        state_module.shutil,
+        "disk_usage",
+        lambda _path: (_ for _ in ()).throw(OSError("stat failed")),
+    )
+
+    with pytest.raises(QueueCapacityError) as exc_info:
+        runtime.enqueue_process(
+            ProcessJobRequest(input_path=str(tmp_path / "input"), output_format="json"),
+            job_id="disk-probe-failure",
+        )
+
+    assert exc_info.value.reason == "disk_pressure"
+    assert "Unable to verify available disk space" in str(exc_info.value)
+    overload = runtime.overload_stats
+    assert overload["disk_pressure_rejections"] >= 1
+    assert overload["last_reason"] == "disk_pressure"
+    storage = runtime.storage_stats
+    assert storage["disk_pressure_rejections"] >= 1
+    assert "stat failed" in str(storage["last_error"] or "")
 
 
 @pytest.mark.unit

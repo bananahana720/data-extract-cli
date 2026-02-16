@@ -122,6 +122,26 @@ def test_health_detailed_security_policy_reflects_remote_auth_config(monkeypatch
     assert policy["remote_auth_ready"] is False
 
 
+def test_health_detailed_security_policy_exposes_length_metrics(monkeypatch) -> None:
+    module, runtime = _load_health_module(monkeypatch)
+    runtime.readiness_report = {"status": "ok", "ready": True, "errors": [], "warnings": []}
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND", "1")
+    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "abcdefghij")
+    monkeypatch.setenv("DATA_EXTRACT_API_SESSION_SECRET", "secretvalue")
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND_MIN_API_KEY_LENGTH", "8")
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND_MIN_SESSION_SECRET_LENGTH", "16")
+
+    payload = module.health(detailed=True)
+    policy = payload["security_policy"]
+
+    assert policy["api_key_length"] == 10
+    assert policy["min_api_key_length"] == 8
+    assert policy["api_key_length_compliant"] is True
+    assert policy["session_secret_length"] == 11
+    assert policy["min_session_secret_length"] == 16
+    assert policy["session_secret_length_compliant"] is False
+
+
 def test_health_detailed_includes_optional_runtime_counters(monkeypatch) -> None:
     module, runtime = _load_health_module(monkeypatch)
     runtime.readiness_report = {"status": "ok", "ready": True, "errors": [], "warnings": []}

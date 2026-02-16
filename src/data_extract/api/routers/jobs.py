@@ -74,6 +74,83 @@ def _upload_limits() -> tuple[int, int, int]:
     )
 
 
+def _normalize_path_without_existence(raw_path: str) -> Path:
+    path_text = str(raw_path).strip()
+    if not path_text:
+        raise ValueError("input_path must not be empty")
+    candidate = Path(path_text).expanduser()
+    if not candidate.is_absolute():
+        candidate = Path.cwd() / candidate
+    return candidate.resolve(strict=False)
+
+
+def _is_path_within_root(candidate: Path, root: Path) -> bool:
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _resolve_allowed_input_roots() -> list[Path]:
+    env_roots = os.environ.get("DATA_EXTRACT_API_ALLOWED_INPUT_ROOTS")
+    configured_roots: list[str] = []
+    if env_roots is None or not env_roots.strip():
+        configured_roots.append(str(Path.cwd()))
+    else:
+        configured_roots.extend(
+            root.strip() for root in env_roots.split(os.pathsep) if root.strip()
+        )
+
+    resolved: list[Path] = [_normalize_path_without_existence(str(JOBS_HOME))]
+    for root in configured_roots:
+        try:
+            resolved.append(_normalize_path_without_existence(root))
+        except ValueError:
+            continue
+
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for root_path in resolved:
+        key = os.path.normcase(str(root_path))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(root_path)
+    return deduped
+
+
+def _enforce_allowed_input_path(raw_input_path: str) -> str:
+    try:
+        candidate = _normalize_path_without_existence(raw_input_path)
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid input_path '{raw_input_path}': {exc}",
+        ) from exc
+    allowed_roots = _resolve_allowed_input_roots()
+    if any(_is_path_within_root(candidate, root) for root in allowed_roots):
+        return str(candidate)
+
+    roots_text = ", ".join(str(root) for root in allowed_roots)
+    raise HTTPException(
+        status_code=400,
+        detail=(f"input_path '{raw_input_path}' is not allowed. " f"Allowed roots: {roots_text}"),
+    )
+
+
+def _sanitize_upload_filename_parts(filename: str) -> list[str]:
+    normalized = str(filename).replace("\\", "/")
+    safe_parts: list[str] = []
+    for part in normalized.split("/"):
+        if part in {"", ".", ".."}:
+            continue
+        if part.endswith(":"):
+            continue
+        safe_parts.append(part)
+    return safe_parts
+
+
 def _to_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value
@@ -117,8 +194,8 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
     ]
     max_file_bytes, max_total_bytes, max_files = _upload_limits()
 
-    input_path = _optional_str(form.get("input_path"))
-    if not uploaded_files and not input_path:
+    raw_input_path = _optional_str(form.get("input_path"))
+    if not uploaded_files and not raw_input_path:
         raise HTTPException(status_code=400, detail="Provide files upload or input_path")
 
     if uploaded_files:
@@ -129,14 +206,22 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             )
         inputs_dir = JOBS_HOME / job_id / "inputs"
         inputs_dir.mkdir(parents=True, exist_ok=True)
+        inputs_root = inputs_dir.resolve(strict=False)
         total_bytes = 0
         try:
             for upload in uploaded_files:
-                raw_path = Path(str(upload.filename).replace("\\", "/"))
-                safe_parts = [part for part in raw_path.parts if part not in {"", ".", ".."}]
+                upload_filename = upload.filename or ""
+                safe_parts = _sanitize_upload_filename_parts(upload_filename)
                 if not safe_parts:
                     continue
-                destination = inputs_dir.joinpath(*safe_parts)
+                destination = inputs_dir.joinpath(*safe_parts).resolve(strict=False)
+                if not _is_path_within_root(destination, inputs_root):
+                    destination = (inputs_root / safe_parts[-1]).resolve(strict=False)
+                if not _is_path_within_root(destination, inputs_root):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid upload filename: {upload_filename}",
+                    )
                 destination.parent.mkdir(parents=True, exist_ok=True)
 
                 file_bytes = 0
@@ -151,7 +236,7 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
                             raise HTTPException(
                                 status_code=413,
                                 detail=(
-                                    f"File '{upload.filename}' exceeds per-file upload limit "
+                                    f"File '{upload_filename}' exceeds per-file upload limit "
                                     f"({max_file_bytes} bytes)."
                                 ),
                             )
@@ -168,7 +253,9 @@ async def _build_process_request_from_form(request: Request, job_id: str) -> Pro
             shutil.rmtree(inputs_dir, ignore_errors=True)
             raise
 
-        input_path = str(inputs_dir)
+        input_path = str(inputs_root)
+    else:
+        input_path = _enforce_allowed_input_path(raw_input_path or "")
 
     if not input_path:
         raise HTTPException(status_code=400, detail="No usable input_path provided")
@@ -276,11 +363,12 @@ async def enqueue_process_job(
 ) -> EnqueueJobResponse:
     """Queue a new processing job from JSON payload or multipart upload."""
     content_type = request.headers.get("content-type", "")
+    is_multipart = "multipart/form-data" in content_type
     job_id = str(uuid.uuid4())[:12]
     if not isinstance(process_request, ProcessJobRequest):
         process_request = None
 
-    if "multipart/form-data" in content_type:
+    if is_multipart:
         process_request = await _build_process_request_from_form(request, job_id)
     else:
         if process_request is None:
@@ -291,6 +379,12 @@ async def enqueue_process_job(
             process_request = ProcessJobRequest(**payload)
     if process_request is None:
         raise HTTPException(status_code=400, detail="Missing process request payload")
+    if not is_multipart:
+        normalized_input_path = _enforce_allowed_input_path(process_request.input_path)
+        if normalized_input_path != process_request.input_path:
+            process_request = process_request.model_copy(
+                update={"input_path": normalized_input_path}
+            )
     if not process_request.preset:
         default_preset = _resolve_default_preset()
         if default_preset:

@@ -32,7 +32,9 @@ def test_discover_filters_supported_extensions_non_recursive(tmp_path: Path) -> 
     assert [path.name for path in files] == ["alpha.md", "zeta.txt"]
 
 
-def test_discover_glob_pattern_resolves_from_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_discover_glob_pattern_resolves_from_cwd(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     docs_dir = tmp_path / "docs"
     _write_text(docs_dir / "one.txt", "one")
     _write_text(docs_dir / "two.log", "two")

@@ -8,12 +8,17 @@ payloads and always reads JSON with UTF-8 BOM compatibility.
 from __future__ import annotations
 
 import json
+import warnings
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 from data_extract.core.models import Chunk
+
+
+class ChunkLoadError(ValueError):
+    """Raised when chunk payloads cannot be parsed safely."""
 
 
 def _to_json_safe(value: Any) -> Any:
@@ -105,7 +110,7 @@ def _iter_chunk_payloads(data: Any) -> Iterable[Dict[str, Any]]:
         yield data
 
 
-def chunk_from_dict(payload: Dict[str, Any]) -> Chunk | None:
+def chunk_from_dict(payload: Dict[str, Any], *, strict: bool = False) -> Chunk | None:
     """Best-effort conversion from dictionary to Chunk model."""
     try:
         text = str(payload.get("text", "") or "")
@@ -139,27 +144,59 @@ def chunk_from_dict(payload: Dict[str, Any]) -> Chunk | None:
             metadata=metadata,
         )
     except Exception:
+        if strict:
+            raise
         return None
 
 
-def load_chunks(input_path: Path) -> List[Chunk]:
+def load_chunks(input_path: Path, *, strict: bool = False) -> List[Chunk]:
     """Load chunks from a file or directory of JSON files.
 
     Files are decoded as ``utf-8-sig`` to accept BOM-prefixed process output.
+
+    Args:
+        input_path: Input JSON file or directory containing JSON files.
+        strict: When True, fail fast on the first parse/validation error.
+            When False, invalid files/payloads are skipped and surfaced via warnings.
     """
     files = [input_path] if input_path.is_file() else sorted(input_path.glob("**/*.json"))
     chunks: List[Chunk] = []
+    parse_errors: List[str] = []
 
     for file_path in files:
         try:
             with open(file_path, encoding="utf-8-sig") as handle:
                 data = json.load(handle)
-        except Exception:
+        except Exception as exc:
+            message = f"Failed to parse chunk JSON file '{file_path}': {exc}"
+            if strict:
+                raise ChunkLoadError(message) from exc
+            parse_errors.append(message)
             continue
 
-        for payload in _iter_chunk_payloads(data):
-            chunk = chunk_from_dict(payload)
-            if chunk is not None:
-                chunks.append(chunk)
+        for index, payload in enumerate(_iter_chunk_payloads(data)):
+            try:
+                chunk = chunk_from_dict(payload, strict=strict)
+            except Exception as exc:
+                message = f"Failed to parse chunk payload in '{file_path}' (index {index}): {exc}"
+                if strict:
+                    raise ChunkLoadError(message) from exc
+                parse_errors.append(message)
+                continue
+
+            if chunk is None:
+                message = (
+                    f"Failed to parse chunk payload in '{file_path}' (index {index}): "
+                    "payload did not produce a valid chunk."
+                )
+                if strict:
+                    raise ChunkLoadError(message)
+                parse_errors.append(message)
+                continue
+
+            chunks.append(chunk)
+
+    for message in parse_errors:
+        warnings.warn(message, RuntimeWarning, stacklevel=2)
 
     return chunks

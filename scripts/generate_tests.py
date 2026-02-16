@@ -163,9 +163,7 @@ class StoryTestGenerator:
         for match in re.finditer(ac_pattern, ac_text, re.DOTALL | re.MULTILINE):
             ac_num = match.group(1)
             ac_block = " ".join(
-                line.strip()
-                for line in match.group(2).splitlines()
-                if line.strip()
+                line.strip() for line in match.group(2).splitlines() if line.strip()
             )
 
             # Normalize markdown wrappers around title.

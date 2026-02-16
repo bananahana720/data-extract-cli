@@ -5,6 +5,7 @@ It computes pairwise similarity between documents using TF-IDF vectors from Stor
 identifies duplicates, and builds relationship graphs for navigation.
 """
 
+import hashlib
 import logging
 import time
 from dataclasses import dataclass
@@ -156,6 +157,7 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
 
             # Ensure symmetry (numerical precision can cause slight asymmetry)
             similarity_matrix = self._ensure_symmetry(similarity_matrix)
+            similarity_matrix = self._apply_min_similarity(similarity_matrix)
 
             # Find similar pairs and duplicates
             similar_pairs = self._find_similar_pairs(
@@ -248,6 +250,15 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
         # Average with transpose to ensure perfect symmetry
         symmetric = (matrix + matrix.T) / 2
         return cast(np.ndarray, symmetric)
+
+    def _apply_min_similarity(self, matrix: np.ndarray) -> np.ndarray:
+        """Apply min_similarity sparsification while preserving self-similarity."""
+        threshold = max(0.0, self.config.min_similarity)
+        sparsified = matrix.copy()
+        sparsified[sparsified < threshold] = 0.0
+        sparsified[sparsified < 0.0] = 0.0
+        np.fill_diagonal(sparsified, 1.0)
+        return sparsified
 
     def _find_similar_pairs(
         self, similarity_matrix: np.ndarray, chunk_ids: List[str], threshold: float
@@ -436,10 +447,18 @@ class SimilarityAnalysisStage(PipelineStage[SemanticResult, SemanticResult]):
             Cache key string
         """
         if self.cache_manager:
-            # Include matrix content and config in key
-            content = f"{tfidf_matrix.data.tobytes()}{str(chunk_ids)}"
-            config_components = self.config.get_cache_key_components()
-            return self.cache_manager.generate_cache_key(content, config_components)
+            matrix_csr = tfidf_matrix.tocsr(copy=True)
+            matrix_csr.sort_indices()
+
+            hasher = hashlib.sha256()
+            hasher.update(str(matrix_csr.shape).encode("utf-8"))
+            hasher.update(str(matrix_csr.dtype).encode("utf-8"))
+            hasher.update(matrix_csr.indptr.tobytes())
+            hasher.update(matrix_csr.indices.tobytes())
+            hasher.update(matrix_csr.data.tobytes())
+            hasher.update("\x1f".join(chunk_ids).encode("utf-8"))
+
+            return self.cache_manager.generate_cache_key(hasher.hexdigest(), self.config)
         return ""
 
     def _merge_cached_result(

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -11,7 +12,12 @@ os.environ.setdefault("DATA_EXTRACT_UI_HOME", "/tmp/data-extract-ui-tests")
 
 from data_extract.api.database import Base
 from data_extract.api.routers import config as config_router_module
-from data_extract.api.routers.config import apply_preset, get_current_preset
+from data_extract.api.routers.config import (
+    _preset_to_effective_config,
+    apply_preset,
+    get_current_preset,
+    preview_preset,
+)
 
 
 @pytest.mark.unit
@@ -37,3 +43,33 @@ def test_current_preset_reflects_applied_selection(
 
     after_apply = get_current_preset()
     assert after_apply.preset == "quality"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("name", ["../../etc/passwd", "/abs/path", "nested/name"])
+def test_apply_preset_invalid_name_returns_http_400(name: str) -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        apply_preset(name)
+
+    assert exc_info.value.status_code == 400
+    assert "Invalid preset name" in str(exc_info.value.detail)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("name", ["../../etc/passwd", "/abs/path", "nested/name"])
+def test_preview_preset_invalid_name_returns_http_400(name: str) -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        preview_preset(name)
+
+    assert exc_info.value.status_code == 400
+    assert "Invalid preset name" in str(exc_info.value.detail)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("name", ["../../etc/passwd", "/abs/path", "nested/name"])
+def test_effective_preset_resolver_invalid_name_returns_http_400(name: str) -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        _preset_to_effective_config(name)
+
+    assert exc_info.value.status_code == 400
+    assert "Invalid preset name" in str(exc_info.value.detail)

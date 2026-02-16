@@ -365,6 +365,41 @@ class TestTfidfVectorizationStage:
         assert result.success is True
         assert result.cache_hit is False
 
+    def test_cache_key_preserves_input_order_mapping(self):
+        """Different chunk order should not reuse a cached row ordering."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_dir = Path(tmpdir) / "cache"
+            CacheManager._reset()
+            cache_manager = CacheManager()
+            cache_manager._initialized = False
+            cache_manager.__init__(cache_dir=cache_dir)
+
+            config = TfidfConfig(use_cache=True, quality_threshold=0.0, min_df=1)
+            stage = TfidfVectorizationStage(config=config)
+            stage.cache_manager = cache_manager
+
+            chunks = self.create_test_chunks(2)
+            first_result = stage.process(chunks)
+            assert first_result.success is True
+            assert first_result.cache_hit is False
+
+            reversed_chunks = list(reversed(chunks))
+            second_result = stage.process(reversed_chunks)
+            assert second_result.success is True
+            assert second_result.cache_hit is False
+            assert second_result.chunk_ids == [chunk.id for chunk in reversed_chunks]
+
+            no_cache_stage = TfidfVectorizationStage(
+                config=TfidfConfig(use_cache=False, quality_threshold=0.0, min_df=1)
+            )
+            expected_result = no_cache_stage.process(reversed_chunks)
+            np.testing.assert_allclose(
+                second_result.tfidf_matrix.toarray(),
+                expected_result.tfidf_matrix.toarray(),
+            )
+
+        CacheManager._reset()
+
     def test_transform_not_fitted(self):
         """Test transform before fitting."""
         stage = TfidfVectorizationStage()

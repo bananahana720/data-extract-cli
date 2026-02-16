@@ -17,6 +17,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import click
 import yaml
 
 # =============================================================================
@@ -37,6 +38,18 @@ class ConfigLayer(str, Enum):
     USER = "user"
     PRESET = "preset"
     DEFAULT = "default"
+
+
+class ConfigError(ValueError):
+    """Base exception for configuration parsing/validation errors."""
+
+
+class ConfigFileError(ConfigError):
+    """Raised when a config YAML file cannot be loaded safely."""
+
+
+class ConfigEnvVarError(ConfigError):
+    """Raised when a DATA_EXTRACT_* environment variable is malformed."""
 
 
 class ConfigResult:
@@ -237,7 +250,7 @@ def load_env_config() -> Dict[str, Any]:
         Configuration dictionary from environment variables
 
     Raises:
-        ValueError: If a numeric env var contains invalid value
+        ConfigEnvVarError: If a numeric env var contains invalid value
     """
     # Fields that should be numeric (not strings or bools)
     numeric_fields = {
@@ -258,33 +271,36 @@ def load_env_config() -> Dict[str, Any]:
         if value is not None and value != "":
             # Type coercion based on field requirements
             try:
-                # Boolean coercion (case-insensitive)
                 lower_value = value.lower()
-                if lower_value in ("true", "1", "yes", "on"):
-                    value = True
-                elif lower_value in ("false", "0", "no", "off"):
-                    value = False
-                # Float coercion (must have decimal point)
-                elif _is_float(value):
-                    value = float(value)
-                # Integer coercion
-                elif value.lstrip("-").isdigit():
-                    value = int(value)
-                # Otherwise keep as string (or raise error if numeric expected)
-                elif env_suffix in numeric_fields:
-                    # This field should be numeric but isn't
-                    raise ValueError(
-                        f"Invalid value for {env_var}: {value}. "
-                        f"Expected a valid integer or float."
-                    )
+                if env_suffix in numeric_fields:
+                    if _is_float(value):
+                        value = float(value)
+                    elif value.lstrip("-").isdigit():
+                        value = int(value)
+                    else:
+                        raise ConfigEnvVarError(
+                            f"Invalid value for {env_var}: {value}. "
+                            "Expected a valid integer or float."
+                        )
+                else:
+                    # Boolean coercion (case-insensitive)
+                    if lower_value in ("true", "1", "yes", "on"):
+                        value = True
+                    elif lower_value in ("false", "0", "no", "off"):
+                        value = False
+                    # Float coercion (must have decimal point)
+                    elif _is_float(value):
+                        value = float(value)
+                    # Integer coercion
+                    elif value.lstrip("-").isdigit():
+                        value = int(value)
 
                 _set_nested(config, config_path, value)
+            except ConfigEnvVarError:
+                raise
             except (ValueError, AttributeError) as e:
-                if "Invalid value for" in str(e):
-                    # Re-raise our custom error
-                    raise
-                raise ValueError(
-                    f"Invalid value for {env_var}: {value}. " f"Expected a valid integer or float."
+                raise ConfigEnvVarError(
+                    f"Invalid value for {env_var}: {value}. Expected a valid integer or float."
                 ) from e
     return config
 
@@ -345,13 +361,26 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
         path: Path to YAML file
 
     Returns:
-        Dictionary from YAML or empty dict if failed
+        Dictionary parsed from YAML.
+
+    Raises:
+        ConfigFileError: If file contents are invalid or cannot be read.
     """
     try:
-        with open(path) as f:
-            return yaml.safe_load(f) or {}
-    except Exception:
+        with open(path, encoding="utf-8") as f:
+            loaded = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise ConfigFileError(f"Invalid YAML in config file '{path}': {e}") from e
+    except OSError as e:
+        raise ConfigFileError(f"Unable to read config file '{path}': {e}") from e
+
+    if loaded is None:
         return {}
+    if not isinstance(loaded, dict):
+        raise ConfigFileError(
+            f"Invalid config structure in '{path}': expected a top-level mapping/object."
+        )
+    return loaded
 
 
 def _save_yaml(path: Path, data: Dict[str, Any]) -> None:
@@ -636,25 +665,34 @@ def load_merged_config(
             config = _deep_merge(config, preset_config)
             for key in _flatten_keys(preset_config):
                 sources[key] = ConfigLayer.PRESET
-        except ValueError:
+        except PresetNotFoundError:
             pass  # Preset not found, skip
 
     # Layer 4: User config
-    user_config = load_user_config()
+    try:
+        user_config = load_user_config()
+    except ConfigFileError as e:
+        raise click.ClickException(str(e)) from e
     if user_config:
         config = _deep_merge(config, user_config)
         for key in _flatten_keys(user_config):
             sources[key] = ConfigLayer.USER
 
     # Layer 3: Project config
-    project_config = load_project_config(cwd)
+    try:
+        project_config = load_project_config(cwd)
+    except ConfigFileError as e:
+        raise click.ClickException(str(e)) from e
     if project_config:
         config = _deep_merge(config, project_config)
         for key in _flatten_keys(project_config):
             sources[key] = ConfigLayer.PROJECT
 
     # Layer 2: Environment variables
-    env_config = load_env_config()
+    try:
+        env_config = load_env_config()
+    except ConfigEnvVarError as e:
+        raise click.ClickException(str(e)) from e
     if env_config:
         config = _deep_merge(config, env_config)
         for key in _flatten_keys(env_config):
@@ -727,6 +765,9 @@ def load_config_file(config_path: Optional[Path] = None) -> Dict[str, Any]:
 
     Returns:
         Configuration dictionary, empty if no config found.
+
+    Raises:
+        click.ClickException: If the discovered/specified config file is invalid.
     """
     if config_path is None:
         # Search for config file in current directory and parents
@@ -744,11 +785,9 @@ def load_config_file(config_path: Optional[Path] = None) -> Dict[str, Any]:
         return {}
 
     try:
-        with open(config_path) as f:
-            config = yaml.safe_load(f) or {}
-        return config
-    except Exception:
-        return {}
+        return _load_yaml(config_path)
+    except ConfigFileError as e:
+        raise click.ClickException(str(e)) from e
 
 
 def merge_config(
