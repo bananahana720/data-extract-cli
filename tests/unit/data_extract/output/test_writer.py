@@ -248,6 +248,44 @@ def test_per_chunk_creates_output_directory(sample_chunks: List[Chunk], tmp_path
         assert output_dir.is_dir()
 
 
+def test_per_chunk_rolls_back_created_files_on_later_failure(
+    sample_chunks: List[Chunk], tmp_path: Path
+) -> None:
+    """Per-chunk mode removes prior outputs if a later chunk write fails."""
+    writer = OutputWriter()
+    output_dir = tmp_path / "chunks"
+    call_state = {"count": 0}
+
+    def failing_format_chunks(chunks, output_path, **kwargs):
+        del kwargs  # Not used in this test double.
+        call_state["count"] += 1
+        if call_state["count"] == 1:
+            output_path.write_text("first chunk", encoding="utf-8")
+            return FormattingResult(
+                output_path=output_path,
+                chunk_count=1,
+                total_size=output_path.stat().st_size,
+                metadata={},
+                format_type="json",
+            )
+
+        output_path.write_text("partial second", encoding="utf-8")
+        raise RuntimeError("chunk write failed")
+
+    with patch("data_extract.output.writer.JsonFormatter") as mock_json_formatter:
+        mock_formatter_instance = MagicMock()
+        mock_json_formatter.return_value = mock_formatter_instance
+        mock_formatter_instance.format_chunks.side_effect = failing_format_chunks
+
+        with pytest.raises(RuntimeError, match="chunk write failed"):
+            writer.write(sample_chunks[:2], output_dir, format_type="json", per_chunk=True)
+
+    first_file = output_dir / f"{sample_chunks[0].id}.json"
+    second_file = output_dir / f"{sample_chunks[1].id}.json"
+    assert not first_file.exists()
+    assert not second_file.exists()
+
+
 # ============================================================================
 # RETURN VALUE TESTS
 # ============================================================================
@@ -313,3 +351,33 @@ def test_organization_mode_delegates_to_organizer(
 
         # Verify result is OrganizationResult
         assert isinstance(result, OrganizationResult)
+
+
+def test_organized_mode_rolls_back_chunks_and_manifests_on_failure(
+    sample_chunks: List[Chunk], tmp_path: Path
+) -> None:
+    """Organized writes remove created chunks/manifests when manifest creation fails."""
+    writer = OutputWriter()
+    output_dir = tmp_path / "organized"
+    manifest_calls = {"count": 0}
+
+    def failing_manifest_write(output_path: Path, content: str, encoding: str = "utf-8") -> None:
+        manifest_calls["count"] += 1
+        output_path.write_text(content, encoding=encoding)
+        if manifest_calls["count"] == 2:
+            raise RuntimeError("manifest write failed")
+
+    with patch.object(writer, "_write_text_atomic", side_effect=failing_manifest_write):
+        with pytest.raises(RuntimeError, match="manifest write failed"):
+            writer.write(
+                sample_chunks[:2],
+                output_dir,
+                format_type="txt",
+                organize=True,
+                strategy=OrganizationStrategy.FLAT,
+            )
+
+    for chunk in sample_chunks[:2]:
+        assert not (output_dir / f"{chunk.id}.txt").exists()
+    assert not (output_dir / "manifest.json").exists()
+    assert not (output_dir / "MANIFEST.md").exists()

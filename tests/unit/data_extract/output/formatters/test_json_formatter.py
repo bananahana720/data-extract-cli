@@ -533,6 +533,29 @@ class TestJsonFormatterFileOperations:
 class TestJsonFormatterErrorHandling:
     """Test error handling for invalid inputs and edge cases."""
 
+    def test_atomic_write_removes_partial_output_on_dump_failure(
+        self, sample_chunk, tmp_path, monkeypatch
+    ):
+        """Should leave no final or temp file when write fails mid-dump."""
+        formatter = JsonFormatter()
+        output_path = tmp_path / "output.json"
+
+        def fail_dump(_payload, file_obj, **_kwargs):
+            file_obj.write('{"partial": true')
+            file_obj.flush()
+            raise RuntimeError("dump failed")
+
+        monkeypatch.setattr(
+            "data_extract.output.formatters.json_formatter.json.dump",
+            fail_dump,
+        )
+
+        with pytest.raises(RuntimeError, match="dump failed"):
+            formatter.format_chunks(chunks=[sample_chunk], output_path=output_path)
+
+        assert not output_path.exists()
+        assert not list(tmp_path.glob(f".{output_path.name}*.tmp"))
+
     def test_source_document_tracking(self, tmp_path):
         """Should track unique source documents in metadata."""
         # GIVEN: JsonFormatter and chunks from multiple sources

@@ -1,6 +1,8 @@
 """JSON formatter for chunk output."""
 
 import json
+import os
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -117,8 +119,25 @@ class JsonFormatter(BaseFormatter):
             self._validate_output_data(output_data)
 
         encoding = "utf-8-sig" if self.write_bom else "utf-8"
-        with open(output_path, "w", encoding=encoding) as f:
-            json.dump(output_data, f, indent=2, ensure_ascii=False)
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding=encoding,
+                dir=output_path.parent,
+                prefix=f".{output_path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temp_file:
+                temp_path = Path(temp_file.name)
+                json.dump(output_data, temp_file, indent=2, ensure_ascii=False)
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
+            os.replace(temp_path, output_path)
+        except Exception:
+            if temp_path is not None:
+                temp_path.unlink(missing_ok=True)
+            raise
 
         duration = time.time() - start_time
 
