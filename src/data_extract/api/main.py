@@ -30,6 +30,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_DIST = PROJECT_ROOT / "ui" / "dist"
 REMOTE_BIND_ENV = "DATA_EXTRACT_API_REMOTE_BIND"
 REQUIRE_SESSION_SECRET_REMOTE_ENV = "DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE"
+REMOTE_BIND_MIN_API_KEY_LENGTH_ENV = "DATA_EXTRACT_API_REMOTE_BIND_MIN_API_KEY_LENGTH"
+REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_ENV = "DATA_EXTRACT_API_REMOTE_BIND_MIN_SESSION_SECRET_LENGTH"
+REMOTE_BIND_MIN_API_KEY_LENGTH_DEFAULT = 32
+REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_DEFAULT = 32
 
 
 def _env_flag_enabled(name: str, default: bool = False) -> bool:
@@ -39,19 +43,50 @@ def _env_flag_enabled(name: str, default: bool = False) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        resolved = int(str(raw).strip())
+    except ValueError:
+        return default
+    return max(0, resolved)
+
+
 def _remote_security_errors() -> list[str]:
     if not _env_flag_enabled(REMOTE_BIND_ENV, default=False):
         return []
 
     errors: list[str] = []
     require_session_secret = _env_flag_enabled(REQUIRE_SESSION_SECRET_REMOTE_ENV, default=True)
+    min_api_key_length = _env_int(
+        REMOTE_BIND_MIN_API_KEY_LENGTH_ENV,
+        REMOTE_BIND_MIN_API_KEY_LENGTH_DEFAULT,
+    )
+    min_session_secret_length = _env_int(
+        REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_ENV,
+        REMOTE_BIND_MIN_SESSION_SECRET_LENGTH_DEFAULT,
+    )
 
-    if not os.environ.get(API_KEY_ENV, "").strip():
+    api_key = os.environ.get(API_KEY_ENV, "").strip()
+    if not api_key:
         errors.append(f"{API_KEY_ENV} is required when {REMOTE_BIND_ENV}=1.")
-    if require_session_secret and not os.environ.get(SESSION_SECRET_ENV, "").strip():
+    elif len(api_key) < min_api_key_length:
+        errors.append(
+            f"{API_KEY_ENV} must be at least {min_api_key_length} characters long "
+            f"when {REMOTE_BIND_ENV}=1."
+        )
+
+    session_secret = os.environ.get(SESSION_SECRET_ENV, "").strip()
+    if require_session_secret and not session_secret:
         errors.append(
             f"{SESSION_SECRET_ENV} is required when {REMOTE_BIND_ENV}=1 "
             f"unless {REQUIRE_SESSION_SECRET_REMOTE_ENV}=0."
+        )
+    elif session_secret and len(session_secret) < min_session_secret_length:
+        errors.append(
+            f"{SESSION_SECRET_ENV} must be at least {min_session_secret_length} characters long."
         )
     return errors
 

@@ -105,7 +105,7 @@ def test_startup_fails_fast_when_remote_bind_missing_api_key(monkeypatch) -> Non
 def test_startup_fails_fast_when_remote_bind_requires_session_secret(monkeypatch) -> None:
     main_module, calls = _load_main_module(monkeypatch)
     monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND", "1")
-    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "test-key")
+    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "k" * 32)
     monkeypatch.setenv("DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE", "1")
     monkeypatch.delenv("DATA_EXTRACT_API_SESSION_SECRET", raising=False)
 
@@ -119,7 +119,7 @@ def test_startup_fails_fast_when_remote_bind_requires_session_secret(monkeypatch
 def test_startup_allows_remote_bind_when_policy_requirements_met(monkeypatch) -> None:
     main_module, calls = _load_main_module(monkeypatch)
     monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND", "1")
-    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "test-key")
+    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "k" * 32)
     monkeypatch.setenv("DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE", "0")
     monkeypatch.delenv("DATA_EXTRACT_API_SESSION_SECRET", raising=False)
 
@@ -127,6 +127,35 @@ def test_startup_allows_remote_bind_when_policy_requirements_met(monkeypatch) ->
 
     assert calls["start"] == 1
     assert calls["set_readiness_report"] == 1
+
+
+def test_startup_fails_when_remote_bind_api_key_too_short(monkeypatch) -> None:
+    main_module, calls = _load_main_module(monkeypatch)
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND", "1")
+    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "short")
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND_MIN_API_KEY_LENGTH", "16")
+    monkeypatch.setenv("DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE", "0")
+
+    with pytest.raises(RuntimeError, match="Remote bind security policy violation"):
+        main_module.startup_event()
+
+    assert calls["start"] == 0
+    assert calls["set_readiness_report"] == 0
+
+
+def test_startup_fails_when_remote_bind_session_secret_too_short(monkeypatch) -> None:
+    main_module, calls = _load_main_module(monkeypatch)
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND", "1")
+    monkeypatch.setenv("DATA_EXTRACT_API_KEY", "k" * 32)
+    monkeypatch.setenv("DATA_EXTRACT_API_REMOTE_BIND_MIN_SESSION_SECRET_LENGTH", "16")
+    monkeypatch.setenv("DATA_EXTRACT_API_SESSION_SECRET", "short")
+    monkeypatch.setenv("DATA_EXTRACT_API_REQUIRE_SESSION_SECRET_REMOTE", "1")
+
+    with pytest.raises(RuntimeError, match="DATA_EXTRACT_API_SESSION_SECRET must be at least 16"):
+        main_module.startup_event()
+
+    assert calls["start"] == 0
+    assert calls["set_readiness_report"] == 0
 
 
 def test_main_import_does_not_emit_deprecated_fastapi_lifecycle_warnings(monkeypatch) -> None:
