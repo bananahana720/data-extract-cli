@@ -412,6 +412,7 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
                 self, test_dir=tmp_path / "tests"
             ),
         )
+
         def load_declared_success_case(self, pyproject_path=audit_module.PYPROJECT_PATH):
             self.declared_deps = {"pytest"}
             return self.declared_deps

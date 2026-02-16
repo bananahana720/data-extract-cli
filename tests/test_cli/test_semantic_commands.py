@@ -99,7 +99,14 @@ class TestSubprocessExecution:
         assert result.success is True
         assert result.exit_code == 0
         assert result.output == "done"
-        assert seen["cmd"] == [sys.executable, "-m", "data_extract.app", "semantic", "topics", "./chunks"]
+        assert seen["cmd"] == [
+            sys.executable,
+            "-m",
+            "data_extract.app",
+            "semantic",
+            "topics",
+            "./chunks",
+        ]
         assert seen["capture_output"] is True
         assert seen["text"] is True
         assert seen["timeout"] == 300

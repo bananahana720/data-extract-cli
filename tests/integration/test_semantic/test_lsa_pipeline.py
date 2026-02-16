@@ -485,6 +485,7 @@ class TestLSAEdgeCases:
         Then: Handles gracefully
         """
         import warnings  # noqa: E402
+
         from sklearn.decomposition import TruncatedSVD  # noqa: E402
         from sklearn.feature_extraction.text import TfidfVectorizer  # noqa: E402
 
@@ -554,8 +555,9 @@ class TestLSAEdgeCases:
         When: Applying LSA
         Then: Handles zero-variance gracefully
         """
-        import numpy as np  # noqa: E402
         import warnings  # noqa: E402
+
+        import numpy as np  # noqa: E402
         from sklearn.decomposition import TruncatedSVD  # noqa: E402
         from sklearn.feature_extraction.text import TfidfVectorizer  # noqa: E402
 
