@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 
@@ -23,13 +24,6 @@ from data_extract.api.routers.health import router as health_router
 from data_extract.api.routers.jobs import router as jobs_router
 from data_extract.api.routers.sessions import router as sessions_router
 from data_extract.api.state import runtime
-
-app = FastAPI(title="Data Extract UI API", version="1.0.0")
-app.include_router(auth_router)
-app.include_router(health_router)
-app.include_router(config_router)
-app.include_router(jobs_router)
-app.include_router(sessions_router)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_DIST = PROJECT_ROOT / "ui" / "dist"
@@ -61,6 +55,37 @@ def _remote_security_errors() -> list[str]:
     return errors
 
 
+def startup_event() -> None:
+    """Initialize persistence and worker runtime."""
+    security_errors = _remote_security_errors()
+    if security_errors:
+        raise RuntimeError("Remote bind security policy violation: " + " ".join(security_errors))
+    runtime.start()
+    runtime.set_readiness_report(evaluate_runtime_readiness())
+
+
+def shutdown_event() -> None:
+    """Stop worker runtime."""
+    runtime.stop()
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    startup_event()
+    try:
+        yield
+    finally:
+        shutdown_event()
+
+
+app = FastAPI(title="Data Extract UI API", version="1.0.0", lifespan=lifespan)
+app.include_router(auth_router)
+app.include_router(health_router)
+app.include_router(config_router)
+app.include_router(jobs_router)
+app.include_router(sessions_router)
+
+
 @app.middleware("http")
 async def api_key_guard(request: Request, call_next):  # type: ignore[no-untyped-def]
     """Protect API/docs endpoints when DATA_EXTRACT_API_KEY is configured."""
@@ -82,22 +107,6 @@ async def api_key_guard(request: Request, call_next):  # type: ignore[no-untyped
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
     return await call_next(request)
-
-
-@app.on_event("startup")
-def startup_event() -> None:
-    """Initialize persistence and worker runtime."""
-    security_errors = _remote_security_errors()
-    if security_errors:
-        raise RuntimeError("Remote bind security policy violation: " + " ".join(security_errors))
-    runtime.start()
-    runtime.set_readiness_report(evaluate_runtime_readiness())
-
-
-@app.on_event("shutdown")
-def shutdown_event() -> None:
-    """Stop worker runtime."""
-    runtime.stop()
 
 
 if UI_DIST.exists():

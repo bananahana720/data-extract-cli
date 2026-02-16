@@ -6,6 +6,7 @@ import sys
 import types
 from pathlib import Path
 from types import SimpleNamespace
+import warnings
 
 import pytest
 from fastapi import APIRouter
@@ -126,3 +127,15 @@ def test_startup_allows_remote_bind_when_policy_requirements_met(monkeypatch) ->
 
     assert calls["start"] == 1
     assert calls["set_readiness_report"] == 1
+
+
+def test_main_import_does_not_emit_deprecated_fastapi_lifecycle_warnings(monkeypatch) -> None:
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always", DeprecationWarning)
+        _load_main_module(monkeypatch)
+
+    assert not any(
+        "on_event is deprecated" in str(w.message)
+        for w in captured
+        if issubclass(w.category, DeprecationWarning)
+    )
