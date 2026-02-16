@@ -122,7 +122,7 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(summaryCard).toContainText("Local Path is selected but Input Path is empty.");
     await expect(submitButton).toBeDisabled();
     await expect(verifyAcknowledge).not.toBeChecked();
-    await expect(submitFeedback).toContainText("Resolve all blocking reasons in Verify Before Run");
+    await expect(submitFeedback).toContainText("Resolve all blocking reasons");
     await expect(semanticToggle).toBeVisible();
     await semanticToggle.check();
 
@@ -236,7 +236,7 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(page.getByTestId("job-next-action")).toContainText("Artifacts are already cleaned");
     await expect(page.getByTestId("job-actions-hint")).toContainText("Artifacts are already cleaned");
 
-    await page.getByRole("link", { name: "Jobs" }).click();
+    await page.getByTestId("job-back-to-jobs").click();
     await expect(page).toHaveURL(/\/jobs$/);
     await expect(page.getByTestId("jobs-page")).toBeVisible();
     await expect(page.getByTestId("jobs-summary-total")).not.toHaveText("0");

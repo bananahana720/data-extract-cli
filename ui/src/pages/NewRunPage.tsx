@@ -1,9 +1,10 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
   Button,
   Checkbox,
+  Collapse,
   Divider,
   FormControl,
   FormControlLabel,
@@ -17,7 +18,7 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   createProcessJob,
@@ -136,6 +137,10 @@ function getFileSignature(file: File): string {
   return `${relativePath}:${file.name}:${file.size}:${file.lastModified}:${file.type}`;
 }
 
+function getFileDisplayName(file: File): string {
+  return getRelativePath(file) || file.name;
+}
+
 function buildValidationSnapshot(params: {
   sourceMode: SourceMode;
   inputPath: string;
@@ -190,6 +195,7 @@ function getContextReadinessStatus(progressPercent: number): "success" | "info" 
 
 export function NewRunPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const filesInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
 
@@ -244,6 +250,20 @@ export function NewRunPage() {
     () => selectedFiles.reduce((total, file) => total + file.size, 0),
     [selectedFiles]
   );
+  const uploadLiveRegionMessage = useMemo(() => {
+    if (selectedFiles.length === 0) {
+      return "Upload list updated. No files selected.";
+    }
+
+    const announcedNames = selectedFiles
+      .slice(0, 5)
+      .map((file) => getFileDisplayName(file))
+      .join(", ");
+    const remainingCount = selectedFiles.length - 5;
+    const remainder = remainingCount > 0 ? `, and ${remainingCount} more files.` : ".";
+
+    return `Upload list updated. ${selectedFiles.length} file(s) selected (${formatBytes(totalUploadBytes)} total): ${announcedNames}${remainder}`;
+  }, [selectedFiles, totalUploadBytes]);
 
   const validationSnapshot = useMemo(
     () =>
@@ -378,7 +398,7 @@ export function NewRunPage() {
   const isSubmitDisabled = isSubmitting || hasBlockingIssues || !verifyAcknowledged;
 
   const gateReason = hasBlockingIssues
-    ? "Resolve all blocking reasons in Verify Before Run to enable Start Run."
+    ? "Resolve all blocking reasons listed in the validation summary to enable Start Run."
     : !verifyAcknowledged
       ? "Check the verification acknowledgement to enable Start Run."
       : "Ready to start the run.";
@@ -391,8 +411,25 @@ export function NewRunPage() {
     async function loadPresets() {
       try {
         const [presets, currentPreset] = await Promise.all([listConfigPresets(), getCurrentPreset()]);
+        const queryPreset = new URLSearchParams(location.search).get("preset")?.trim() || "";
+        const presetFromState =
+          typeof (location.state as { preset?: unknown } | null)?.preset === "string"
+            ? ((location.state as { preset: string }).preset || "").trim()
+            : "";
+        const requestedPreset = queryPreset || presetFromState;
+
         setAvailablePresets(presets);
         setPresetLoadWarning(null);
+        if (requestedPreset) {
+          if (presets.some((item) => item.name === requestedPreset)) {
+            setPreset(requestedPreset);
+            setSubmitFeedback(`Preset "${requestedPreset}" preselected from navigation context.`);
+            return;
+          }
+          setPresetLoadWarning(
+            `Preset "${requestedPreset}" is not available. Continuing with current/default preset.`
+          );
+        }
         if (currentPreset && presets.some((item) => item.name === currentPreset)) {
           setPreset((current) => current || currentPreset);
         }
@@ -405,7 +442,7 @@ export function NewRunPage() {
     }
 
     void loadPresets();
-  }, []);
+  }, [location.search, location.state]);
 
   useEffect(() => {
     if (verifyAcknowledged && verifiedSnapshotKey && verifiedSnapshotKey !== verificationSnapshotKey) {
@@ -452,6 +489,17 @@ export function NewRunPage() {
     setError(null);
     setSubmitFeedback("");
     setFieldErrors((current) => ({ ...current, path: undefined, upload: undefined }));
+  }
+
+  function handleUploadDropzoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      filesInputRef.current?.click();
+    }
   }
 
   function addFiles(nextList: FileList | null) {
@@ -689,6 +737,33 @@ export function NewRunPage() {
       builderPanel={
         <Box component="form" id="new-run-form" onSubmit={onSubmit} noValidate data-testid="new-run-form">
           <Stack spacing={2.5}>
+            {hasBlockingIssues ? (
+              <Alert
+                severity="warning"
+                variant="outlined"
+                role="status"
+                aria-live="polite"
+                data-testid="new-run-blocking-summary"
+              >
+                <Typography component="p" variant="body2" sx={{ fontWeight: 600, mb: 0.75 }}>
+                  Start Run is blocked until these items are fixed:
+                </Typography>
+                <Box component="ul" sx={{ my: 0, pl: 2, display: "grid", gap: 0.5 }}>
+                  {validationSnapshot.blockingIssues.map((issue) => (
+                    <li key={issue}>
+                      <Typography component="span" variant="body2">
+                        {issue}
+                      </Typography>
+                    </li>
+                  ))}
+                </Box>
+              </Alert>
+            ) : !verifyAcknowledged ? (
+              <Alert severity="info" variant="outlined" role="status" aria-live="polite">
+                Validation checks are clear. Complete Verify Before Run acknowledgement to enable Start Run.
+              </Alert>
+            ) : null}
+
             <SectionCard title="Input Source" subtitle="Only the selected source is submitted.">
               <FormControl component="fieldset">
                 <FormLabel id="source-mode-help">Choose source mode</FormLabel>
@@ -714,6 +789,10 @@ export function NewRunPage() {
                   />
                 </RadioGroup>
               </FormControl>
+              <Alert severity="info" variant="outlined" sx={{ mt: 1.5 }} data-testid="new-run-selected-source-banner">
+                Selected source: <strong>{sourceMode === "path" ? "Local Path" : "Upload Files/Folder"}</strong>.
+                Configure only this panel below to reduce setup errors.
+              </Alert>
             </SectionCard>
 
             <SectionCard
@@ -725,32 +804,44 @@ export function NewRunPage() {
                   label={sourceMode === "path" ? "Selected Source" : "Not Selected"}
                 />
               }
-              sx={{ opacity: sourceMode === "path" ? 1 : 0.8 }}
+              sx={{
+                opacity: sourceMode === "path" ? 1 : 0.78,
+                borderColor: sourceMode === "path" ? "success.main" : "divider",
+                borderWidth: sourceMode === "path" ? 2 : 1,
+                backgroundColor: sourceMode === "path" ? "action.hover" : "transparent"
+              }}
             >
-              <Stack spacing={1}>
-                <TextField
-                  id="new-run-input-path"
-                  label="Input Path"
-                  placeholder="/path/to/documents"
-                  value={inputPath}
-                  onChange={(event) => {
-                    setInputPath(event.target.value);
-                    setFieldErrors((current) => ({ ...current, path: undefined }));
-                  }}
-                  inputProps={{ "data-testid": "new-run-input-path" }}
-                  required={sourceMode === "path"}
-                  error={Boolean(fieldErrors.path)}
-                  aria-describedby="new-run-input-path-help new-run-input-path-error"
-                />
-                <FormHelperText id="new-run-input-path-help">
-                  Required when Local Path is selected. The value is trimmed before submit.
-                </FormHelperText>
-                {fieldErrors.path ? (
-                  <FormHelperText error id="new-run-input-path-error" role="alert">
-                    {fieldErrors.path}
+              <Collapse in={sourceMode === "path"} unmountOnExit>
+                <Stack spacing={1}>
+                  <TextField
+                    id="new-run-input-path"
+                    label="Input Path"
+                    placeholder="/path/to/documents"
+                    value={inputPath}
+                    onChange={(event) => {
+                      setInputPath(event.target.value);
+                      setFieldErrors((current) => ({ ...current, path: undefined }));
+                    }}
+                    inputProps={{ "data-testid": "new-run-input-path" }}
+                    required={sourceMode === "path"}
+                    error={Boolean(fieldErrors.path)}
+                    aria-describedby="new-run-input-path-help new-run-input-path-error"
+                  />
+                  <FormHelperText id="new-run-input-path-help">
+                    Required when Local Path is selected. The value is trimmed before submit.
                   </FormHelperText>
-                ) : null}
-              </Stack>
+                  {fieldErrors.path ? (
+                    <FormHelperText error id="new-run-input-path-error" role="alert">
+                      {fieldErrors.path}
+                    </FormHelperText>
+                  ) : null}
+                </Stack>
+              </Collapse>
+              <Collapse in={sourceMode !== "path"} unmountOnExit>
+                <Alert severity="info" variant="outlined">
+                  Local Path is currently collapsed. Switch source mode to edit path inputs.
+                </Alert>
+              </Collapse>
             </SectionCard>
 
             <SectionCard
@@ -762,152 +853,191 @@ export function NewRunPage() {
                   label={sourceMode === "upload" ? "Selected Source" : "Not Selected"}
                 />
               }
-              sx={{ opacity: sourceMode === "upload" ? 1 : 0.8 }}
+              sx={{
+                opacity: sourceMode === "upload" ? 1 : 0.78,
+                borderColor: sourceMode === "upload" ? "success.main" : "divider",
+                borderWidth: sourceMode === "upload" ? 2 : 1,
+                backgroundColor: sourceMode === "upload" ? "action.hover" : "transparent"
+              }}
             >
-              <Stack spacing={1.25}>
-                <Typography variant="body2" id="new-run-upload-help" color="text.secondary">
-                  Required when Upload Files/Folder is selected. You can drop files or use file picker controls.
-                </Typography>
-                <Box
-                  role="group"
-                  data-testid="new-run-upload-dropzone"
-                  aria-label="Upload dropzone"
-                  aria-describedby="new-run-upload-help new-run-upload-error"
-                  aria-invalid={Boolean(fieldErrors.upload)}
-                  onClick={(event) => {
-                    if (event.target === event.currentTarget) {
-                      filesInputRef.current?.click();
-                    }
-                  }}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    addFiles(event.dataTransfer.files);
-                  }}
-                  sx={{
-                    border: 1,
-                    borderStyle: "dashed",
-                    borderColor: fieldErrors.upload ? "error.main" : "divider",
-                    borderRadius: 2,
-                    p: 2,
-                    display: "grid",
-                    gap: 1,
-                    cursor: "pointer"
-                  }}
-                >
-                  <Typography variant="body1">Drop files here</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Drag files into this area, or use the chooser buttons.
+              <Collapse in={sourceMode === "upload"} unmountOnExit>
+                <Stack spacing={1.25}>
+                  <Typography variant="body2" id="new-run-upload-help" color="text.secondary">
+                    Required when Upload Files/Folder is selected. You can drop files or use file picker controls.
                   </Typography>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                    <Button
-                      type="button"
-                      variant="contained"
-                      onClick={() => filesInputRef.current?.click()}
-                      data-testid="new-run-upload-choose-files"
-                    >
-                      Choose Files
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      onClick={() => folderInputRef.current?.click()}
-                      data-testid="new-run-upload-choose-folder"
-                    >
-                      Choose Folder
-                    </Button>
-                  </Stack>
-                  <input
-                    ref={filesInputRef}
-                    type="file"
-                    multiple
-                    hidden
-                    onChange={(event) => addFiles(event.target.files)}
-                  />
-                  <input
-                    ref={folderInputRef}
-                    type="file"
-                    hidden
-                    // @ts-expect-error webkitdirectory is non-standard but widely supported.
-                    webkitdirectory=""
-                    onChange={(event) => addFiles(event.target.files)}
-                  />
-                </Box>
-
-                {fieldErrors.upload ? (
-                  <FormHelperText error id="new-run-upload-error" role="alert">
-                    {fieldErrors.upload}
-                  </FormHelperText>
-                ) : null}
-
-                {fileNames.length > 0 ? (
                   <Box
-                    data-testid="new-run-upload-file-list"
+                    role="group"
+                    data-testid="new-run-upload-dropzone"
+                    aria-label="Upload dropzone. Press Enter or Space to open the file chooser."
+                    aria-describedby="new-run-upload-help new-run-upload-error new-run-upload-live-region"
+                    aria-invalid={Boolean(fieldErrors.upload)}
+                    tabIndex={0}
+                    onClick={(event) => {
+                      if (event.target === event.currentTarget) {
+                        filesInputRef.current?.click();
+                      }
+                    }}
+                    onKeyDown={handleUploadDropzoneKeyDown}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      addFiles(event.dataTransfer.files);
+                    }}
                     sx={{
                       border: 1,
-                      borderColor: "divider",
+                      borderStyle: "dashed",
+                      borderColor: fieldErrors.upload ? "error.main" : "divider",
                       borderRadius: 2,
-                      p: 1.5,
+                      p: 2,
                       display: "grid",
-                      gap: 1
+                      gap: 1,
+                      cursor: "pointer",
+                      "&:focus-visible": {
+                        borderColor: fieldErrors.upload ? "error.main" : "primary.main",
+                        boxShadow: "var(--ds-focus-ring)",
+                      }
                     }}
                   >
-                    <Typography variant="subtitle2" data-testid="new-run-upload-file-count">
-                      {fileNames.length} file(s) ready
-                    </Typography>
+                    <Typography variant="body1">Drop files here</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {formatBytes(totalUploadBytes)} total
+                      Drag files into this area, or use the chooser buttons.
                     </Typography>
-                    <Box component="ul" sx={{ m: 0, pl: 2, display: "grid", gap: 0.5 }}>
-                      {selectedFiles.slice(0, 8).map((file, index) => (
-                        <Box
-                          component="li"
-                          key={getFileSignature(file)}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 1
-                          }}
-                        >
-                          <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
-                            {getRelativePath(file) || file.name}
-                          </Typography>
-                          <Button
-                            type="button"
-                            size="small"
-                            onClick={() => {
-                              const fileSignature = getFileSignature(file);
-                              setSelectedFiles((prev) =>
-                                prev.filter((candidate) => getFileSignature(candidate) !== fileSignature)
-                              );
-                              setFieldErrors((current) => ({ ...current, upload: undefined }));
-                            }}
-                            data-testid={`new-run-upload-remove-${index}`}
-                          >
-                            Remove
-                          </Button>
-                        </Box>
-                      ))}
-                    </Box>
-                    {fileNames.length > 8 ? (
-                      <Typography variant="caption" color="text.secondary">
-                        and {fileNames.length - 8} more
-                      </Typography>
-                    ) : null}
-                    <Box>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                       <Button
                         type="button"
-                        size="small"
-                        onClick={resetUploads}
-                        data-testid="new-run-upload-clear"
+                        variant="contained"
+                        onClick={() => filesInputRef.current?.click()}
+                        data-testid="new-run-upload-choose-files"
                       >
-                        Clear uploads
+                        Choose Files
                       </Button>
-                    </Box>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        onClick={() => folderInputRef.current?.click()}
+                        data-testid="new-run-upload-choose-folder"
+                      >
+                        Choose Folder
+                      </Button>
+                    </Stack>
+                    <input
+                      ref={filesInputRef}
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={(event) => addFiles(event.target.files)}
+                    />
+                    <input
+                      ref={folderInputRef}
+                      type="file"
+                      hidden
+                      // @ts-expect-error webkitdirectory is non-standard but widely supported.
+                      webkitdirectory=""
+                      onChange={(event) => addFiles(event.target.files)}
+                    />
                   </Box>
-                ) : null}
-              </Stack>
+                  <Box
+                    id="new-run-upload-live-region"
+                    component="p"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    sx={{
+                      position: "absolute",
+                      width: 1,
+                      height: 1,
+                      p: 0,
+                      m: -1,
+                      overflow: "hidden",
+                      clip: "rect(0 0 0 0)",
+                      whiteSpace: "nowrap",
+                      border: 0
+                    }}
+                  >
+                    {uploadLiveRegionMessage}
+                  </Box>
+
+                  {fieldErrors.upload ? (
+                    <FormHelperText error id="new-run-upload-error" role="alert">
+                      {fieldErrors.upload}
+                    </FormHelperText>
+                  ) : null}
+
+                  {fileNames.length > 0 ? (
+                    <Box
+                      data-testid="new-run-upload-file-list"
+                      sx={{
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 2,
+                        p: 1.5,
+                        display: "grid",
+                        gap: 1
+                      }}
+                    >
+                      <Typography variant="subtitle2" data-testid="new-run-upload-file-count">
+                        {fileNames.length} file(s) ready
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatBytes(totalUploadBytes)} total
+                      </Typography>
+                      <Box component="ul" sx={{ m: 0, pl: 2, display: "grid", gap: 0.5 }}>
+                        {selectedFiles.slice(0, 8).map((file, index) => (
+                          <Box
+                            component="li"
+                            key={getFileSignature(file)}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 1
+                            }}
+                          >
+                            <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
+                              {getFileDisplayName(file)}
+                            </Typography>
+                            <Button
+                              type="button"
+                              size="small"
+                              onClick={() => {
+                                const fileSignature = getFileSignature(file);
+                                setSelectedFiles((prev) =>
+                                  prev.filter((candidate) => getFileSignature(candidate) !== fileSignature)
+                                );
+                                setFieldErrors((current) => ({ ...current, upload: undefined }));
+                              }}
+                              data-testid={`new-run-upload-remove-${index}`}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
+                        ))}
+                      </Box>
+                      {fileNames.length > 8 ? (
+                        <Typography variant="caption" color="text.secondary">
+                          and {fileNames.length - 8} more
+                        </Typography>
+                      ) : null}
+                      <Box>
+                        <Button
+                          type="button"
+                          size="small"
+                          onClick={resetUploads}
+                          data-testid="new-run-upload-clear"
+                        >
+                          Clear uploads
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : null}
+                </Stack>
+              </Collapse>
+              <Collapse in={sourceMode !== "upload"} unmountOnExit>
+                <Alert severity="info" variant="outlined">
+                  Upload controls are currently collapsed.
+                  {fileNames.length > 0 ? ` ${fileNames.length} file(s) are staged and will be kept.` : ""}
+                </Alert>
+              </Collapse>
             </SectionCard>
 
             <SectionCard title="Advanced Settings" subtitle="Tune extraction behavior and semantic artifacts.">
