@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link as RouterLink, useParams } from "react-router-dom";
 
 import { Alert, Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from "@mui/material";
 
@@ -356,6 +356,16 @@ export function JobDetailPage() {
               alignItems={{ xs: "flex-start", md: "center" }}
             >
               <Box>
+                <Button
+                  component={RouterLink}
+                  to="/jobs"
+                  variant="text"
+                  size="small"
+                  data-testid="job-back-to-jobs"
+                  sx={{ px: 0, mb: 0.5, textTransform: "none" }}
+                >
+                  Back to Jobs
+                </Button>
                 <Typography variant="h5" component="h2">
                   Job {job.job_id}
                 </Typography>

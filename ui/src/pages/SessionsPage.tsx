@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
 
 import { listSessions } from "../api/client";
 import { ControlTowerStatusConsole, type ControlTowerActionChip } from "../components/control-tower";
@@ -82,7 +82,35 @@ function toSessionTone(session: SessionSummary): SemanticStatus {
   return "neutral";
 }
 
+function mapSessionFilterToJobsFilter(status: SessionFilter): "running" | "needs_attention" | "completed" | null {
+  if (status === "active") {
+    return "running";
+  }
+  if (status === "needs_attention") {
+    return "needs_attention";
+  }
+  if (status === "completed") {
+    return "completed";
+  }
+  return null;
+}
+
+function toJobsContextHref(params: { query?: string; status?: SessionFilter; sessionId?: string }): string {
+  const nextParams = new URLSearchParams();
+  const normalizedQuery = (params.sessionId ?? params.query ?? "").trim();
+  const mappedStatus = params.status ? mapSessionFilterToJobsFilter(params.status) : null;
+  if (normalizedQuery) {
+    nextParams.set("q", normalizedQuery);
+  }
+  if (mappedStatus) {
+    nextParams.set("status", mappedStatus);
+  }
+  const suffix = nextParams.toString();
+  return suffix ? `/jobs?${suffix}` : "/jobs";
+}
+
 export function SessionsPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -225,6 +253,8 @@ export function SessionsPage() {
         : summary.total > 0
           ? "Stable"
           : "No sessions";
+  const contextualJobsHref = toJobsContextHref({ query, status: statusFilter });
+  const hasContextualJobsHref = contextualJobsHref !== "/jobs";
   const summaryActionChips: ControlTowerActionChip[] = [
     {
       id: "focus-active",
@@ -258,9 +288,9 @@ export function SessionsPage() {
     },
     {
       id: "open-jobs",
-      label: "Open jobs board",
+      label: hasContextualJobsHref ? "Open matching jobs" : "Open jobs board",
       tone: "neutral",
-      href: "/jobs",
+      href: contextualJobsHref,
     },
   ];
 
@@ -389,10 +419,35 @@ export function SessionsPage() {
             {filteredSessions.map((session) => {
               const progressPercent = toProgressPercent(session);
               const progressLabel = `${session.processed_count}/${session.total_files} (${progressPercent}%)`;
+              const sessionJobsHref = toJobsContextHref({
+                sessionId: session.session_id,
+                status: statusFilter !== "all" ? statusFilter : undefined,
+              });
               return (
-                <TableRow key={session.session_id} hover>
+                <TableRow
+                  key={session.session_id}
+                  hover
+                  tabIndex={0}
+                  role="button"
+                  onClick={() => navigate(sessionJobsHref)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate(sessionJobsHref);
+                    }
+                  }}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell sx={{ whiteSpace: "nowrap", fontFamily: "monospace", fontSize: 13 }}>
-                    {session.session_id}
+                    <Link
+                      component={RouterLink}
+                      to={sessionJobsHref}
+                      underline="hover"
+                      color="inherit"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {session.session_id}
+                    </Link>
                   </TableCell>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>
                     <StatusPill status={toSessionTone(session)} label={session.status} />
@@ -441,7 +496,11 @@ export function SessionsPage() {
                 <TableCell colSpan={6}>
                   <EmptyStatePanel
                     title="No sessions match this view"
-                    description="Adjust search or filter criteria to recover the operational list."
+                    description={
+                      query.trim().length > 0
+                        ? `No sessions match "${query.trim()}". Try broadening the query or switch to related jobs.`
+                        : "Adjust filters to recover the operational list, or inspect related jobs for drill-down."
+                    }
                     primaryAction={
                       hasFilters ? (
                         <Button
@@ -453,11 +512,15 @@ export function SessionsPage() {
                         >
                           Clear filters
                         </Button>
-                      ) : undefined
+                      ) : (
+                        <Button component={RouterLink} to="/" variant="text">
+                          Start a new run
+                        </Button>
+                      )
                     }
                     secondaryAction={
-                      <Button component={RouterLink} to="/jobs" variant="outlined">
-                        Inspect jobs
+                      <Button component={RouterLink} to={contextualJobsHref} variant="outlined">
+                        {hasContextualJobsHref ? "Open matching jobs" : "Inspect jobs"}
                       </Button>
                     }
                   />
@@ -470,8 +533,8 @@ export function SessionsPage() {
 
       <Typography variant="body2" color="text.secondary">
         Need a deeper view? Track job-level timeline and retries in{" "}
-        <Link component={RouterLink} to="/jobs" underline="hover">
-          Jobs
+        <Link component={RouterLink} to={contextualJobsHref} underline="hover">
+          {hasContextualJobsHref ? "matching jobs context" : "Jobs"}
         </Link>
         .
       </Typography>
