@@ -14,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
 
 import { listJobs } from "../api/client";
 import { ControlTowerStatusConsole, type ControlTowerActionChip } from "../components/control-tower";
@@ -23,6 +23,7 @@ import type { SemanticStatus } from "../theme/tokens";
 import { JobSummary } from "../types";
 
 type StatusFilter = "all" | "needs_attention" | JobSummary["status"];
+const JOBS_PAGE_SIZE = 100;
 const VALID_STATUS_FILTERS: StatusFilter[] = [
   "all",
   "needs_attention",
@@ -61,10 +62,14 @@ function isNeedsAttentionStatus(status: JobSummary["status"]): boolean {
 }
 
 export function JobsPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadedPageCount, setLoadedPageCount] = useState(1);
+  const [hasMorePages, setHasMorePages] = useState(true);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [pollDelayMs, setPollDelayMs] = useState(2000);
   const query = searchParams.get("q") ?? "";
@@ -81,10 +86,17 @@ export function JobsPage() {
     inFlightRef.current = true;
     setIsRefreshing(true);
     try {
-      const loadedJobs = await listJobs({ limit: 300 });
+      const loadedJobs = await listJobs({ limit: JOBS_PAGE_SIZE });
       const hasActiveJobs = loadedJobs.some((job) => job.status === "queued" || job.status === "running");
       failureStreakRef.current = 0;
-      setJobs(loadedJobs);
+      setJobs((current) => {
+        const freshIds = new Set(loadedJobs.map((job) => job.job_id));
+        const retained = current.filter((job) => !freshIds.has(job.job_id));
+        return [...loadedJobs, ...retained];
+      });
+      if (loadedPageCount === 1) {
+        setHasMorePages(loadedJobs.length === JOBS_PAGE_SIZE);
+      }
       setError(null);
       setLastUpdatedAt(new Date().toISOString());
       setPollDelayMs(hasActiveJobs ? 1000 : 4000);
@@ -98,12 +110,13 @@ export function JobsPage() {
     } finally {
       inFlightRef.current = false;
       setIsRefreshing(false);
+      setIsLoadingMore(false);
     }
-  }, []);
+  }, [loadedPageCount]);
 
   useEffect(() => {
     void refreshJobs();
-  }, [refreshJobs]);
+  }, [refreshJobs, loadedPageCount]);
 
   useEffect(() => {
     const jitter = Math.floor(Math.random() * 150);
@@ -115,6 +128,35 @@ export function JobsPage() {
     };
   }, [refreshJobs, pollDelayMs]);
 
+  const loadMoreJobs = useCallback(async () => {
+    if (!hasMorePages || inFlightRef.current) {
+      return;
+    }
+    inFlightRef.current = true;
+    setIsLoadingMore(true);
+    setError(null);
+    const nextOffset = loadedPageCount * JOBS_PAGE_SIZE;
+    try {
+      const olderJobs = await listJobs({ limit: JOBS_PAGE_SIZE, offset: nextOffset });
+      if (olderJobs.length > 0) {
+        setLoadedPageCount((current) => current + 1);
+      }
+      setJobs((current) => {
+        const existingIds = new Set(current.map((job) => job.job_id));
+        const dedupedOlderJobs = olderJobs.filter((job) => !existingIds.has(job.job_id));
+        return [...current, ...dedupedOlderJobs];
+      });
+      setHasMorePages(olderJobs.length === JOBS_PAGE_SIZE);
+      setLastUpdatedAt(new Date().toISOString());
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Unable to load older jobs";
+      setError(message);
+    } finally {
+      inFlightRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [hasMorePages, loadedPageCount]);
+
   useEffect(() => {
     if (rawStatusFilter && parsedStatusFilter === null) {
       const corrected = new URLSearchParams(searchParams);
@@ -123,7 +165,7 @@ export function JobsPage() {
     }
   }, [parsedStatusFilter, rawStatusFilter, searchParams, setSearchParams]);
 
-  const updateFilters = useCallback(
+  const buildFilterSearchParams = useCallback(
     (next: { query?: string; status?: StatusFilter }) => {
       const nextParams = new URLSearchParams(searchParams);
       const nextQuery = next.query ?? query;
@@ -138,9 +180,25 @@ export function JobsPage() {
       } else {
         nextParams.delete("status");
       }
-      setSearchParams(nextParams, { replace: true });
+      return nextParams;
     },
-    [query, searchParams, setSearchParams, statusFilter]
+    [query, searchParams, statusFilter]
+  );
+
+  const buildFilterHref = useCallback(
+    (next: { query?: string; status?: StatusFilter }) => {
+      const nextParams = buildFilterSearchParams(next);
+      const nextQueryString = nextParams.toString();
+      return nextQueryString ? `/jobs?${nextQueryString}` : "/jobs";
+    },
+    [buildFilterSearchParams]
+  );
+
+  const updateFilters = useCallback(
+    (next: { query?: string; status?: StatusFilter }) => {
+      setSearchParams(buildFilterSearchParams(next), { replace: true });
+    },
+    [buildFilterSearchParams, setSearchParams]
   );
 
   const sortedJobs = useMemo(() => {
@@ -182,6 +240,7 @@ export function JobsPage() {
           ? true
           : job.job_id.toLowerCase().includes(normalizedQuery) ||
             job.input_path.toLowerCase().includes(normalizedQuery) ||
+            (job.session_id?.toLowerCase().includes(normalizedQuery) ?? false) ||
             job.status.toLowerCase().includes(normalizedQuery);
       return statusMatches && queryMatches;
     });
@@ -203,20 +262,27 @@ export function JobsPage() {
       id: "focus-running",
       label: "Focus running",
       tone: "info",
-      href: "/jobs?status=running",
+      href: buildFilterHref({ status: "running" }),
+      onClick: () => {
+        updateFilters({ status: "running" });
+      },
       disabled: summary.running === 0,
     },
     {
       id: "focus-failed",
       label: "Needs attention",
       tone: summary.failed > 0 ? "warning" : "neutral",
-      href: "/jobs?status=needs_attention",
+      href: buildFilterHref({ status: "needs_attention" }),
+      onClick: () => {
+        updateFilters({ status: "needs_attention" });
+      },
       disabled: summary.failed === 0,
     },
     {
       id: "clear-filters",
       label: "Clear filters",
       tone: "neutral",
+      href: buildFilterHref({ query: "", status: "all" }),
       onClick: () => {
         updateFilters({ query: "", status: "all" });
       },
@@ -227,6 +293,9 @@ export function JobsPage() {
       label: "Start new run",
       tone: "success",
       href: "/",
+      onClick: () => {
+        navigate("/");
+      },
     },
   ];
 
@@ -241,7 +310,7 @@ export function JobsPage() {
             type="button"
             variant="outlined"
             onClick={() => void refreshJobs()}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isLoadingMore}
             data-testid="jobs-refresh-button"
           >
             {isRefreshing ? "Refreshing..." : "Refresh"}
@@ -262,7 +331,7 @@ export function JobsPage() {
             id: "jobs-total",
             label: "Total jobs",
             value: summary.total,
-            detail: "Latest 300 jobs",
+            detail: `Loaded ${loadedPageCount} page${loadedPageCount === 1 ? "" : "s"} of ${JOBS_PAGE_SIZE}`,
             tone: "neutral",
             testId: "jobs-summary-total",
           },
@@ -306,7 +375,7 @@ export function JobsPage() {
         <TextField
           id="jobs-filter-search"
           label="Search"
-          placeholder="Job id, path, or status"
+          placeholder="Job id, session id, path, or status"
           value={query}
           onChange={(event) => updateFilters({ query: event.target.value })}
           inputProps={{ "data-testid": "jobs-filter-search" }}
@@ -349,6 +418,11 @@ export function JobsPage() {
       </Stack>
 
       {error ? <Alert severity="error">{error}</Alert> : null}
+
+      <Typography variant="body2" color="text.secondary" data-testid="jobs-pagination-note">
+        Jobs are loaded in pages of {JOBS_PAGE_SIZE}. Showing {filteredJobs.length} matching job(s) from{" "}
+        {sortedJobs.length} loaded.
+      </Typography>
 
       <TableContainer component={Box} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 3 }}>
         <Table size="small" aria-label="Jobs table" data-testid="jobs-table">
@@ -426,6 +500,25 @@ export function JobsPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {sortedJobs.length > 0 ? (
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "flex-start", sm: "center" }}>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => void loadMoreJobs()}
+            disabled={!hasMorePages || isLoadingMore || isRefreshing}
+            data-testid="jobs-load-more"
+          >
+            {isLoadingMore ? "Loading more..." : hasMorePages ? "Load older jobs" : "All pages loaded"}
+          </Button>
+          <Typography variant="caption" color="text.secondary">
+            {hasMorePages
+              ? "Load more to fetch older jobs beyond the initial page."
+              : "No additional pages are currently available."}
+          </Typography>
+        </Stack>
+      ) : null}
     </Stack>
   );
 }
