@@ -8,6 +8,19 @@
 
 ## Quick Reference
 
+## User Documentation
+
+### Start Here
+
+- [Root README](../README.md) - quick project entry point, overview, and quick start
+- [Product Documentation](./product-documentation.md) - product purpose, capabilities, and operational model
+- [User Guide](./user-guide.md) - installation, CLI onboarding, workflows, and troubleshooting
+
+### Common Operator Paths
+
+- [Deployment Guide](./deployment-guide.md) - local and production deployment patterns
+- [Contribution Guide](./contribution-guide.md) - how to work effectively in this repo
+
 ### Backend (`backend`)
 
 - **Type:** backend
@@ -58,8 +71,23 @@
 
 ## Getting Started
 
-1. Start with `project-overview.md` and `source-tree-analysis.md`.
-2. For backend changes, read `architecture-backend.md`, `api-contracts-backend.md`, and `data-models-backend.md`.
-3. For UI/UX changes, read `architecture-ui.md`, `component-inventory-ui.md`, `state-management-patterns-ui.md`, and `api-contracts-ui.md`.
-4. For cross-part changes, include `integration-architecture.md` and `project-parts.json`.
-5. Use this `index.md` as the primary input for brownfield planning workflows.
+1. Start with [Product Documentation](./product-documentation.md) for scope and capabilities.
+2. Continue with [User Guide](./user-guide.md) for first-run setup and commands.
+3. For technical implementation details, use `project-overview.md`, `architecture-backend.md`, and `architecture-ui.md`.
+4. For integration work, include `integration-architecture.md`, `api-contracts-backend.md`, and `api-contracts-ui.md`.
+5. For release or deployment readiness, follow `deployment-guide.md` and `development-guide-*` docs.
+
+## Documentation Quality Notes
+
+- User-facing flow: `user-guide.md`
+- Technical flow: `project-overview.md` and the backend/ui architecture docs
+- Data/API flow: `api-contracts-backend.md` and `api-contracts-ui.md`
+- Process model flow: `component-inventory-*`, `data-models-*`
+
+## Maintenance
+
+- When adding new documentation, keep the index synchronized and preserve this structure:
+  - Product summary
+  - User flow
+  - Engineering flow
+  - Operations flow

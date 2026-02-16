@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 # -----------------------------------------------------------------------------
 # Journey 3: Semantic Analysis (Story 4-5 Focus)
-# Reference: docs/USER_GUIDE.md Section 5.1 Journey 3
+# Reference: docs/user-guide.md Section 5.1 Journey 3
 # -----------------------------------------------------------------------------
 
 
@@ -47,7 +47,7 @@ class TestJourney3SemanticAnalysis:
         Validates that the semantic subcommand is available and documented,
         confirming the semantic analysis command structure is in place.
 
-        Reference: docs/USER_GUIDE.md - Journey 3, Step 2
+        Reference: docs/user-guide.md - Journey 3, Step 2
         """
         # Activate venv and send the semantic help command to display available subcommands
         output = tmux_session.send_and_capture(
@@ -72,7 +72,7 @@ class TestJourney3SemanticAnalysis:
         Validates that the semantic analyze subcommand is available and documented,
         confirming the analysis command infrastructure is in place.
 
-        Reference: docs/USER_GUIDE.md - Journey 3, Step 3
+        Reference: docs/user-guide.md - Journey 3, Step 3
         """
         # Activate venv and send the semantic analyze help command to display available options
         output = tmux_session.send_and_capture(

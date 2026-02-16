@@ -184,6 +184,7 @@ tests/
 
 ## Quick Reference
 
-**See**: `../CLAUDE.md` for project conventions
-**See**: `../docs/architecture/index.md` for technical architecture
-**See**: `../docs/USER_GUIDE.md` for CLI usage
+**See**: `../AGENTS.md` for project conventions
+**See**: `../docs/architecture-backend.md` for technical architecture
+**See**: `../docs/user-guide.md` for CLI usage
+**See**: `../README.md` for quick start and product overview

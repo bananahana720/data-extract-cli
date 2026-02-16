@@ -10,7 +10,7 @@ This journey validates that users can:
 - Use glob patterns for selective processing
 
 Story 5-7: Batch Processing Optimization and Incremental Updates
-Reference: docs/USER_GUIDE.md Section 5.1 Journey 7
+Reference: docs/user-guide.md Section 5.1 Journey 7
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ pytestmark = [
 
 # =============================================================================
 # Journey 7: Incremental Batch Processing
-# Reference: docs/USER_GUIDE.md Section 5.1 Journey 7
+# Reference: docs/user-guide.md Section 5.1 Journey 7
 # =============================================================================
 
 
@@ -58,7 +58,7 @@ class TestJourney7IncrementalBatch:
         - "Unchanged Files: N"
         - Rich panel formatting with clear visual hierarchy
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 1
+        Reference: docs/user-guide.md - Journey 7, Step 1
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -83,7 +83,7 @@ class TestJourney7IncrementalBatch:
         2. Second run: processes only modified + new files
         3. Statistics show what was skipped
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 2
+        Reference: docs/user-guide.md - Journey 7, Step 2
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -114,7 +114,7 @@ class TestJourney7IncrementalBatch:
         - Comparison between full reprocess and incremental time
         - Estimated total time for unchanged files
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 3
+        Reference: docs/user-guide.md - Journey 7, Step 3
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -139,7 +139,7 @@ class TestJourney7IncrementalBatch:
         - State file to be updated with new processing times
         - Output displays "Processing: all files"
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 4
+        Reference: docs/user-guide.md - Journey 7, Step 4
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -163,7 +163,7 @@ class TestJourney7IncrementalBatch:
         - Change summary (New/Modified/Unchanged/Orphan counts)
         - Suggestion for cleanup if orphans exist
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 5
+        Reference: docs/user-guide.md - Journey 7, Step 5
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract status --help",
@@ -188,7 +188,7 @@ class TestJourney7IncrementalBatch:
         - Orphaned output files (no corresponding source)
         - Offers cleanup suggestion: "Run with --cleanup to remove orphans"
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 6
+        Reference: docs/user-guide.md - Journey 7, Step 6
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract status --help",
@@ -211,7 +211,7 @@ class TestJourney7IncrementalBatch:
         - Shows "Matched: N files" before processing
         - Patterns can be combined with --incremental
 
-        Reference: docs/USER_GUIDE.md - Journey 7, Step 7
+        Reference: docs/user-guide.md - Journey 7, Step 7
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",

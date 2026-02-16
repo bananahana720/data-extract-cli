@@ -309,10 +309,11 @@ python -c "from pathlib import Path; fixtures = sorted([(f, f.stat().st_size) fo
 
 ## Related Documentation
 
-- **Testing Strategy**: `docs/TESTING-README.md` - Overall testing framework and standards
-- **CLAUDE.md**: Testing organization, markers, and coverage requirements
+- **Project Entry**: `../../README.md` - quick start and product overview
+- **Testing Strategy**: `../README.md` - Overall testing framework and standards
+- **AGENTS.md**: Security and workflow guardrails
 - **Architecture**: `docs/architecture/index.md` - ADR-005 (Streaming Pipeline), ADR-006 (Continue-On-Error)
-- **Performance Baselines**: `docs/architecture/epic-4-performance-baselines.md` - NFR validation benchmarks
+- **Performance Baselines**: `../performance/README.md` - Performance validation and benchmark commands
 
 ## Story History
 

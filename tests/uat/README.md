@@ -245,6 +245,7 @@ tmux kill-server
 
 ## Related Documentation
 
-- [UX Design Specification](../../docs/USER_GUIDE.md) - Journey definitions
+- [Root README](../../README.md) - entrypoint and quick start
+- [UX Design Specification](../../docs/USER_GUIDE.md) - Journey definitions (legacy alias maintained)
 - [tmux-cli Instructions](../../docs/tmux-cli-instructions.md) - tmux-cli usage guide
 - [Epic 5 Tech Spec](../../docs/tech-spec-epic-5.md) - Technical specification

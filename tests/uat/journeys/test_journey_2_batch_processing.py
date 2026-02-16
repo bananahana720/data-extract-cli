@@ -32,7 +32,7 @@ pytestmark = [
 
 # -----------------------------------------------------------------------------
 # Journey 2: Batch Processing (Enterprise)
-# Reference: docs/USER_GUIDE.md Section 5.1 Journey 2
+# Reference: docs/user-guide.md Section 5.1 Journey 2
 # -----------------------------------------------------------------------------
 
 
@@ -50,7 +50,7 @@ class TestJourney2BatchProcessing:
         - File type filtering options
         - Clear usage instructions
 
-        Reference: docs/USER_GUIDE.md - Journey 2, Step 2
+        Reference: docs/user-guide.md - Journey 2, Step 2
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract validate --help",
@@ -83,7 +83,7 @@ class TestJourney2BatchProcessing:
         - Output configuration (--output, --format)
         - Rich panel formatting in help
 
-        Reference: docs/USER_GUIDE.md - Journey 2, Step 3
+        Reference: docs/user-guide.md - Journey 2, Step 3
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -121,7 +121,7 @@ class TestJourney2BatchProcessing:
         - Chunk size configuration (--chunk-size)
         - Format selection (--format)
 
-        Reference: docs/USER_GUIDE.md - Journey 2, Step 4
+        Reference: docs/user-guide.md - Journey 2, Step 4
         """
         output = tmux_session.send_and_capture(
             "source ./.venv/bin/activate && data-extract process --help",
@@ -225,7 +225,7 @@ class TestJourney2BatchProcessing:
         - Help output displays without errors
         - Panel formatting applied (Rich framework)
 
-        Reference: docs/USER_GUIDE.md - Journey 2 + Journey 7 integration
+        Reference: docs/user-guide.md - Journey 2 + Journey 7 integration
         Story 5-7 AC-5.7-5: Incremental processing flags documented
         """
         output = tmux_session.send_and_capture(

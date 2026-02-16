@@ -25,6 +25,7 @@ Data extraction platform that converts mixed-source files into structured output
 
 ## Documentation Links
 
+- [Root README](../README.md)
 - `docs/architecture-backend.md`
 - `docs/architecture-ui.md`
 - `docs/source-tree-analysis.md`
