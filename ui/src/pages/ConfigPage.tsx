@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 
 import {
   applyConfigPreset,
@@ -366,9 +367,12 @@ export function ConfigPage() {
         loading,
         effectiveConfig,
         previewConfig,
-      }),
+    }),
     [loading, effectiveConfig, previewConfig]
   );
+  const startRunHref = selectedPreset
+    ? `/?preset=${encodeURIComponent(selectedPreset)}&from=config`
+    : "/";
 
   return (
     <Box component="section" data-testid="config-page" sx={{ display: "grid", gap: 2.5, py: { xs: 2, md: 3 } }}>
@@ -466,7 +470,19 @@ export function ConfigPage() {
                 >
                   {applying ? "Applying..." : "Apply Preset"}
                 </Button>
+                <Button
+                  component={RouterLink}
+                  to={startRunHref}
+                  variant="contained"
+                  color="secondary"
+                  disabled={loading}
+                >
+                  {selectedPreset ? `Start New Run (${selectedPreset})` : "Start New Run"}
+                </Button>
               </Stack>
+              <Typography variant="caption" color="text.secondary">
+                Run builder opens with the selected preset prefilled when available.
+              </Typography>
               {statusMessage ? <Alert severity="success">{statusMessage}</Alert> : null}
             </Stack>
           </SectionCard>

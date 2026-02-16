@@ -1,5 +1,5 @@
-import { AppBar, Box, Button, Container, Toolbar, Typography } from "@mui/material";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { AppBar, Box, Breadcrumbs, Button, Container, Link, Toolbar, Typography } from "@mui/material";
+import { Link as RouterLink, NavLink, Route, Routes, matchPath, useLocation } from "react-router-dom";
 
 import { ConfigPage } from "./pages/ConfigPage";
 import { JobDetailPage } from "./pages/JobDetailPage";
@@ -7,7 +7,41 @@ import { JobsPage } from "./pages/JobsPage";
 import { NewRunPage } from "./pages/NewRunPage";
 import { SessionsPage } from "./pages/SessionsPage";
 
+interface BreadcrumbEntry {
+  label: string;
+  to?: string;
+}
+
+function buildBreadcrumbs(pathname: string): BreadcrumbEntry[] {
+  const jobMatch = matchPath("/jobs/:jobId", pathname);
+  if (jobMatch?.params.jobId) {
+    return [
+      { label: "Jobs", to: "/jobs" },
+      { label: `Job ${jobMatch.params.jobId}` },
+    ];
+  }
+
+  if (pathname === "/") {
+    return [{ label: "New Run" }];
+  }
+  if (pathname === "/config") {
+    return [{ label: "Configuration" }];
+  }
+  if (pathname === "/jobs") {
+    return [{ label: "Jobs" }];
+  }
+  if (pathname === "/sessions") {
+    return [{ label: "Sessions" }];
+  }
+
+  return [];
+}
+
 export default function App() {
+  const location = useLocation();
+  const breadcrumbs = buildBreadcrumbs(location.pathname);
+  const currentContext = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : "Control Room";
+
   const navLinkSx = {
     borderRadius: 999,
     border: 1,
@@ -26,7 +60,33 @@ export default function App() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh" }}>
+    <Box sx={{ minHeight: "100vh", position: "relative" }}>
+      <Link
+        href="#main-content"
+        underline="none"
+        sx={{
+          position: "absolute",
+          left: 16,
+          top: 8,
+          zIndex: (theme) => theme.zIndex.tooltip + 1,
+          px: 1.5,
+          py: 0.75,
+          borderRadius: 1.5,
+          border: 1,
+          borderColor: "divider",
+          backgroundColor: "background.paper",
+          color: "text.primary",
+          fontWeight: 600,
+          transform: "translateY(-180%)",
+          transition: "transform 140ms ease",
+          "&:focus, &:focus-visible": {
+            transform: "translateY(0)",
+            boxShadow: "var(--ds-focus-ring)",
+          },
+        }}
+      >
+        Skip to main content
+      </Link>
       <AppBar
         position="static"
         color="transparent"
@@ -73,8 +133,42 @@ export default function App() {
         </Container>
       </AppBar>
 
-      <Box component="main">
+      <Box component="main" id="main-content" tabIndex={-1}>
         <Container maxWidth="lg" sx={{ pb: 5 }}>
+          <Box
+            role="navigation"
+            aria-label="Current view"
+            sx={{ pt: 2, pb: 1.5, display: "grid", gap: 0.5 }}
+          >
+            <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: 0.8 }}>
+              Current View
+            </Typography>
+            {breadcrumbs.length > 1 ? (
+              <Breadcrumbs aria-label="Route breadcrumbs">
+                {breadcrumbs.map((breadcrumb, index) =>
+                  breadcrumb.to ? (
+                    <Link
+                      key={`${breadcrumb.label}-${index}`}
+                      component={RouterLink}
+                      to={breadcrumb.to}
+                      underline="hover"
+                      color="inherit"
+                    >
+                      {breadcrumb.label}
+                    </Link>
+                  ) : (
+                    <Typography key={`${breadcrumb.label}-${index}`} color="text.primary" fontWeight={600}>
+                      {breadcrumb.label}
+                    </Typography>
+                  )
+                )}
+              </Breadcrumbs>
+            ) : (
+              <Typography variant="body2" color="text.primary" fontWeight={600}>
+                {currentContext}
+              </Typography>
+            )}
+          </Box>
           <Routes>
             <Route path="/" element={<NewRunPage />} />
             <Route path="/config" element={<ConfigPage />} />
