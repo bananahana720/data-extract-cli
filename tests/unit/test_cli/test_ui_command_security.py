@@ -5,9 +5,12 @@ import sys
 import types
 from pathlib import Path
 
-from typer.testing import CliRunner
+import pytest
 
-from data_extract.cli.base import create_app
+pytest.importorskip("typer", reason="Typer is required for unit CLI tests")
+from typer.testing import CliRunner  # noqa: E402
+
+from data_extract.cli.base import create_app  # noqa: E402
 
 
 def _stub_ui_dependencies(monkeypatch, tmp_path: Path) -> None:

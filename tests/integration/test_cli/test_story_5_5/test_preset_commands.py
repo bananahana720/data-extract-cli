@@ -15,10 +15,12 @@ from pathlib import Path
 
 import pytest
 import yaml
-from typer.testing import CliRunner
 
-from data_extract.cli.base import create_app
-from data_extract.cli.config.models import PresetConfig, ValidationLevel
+pytest.importorskip("typer", reason="Typer is required for integration CLI tests")
+from typer.testing import CliRunner  # noqa: E402
+
+from data_extract.cli.base import create_app  # noqa: E402
+from data_extract.cli.config.models import PresetConfig, ValidationLevel  # noqa: E402
 
 pytestmark = [pytest.mark.P1, pytest.mark.integration, pytest.mark.story_5_5, pytest.mark.cli]
 

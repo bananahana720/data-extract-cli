@@ -9,10 +9,12 @@ Note: Epic 5 adds enhanced UX features to the CLI.
 from unittest.mock import MagicMock, patch
 
 import pytest
-from typer.testing import CliRunner
 
-from data_extract.cli import app
-from data_extract.output.organization import OrganizationStrategy
+pytest.importorskip("typer", reason="Typer is required for unit CLI tests")
+from typer.testing import CliRunner  # noqa: E402
+
+from data_extract.cli import app  # noqa: E402
+from data_extract.output.organization import OrganizationStrategy  # noqa: E402
 
 # P0: CLI entry point - critical path testing
 pytestmark = [

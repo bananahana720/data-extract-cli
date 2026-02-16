@@ -7,10 +7,12 @@ import json
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
 
-from data_extract.app import app
-from data_extract.semantic.cache import CacheManager
+pytest.importorskip("typer", reason="Typer is required for CLI tests")
+from typer.testing import CliRunner  # noqa: E402
+
+from data_extract.app import app  # noqa: E402
+from data_extract.semantic.cache import CacheManager  # noqa: E402
 
 
 @pytest.fixture

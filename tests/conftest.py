@@ -474,3 +474,27 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "extraction: Extractor tests")
     config.addinivalue_line("markers", "processing: Processor tests")
     config.addinivalue_line("markers", "formatting: Formatter tests")
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    Skip CLI-heavy tests when Typer is unavailable.
+
+    Many CLI test paths import Typer-powered entry points directly.
+    In environments where Typer is not installed, those tests should be
+    skipped rather than failing collection or execution with ImportError.
+    """
+    try:
+        import typer  # noqa: F401
+    except ModuleNotFoundError:
+        tests_root = Path(__file__).resolve().parent
+        skip_paths = (
+            tests_root / "test_cli",
+            tests_root / "unit" / "test_cli",
+            tests_root / "integration" / "test_cli",
+        )
+
+        for item in items:
+            item_path = Path(str(item.fspath)).resolve()
+            if any(item_path.is_relative_to(path) for path in skip_paths):
+                item.add_marker(pytest.mark.skip(reason="Typer is required for CLI tests"))

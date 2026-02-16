@@ -4,9 +4,9 @@ import importlib.util
 import os
 import sys
 import types
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
-import warnings
 
 import pytest
 from fastapi import APIRouter

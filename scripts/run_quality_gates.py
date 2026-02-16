@@ -19,6 +19,7 @@ Note:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -60,6 +61,14 @@ class QualityGateRunner:
         self.start_time = time.time()
         logger.info("initialized_quality_gate_runner", mode=mode, changed_only=changed_only)
 
+    def _build_env(self) -> Dict[str, str]:
+        """Ensure subprocesses can resolve tools from the current Python environment."""
+        env = os.environ.copy()
+        python_bin = str(Path(sys.executable).parent)
+        current_path = env.get("PATH", "")
+        env["PATH"] = f"{python_bin}{os.pathsep}{current_path}" if current_path else python_bin
+        return env
+
     def run_black_check(self) -> Tuple[bool, str]:
         """
         Run Black formatting check.
@@ -71,7 +80,13 @@ class QualityGateRunner:
         cmd = ["black", "--check", "src/", "tests/", "scripts/"]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT)
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=PROJECT_ROOT,
+                env=self._build_env(),
+            )
             success = result.returncode == 0
 
             if success:
@@ -104,7 +119,13 @@ class QualityGateRunner:
         cmd = ["ruff", "check", "src/", "tests/", "scripts/"]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT)
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=PROJECT_ROOT,
+                env=self._build_env(),
+            )
             success = result.returncode == 0
 
             if success:
@@ -139,7 +160,13 @@ class QualityGateRunner:
         cmd = ["mypy", "src/data_extract/", "--strict"]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT)
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=PROJECT_ROOT,
+                env=self._build_env(),
+            )
             success = result.returncode == 0
 
             if success:
@@ -220,7 +247,13 @@ class QualityGateRunner:
                     return True, "No test files for changed sources", {}
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT)
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=PROJECT_ROOT,
+                env=self._build_env(),
+            )
             success = result.returncode == 0
 
             # Parse coverage from output

@@ -20,9 +20,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from typer.testing import CliRunner
 
-from data_extract.cli.base import _reset_app, get_app
+pytest.importorskip("typer", reason="Typer is required for CLI tests")
+from typer.testing import CliRunner  # noqa: E402
+
+from data_extract.cli.base import _reset_app, get_app  # noqa: E402
 
 
 @pytest.fixture
