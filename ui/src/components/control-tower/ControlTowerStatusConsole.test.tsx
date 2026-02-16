@@ -1,8 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
 import { ControlTowerStatusConsole } from "./ControlTowerStatusConsole";
+
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location-probe">{`${location.pathname}${location.search}`}</div>;
+}
 
 describe("ControlTowerStatusConsole", () => {
   it("wires action chips for click, disabled, internal link, and external link behavior", () => {
@@ -10,7 +15,7 @@ describe("ControlTowerStatusConsole", () => {
     const onDisabledRetry = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={["/jobs"]}>
         <ControlTowerStatusConsole
           title="Control Tower"
           statusLabel="Monitoring"
@@ -37,6 +42,13 @@ describe("ControlTowerStatusConsole", () => {
               ariaLabel: "retry disabled"
             },
             {
+              id: "disabled-link",
+              label: "Disabled link",
+              href: "/jobs?status=running",
+              disabled: true,
+              ariaLabel: "disabled link"
+            },
+            {
               id: "job-link",
               label: "Job details",
               href: "/jobs/demo-run"
@@ -48,6 +60,7 @@ describe("ControlTowerStatusConsole", () => {
             }
           ]}
         />
+        <LocationProbe />
       </MemoryRouter>
     );
 
@@ -56,6 +69,11 @@ describe("ControlTowerStatusConsole", () => {
 
     fireEvent.click(screen.getByLabelText("retry disabled"));
     expect(onDisabledRetry).not.toHaveBeenCalled();
+
+    expect(screen.getByTestId("location-probe")).toHaveTextContent("/jobs");
+    fireEvent.click(screen.getByLabelText("disabled link"));
+    expect(screen.getByTestId("location-probe")).toHaveTextContent("/jobs");
+    expect(screen.queryByRole("link", { name: "Disabled link" })).not.toBeInTheDocument();
 
     const internalLink = screen.getByRole("link", { name: "Job details" });
     expect(internalLink).toHaveAttribute("href", "/jobs/demo-run");

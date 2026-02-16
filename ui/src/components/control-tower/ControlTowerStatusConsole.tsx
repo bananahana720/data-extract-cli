@@ -198,8 +198,8 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {actionChips.map((action) => {
               const tone = action.tone ?? defaultMetricTone;
-              const linkProps = action.href ? resolveActionLinkProps(action.href) : {};
               const canInteract = !action.disabled && (Boolean(action.onClick) || Boolean(action.href));
+              const linkProps = canInteract && action.href ? resolveActionLinkProps(action.href) : {};
               return (
                 <Chip
                   key={action.id}

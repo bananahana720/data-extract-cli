@@ -22,9 +22,10 @@ import { EmptyStatePanel, PageSectionHeader, StatusPill } from "../components/fo
 import type { SemanticStatus } from "../theme/tokens";
 import { JobSummary } from "../types";
 
-type StatusFilter = "all" | JobSummary["status"];
+type StatusFilter = "all" | "needs_attention" | JobSummary["status"];
 const VALID_STATUS_FILTERS: StatusFilter[] = [
   "all",
+  "needs_attention",
   "queued",
   "running",
   "completed",
@@ -53,6 +54,10 @@ function toStatusTone(status: JobSummary["status"]): SemanticStatus {
     return "info";
   }
   return "neutral";
+}
+
+function isNeedsAttentionStatus(status: JobSummary["status"]): boolean {
+  return status === "partial" || status === "failed";
 }
 
 export function JobsPage() {
@@ -151,7 +156,7 @@ export function JobsPage() {
         if (job.status === "running") {
           counts.running += 1;
         }
-        if (job.status === "partial" || job.status === "failed") {
+        if (isNeedsAttentionStatus(job.status)) {
           counts.failed += 1;
         }
         if (job.status === "completed") {
@@ -166,7 +171,12 @@ export function JobsPage() {
   const filteredJobs = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return sortedJobs.filter((job) => {
-      const statusMatches = statusFilter === "all" ? true : job.status === statusFilter;
+      const statusMatches =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "needs_attention"
+            ? isNeedsAttentionStatus(job.status)
+            : job.status === statusFilter;
       const queryMatches =
         normalizedQuery.length === 0
           ? true
@@ -200,7 +210,7 @@ export function JobsPage() {
       id: "focus-failed",
       label: "Needs attention",
       tone: summary.failed > 0 ? "warning" : "neutral",
-      href: "/jobs?status=failed",
+      href: "/jobs?status=needs_attention",
       disabled: summary.failed === 0,
     },
     {
@@ -271,7 +281,7 @@ export function JobsPage() {
             value: summary.failed,
             detail: summary.failed > 0 ? "Partial or failed runs detected" : "No failures in list",
             tone: summary.failed > 0 ? "warning" : "success",
-            href: "/jobs?status=failed",
+            href: "/jobs?status=needs_attention",
             testId: "jobs-summary-failed",
           },
           {
@@ -331,6 +341,7 @@ export function JobsPage() {
             <option value="queued">Queued</option>
             <option value="running">Running</option>
             <option value="completed">Completed</option>
+            <option value="needs_attention">Needs attention (partial + failed)</option>
             <option value="partial">Partial</option>
             <option value="failed">Failed</option>
           </Box>
