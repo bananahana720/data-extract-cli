@@ -51,6 +51,11 @@ class CurrentPresetResponse(BaseModel):
 
 
 def _preset_to_effective_config(name: str) -> dict[str, object]:
+    try:
+        PresetManager.validate_name(name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     manager = PresetManager()
     try:
         preset = manager.load(name)
@@ -74,7 +79,10 @@ def _preset_to_effective_config(name: str) -> dict[str, object]:
     if name in names:
         if load_merged_config is None:
             raise HTTPException(status_code=500, detail="Configuration loader unavailable")
-        return cast(dict[str, object], load_merged_config(preset_name=name).to_dict())
+        try:
+            return cast(dict[str, object], load_merged_config(preset_name=name).to_dict())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     raise HTTPException(status_code=404, detail=f"Preset not found: {name}")
 

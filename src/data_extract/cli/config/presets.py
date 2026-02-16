@@ -4,6 +4,7 @@ This module provides the PresetManager class for managing built-in and
 custom preset configurations, including directory operations and file I/O.
 """
 
+import re
 from pathlib import Path
 
 from .models import PresetConfig, ValidationLevel
@@ -21,6 +22,24 @@ def get_preset_directory() -> Path:
     preset_dir = Path.home() / ".data-extract" / "presets"
     preset_dir.mkdir(parents=True, exist_ok=True)
     return preset_dir
+
+
+_PRESET_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+_PRESET_NAME_ERROR = (
+    "Invalid preset name '{name}'. Use only letters, numbers, underscores, hyphens, "
+    "or dots; path separators and '..' are not allowed."
+)
+
+
+def validate_preset_name(name: str) -> str:
+    """Validate a preset name before using it in file paths."""
+    if not name or name != name.strip():
+        raise ValueError(_PRESET_NAME_ERROR.format(name=name))
+    if "/" in name or "\\" in name or ".." in name:
+        raise ValueError(_PRESET_NAME_ERROR.format(name=name))
+    if not _PRESET_NAME_PATTERN.fullmatch(name):
+        raise ValueError(_PRESET_NAME_ERROR.format(name=name))
+    return name
 
 
 # Built-in presets available to all users
@@ -75,6 +94,11 @@ class PresetManager:
             preset_dir: Custom preset directory (defaults to ~/.data-extract/presets/)
         """
         self._preset_dir = preset_dir or get_preset_directory()
+
+    @staticmethod
+    def validate_name(name: str) -> str:
+        """Validate and return a safe preset name."""
+        return validate_preset_name(name)
 
     def get_directory(self) -> Path:
         """Get the preset directory path.
@@ -148,17 +172,19 @@ class PresetManager:
             ValueError: If attempting to overwrite a built-in preset
             FileExistsError: If preset exists and force=False
         """
+        name = self.validate_name(preset.name)
+
         # Protect built-in presets from being overwritten
-        if preset.name in BUILTIN_PRESETS:
-            raise ValueError(f"Cannot overwrite built-in preset: {preset.name}")
+        if name in BUILTIN_PRESETS:
+            raise ValueError(f"Cannot overwrite built-in preset: {name}")
 
         # Ensure directory exists
         self._preset_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if file already exists
-        preset_path = self._preset_dir / f"{preset.name}.yaml"
+        preset_path = self._preset_dir / f"{name}.yaml"
         if preset_path.exists() and not force:
-            raise FileExistsError(f"Preset already exists: {preset.name}")
+            raise FileExistsError(f"Preset already exists: {name}")
 
         # Write to file
         preset_path.write_text(preset.to_yaml())
@@ -179,6 +205,8 @@ class PresetManager:
         Note:
             Custom presets take precedence over built-in presets with the same name
         """
+        name = self.validate_name(name)
+
         # Check custom presets first
         custom_path = self._preset_dir / f"{name}.yaml"
         if custom_path.exists():
@@ -202,6 +230,8 @@ class PresetManager:
             ValueError: If attempting to delete a built-in preset
             KeyError: If custom preset is not found
         """
+        name = self.validate_name(name)
+
         # Protect built-in presets
         if name in BUILTIN_PRESETS:
             raise ValueError(f"Cannot delete built-in preset: {name}")

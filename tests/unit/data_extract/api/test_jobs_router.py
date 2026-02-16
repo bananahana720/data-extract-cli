@@ -90,7 +90,7 @@ def test_enqueue_process_job_json(monkeypatch: pytest.MonkeyPatch) -> None:
 
     request = JsonRequestStub(
         {
-            "input_path": "/tmp/source",
+            "input_path": str(jobs_router_module.JOBS_HOME / "source"),
             "output_format": "json",
             "chunk_size": 128,
         }
@@ -133,7 +133,7 @@ def test_enqueue_process_job_uses_current_preset_when_missing(
 
     request = JsonRequestStub(
         {
-            "input_path": "/tmp/source",
+            "input_path": str(jobs_router_module.JOBS_HOME / "source"),
             "output_format": "json",
             "chunk_size": 128,
         }
@@ -176,7 +176,7 @@ def test_enqueue_process_job_explicit_preset_overrides_persisted_default(
 
     request = JsonRequestStub(
         {
-            "input_path": "/tmp/source",
+            "input_path": str(jobs_router_module.JOBS_HOME / "source"),
             "output_format": "json",
             "chunk_size": 128,
             "preset": "speed",
@@ -213,6 +213,46 @@ def test_enqueue_process_job_multipart_upload(
 
 
 @pytest.mark.unit
+def test_build_process_request_from_form_sanitizes_absolute_upload_filename(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(jobs_router_module, "JOBS_HOME", tmp_path)
+    monkeypatch.setattr(jobs_router_module, "UploadFile", DummyUpload)
+
+    request = MultipartRequestStub(
+        values={},
+        files=[DummyUpload(filename="/etc/passwd", payload=b"x")],
+    )
+    process_request = asyncio.run(
+        _build_process_request_from_form(request, "job-abs")  # type: ignore[arg-type]
+    )
+
+    inputs_dir = (tmp_path / "job-abs" / "inputs").resolve()
+    assert process_request.input_path == str(inputs_dir)
+    assert (inputs_dir / "etc" / "passwd").exists()
+
+
+@pytest.mark.unit
+def test_build_process_request_from_form_sanitizes_traversal_upload_filename(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(jobs_router_module, "JOBS_HOME", tmp_path)
+    monkeypatch.setattr(jobs_router_module, "UploadFile", DummyUpload)
+
+    request = MultipartRequestStub(
+        values={},
+        files=[DummyUpload(filename="../../traversal/../safe.txt", payload=b"x")],
+    )
+    process_request = asyncio.run(
+        _build_process_request_from_form(request, "job-traversal")  # type: ignore[arg-type]
+    )
+
+    inputs_dir = (tmp_path / "job-traversal" / "inputs").resolve()
+    assert process_request.input_path == str(inputs_dir)
+    assert (inputs_dir / "traversal" / "safe.txt").exists()
+
+
+@pytest.mark.unit
 def test_build_process_request_from_form_enforces_upload_limits(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -244,7 +284,7 @@ def test_enqueue_process_job_returns_503_when_queue_is_full(
     monkeypatch.setattr(jobs_router_module.runtime, "enqueue_process", fake_enqueue)
     request = JsonRequestStub(
         {
-            "input_path": "/tmp/source",
+            "input_path": str(jobs_router_module.JOBS_HOME / "source"),
             "output_format": "json",
             "chunk_size": 128,
         }
@@ -266,7 +306,7 @@ def test_build_process_request_from_form_supports_semantic_fields(
 
     request = MultipartRequestStub(
         values={
-            "input_path": "/tmp/source",
+            "input_path": str(tmp_path / "source"),
             "semantic": "true",
             "semantic_report": "true",
             "semantic_export_graph": "true",
@@ -284,6 +324,84 @@ def test_build_process_request_from_form_supports_semantic_fields(
     assert process_request.semantic_export_graph is True
     assert process_request.semantic_graph_format == "dot"
     assert process_request.semantic_duplicate_threshold == 0.9
+
+
+@pytest.mark.unit
+def test_enqueue_process_job_rejects_disallowed_input_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(workspace)
+    monkeypatch.delenv("DATA_EXTRACT_API_ALLOWED_INPUT_ROOTS", raising=False)
+
+    disallowed_input_path = tmp_path / "outside" / "data"
+    request = JsonRequestStub(
+        {
+            "input_path": str(disallowed_input_path),
+            "output_format": "json",
+            "chunk_size": 128,
+        }
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        asyncio.run(enqueue_process_job(request))  # type: ignore[arg-type]
+
+    assert getattr(exc_info.value, "status_code", None) == 400
+    assert "not allowed" in str(getattr(exc_info.value, "detail", ""))
+
+
+@pytest.mark.unit
+def test_enqueue_process_job_accepts_input_path_under_default_cwd_root(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(workspace)
+    monkeypatch.delenv("DATA_EXTRACT_API_ALLOWED_INPUT_ROOTS", raising=False)
+
+    captured: dict[str, object] = {}
+
+    def fake_enqueue(request: ProcessJobRequest, job_id: str | None = None) -> str:
+        captured["request"] = request
+        return job_id or "fallback"
+
+    monkeypatch.setattr(jobs_router_module.runtime, "enqueue_process", fake_enqueue)
+    request = JsonRequestStub(
+        {
+            "input_path": "inputs/data",
+            "output_format": "json",
+            "chunk_size": 128,
+        }
+    )
+    response = asyncio.run(enqueue_process_job(request))  # type: ignore[arg-type]
+
+    assert response.status == "queued"
+    assert isinstance(captured["request"], ProcessJobRequest)
+    assert captured["request"].input_path == str((workspace / "inputs" / "data").resolve())
+
+
+@pytest.mark.unit
+def test_build_process_request_from_form_accepts_input_path_under_explicit_allow_root(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    allowed_root = tmp_path / "allowed-root"
+    workspace.mkdir(parents=True, exist_ok=True)
+    allowed_root.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.chdir(workspace)
+    monkeypatch.setenv("DATA_EXTRACT_API_ALLOWED_INPUT_ROOTS", str(allowed_root))
+
+    request = MultipartRequestStub(
+        values={"input_path": str(allowed_root / "incoming" / "payload.json")},
+        files=[],
+    )
+    process_request = asyncio.run(
+        _build_process_request_from_form(request, "job-allow-root")  # type: ignore[arg-type]
+    )
+
+    assert process_request.input_path == str((allowed_root / "incoming" / "payload.json").resolve())
 
 
 @pytest.mark.unit
