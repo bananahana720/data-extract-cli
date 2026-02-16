@@ -7,19 +7,82 @@
 - `scripts/` contains automation utilities (quality gates, performance runs, security scans).
 - `config/` stores YAML configuration defaults/templates; `alembic/` stores DB migrations.
 
-## Build, Test, and Development Commands
+## Environment Setup
 ```bash
 uv venv --seed && source .venv/bin/activate
 uv pip install -e ".[dev]"
 python -m spacy download en_core_web_md
 ```
-- `pytest -v`: run full Python test suite.
-- `pytest -m "unit and not slow"`: quick local validation.
-- `python scripts/run_quality_gates.py --pre-commit`: Black + Ruff + Mypy checks.
-- `python scripts/run_quality_gates.py --ci-mode`: CI-like checks (includes tests/coverage path).
-- `cd ui && npm install && npm run dev`: run frontend locally.
-- `cd ui && npm run build`: TypeScript build + production bundle.
-- `cd ui && npm run e2e:gui`: run UI lifecycle E2E tests.
+- If `python` is not on `PATH`, use `.venv/bin/python ...` and `.venv/bin/data-extract ...`.
+
+## Development Workflows
+
+### Backend Daily Loop
+1. `pytest -m "unit and not slow" -v`
+2. `python scripts/smoke_test_semantic.py`
+3. `python scripts/run_quality_gates.py --pre-commit`
+
+### Full CI-Style Validation
+1. `python scripts/run_quality_gates.py --ci-mode`
+2. `python scripts/scan_security.py --secrets-only --pre-commit`
+3. `coverage report --fail-under=60`
+
+### Local Runtime (API + UI via CLI)
+1. `data-extract ui --check`
+2. `data-extract ui --reload --port 8765`
+3. Optional processing smoke test:
+   - `data-extract validate ./tests/fixtures -r`
+   - `data-extract process "./tests/fixtures/**/*.txt" --format json --output ./output --recursive`
+
+### UI Development Loop
+1. `cd ui && npm install`
+2. `cd ui && npm run dev`
+3. `cd ui && npm run test:unit`
+4. `cd ui && npm run build`
+5. `cd ui && npm run e2e:gui`
+6. `cd ui && npm run e2e:gui:slo`
+
+### Performance Workflow
+1. `python -m scripts.create_performance_batch`
+2. `python scripts/run_performance_suite.py --suites extractors pipeline cli api_runtime --output-json tests/performance/performance_suite_report.json`
+3. `python scripts/validate_performance.py --ci-mode --run-api-runtime --api-base-url http://127.0.0.1:8765`
+4. Baseline refresh (updates `tests/performance/baselines.json`):
+   - `python scripts/refresh_performance_baselines.py`
+
+### Security Workflow
+1. `python scripts/scan_security.py --secrets-only --format markdown --output security-report-secrets.md`
+2. `python scripts/scan_security.py --deps-only --format markdown --output security-report-deps.md`
+3. `python scripts/scan_security.py --history --max-commits 500 --format markdown --output security-report-history.md`
+
+### Refactor Gate Workflow
+1. `python scripts/run_refactor_gates.py`
+2. `python scripts/validate_installation.py`
+
+## Command Reference
+- Tests:
+  - `pytest -v`
+  - `pytest -m "unit and not slow"`
+  - `pytest -m "not performance and not slow"`
+- Quality gates:
+  - `python scripts/run_quality_gates.py --pre-commit`
+  - `python scripts/run_quality_gates.py --ci-mode`
+  - `python scripts/run_quality_gates.py --changed-only`
+- API load/performance:
+  - `python scripts/run_api_load.py --base-url http://127.0.0.1:8765 --endpoint /api/v1/health --concurrency 8 --duration-seconds 15 --output-json tests/performance/api_runtime_health.json`
+  - `python scripts/run_performance_suite.py --suites api_runtime --api-base-url http://127.0.0.1:8765`
+- Dependency/testing utilities:
+  - `python scripts/audit_dependencies.py --output markdown`
+  - `python scripts/generate_tests.py --story <path-to-story.md> --markers auto`
+  - `python scripts/generate_docs.py --api --coverage --architecture --format markdown`
+- Story/sprint utilities:
+  - `python scripts/generate_story_template.py --story-number 4.1 --epic 4 --title "Story title" --with-tests --with-fixtures`
+  - `python scripts/manage_sprint_status.py --status --verbose`
+- CLI:
+  - `data-extract --help`
+  - `data-extract process --help`
+  - `data-extract batch --help`
+  - `data-extract validate --help`
+  - `data-extract ui --help`
 
 ## Coding Style & Naming Conventions
 - Python uses 4-space indentation, type hints, and 100-character max line length.
