@@ -433,3 +433,31 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         with patch("sys.exit") as mock_exit:
             main()
             mock_exit.assert_called_with(1)
+
+    @pytest.mark.integration
+    @patch("sys.argv", ["audit_dependencies.py", "--output", "markdown", "--update-docs"])
+    def test_main_update_docs_prints_report_path(self, tmp_path, monkeypatch):
+        """Test main function prints the generated dependency report path."""
+        monkeypatch.chdir(tmp_path)
+
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "tests" / "test_sample.py").write_text("import pytest")
+        (tmp_path / "pyproject.toml").write_text('[project]\\ndependencies = ["pytest>=7.0"]')
+
+        import scripts.audit_dependencies as audit_module
+
+        monkeypatch.setattr(audit_module, "PROJECT_ROOT", tmp_path)
+        monkeypatch.setattr(audit_module, "TEST_DIR", tmp_path / "tests")
+        monkeypatch.setattr(audit_module, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
+        monkeypatch.setattr(audit_module, "CACHE_DIR", tmp_path / ".cache" / "dependency_audit")
+        monkeypatch.setattr(audit_module, "DOCS_DIR", tmp_path / "docs")
+
+        with patch("sys.exit") as mock_exit, patch("builtins.print") as mock_print:
+            main()
+            assert mock_exit.called
+
+        printed_messages = [str(call.args[0]) for call in mock_print.call_args_list]
+        assert any(
+            "docs/processes/test-dependency-audit-report.md" in message
+            for message in printed_messages
+        )

@@ -18,7 +18,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
@@ -254,6 +254,28 @@ Estimate: {{ estimate }}
         assert "Metadata" in content
         assert "Owner:" in content
         assert "Estimate:" in content
+
+    @patch("generate_story_template.Path.exists", return_value=True)
+    @patch("generate_story_template.open", mock_open(read_data=""))
+    @patch("generate_story_template.yaml.safe_load")
+    def test_validate_epic_dependencies_uses_numeric_story_sort(
+        self, mock_safe_load, _mock_open, generator
+    ):
+        """Test numeric story dependency comparison instead of lexical string comparison."""
+        mock_safe_load.return_value = {
+            "development_status": {
+                "4-2-previous-blocker": "in_progress",
+                "4.10-current-story": "done",
+            }
+        }
+
+        is_valid, message = generator.validate_epic_dependencies("4", "4.10")
+        assert is_valid is False
+        assert "Prerequisite story 4-2 is not complete" in message
+
+        mock_safe_load.return_value["development_status"]["4-2-previous-blocker"] = "done"
+        is_valid, _message = generator.validate_epic_dependencies("4", "4.10")
+        assert is_valid is True
 
     def test_error_handling(self, temp_dir):
         """Test 7: Error handling (missing args, invalid paths)."""

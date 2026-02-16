@@ -10,6 +10,7 @@ Usage:
 """
 
 import argparse
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -221,10 +222,10 @@ class StoryTemplateGenerator:
     def _generate_wiring_checklist(self) -> dict:
         """Generate wiring checklist template."""
         return {
-                "bom": [
-                    "TODO: List new dependencies/packages",
-                    "If adding dependencies, run scripts/audit_dependencies.py and update docs/DOC_STATUS.md",
-                ],
+            "bom": [
+                "TODO: List new dependencies/packages",
+                "If adding dependencies, run scripts/audit_dependencies.py and update docs/processes/test-dependency-audit-report.md",
+            ],
             "logging": ["TODO: Add structured logging points"],
             "cli": ["TODO: Define CLI flags/commands"],
             "testing": ["TODO: List test requirements"],
@@ -280,14 +281,19 @@ class StoryTemplateGenerator:
 
         dev_status = sprint_data.get("development_status", {})
 
+        target_story = self._story_number_to_tuple(story_number)
         # Check if previous stories in same epic are complete
-        epic_stories = [k for k in dev_status.keys() if k.startswith(f"{epic}-")]
+        epic_stories = [
+            k
+            for k in dev_status.keys()
+            if str(k).startswith(f"{epic}.") or str(k).startswith(f"{epic}-")
+        ]
         for story_key in epic_stories:
-            # Parse story number from key (e.g., "3.5-1-some-title" -> "3.5-1")
-            parts = story_key.split("-")
+            # Parse story number from key (e.g., "4.1-template", "4-2-template", "3.5-1-title")
+            parts = str(story_key).split("-")
             if len(parts) >= 2:
-                other_story_num = f"{parts[0]}-{parts[1]}"
-                if other_story_num < story_number:
+                other_story_num = f"{parts[0]}-{parts[1]}" if parts[1].isdigit() else parts[0]
+                if self._story_number_to_tuple(other_story_num) < target_story:
                     status = dev_status.get(story_key)
                     if status not in ["done", "review"]:
                         return (
@@ -296,6 +302,21 @@ class StoryTemplateGenerator:
                         )
 
         return True, "All dependencies satisfied"
+
+    def _story_number_to_tuple(self, story_number: str) -> tuple[int, ...]:
+        """Normalize a story number into a numeric tuple for version-style comparison."""
+        parts: list[int] = []
+        for segment in re.split(r"[.-]", story_number):
+            if not segment:
+                continue
+            if segment.isdigit():
+                parts.append(int(segment))
+            else:
+                digits = "".join(ch for ch in segment if ch.isdigit())
+                if digits:
+                    parts.append(int(digits))
+
+        return tuple(parts) if parts else (0,)
 
     def generate_test_file(self, story_key: str, story_title: str, output_dir: Path) -> Path:
         """

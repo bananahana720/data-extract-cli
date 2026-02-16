@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Enterprise data extraction tool with modular pipeline architecture for document processing"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Andrew", email = "bananahana720@users.noreply.github.com"},
 ]
@@ -90,6 +90,7 @@ dev = [
     "black>=24.0.0,<25.0",
     "ruff>=0.6.0,<0.7",
     "mypy>=1.11.0,<2.0",
+    "jinja2>=3.0.0",
     "pre-commit>=3.0.0,<4.0",
     "psutil>=5.9.0,<6.0",  # Performance monitoring (Story 2.5.1)
     "memory-profiler>=0.61.0,<1.0",  # Line-by-line memory profiling (Story 2.5.1, optional)

@@ -621,7 +621,10 @@ Examples:
         # Update documentation if requested
         if args.update_docs:
             auditor.update_documentation(report)
-            print("\n✅ Documentation updated under docs/ (see docs/DOC_STATUS.md)", file=sys.stderr)
+            print(
+                "\n✅ Documentation updated under docs/ (see docs/processes/test-dependency-audit-report.md)",
+                file=sys.stderr,
+            )
 
         # Exit with error code if missing dependencies found
         if missing:
