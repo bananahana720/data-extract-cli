@@ -3,6 +3,6 @@
 Saved main document: `docs/source-tree-analysis.md`
 
 Highlights:
-- Multi-part layout with backend in `src/data_extract/` and frontend in `ui/`.
-- Clear entrypoints for CLI, API, and SPA.
-- API integration boundary centralized via `ui/src/api/client.ts`.
+- Multi-part architecture with backend package + React desktop UI.
+- UI now includes dedicated theme/foundation/pattern and domain component layers.
+- Integration boundary remains centralized through `ui/src/api/client.ts` and `/api/v1` routes.

@@ -2,28 +2,31 @@
 
 Primary typed contracts: `ui/src/types.ts`
 
-## Core Types
+## Lifecycle and Job Contracts
 
-- `JobStatus`
-- `JobSummary`
-- `JobDetail`
+- `JobStatus`, `JobSummary`, `JobDetail`
 - `ProcessResultPayload`
-- `JobArtifactEntry`
-- `JobArtifactsResponse`
+- `JobArtifactEntry`, `JobArtifactsResponse`
 - `SessionSummary`
 - `ConfigPresetSummary`
 - `AuthSessionStatus`
+
+## UX Integrity and Guidance Contracts
+
+- `RunReadinessState`
+- `IntegritySeverity`
+- `IntegrityTimelineEventViewModel`
+- `EvidenceReadinessState`
+- `GuidanceTipModel`
+
+## Semantic Contracts
+
 - `SemanticOutcome`
 - `SemanticArtifact`
 
-## Usage
+## Usage Anchors
 
-- Jobs list and filters: `ui/src/pages/JobsPage.tsx`
-- Job detail and lifecycle timeline: `ui/src/pages/JobDetailPage.tsx`
-- Session dashboards: `ui/src/pages/SessionsPage.tsx`
-- Configuration/preset/auth flows: `ui/src/pages/ConfigPage.tsx`
-
-## Contract Source
-
-- Types mirror backend JSON payloads from `api/v1` endpoints.
-- No client-side persistence schema (local DB) detected.
+- Run-builder and verify-before-run gating: `ui/src/pages/NewRunPage.tsx`, `ui/src/components/run-builder/*`
+- Integrity timeline rendering: `ui/src/components/integrity/*`
+- Evidence/readiness handoff cards: `ui/src/components/evidence/*`
+- Control-tower summary flows: `ui/src/components/control-tower/*`

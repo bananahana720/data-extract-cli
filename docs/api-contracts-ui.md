@@ -8,17 +8,17 @@ Client implementation: `ui/src/api/client.ts`
 - `POST /api/v1/auth/session` -> `loginAuthSession`
 - `DELETE /api/v1/auth/session` -> `logoutAuthSession`
 
-## Jobs
+## Job Intake and Operations
 
-- `POST /api/v1/jobs/process` -> `processPath` / `processUpload`
+- `POST /api/v1/jobs/process` -> `createProcessJob`, `createProcessJobWithFiles`
 - `GET /api/v1/jobs` -> `listJobs`
-- `GET /api/v1/jobs/{job_id}` -> `getJobDetail`
-- `POST /api/v1/jobs/{job_id}/retry-failures` -> `retryFailedItems`
+- `GET /api/v1/jobs/{job_id}` -> `getJob`
+- `POST /api/v1/jobs/{job_id}/retry-failures` -> `retryJobFailures`
+- `DELETE /api/v1/jobs/{job_id}/artifacts` -> `cleanupJobArtifacts`
 - `GET /api/v1/jobs/{job_id}/artifacts` -> `listJobArtifacts`
-- `DELETE /api/v1/jobs/{job_id}/artifacts` -> `clearJobArtifacts`
-- `GET /api/v1/jobs/{job_id}/artifacts/{artifact_path}` -> `buildArtifactDownloadUrl`
+- `GET /api/v1/jobs/{job_id}/artifacts/{artifact_path}` -> `getJobArtifactDownloadUrl`
 
-## Sessions and Config
+## Session and Config
 
 - `GET /api/v1/sessions` -> `listSessions`
 - `GET /api/v1/config/effective` -> `getEffectiveConfig`
@@ -27,8 +27,10 @@ Client implementation: `ui/src/api/client.ts`
 - `GET /api/v1/config/presets/{name}/preview` -> `previewConfigPreset`
 - `POST /api/v1/config/presets/{name}/apply` -> `applyConfigPreset`
 
-## Client Contract Behavior
+## Client Resilience and Integrity Behavior
 
-- Typed responses mapped in `ui/src/types.ts`.
-- Request retry and timeout in `apiFetch`/`apiGetWithRetry`.
-- Credentials mode set to `same-origin` for session auth flow.
+- Read requests retry with bounded backoff (`READ_REQUEST_ATTEMPTS=3`).
+- Write requests are single-attempt by default (`WRITE_REQUEST_ATTEMPTS=1`).
+- Requests enforce timeout (`REQUEST_TIMEOUT_MS=15000`) with `AbortController`.
+- Same-origin credentials are used for session-backed auth.
+- `Retry-After` and DB lock responses are interpreted for retry timing.

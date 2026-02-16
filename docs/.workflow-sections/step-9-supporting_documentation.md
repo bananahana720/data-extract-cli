@@ -1,6 +1,6 @@
 # Supporting Documentation Output
 
-Generated/confirmed supporting files:
+Generated/updated supporting files:
 
 - `docs/project-overview.md`
 - `docs/source-tree-analysis.md`
@@ -14,5 +14,6 @@ Generated/confirmed supporting files:
 - `docs/api-contracts-ui.md`
 - `docs/data-models-backend.md`
 - `docs/data-models-ui.md`
+- `docs/state-management-patterns-ui.md`
 - `docs/integration-architecture.md`
 - `docs/project-parts.json`

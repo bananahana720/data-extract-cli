@@ -2,16 +2,18 @@
 
 ## Workflow Expectations
 
-- Use focused commits with conventional prefixes.
-- Run lint, type-check, and tests before opening PR.
-- Include test evidence and affected paths in PR descriptions.
+- Keep commits focused and use concise conventional prefixes (`fix:`, `feat(ui):`, `docs:`, `test:`, `chore:`, etc.).
+- Include test evidence and affected paths in pull requests.
+- For UI changes, include screenshots or interaction notes where relevant.
 
 ## Security Rules
 
-- Never commit `.env` files or secrets.
-- Use safe templates such as `config.yaml.example`.
-- Run security scan script before release-sensitive changes.
+- Never commit `.env` or secret-bearing files.
+- Use environment variables for credentials and sensitive tokens.
+- Validate no secrets are staged before committing.
 
 ## Quality Standards
 
-- Follow repository coding standards and testing guidance in `AGENTS.md`.
+- Run backend quality gates and relevant tests before PR.
+- Run UI build + unit tests for UI-impacting changes.
+- Preserve API contract compatibility unless explicitly planned and documented.

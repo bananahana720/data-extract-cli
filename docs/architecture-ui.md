@@ -2,62 +2,45 @@
 
 ## Executive Summary
 
-The UI is a React + TypeScript single-page application (Vite) that provides operator workflows for runs, jobs, sessions, and configuration by consuming backend `/api/v1` endpoints.
+The UI is a React + TypeScript desktop web console focused on four operator tasks: configuring runs, preparing inputs, launching runs with verification gates, and interpreting results with explicit integrity/evidence signals.
 
 ## Technology Stack
 
-- React 18
-- TypeScript 5
+- React 18 + TypeScript
 - React Router DOM
+- MUI 7 + Emotion styling system
 - Vite build/dev tooling
-- Playwright E2E tests
+- Vitest + RTL unit tests, Playwright e2e flows
 
 ## Architecture Pattern
 
-- Route-driven SPA with centralized API client:
-  - Route shell: `ui/src/App.tsx`
-  - API gateway module: `ui/src/api/client.ts`
-  - Typed contracts: `ui/src/types.ts`
+- **Route-driven SPA shell** (`App.tsx`) with focused pages (`NewRun`, `Jobs`, `JobDetail`, `Sessions`, `Config`)
+- **Tokenized theme foundation** (`ui/src/theme/*`)
+- **Component domain layering** (`foundation`, `patterns`, `run-builder`, `integrity`, `control-tower`, `evidence`)
+- **Centralized API boundary** (`ui/src/api/client.ts`)
 
 ## Data and Contract Architecture
 
-- No client DB schema detected.
-- Typed interfaces mirror backend JSON contracts.
-- Request retry/timeout logic in shared client wrapper.
+- API-facing contracts and view models in `ui/src/types.ts`
+- Includes run-readiness and integrity models:
+  - `RunReadinessState`, `IntegritySeverity`, `IntegrityTimelineEventViewModel`, `EvidenceReadinessState`, `GuidanceTipModel`
+- Contract mapping details: `docs/api-contracts-ui.md`
 
-## API Design (Client Perspective)
+## UX and State Semantics
 
-- Consumes:
-  - auth/session APIs
-  - jobs and artifact APIs
-  - sessions APIs
-  - config/preset APIs
-- Details in `docs/api-contracts-ui.md`.
+- Verify-before-run gate blocks invalid/unsafe submissions until acknowledged.
+- Integrity timeline makes failures/remediation explicit.
+- Control-tower summaries provide high-signal routing into corrective flows.
+- Config evidence cards surface readiness, drift, and handoff actions.
 
-## Component Overview
+## Source Tree and Dev Flow
 
-- Pages:
-  - `NewRunPage`
-  - `JobsPage`
-  - `JobDetailPage`
-  - `SessionsPage`
-  - `ConfigPage`
-- Inventory in `docs/component-inventory-ui.md`.
+- Structure reference: `docs/source-tree-analysis.md`
+- Component catalog: `docs/component-inventory-ui.md`
+- Developer setup: `docs/development-guide-ui.md`
 
-## Source Tree
+## Deployment and Test Strategy
 
-See `docs/source-tree-analysis.md` for UI folder annotation.
-
-## Development Workflow
-
-See `docs/development-guide-ui.md`.
-
-## Deployment Architecture
-
-- Built with `npm run build` to `ui/dist`.
-- Served by backend FastAPI in integrated deployment mode.
-
-## Testing Strategy
-
-- Playwright suites in `ui/e2e/`.
-- Backend/API contract behavior validated by Python test suites and CI.
+- Build output: `ui/dist` (served by backend in integrated mode)
+- Unit test focus: component and gating behavior under `ui/src/**/*.test.tsx`
+- E2E critical flow: `ui/e2e/job-lifecycle.spec.ts`

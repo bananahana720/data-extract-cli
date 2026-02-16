@@ -1,5 +1,27 @@
 export type JobStatus = "queued" | "running" | "completed" | "partial" | "failed";
 
+export type RunReadinessState = "pending" | "ready" | "warning" | "blocked" | "stale";
+
+export type IntegritySeverity = "info" | "success" | "warning" | "error";
+
+export interface IntegrityTimelineEventViewModel {
+  id: string;
+  title: string;
+  occurredAt: string;
+  detail: string;
+  severity: IntegritySeverity;
+  remediation: string;
+}
+
+export type EvidenceReadinessState = "ready" | "missing" | "stale" | "in-progress";
+
+export interface GuidanceTipModel {
+  title?: string;
+  what: string;
+  why?: string;
+  how?: string;
+}
+
 export interface SemanticArtifact {
   name: string;
   path: string;

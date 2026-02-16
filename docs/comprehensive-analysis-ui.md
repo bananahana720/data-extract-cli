@@ -2,26 +2,29 @@
 
 ## Configuration and Entry Patterns
 
-- Entry: `ui/src/main.tsx` -> `ui/src/App.tsx`.
-- Build/proxy config: `ui/vite.config.ts` (dev proxy to backend API).
-- Scripts and test tooling: `ui/package.json`, `ui/playwright.config.ts`.
+- Entry flow: `main.tsx` -> `App.tsx` -> route pages.
+- Theme/tokens centralized in `ui/src/theme/*` and shared via MUI ThemeProvider.
 
-## Auth and Security
+## Interaction Model by Critical Task
 
-- Auth session API integration in `ui/src/api/client.ts` and `ui/src/pages/ConfigPage.tsx`.
-- Same-origin credential usage and retry/timeout handling in API wrapper.
+- Choosing configs: `ConfigPage` with preview/apply and evidence readiness cards.
+- Preparing inputs: `NewRunPage` guided builder with domain context prompts and checklist progress.
+- Launching runs: verify-before-run summary card enforces blocking + acknowledgement gates.
+- Interpreting results: `JobDetailPage` integrity timeline and remediation hints.
 
-## Shared Code and Contracts
+## State, Error, and Integrity Semantics
 
-- Central API client: `ui/src/api/client.ts`.
-- Shared typed contracts: `ui/src/types.ts`.
+- Polling/backoff patterns in Jobs/Sessions/JobDetail avoid tight loops and surface failures.
+- Integrity severity model (`info|success|warning|error`) powers timeline/status components.
+- Readiness states (`pending|ready|warning|blocked|stale`) keep run gating explicit.
 
-## State and Async Patterns
+## Shared Pattern and Accessibility Notes
 
-- Page-local state with hooks.
-- Polling and resilience logic in jobs/detail pages.
+- Componentized UX primitives reduce repeated logic across pages.
+- Key live status regions are annotated (`aria-live`) for update announcements.
+- `data-testid` hooks are retained/expanded for unit and e2e coverage.
 
-## UI Composition
+## Testability and Reliability
 
-- Route-first composition with feature pages under `ui/src/pages/`.
-- Styles and reusable classes centralized in `ui/src/styles.css`.
+- Vitest/RTL coverage added for core UX modules.
+- Playwright lifecycle flow remains aligned with core job lifecycle path.

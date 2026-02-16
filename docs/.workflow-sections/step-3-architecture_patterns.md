@@ -2,23 +2,25 @@
 
 ## Per-Part Patterns
 
-- `backend`: **Modular Pipeline + Service/API Layer**
-  - Extract/Normalize/Chunk/Semantic/Output stages live in dedicated modules under `src/data_extract/`.
-  - API adapters (`src/data_extract/api/`) and CLI adapters (`src/data_extract/cli/`) expose shared core logic.
+- `backend`: **Modular Pipeline + Service/API Adapter Pattern**
+  - Stage modules (`extract`, `normalize`, `chunk`, `semantic`, `output`) isolate processing responsibilities.
+  - Service layer (`src/data_extract/services/`) coordinates runtime, persistence, retry, and workflow orchestration.
+  - API (`src/data_extract/api/`) and CLI (`src/data_extract/cli/`) expose shared domain capabilities.
 
-- `ui`: **React SPA with API Client Layer**
-  - Route-driven client app in `ui/src/App.tsx` and `ui/src/pages/`.
-  - API boundary centralized in `ui/src/api/client.ts` and proxied in dev by `ui/vite.config.ts`.
+- `ui`: **Guided Workflow SPA + Shared Pattern Layer**
+  - Route shell with focused page workflows (`NewRunPage`, `JobsPage`, `JobDetailPage`, `SessionsPage`, `ConfigPage`).
+  - Theme/token foundation (`ui/src/theme/*`, `ui/src/components/foundation/*`) standardizes status semantics and layout.
+  - Task-specific component domains (`run-builder`, `integrity`, `control-tower`, `evidence`, `patterns`) reduce page complexity.
 
 ## Overall System Pattern
 
 - **Client-Server, API-Driven Orchestration**
-  - `ui/` operates as a browser client for job/session/config workflows.
-  - `backend` exposes REST endpoints and execution/state services.
-  - Integration is HTTP/JSON across `/api/*` routes.
+  - UI handles user decision flows and stateful guidance.
+  - Backend exposes operational contracts over `/api/v1/*`.
+  - Shared behavior depends on stable typed contracts in `ui/src/types.ts` and backend response models.
 
-## Constraints and Risks
+## Key Constraints and Risks
 
-- Long-running jobs can create UI staleness without event streaming.
-- Shared contracts between UI client and API endpoints need explicit version discipline.
-- Pipeline changes must preserve test coverage and stage interfaces.
+- Long-running jobs still rely primarily on polling; stale UI state must be surfaced explicitly.
+- Contract changes between backend and UI must stay synchronized.
+- Integrity and readiness signals must stay explicit to avoid silent failure modes.

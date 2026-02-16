@@ -2,67 +2,69 @@
 
 Base path: `/api/v1`
 
-## Auth
+## Auth (`src/data_extract/api/routers/auth.py`)
 
 - `POST /auth/session`
-  - Purpose: create API-key-backed session
-  - Handler: `src/data_extract/api/routers/auth.py`
+  - Request: `{ api_key }`
+  - Response: `SessionStatusResponse`
+  - Purpose: create signed cookie session
 - `GET /auth/session`
-  - Purpose: fetch session status
-  - Handler: `src/data_extract/api/routers/auth.py`
+  - Response: `SessionStatusResponse`
+  - Purpose: current auth/session status
 - `DELETE /auth/session`
-  - Purpose: revoke current session
-  - Handler: `src/data_extract/api/routers/auth.py`
+  - Response: `SessionStatusResponse`
+  - Purpose: clear session cookie
 
-## Jobs
+## Jobs (`src/data_extract/api/routers/jobs.py`)
 
 - `POST /jobs/process`
-  - Purpose: start extraction job (path or upload)
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Request: `ProcessJobRequest` JSON or multipart upload form
+  - Response: `EnqueueJobResponse`
+  - Purpose: queue new processing job
 - `GET /jobs`
-  - Purpose: list jobs with filters and pagination
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Query: `limit`, `offset`
+  - Response: `JobSummary[]`
 - `GET /jobs/{job_id}`
-  - Purpose: job detail and status
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Query: `file_limit`, `event_limit`
+  - Response: job detail with files/events payloads
 - `POST /jobs/{job_id}/retry-failures`
-  - Purpose: retry failed file units
-  - Handler: `src/data_extract/api/routers/jobs.py`
-- `GET /jobs/{job_id}/artifacts`
-  - Purpose: list artifact entries for job
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Response: `EnqueueJobResponse`
+  - Purpose: requeue failed file units
 - `DELETE /jobs/{job_id}/artifacts`
-  - Purpose: clean artifacts for job
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Response: `CleanupResponse`
+  - Purpose: delete persisted artifacts and log cleanup event
+- `GET /jobs/{job_id}/artifacts`
+  - Response: `ArtifactListResponse`
+  - Purpose: list artifact metadata for job
 - `GET /jobs/{job_id}/artifacts/{artifact_path}`
-  - Purpose: resolve/download artifact
-  - Handler: `src/data_extract/api/routers/jobs.py`
+  - Response: file stream
+  - Purpose: download artifact with path traversal guard
 
-## Sessions
+## Sessions (`src/data_extract/api/routers/sessions.py`)
 
 - `GET /sessions`
-  - Purpose: list processing sessions
-  - Handler: `src/data_extract/api/routers/sessions.py`
+  - Response: `SessionSummary[]`
+  - Purpose: list sessions from DB projection with filesystem fallback
 - `GET /sessions/{session_id}`
-  - Purpose: session detail
-  - Handler: `src/data_extract/api/routers/sessions.py`
+  - Response: detailed session payload
+  - Purpose: fetch session details
 
-## Config
+## Config (`src/data_extract/api/routers/config.py`)
 
 - `GET /config/effective`
 - `GET /config/current-preset`
 - `GET /config/presets`
 - `GET /config/presets/{name}/preview`
 - `POST /config/presets/{name}/apply`
-- Handler: `src/data_extract/api/routers/config.py`
 
-## Health
+## Health (`src/data_extract/api/routers/health.py`)
 
 - `GET /health`
-  - Purpose: service readiness and runtime counters
-  - Handler: `src/data_extract/api/routers/health.py`
+  - Query: `detailed`
+  - Purpose: runtime readiness, queue, and security posture summary
 
 ## Security Notes
 
-- API key/session middleware enforced in `src/data_extract/api/main.py`.
-- Session TTL and cookie policy in `src/data_extract/api/routers/auth.py`.
+- Session auth uses signed, short-lived cookies (`SESSION_COOKIE_NAME`) and API key validation.
+- Router-level operations rely on middleware/auth checks configured in `src/data_extract/api/main.py`.
+- Artifact download endpoint validates resolved path to prevent traversal.
