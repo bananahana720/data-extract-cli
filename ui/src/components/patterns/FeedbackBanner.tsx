@@ -29,9 +29,13 @@ export function FeedbackBanner(props: FeedbackBannerProps) {
     ...divProps
   } = props;
   const headingId = useId();
+  const messageId = useId();
   const resolvedMessage = message ?? children;
   const resolvedRole = role ?? (tone === "error" ? "alert" : "status");
   const resolvedLiveRegion = liveRegion ?? (tone === "error" ? "assertive" : "polite");
+  const resolvedLabelledBy = cx(divProps["aria-labelledby"], title ? headingId : undefined) || undefined;
+  const resolvedDescribedBy =
+    cx(divProps["aria-describedby"], resolvedMessage ? messageId : undefined) || undefined;
 
   return (
     <div
@@ -40,7 +44,8 @@ export function FeedbackBanner(props: FeedbackBannerProps) {
       role={resolvedRole}
       aria-live={resolvedLiveRegion}
       aria-atomic={divProps["aria-atomic"] ?? "true"}
-      aria-labelledby={title ? headingId : undefined}
+      aria-labelledby={resolvedLabelledBy}
+      aria-describedby={resolvedDescribedBy}
     >
       {icon ? (
         <div className="feedback-banner__icon" aria-hidden="true">
@@ -48,12 +53,12 @@ export function FeedbackBanner(props: FeedbackBannerProps) {
         </div>
       ) : null}
       <div className="feedback-banner__body">
-        {title ? (
-          <p id={headingId} className="feedback-banner__title">
-            {title}
-          </p>
+        {title ? <h3 id={headingId} className="feedback-banner__title">{title}</h3> : null}
+        {resolvedMessage ? (
+          <div id={messageId} className="feedback-banner__message">
+            {resolvedMessage}
+          </div>
         ) : null}
-        {resolvedMessage ? <div className="feedback-banner__message">{resolvedMessage}</div> : null}
       </div>
       {actions ? <div className="feedback-banner__actions">{actions}</div> : null}
     </div>

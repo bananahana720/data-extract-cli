@@ -1,6 +1,7 @@
 import { Alert, AlertTitle, Box, Stack, Typography, type AlertProps } from "@mui/material";
 import { useId, type ReactNode } from "react";
 
+import { spacingTokens, typographyTokens } from "../../theme/tokens";
 import { mergeSx } from "./sx";
 
 export interface GuidanceTipProps extends Omit<AlertProps, "title"> {
@@ -16,10 +17,23 @@ interface GuidanceRowProps {
   value: ReactNode;
 }
 
+const guidanceLabelColumnWidth = spacingTokens.lg * 3;
+
 function GuidanceRow({ label, value }: GuidanceRowProps) {
   return (
-    <Box component="div" sx={{ display: "grid", gap: 0.75, gridTemplateColumns: { xs: "1fr", sm: "72px 1fr" } }}>
-      <Typography component="dt" variant="body2" sx={{ m: 0, fontWeight: 700, color: "text.primary" }}>
+    <Box
+      component="div"
+      sx={{
+        display: "grid",
+        gap: `${spacingTokens.xs}px`,
+        gridTemplateColumns: { xs: "1fr", sm: `${guidanceLabelColumnWidth}px 1fr` },
+      }}
+    >
+      <Typography
+        component="dt"
+        variant="body2"
+        sx={{ m: 0, fontWeight: typographyTokens.fontWeight.bold, color: "text.primary" }}
+      >
         {label}
       </Typography>
       <Typography component="dd" variant="body2" sx={{ m: 0, color: "text.secondary" }}>
@@ -48,15 +62,15 @@ export function GuidanceTip(props: GuidanceTipProps) {
         sx
       )}
     >
-      <AlertTitle id={headingId} sx={{ mb: 1 }}>
+      <AlertTitle id={headingId} sx={{ mb: `${spacingTokens.xs}px` }}>
         {title}
       </AlertTitle>
-      <Box component="dl" sx={{ m: 0, display: "grid", gap: 1 }}>
+      <Box component="dl" sx={{ m: 0, display: "grid", gap: `${spacingTokens.xs}px` }}>
         <GuidanceRow label="What" value={what} />
         {why ? <GuidanceRow label="Why" value={why} /> : null}
         {how ? <GuidanceRow label="How" value={how} /> : null}
       </Box>
-      {action ? <Stack sx={{ mt: 2 }}>{action}</Stack> : null}
+      {action ? <Stack sx={{ mt: `${spacingTokens.md}px` }}>{action}</Stack> : null}
     </Alert>
   );
 }

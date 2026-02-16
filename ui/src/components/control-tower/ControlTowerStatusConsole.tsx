@@ -4,7 +4,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import { type ReactNode } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
-import { statusTokens, type SemanticStatus } from "../../theme/tokens";
+import { shapeTokens, spacingTokens, statusTokens, typographyTokens, type SemanticStatus } from "../../theme/tokens";
 import { StatusPill } from "../foundation";
 import { mergeSx } from "../foundation/sx";
 
@@ -24,7 +24,7 @@ function toneChipSx(tone: SemanticStatus): SxProps<Theme> {
     borderColor: token.border,
     backgroundColor: token.background,
     color: token.foreground,
-    fontWeight: 600,
+    fontWeight: typographyTokens.fontWeight.semibold,
     "&.Mui-disabled": {
       borderColor: alpha(token.foreground, 0.3),
       backgroundColor: alpha(token.background, 0.9),
@@ -106,25 +106,25 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
       data-testid={testId}
       sx={mergeSx(
         {
-          borderRadius: 3,
-          p: 3,
+          borderRadius: `${shapeTokens.radius.lg}px`,
+          p: `${spacingTokens.lg}px`,
         },
         sx
       )}
     >
-      <Stack spacing={2}>
+      <Stack spacing={`${spacingTokens.md}px`}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           alignItems={{ xs: "flex-start", md: "center" }}
           justifyContent="space-between"
-          spacing={1.5}
+          spacing={`${spacingTokens.sm}px`}
         >
           <Box>
             <Typography component="h3" variant="h6">
               {title}
             </Typography>
             {subtitle ? (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: `${spacingTokens.xxs}px` }}>
                 {subtitle}
               </Typography>
             ) : null}
@@ -135,7 +135,7 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
         <Box
           sx={{
             display: "grid",
-            gap: 1.5,
+            gap: `${spacingTokens.sm}px`,
             gridTemplateColumns: {
               xs: "1fr",
               sm: "repeat(2, minmax(0, 1fr))",
@@ -154,13 +154,13 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
                 data-testid={metric.testId}
                 sx={mergeSx(
                   {
-                    p: 1.75,
-                    borderRadius: 2.5,
+                    p: `${spacingTokens.sm}px`,
+                    borderRadius: `${shapeTokens.radius.md}px`,
                   },
                   toneCardSx(tone)
                 )}
               >
-                <Stack spacing={0.75}>
+                <Stack spacing={`${spacingTokens.xs}px`}>
                   <Typography variant="caption" color="text.secondary">
                     {metric.label}
                   </Typography>
@@ -178,7 +178,7 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
                       {...linkProps}
                       sx={{
                         color: "text.primary",
-                        fontWeight: 600,
+                        fontWeight: typographyTokens.fontWeight.semibold,
                         textDecoration: "none",
                         "&:hover": {
                           textDecoration: "underline",
@@ -195,7 +195,7 @@ export function ControlTowerStatusConsole(props: ControlTowerStatusConsoleProps)
         </Box>
 
         {actionChips.length > 0 ? (
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+          <Stack direction="row" spacing={`${spacingTokens.xs}px`} useFlexGap flexWrap="wrap">
             {actionChips.map((action) => {
               const tone = action.tone ?? defaultMetricTone;
               const canInteract = !action.disabled && (Boolean(action.onClick) || Boolean(action.href));

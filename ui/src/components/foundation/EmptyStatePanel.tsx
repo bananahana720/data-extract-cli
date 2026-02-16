@@ -1,6 +1,7 @@
 import { Box, Paper, Stack, Typography, type PaperProps } from "@mui/material";
 import { useId, type ReactNode } from "react";
 
+import { shapeTokens, spacingTokens } from "../../theme/tokens";
 import { mergeSx } from "./sx";
 
 export interface EmptyStatePanelProps extends Omit<PaperProps, "title"> {
@@ -36,15 +37,15 @@ export function EmptyStatePanel(props: EmptyStatePanelProps) {
       aria-labelledby={headingId}
       sx={mergeSx(
         {
-          borderRadius: 3,
+          borderRadius: `${shapeTokens.radius.lg}px`,
           borderStyle: "dashed",
-          p: 3,
+          p: `${spacingTokens.lg}px`,
           textAlign: "center",
         },
         sx
       )}
     >
-      <Stack alignItems="center" spacing={1.25}>
+      <Stack alignItems="center" spacing={`${spacingTokens.sm}px`}>
         {icon ? (
           <Box aria-hidden="true" sx={{ color: "text.secondary", display: "inline-flex" }}>
             {icon}
@@ -59,7 +60,11 @@ export function EmptyStatePanel(props: EmptyStatePanelProps) {
           </Typography>
         ) : null}
         {hasActions ? (
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ mt: 0.5 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={`${spacingTokens.sm}px`}
+            sx={{ mt: `${spacingTokens.xxs}px` }}
+          >
             {primaryAction}
             {secondaryAction}
           </Stack>
