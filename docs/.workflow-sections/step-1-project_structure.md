@@ -8,10 +8,10 @@
 
 1. `backend`
 - Path: `.`
-- Role: Python backend/service and extraction pipeline
+- Role: Python backend/API/CLI and extraction pipeline
 - Detected project type: `backend`
 
 2. `ui`
 - Path: `ui/`
-- Role: React/Vite frontend application
+- Role: React/Vite operator console with guided run, integrity, control-tower, and evidence UX
 - Detected project type: `web`

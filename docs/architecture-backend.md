@@ -2,60 +2,56 @@
 
 ## Executive Summary
 
-The backend is a Python service that combines a Typer CLI and FastAPI API surface over a modular processing pipeline (extract -> normalize -> chunk -> semantic -> output), with persistent job/session state and runtime queue orchestration.
+The backend is a Python service that combines FastAPI and Typer over a modular extraction pipeline. It manages queueing, retries, artifacts, and persistence for run/session lifecycle tracking.
 
 ## Technology Stack
 
 - Python 3.11+
 - FastAPI + Uvicorn
-- SQLAlchemy + Alembic (SQLite default path)
-- Typer CLI + Rich
-- spaCy/scikit-learn/text tooling
+- SQLAlchemy + Alembic
+- Typer + Rich
+- spaCy and scikit-learn for semantic processing
 
 ## Architecture Pattern
 
-- Modular pipeline core with adapter surfaces:
-  - CLI adapter: `src/data_extract/cli/`
+- **Modular pipeline core** (`extract -> normalize -> chunk -> semantic -> output`)
+- **Adapter surfaces**
   - API adapter: `src/data_extract/api/`
-  - Shared services/core pipeline: `src/data_extract/services/` and stage modules
+  - CLI adapter: `src/data_extract/cli/`
+- **Service orchestration layer**
+  - `src/data_extract/services/`
 
 ## Data Architecture
 
 - ORM models in `src/data_extract/api/models.py`
 - Migration history in `alembic/versions/`
-- Runtime schema checks in `src/data_extract/api/database.py`
-- Major tables: jobs, job_files, job_events, sessions, retry_runs, app_settings
+- Core entities: jobs, job_files, job_events, sessions, retry_runs, app_settings
 
 ## API Design
 
-- REST routers under `src/data_extract/api/routers/`:
-  - auth, config, health, jobs, sessions
+- REST routers in `src/data_extract/api/routers/`
+  - auth, jobs, sessions, config, health
 - Base prefix: `/api/v1`
-- Contract coverage documented in `docs/api-contracts-backend.md`
+- Contract details: `docs/api-contracts-backend.md`
 
 ## Component Overview
 
-- `src/data_extract/api/`: HTTP layer and runtime hooks
-- `src/data_extract/services/`: orchestration and business logic
-- `src/data_extract/{extract,normalize,chunk,semantic,output}/`: pipeline stages
-- `src/data_extract/runtime/`: queue worker runtime
+- Runtime queue and readiness signals: `src/data_extract/api/state.py`, `src/data_extract/runtime/queue.py`
+- Persistence and lock-safe DB operations: `src/data_extract/api/database.py`
+- Service orchestration for status/retry/session projections: `src/data_extract/services/*`
 
-## Source Tree
+## Source Tree and Dev Flow
 
-See `docs/source-tree-analysis.md` for annotated structure.
+- Structure reference: `docs/source-tree-analysis.md`
+- Developer setup: `docs/development-guide-backend.md`
 
-## Development Workflow
+## Deployment and Operations
 
-See `docs/development-guide-backend.md`.
-
-## Deployment Architecture
-
-- Backend can serve UI static assets from `ui/dist`.
-- CI/CD checks defined in `.github/workflows/*.yml`.
-- See `docs/deployment-guide.md`.
+- FastAPI can serve built UI assets in integrated deployments.
+- CI/CD checks and quality gates: `docs/deployment-guide.md`
 
 ## Testing Strategy
 
-- Unit/integration/performance/UAT suites under `tests/`
-- API-focused tests in `tests/unit/data_extract/api/`
-- Lint/type/test gates in CI and quality scripts
+- Python test scopes under `tests/`
+- API/service-focused tests under `tests/unit/data_extract/`
+- Quality/lint/type checks enforced by scripts and CI

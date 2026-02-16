@@ -2,21 +2,25 @@
 
 ## Primary Pattern
 
-- Local state per page with React hooks (`useState`, `useEffect`, `useMemo`, `useRef`).
-- No Redux/MobX/Zustand store detected.
+- Feature-local state with React hooks (`useState`, `useEffect`, `useMemo`, `useRef`, `useCallback`).
+- URL query parameters (search/filter) used as durable page state for Jobs and Sessions.
+- No global Redux/Zustand/MobX store.
 
-## Notable Implementations
+## High-Signal Implementations
 
-- `ui/src/pages/JobsPage.tsx`
-  - Polling loop, filter state, derived counts, backoff handling.
-- `ui/src/pages/JobDetailPage.tsx`
-  - Detail state, lifecycle traces, artifact refresh, retry controls.
 - `ui/src/pages/NewRunPage.tsx`
-  - Upload/path source state, validation errors, async submit state.
+  - Guided builder state, validation snapshots, checklist progress, verify-before-run acknowledgement, stale acknowledgement invalidation.
+- `ui/src/pages/JobsPage.tsx`
+  - Polling cadence with jitter/backoff, status/query URL synchronization, summary signal derivation.
+- `ui/src/pages/JobDetailPage.tsx`
+  - Job/event polling, artifact refresh cadence, lifecycle mapping to integrity timeline entries.
+- `ui/src/pages/SessionsPage.tsx`
+  - Session signal aggregation, stale session detection, filter URL synchronization.
 - `ui/src/pages/ConfigPage.tsx`
-  - Auth session state, preset state, preview/apply actions.
+  - Auth/preset/effective config state, preview/apply sequencing, evidence-readiness derivation.
 
-## Async Resilience
+## Async and Error Behavior
 
-- Retry and timeout wrappers in `ui/src/api/client.ts`.
-- Poll interval and lock handling logic in jobs/detail pages.
+- API client handles read retries, timeout aborts, and retry-after semantics.
+- UI surfaces errors in alerts and keeps remediation hints near action surfaces.
+- Integrity state is intentionally explicit (no silent failure patterns in run/detail flows).

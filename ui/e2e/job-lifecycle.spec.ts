@@ -108,6 +108,8 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     const presetSelect = page.getByTestId("new-run-preset");
     const submitButton = page.getByTestId("new-run-submit");
     const summaryCard = page.getByTestId("new-run-summary-card");
+    const verifyAcknowledge = page.getByTestId("new-run-verify-ack");
+    const submitFeedback = page.getByTestId("new-run-submit-feedback");
 
     await expect(sourcePathMode).toBeChecked();
     await expect(sourceUploadMode).not.toBeChecked();
@@ -116,6 +118,11 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(summaryCard).toBeVisible();
     await expect(summaryCard).toContainText("Source Mode");
     await expect(summaryCard).toContainText("Not set");
+    await expect(summaryCard).toContainText("Blocked (1)");
+    await expect(summaryCard).toContainText("Local Path is selected but Input Path is empty.");
+    await expect(submitButton).toBeDisabled();
+    await expect(verifyAcknowledge).not.toBeChecked();
+    await expect(submitFeedback).toContainText("Resolve all blocking reasons in Verify Before Run");
     await expect(semanticToggle).toBeVisible();
     await semanticToggle.check();
 
@@ -126,23 +133,45 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(summaryCard).toContainText("Semantic");
 
     await pathInput.fill("   ");
-    await submitButton.click();
-    await expect(page.locator("#new-run-input-path-error")).toBeVisible();
+    await expect(submitButton).toBeDisabled();
+    await expect(summaryCard).toContainText("Blocked (1)");
 
     await pathInput.fill(sourceDir);
     await chunkSizeInput.fill("12");
-    await submitButton.click();
-    await expect(page.locator("#new-run-chunk-size-error")).toBeVisible();
+    await expect(summaryCard).toContainText("Blocked (1)");
+    await expect(summaryCard).toContainText("Chunk Size must be numeric and at least 32.");
+    await expect(submitButton).toBeDisabled();
 
     await sourceUploadMode.check();
-    await submitButton.click();
-    await expect(page.locator("#new-run-upload-error")).toBeVisible();
+    await expect(summaryCard).toContainText("Blocked (2)");
+    await expect(summaryCard).toContainText("Chunk Size must be numeric and at least 32.");
+    await expect(summaryCard).toContainText("Upload Files/Folder is selected but no files are attached.");
+    await expect(submitButton).toBeDisabled();
 
     await sourcePathMode.check();
     await pathInput.fill(sourceDir);
     await chunkSizeInput.fill("512");
     await expect(summaryCard).toContainText(sourceDir);
     await expect(summaryCard).toContainText("Chunk Size");
+    await expect(summaryCard).toContainText("Pending Verify");
+    await expect(submitButton).toBeDisabled();
+
+    await verifyAcknowledge.check();
+    await expect(summaryCard).toContainText("Verified");
+    await expect(submitButton).toBeEnabled();
+    await expect(submitFeedback).toContainText("Ready to start the run.");
+
+    await chunkSizeInput.fill("640");
+    await expect(verifyAcknowledge).not.toBeChecked();
+    await expect(page.getByTestId("new-run-verify-stale-note")).toContainText(
+      "Verification reset because run inputs changed."
+    );
+    await expect(summaryCard).toContainText("Pending Verify");
+    await expect(submitButton).toBeDisabled();
+    await expect(submitFeedback).toContainText("Check the verification acknowledgement");
+
+    await verifyAcknowledge.check();
+    await expect(submitButton).toBeEnabled();
 
     const processStart = performance.now();
     await submitButton.click();
@@ -217,7 +246,7 @@ test("process -> status -> retry -> cleanup lifecycle", async ({ page, request }
     await expect(page.getByRole("link", { name: jobId })).toBeVisible();
     await page.getByTestId("jobs-filter-search").fill("not-a-real-job-id");
     await expect(page.getByTestId("jobs-filter-empty-state")).toBeVisible();
-    await page.getByRole("button", { name: "Clear filters" }).click();
+    await page.getByTestId("jobs-filter-empty-state").getByRole("button", { name: "Clear filters" }).click();
     await page.getByTestId("jobs-refresh-button").click();
 
     await fs.mkdir(ARTIFACTS_DIR, { recursive: true });
@@ -272,11 +301,11 @@ test("config page supports preset preview and apply", async ({ page }) => {
   await apiKeyInput.fill("e2e-secret");
   await page.getByRole("button", { name: "Sign In" }).click();
   await expect(
-    page.getByText(
-      /Signed in\. Session cookie is active\.|Server API key auth is not configured\.|Unauthorized\./
-    )
+    page
+      .getByText(/Signed in\. Session cookie is active\.|Server API key auth is not configured\.|Unauthorized\./)
+      .first()
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Sign Out" }).click();
-  await expect(page.getByText(/Signed out|Server API key auth is not configured/)).toBeVisible();
+  await expect(page.getByText(/Signed out|Server API key auth is not configured/).first()).toBeVisible();
 });

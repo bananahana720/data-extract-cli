@@ -1,9 +1,11 @@
 # Critical Folders Summary
 
-- `src/data_extract/api/`: API routers, runtime state, DB integration.
-- `src/data_extract/services/`: orchestration and domain services.
-- `src/data_extract/cli/`: command surface and config workflows.
-- `src/data_extract/{extract,normalize,chunk,semantic,output}/`: processing pipeline.
-- `ui/src/`: SPA routes/pages/contracts/client.
-- `tests/`: verification suites across scopes.
-- `scripts/`: quality/perf/security automation.
+- `src/data_extract/api/`: API routers, middleware/auth, DB and runtime integration.
+- `src/data_extract/services/`: orchestration services for jobs/sessions/retries/status.
+- `src/data_extract/{extract,normalize,chunk,semantic,output}/`: processing pipeline stages.
+- `src/data_extract/cli/`: CLI command surface and preset operations.
+- `ui/src/pages/`: task-focused UI workflow pages.
+- `ui/src/components/{foundation,run-builder,integrity,control-tower,evidence,patterns}/`: UX system layers.
+- `ui/src/theme/`: tokenized visual + semantic status system.
+- `tests/` and `ui/e2e/`: backend and frontend verification suites.
+- `scripts/`: quality/performance/security automation.

@@ -4,7 +4,7 @@
 
 - Python 3.11+
 - `uv` package manager
-- Optional: OCR tooling if using OCR extras
+- Optional OCR toolchain when OCR workflows are required
 
 ## Environment Setup
 
@@ -13,14 +13,14 @@
 3. `uv pip install -e ".[dev]"`
 4. `python -m spacy download en_core_web_md`
 
-## Common Commands
+## Core Commands
 
-- Run tests: `pytest -v`
-- Run fast tests: `pytest -m "unit and not slow"`
-- Run quality gates: `python scripts/run_quality_gates.py --pre-commit`
-- CI-style checks: `python scripts/run_quality_gates.py --ci-mode`
+- Full tests: `pytest -v`
+- Fast local unit pass: `pytest -m "unit and not slow"`
+- Quality gate (pre-commit profile): `python scripts/run_quality_gates.py --pre-commit`
+- CI-style quality gate: `python scripts/run_quality_gates.py --ci-mode`
 
-## Key Backend Entry Points
+## Backend Entry Points
 
 - CLI: `src/data_extract/__main__.py`, `src/data_extract/app.py`
 - API: `src/data_extract/api/main.py`

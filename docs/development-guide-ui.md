@@ -10,15 +10,19 @@
 1. `cd ui`
 2. `npm install`
 
-## Common Commands
+## Core Commands
 
-- Dev server: `npm run dev`
+- Local dev server: `npm run dev`
 - Production build: `npm run build`
-- Preview build: `npm run preview`
-- E2E tests: `npm run e2e:gui`
+- Build preview: `npm run preview`
+- Unit tests: `npm run test:unit`
+- Watch-mode unit tests: `npm run test:unit:watch`
+- Critical e2e lifecycle: `npm run e2e:gui`
 
-## Architecture Notes
+## UI Architecture Anchors
 
-- App bootstrap: `ui/src/main.tsx`
+- App bootstrap/theme: `ui/src/main.tsx`, `ui/src/theme/*`
 - Route shell: `ui/src/App.tsx`
-- API integration: `ui/src/api/client.ts`
+- API boundary: `ui/src/api/client.ts`
+- Feature workflows: `ui/src/pages/*`
+- Reusable UI system: `ui/src/components/*`

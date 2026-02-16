@@ -1,11 +1,11 @@
 {
   "workflow_version": "1.2.0",
   "timestamps": {
-    "started": "2026-02-15T22:33:07Z",
-    "last_updated": "2026-02-15T22:52:55Z",
-    "completed": "2026-02-15T22:52:55Z"
+    "started": "2026-02-16T01:18:00Z",
+    "last_updated": "2026-02-16T01:23:23Z",
+    "completed": "2026-02-16T01:23:23Z"
   },
-  "mode": "initial_scan",
+  "mode": "full_rescan",
   "scan_level": "exhaustive",
   "project_root": "/home/andrewhana/projects/codex-fun/data-extraction-tool-main",
   "output_folder": "docs",
@@ -13,85 +13,85 @@
     {
       "step": "step_0_5",
       "status": "completed",
-      "timestamp": "2026-02-15T22:33:07Z",
-      "summary": "Loaded documentation requirements CSV and indexed project types for detection"
+      "timestamp": "2026-02-16T01:18:00Z",
+      "summary": "Loaded documentation requirements for 12 project types from documentation-requirements.csv"
     },
     {
       "step": "step_0_6",
       "status": "completed",
-      "timestamp": "2026-02-15T22:33:07Z",
-      "summary": "No existing docs index found; selected exhaustive scan for initial scan"
+      "timestamp": "2026-02-16T01:18:00Z",
+      "summary": "Detected existing index and selected full_rescan with exhaustive scan level"
     },
     {
       "step": "step_1",
       "status": "completed",
-      "timestamp": "2026-02-15T22:38:54Z",
+      "timestamp": "2026-02-16T01:18:15Z",
       "summary": "Classified as multi-part with 2 parts (backend, ui)"
     },
     {
       "step": "step_2",
       "status": "completed",
-      "timestamp": "2026-02-15T22:40:28Z",
-      "summary": "Found 18 existing documentation artifacts and captured user context"
+      "timestamp": "2026-02-16T01:18:34Z",
+      "summary": "Found 15 existing documentation artifacts and captured UX-focused context"
     },
     {
       "step": "step_3",
       "status": "completed",
-      "timestamp": "2026-02-15T22:41:35Z",
-      "summary": "Tech stack analyzed: Python/FastAPI backend and React/Vite UI"
+      "timestamp": "2026-02-16T01:18:56Z",
+      "summary": "Tech stack analyzed: Python/FastAPI backend and React/MUI/Vite UI"
     },
     {
       "step": "step_4",
       "status": "completed",
-      "timestamp": "2026-02-15T22:45:23Z",
+      "timestamp": "2026-02-16T01:20:24Z",
       "summary": "Conditional exhaustive analysis complete; 8 analysis documents written"
     },
     {
       "step": "step_5",
       "status": "completed",
-      "timestamp": "2026-02-15T22:46:48Z",
-      "summary": "Source tree analysis written with annotated multi-part structure"
+      "timestamp": "2026-02-16T01:20:49Z",
+      "summary": "Source tree documented with updated UI domain component topology"
     },
     {
       "step": "step_6",
       "status": "completed",
-      "timestamp": "2026-02-15T22:49:04Z",
-      "summary": "Development, deployment, and contribution guidance documented"
+      "timestamp": "2026-02-16T01:21:08Z",
+      "summary": "Development, deployment, and contribution guides written"
     },
     {
       "step": "step_7",
       "status": "completed",
-      "timestamp": "2026-02-15T22:51:32Z",
+      "timestamp": "2026-02-16T01:21:25Z",
       "summary": "Integration architecture documented with 5 cross-part integration points"
     },
     {
       "step": "step_8",
       "status": "completed",
-      "timestamp": "2026-02-15T22:51:53Z",
+      "timestamp": "2026-02-16T01:21:45Z",
       "summary": "Architecture docs written for 2 parts (backend, ui)"
     },
     {
       "step": "step_9",
       "status": "completed",
-      "timestamp": "2026-02-15T22:52:14Z",
-      "summary": "Supporting documentation written and multi-part metadata generated"
+      "timestamp": "2026-02-16T01:22:14Z",
+      "summary": "All supporting docs written and multi-part metadata regenerated"
     },
     {
       "step": "step_10",
       "status": "completed",
-      "timestamp": "2026-02-15T22:52:35Z",
-      "summary": "Master index generated with complete navigation and links"
+      "timestamp": "2026-02-16T01:22:33Z",
+      "summary": "Master index generated with complete multi-part navigation"
     },
     {
       "step": "step_11",
       "status": "completed",
-      "timestamp": "2026-02-15T22:52:47Z",
+      "timestamp": "2026-02-16T01:23:12Z",
       "summary": "Validation complete; no incomplete documentation markers detected"
     },
     {
       "step": "step_12",
       "status": "completed",
-      "timestamp": "2026-02-15T22:52:55Z",
+      "timestamp": "2026-02-16T01:23:23Z",
       "summary": "Workflow complete"
     }
   ],
@@ -110,66 +110,66 @@
         "display_name": "UI"
       }
     ],
-    "existing_docs_summary": "18 docs/artifacts inventoried; no top-level architecture/contributing/api/deployment docs",
+    "existing_docs_summary": "15 docs/artifacts inventoried including project-context and UX specification artifacts",
     "technology_stack": {
       "backend": "Python 3.11+, FastAPI, SQLAlchemy/Alembic, Typer",
-      "ui": "React 18, TypeScript 5, Vite 5, React Router, Playwright"
+      "ui": "React 18, TypeScript 5, MUI 7, Vite 5, React Router, Vitest, Playwright"
     },
     "batches_completed": [
       {
         "path": "src/data_extract/api",
         "files_scanned": 24,
-        "summary": "API routers, middleware, state/runtime and DB integration analyzed"
+        "summary": "API routers, auth/session logic, and health/runtime surfaces analyzed"
       },
       {
         "path": "src/data_extract/services",
         "files_scanned": 24,
-        "summary": "Job/session/retry/status services and shared processing flows analyzed"
+        "summary": "Job/session/retry orchestration services analyzed"
       },
       {
         "path": "src/data_extract/{extract,normalize,chunk,semantic,output}",
         "files_scanned": 81,
-        "summary": "Core pipeline stages and output artifacts patterns analyzed"
+        "summary": "Core extraction and semantic processing pipeline analyzed"
       },
       {
         "path": "src/data_extract/cli",
         "files_scanned": 59,
-        "summary": "CLI entrypoints, config/preset commands, and operational workflows analyzed"
+        "summary": "CLI commands, presets, and interactive flows analyzed"
       },
       {
         "path": "ui/src",
-        "files_scanned": 10,
-        "summary": "React pages, client contracts, state patterns, and component usage analyzed"
+        "files_scanned": 40,
+        "summary": "MUI theme foundation, page flows, and feature-domain components analyzed"
       },
       {
         "path": "ui/e2e",
-        "files_scanned": 212,
-        "summary": "UI behavior and lifecycle test coverage patterns analyzed"
+        "files_scanned": 244,
+        "summary": "Lifecycle and UX regression flow coverage analyzed"
       }
     ],
     "conditional_analysis_summary": {
       "backend": {
-        "api_endpoints_documented": 16,
+        "api_endpoints_documented": 18,
         "data_models_documented": 6
       },
       "ui": {
-        "api_contracts_documented": 16,
-        "typed_models_documented": 11,
+        "api_endpoints_consumed": 16,
+        "typed_models_documented": 16,
         "state_patterns_documented": true,
-        "components_documented": 6
+        "components_documented": 22
       }
     },
-    "dev_ops_summary": "Setup commands, CI/CD workflows, deployment approach, and contribution standards documented",
-    "integration_summary": "5 integration points mapped across auth, jobs, config, sessions, and UI asset serving",
+    "dev_ops_summary": "Setup commands, CI/CD workflows, deployment shape, and contribution standards documented",
+    "integration_summary": "5 integration points mapped across auth, jobs, config, sessions, and integrity flows",
     "validation": {
-      "files_generated": 20,
-      "total_markdown_lines": 706,
+      "files_generated": 21,
+      "total_markdown_lines": 767,
       "incomplete_docs_strict": [],
       "incomplete_docs_fuzzy": []
     },
-    "verification_summary": "Repository scanning, structure/classification pass, endpoint/model extraction, docs generation, and index marker validation",
-    "open_risks": "No execution of runtime tests during this workflow; docs reflect static analysis of current repository state",
-    "next_checks": "Run pytest -v, python scripts/run_quality_gates.py --ci-mode, and cd ui && npm run build"
+    "verification_summary": "Regenerated documentation set, scanned index for incomplete markers, and validated index link resolution",
+    "open_risks": "No runtime backend/frontend test suites executed during this documentation workflow; outputs are based on static repository analysis",
+    "next_checks": "Run pytest -v; python scripts/run_quality_gates.py --ci-mode; cd ui && npm run build && npm run test:unit && npx playwright test e2e/job-lifecycle.spec.ts"
   },
   "outputs_generated": [
     "api-contracts-backend.md",

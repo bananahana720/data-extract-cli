@@ -1,21 +1,42 @@
 # Component Inventory - UI
 
-## Layout and Navigation
+## App Shell and Routing
 
-- `ui/src/App.tsx`
-  - App shell, top navigation, route mounting.
-- `ui/src/main.tsx`
-  - Root bootstrap and router provider.
+- `ui/src/main.tsx` (ThemeProvider, CssBaseline, BrowserRouter)
+- `ui/src/App.tsx` (navigation shell + route map)
 
-## Page Components
+## Foundation Layer (`ui/src/components/foundation/*`)
 
-- `ui/src/pages/NewRunPage.tsx` (run submission form and upload workflow)
-- `ui/src/pages/JobsPage.tsx` (job list, filtering, polling)
-- `ui/src/pages/JobDetailPage.tsx` (job insights, artifacts, retries)
-- `ui/src/pages/SessionsPage.tsx` (session summaries)
-- `ui/src/pages/ConfigPage.tsx` (auth and preset management)
+- `SectionCard`, `PageSectionHeader`, `StatusPill`, `GuidanceTip`, `EmptyStatePanel`
+- Shared style composition helper: `sx.ts`
 
-## Reusable UI Patterns
+## Pattern Layer (`ui/src/components/patterns/*`)
 
-- Card, alert, pill/status, table, timeline patterns defined by class conventions in `ui/src/styles.css`.
-- API layer reused across pages via `ui/src/api/client.ts`.
+- `FeedbackBanner`, `FilterChipsBar`, `LoadingState`, `EmptyState`
+
+## Feature Domains
+
+- `run-builder/*`
+  - `GuidedRunBuilderShell`, `VerifyBeforeRunSummaryCard`
+- `integrity/*`
+  - `IntegrityTimelineRail`, adapters, remediation helpers
+- `control-tower/*`
+  - `ControlTowerStatusConsole`
+- `evidence/*`
+  - `EvidenceHandoffCard`
+
+## Route Pages
+
+- `NewRunPage` (guided config/input flow + verify-before-run gate)
+- `JobsPage` (control-tower summary + searchable/polling job table)
+- `JobDetailPage` (integrity timeline + retry/cleanup + artifact workflow)
+- `SessionsPage` (session signal console + stale/failure surfacing)
+- `ConfigPage` (auth + presets + evidence readiness handoff)
+
+## Test Coverage for New UI Layer
+
+- Unit/component tests under:
+  - `ui/src/components/run-builder/*.test.tsx`
+  - `ui/src/components/integrity/*.test.tsx`
+  - `ui/src/components/control-tower/*.test.tsx`
+  - `ui/src/components/evidence/*.test.tsx`

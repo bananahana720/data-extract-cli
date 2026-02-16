@@ -1,42 +1,37 @@
 # Data Models - Backend
 
-Primary ORM model definitions: `src/data_extract/api/models.py`
-Migrations: `alembic/versions/*.py`
+Primary ORM models: `src/data_extract/api/models.py`
+Migration history: `alembic/versions/*.py`
 
-## Tables
+## Core Tables
 
 - `jobs`
-  - Key fields: `id`, `status`, `requested_at`, `started_at`, `finished_at`, `options_json`, `session_id`, `root_path`
-  - Role: execution lifecycle and run metadata
-
+  - Primary execution record and lifecycle state
+  - Key fields: status, request/dispatch/result payloads, idempotency hash, dispatch sync fields, artifact sync fields, session linkage, timestamps
 - `job_files`
-  - Key fields: `id`, `job_id`, `path`, `status`, `error`, `record_count`, `artifact_relpath`, `checksum`
-  - Role: per-file processing outcomes
-
+  - Per-file processing outcomes
+  - Key fields: source/output path, status, chunk_count, retry_count, normalized path, error type/message
 - `job_events`
-  - Key fields: `id`, `job_id`, `ts`, `level`, `message`, `payload_json`
-  - Role: timeline/event log for jobs
-
+  - Append-only event timeline
+  - Key fields: event_type, message, payload, event_time
 - `sessions`
-  - Key fields: `id`, `started_at`, `completed_at`, `status`, `processed_file_count`, `failed_file_count`
-  - Role: aggregated batch/session summaries
-
+  - Session projection for UI queries
+  - Key fields: source_directory, status, total/processed/failed counts, archive and reconciliation fields
 - `retry_runs`
-  - Key fields: `id`, `job_id`, `created_at`, `summary_json`
-  - Role: tracks retry attempts and outcomes
-
+  - Retry operation audit history
+  - Key fields: job_id, source_session_id, status, requested/completed timestamps
 - `app_settings`
-  - Key fields: `key`, `value_json`, `updated_at`
-  - Role: persisted UI/config settings and preset state
+  - Key-value runtime settings (for example `last_preset`)
 
-## Relationships and Indexing
+## Relationships and Constraints
 
 - `jobs` -> `job_files` (one-to-many)
 - `jobs` -> `job_events` (one-to-many)
-- Session and dispatch/idempotency indexes are hardened in latest migrations.
+- `job_files` unique constraint on (`job_id`, `normalized_source_path`)
+- Composite/operational indexes for idempotency, dispatch scheduling, artifact sync, and event timeline scans
 
-## Schema Evolution Notes
+## Schema Evolution Highlights
 
-- `20260210_0001_create_ui_tables.py`: initial UI persistence tables.
-- `20260210_0002_refactor_persistence_unification.py`: unified persistence refactor.
-- `20260214_0003_schema_persistence_hardening.py`: compatibility/index hardening.
+- `20260210_0001_create_ui_tables.py`
+- `20260210_0002_refactor_persistence_unification.py`
+- `20260214_0003_schema_persistence_hardening.py`

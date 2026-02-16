@@ -4,7 +4,7 @@
 
 - **Type:** multi-part with 2 parts
 - **Primary Language:** Python (backend) and TypeScript (UI)
-- **Architecture:** API-driven client-server with modular processing pipeline
+- **Architecture:** API-driven client-server system with modular processing pipeline and guided desktop operator UX
 
 ## Quick Reference
 
@@ -17,7 +17,7 @@
 ### UI (`ui`)
 
 - **Type:** web
-- **Tech Stack:** React, TypeScript, Vite, React Router, Playwright
+- **Tech Stack:** React, TypeScript, MUI, Vite, React Router, Vitest, Playwright
 - **Root:** `ui/`
 
 ## Generated Documentation
@@ -36,25 +36,30 @@
 - [API Contracts - UI](./api-contracts-ui.md)
 - [Data Models - Backend](./data-models-backend.md)
 - [Data Models - UI](./data-models-ui.md)
+- [State Management Patterns - UI](./state-management-patterns-ui.md)
+- [Comprehensive Analysis - Backend](./comprehensive-analysis-backend.md)
+- [Comprehensive Analysis - UI](./comprehensive-analysis-ui.md)
 - [Integration Architecture](./integration-architecture.md)
 - [Project Parts Metadata](./project-parts.json)
 
 ## Existing Documentation
 
-- [AGENTS](../AGENTS.md) - Repository rules, security constraints, and contribution expectations
-- [Source README](../src/README.md) - Pipeline and source architecture notes
-- [Tests README](../tests/README.md) - Testing strategy and commands
-- [Examples README](../examples/README.md) - Example usage patterns
-- [Build Scripts README](../build_scripts/README.md) - Build/package guidance
-- [CI Test Workflow](../.github/workflows/test.yml) - Main CI validation pipeline
-- [CI Security Workflow](../.github/workflows/security.yml) - Security/dependency scanning pipeline
-- [CI Performance Workflow](../.github/workflows/performance.yml) - Performance regression checks
-- [CI UAT Workflow](../.github/workflows/uat.yaml) - UAT automation pipeline
+- [Repository Rules and Standards](../AGENTS.md) - security gatekeeper and repository workflow constraints
+- [Project Source README](../src/README.md) - backend source package orientation
+- [Tests README](../tests/README.md) - test strategy and execution guidance
+- [Examples README](../examples/README.md) - usage patterns and examples
+- [Build Scripts README](../build_scripts/README.md) - packaging/build helper scripts
+- [Project Context Artifact](../_bmad-output/project-context.md) - generated project context summary
+- [UX Design Specification](../_bmad-output/planning-artifacts/ux-design-specification.md) - UX specification artifact
+- [CI Test Workflow](../.github/workflows/test.yml)
+- [CI Security Workflow](../.github/workflows/security.yml)
+- [CI Performance Workflow](../.github/workflows/performance.yml)
+- [CI UAT Workflow](../.github/workflows/uat.yaml)
 
 ## Getting Started
 
-1. Start at `project-overview.md` and `architecture-backend.md` for system context.
-2. For UI work, pair `architecture-ui.md` with `api-contracts-ui.md`.
-3. For backend work, use `architecture-backend.md`, `api-contracts-backend.md`, and `data-models-backend.md`.
-4. For end-to-end changes, include `integration-architecture.md`.
-5. Use this `index.md` as the primary input for brownfield PRD workflows.
+1. Start with `project-overview.md` and `source-tree-analysis.md`.
+2. For backend changes, read `architecture-backend.md`, `api-contracts-backend.md`, and `data-models-backend.md`.
+3. For UI/UX changes, read `architecture-ui.md`, `component-inventory-ui.md`, `state-management-patterns-ui.md`, and `api-contracts-ui.md`.
+4. For cross-part changes, include `integration-architecture.md` and `project-parts.json`.
+5. Use this `index.md` as the primary input for brownfield planning workflows.

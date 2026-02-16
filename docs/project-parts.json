@@ -4,38 +4,87 @@
     {
       "part_id": "backend",
       "display_name": "Backend",
-      "root_path": ".",
       "project_type_id": "backend",
-      "architecture_file": "architecture-backend.md",
-      "api_contracts_file": "api-contracts-backend.md",
-      "data_models_file": "data-models-backend.md",
-      "development_guide_file": "development-guide-backend.md"
+      "root_path": ".",
+      "primary_stack": [
+        "Python",
+        "FastAPI",
+        "SQLAlchemy",
+        "Alembic",
+        "Typer"
+      ],
+      "documentation": {
+        "architecture": "architecture-backend.md",
+        "api_contracts": "api-contracts-backend.md",
+        "data_models": "data-models-backend.md",
+        "development_guide": "development-guide-backend.md",
+        "component_inventory": "component-inventory-backend.md"
+      }
     },
     {
       "part_id": "ui",
       "display_name": "UI",
-      "root_path": "ui",
       "project_type_id": "web",
-      "architecture_file": "architecture-ui.md",
-      "api_contracts_file": "api-contracts-ui.md",
-      "data_models_file": "data-models-ui.md",
-      "component_inventory_file": "component-inventory-ui.md",
-      "development_guide_file": "development-guide-ui.md",
-      "state_management_file": "state-management-patterns-ui.md"
+      "root_path": "ui",
+      "primary_stack": [
+        "React",
+        "TypeScript",
+        "MUI",
+        "Vite",
+        "React Router",
+        "Vitest",
+        "Playwright"
+      ],
+      "documentation": {
+        "architecture": "architecture-ui.md",
+        "api_contracts": "api-contracts-ui.md",
+        "data_models": "data-models-ui.md",
+        "state_patterns": "state-management-patterns-ui.md",
+        "development_guide": "development-guide-ui.md",
+        "component_inventory": "component-inventory-ui.md"
+      }
     }
   ],
   "integration_points": [
     {
+      "id": "auth-session",
       "from": "ui",
       "to": "backend",
       "type": "REST",
-      "details": "UI calls /api/v1 auth/jobs/sessions/config endpoints"
+      "path": "/api/v1/auth/session",
+      "description": "UI session login/status/logout"
     },
     {
-      "from": "backend",
-      "to": "ui",
-      "type": "Static hosting",
-      "details": "FastAPI serves built UI assets from ui/dist"
+      "id": "job-launch",
+      "from": "ui",
+      "to": "backend",
+      "type": "REST",
+      "path": "/api/v1/jobs/process",
+      "description": "Guided run submission"
+    },
+    {
+      "id": "job-monitoring",
+      "from": "ui",
+      "to": "backend",
+      "type": "REST",
+      "path": "/api/v1/jobs/*",
+      "description": "Polling, retry, artifacts, and integrity lifecycle"
+    },
+    {
+      "id": "config-evidence",
+      "from": "ui",
+      "to": "backend",
+      "type": "REST",
+      "path": "/api/v1/config/*",
+      "description": "Preset preview/apply and effective config alignment"
+    },
+    {
+      "id": "session-console",
+      "from": "ui",
+      "to": "backend",
+      "type": "REST",
+      "path": "/api/v1/sessions*",
+      "description": "Session listing and detail summaries"
     }
   ]
 }

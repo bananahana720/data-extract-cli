@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UX Design Directions Showcase</title>
+  <style>
+    :root {
+      --surface-deep: #0b1f2b;
+      --surface-app: #f5f7fa;
+      --surface-panel: #e3e8ef;
+      --text-primary: #1d2f3e;
+      --text-secondary: #b0bcca;
+      --line: #414f5e;
+      --accent: #1da1f2;
+      --accent-strong: #1565c0;
+      --ok: #2e7d32;
+      --warn: #f57c00;
+      --err: #d32f2f;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --shadow: 0 18px 40px rgba(11, 31, 43, 0.15);
+      --focus-ring: 0 0 0 2px var(--surface-app), 0 0 0 4px var(--accent);
+      --font-ui: "Public Sans", "Segoe UI", "Avenir Next", sans-serif;
+      --font-display: "IBM Plex Serif", "Georgia", serif;
+      --max-width: 1320px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-ui);
+      background:
+        radial-gradient(circle at 10% 12%, rgba(29, 161, 242, 0.14), transparent 36%),
+        radial-gradient(circle at 90% 6%, rgba(21, 101, 192, 0.2), transparent 30%),
+        var(--surface-app);
+      color: var(--text-primary);
+      min-height: 100%;
+    }
+
+    body.simulate-narrow .deck-shell {
+      max-width: 880px;
+    }
+
+    body.simulate-narrow #directionDeck.compare-mode {
+      grid-template-columns: 1fr;
+    }
+
+    body.simulate-narrow .direction-body {
+      grid-template-columns: 1fr;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(10px);
+      background: rgba(11, 31, 43, 0.9);
+      color: #f6fbff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 16px 24px;
+    }
+
+    .site-header h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.3rem, 2.1vw, 1.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    .site-header p {
+      margin: 4px 0 0;
+      max-width: 980px;
+      color: #c7d9e7;
+      font-size: 0.93rem;
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      font-size: 0.68rem;
+      color: #9ec6e6;
+    }
+
+    .header-controls {
+      margin-top: 14px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .jump-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .jump-btn,
+    .btn,
+    .chip-toggle {
+      border: 1px solid rgba(255, 255, 255, 0.23);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f1f7ff;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+    }
+
+    .jump-btn:hover,
+    .btn:hover,
+    .chip-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .jump-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #082033;
+      font-weight: 700;
+    }
+
+    .toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #dceaf6;
+      font-size: 0.86rem;
+    }
+
+    .toggle-wrap input {
+      accent-color: var(--accent);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .btn {
+      border-radius: 10px;
+      padding: 8px 14px;
+    }
+
+    .deck-shell {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 20px 20px 80px;
+      transition: max-width 180ms ease;
+    }
+
+    #directionDeck {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    #directionDeck.compare-mode {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .direction {
+      min-height: max(760px, calc(100vh - 150px));
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(11, 31, 43, 0.12);
+      box-shadow: var(--shadow);
+      background: white;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: clip;
+      position: relative;
+    }
+
+    .direction::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(11, 31, 43, 0.04), transparent 45%);
+      pointer-events: none;
+    }
+
+    .direction-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid #d2dce7;
+      background: linear-gradient(120deg, #f9fbfe, #eef4fb);
+      display: grid;
+      gap: 8px;
+    }
+
+    .direction-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 1.8vw, 1.85rem);
+      color: var(--surface-deep);
+    }
+
+    .direction-number {
+      margin: 0;
+      color: var(--accent-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-weight: 700;
+      font-size: 0.72rem;
+    }
+
+    .direction-head p {
+      margin: 0;
+      line-height: 1.45;
+      color: #42596e;
+      max-width: 960px;
+    }
+
+    .direction-body {
+      padding: 22px 24px 24px;
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 16px;
+      align-content: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .direction[data-layout="three"] .direction-body {
+      grid-template-columns: 0.85fr 1.2fr 0.95fr;
+    }
+
+    .direction[data-layout="timeline"] .direction-body,
+    .direction[data-layout="kanban"] .direction-body {
+      grid-template-columns: 1fr;
+    }
+
+    .panel {
+      border: 1px solid #c8d7e4;
+      border-radius: var(--radius-md);
+      padding: 14px;
+      background: #fdfefe;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .panel h3,
+    .panel h4 {
+      margin: 0;
+      color: var(--surface-deep);
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+    }
+
+    .muted {
+      color: #62798d;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .badge-row,
+    .action-row,
+    .stat-grid,
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid #b7c7d8;
+      background: #eef4fb;
+      color: #1f425f;
+      font-size: 0.79rem;
+      font-weight: 600;
+    }
+
+    .badge.ok {
+      background: rgba(46, 125, 50, 0.13);
+      border-color: rgba(46, 125, 50, 0.34);
+      color: #1f5a26;
+    }
+
+    .badge.warn {
+      background: rgba(245, 124, 0, 0.14);
+      border-color: rgba(245, 124, 0, 0.33);
+      color: #7a4702;
+    }
+
+    .badge.err {
+      background: rgba(211, 47, 47, 0.12);
+      border-color: rgba(211, 47, 47, 0.35);
+      color: #7e1919;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      background: #f1f6fc;
+      border: 1px solid #c9d7e6;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.25rem;
+      color: #0f2e45;
+    }
+
+    .metric span {
+      color: #60788e;
+      font-size: 0.83rem;
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 7px;
+      font-size: 0.92rem;
+      color: #314b61;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid #c8d6e2;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table th {
+      background: #eff4fa;
+      color: #1a3c57;
+      font-weight: 700;
+    }
+
+    .btn-lite,
+    .btn-action {
+      font: inherit;
+      border-radius: 9px;
+      border: 1px solid #7ea4c3;
+      background: white;
+      color: #1f4665;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: background-color 140ms ease, transform 140ms ease, border-color 140ms ease;
+    }
+
+    .btn-action {
+      border-color: var(--accent-strong);
+      background: var(--accent);
+      color: #06263d;
+      font-weight: 700;
+    }
+
+    .btn-lite:hover,
+    .btn-action:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-lite:focus-visible,
+    .btn-action:focus-visible,
+    .jump-btn:focus-visible,
+    .btn:focus-visible,
+    .chip-toggle:focus-visible,
+    [data-selectable]:focus-visible,
+    .tip-trigger:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .btn-lite[disabled],
+    .btn-action[disabled] {
+      opacity: 0.42;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      border-radius: 10px;
+      border: 1px solid;
+      padding: 10px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .alert.info {
+      background: rgba(21, 101, 192, 0.08);
+      border-color: rgba(21, 101, 192, 0.3);
+      color: #12477d;
+    }
+
+    .alert.warn {
+      background: rgba(245, 124, 0, 0.1);
+      border-color: rgba(245, 124, 0, 0.35);
+      color: #774304;
+    }
+
+    .alert.err {
+      background: rgba(211, 47, 47, 0.12);
+      border-color: rgba(211, 47, 47, 0.4);
+      color: #7c1a1a;
+    }
+
+    .stepper {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      border: 1px solid #c8d7e5;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f7fbff;
+      font-size: 0.88rem;
+      color: #2a4b64;
+    }
+
+    .step.active {
+      border-color: var(--accent);
+      background: rgba(29, 161, 242, 0.12);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 4px;
+      bottom: 8px;
+      width: 2px;
+      background: #b8cbdd;
+    }
+
+    .timeline-item {
+      border: 1px solid #c5d5e3;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -17px;
+      top: 13px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-strong);
+      box-shadow: 0 0 0 3px #edf4fb;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .selectable {
+      border: 1px solid #c2d5e5;
+      border-radius: 12px;
+      background: #f8fbff;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+    }
+
+    .selectable:hover {
+      transform: translateY(-1px);
+      border-color: #7bb7e1;
+    }
+
+    .selectable[aria-pressed="true"] {
+      border-color: #1c9ff0;
+      background: rgba(29, 161, 242, 0.16);
+    }
+
+    .bars {
+      display: grid;
+      gap: 7px;
+    }
+
+    .bar {
+      height: 18px;
+      background: #d9e5f2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #1da1f2, #1565c0);
+    }
+
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .lane {
+      border: 1px solid #c4d4e3;
+      border-radius: 12px;
+      background: #f9fcff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-height: 350px;
+    }
+
+    .card {
+      border: 1px solid #c0d3e4;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .tip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tip-trigger {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      border: 1px solid #8eaec7;
+      background: #f3f8fd;
+      color: #184463;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tooltip {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      width: min(310px, 72vw);
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #8cb1d2;
+      background: #f2f8ff;
+      color: #183f5d;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      box-shadow: 0 10px 24px rgba(20, 63, 95, 0.16);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 120ms ease, transform 120ms ease;
+      z-index: 3;
+    }
+
+    .tip-wrap:hover .tooltip,
+    .tip-wrap:focus-within .tooltip,
+    body.tips-pinned .tooltip {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .log-window {
+      background: #0b1f2b;
+      color: #d1e3f1;
+      border-radius: 10px;
+      padding: 10px;
+      font-family: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      border: 1px solid #2a4a62;
+      min-height: 180px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 14, 22, 0.68);
+      display: none;
+      place-items: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-backdrop[data-open="true"] {
+      display: grid;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1px solid #c0d4e6;
+      padding: 16px;
+      box-shadow: 0 26px 52px rgba(3, 22, 37, 0.28);
+      display: grid;
+      gap: 10px;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      color: var(--surface-deep);
+    }
+
+    .modal p {
+      margin: 0;
+      color: #32536a;
+      font-size: 0.9rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .narrow-flag {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #9fd3f5;
+    }
+
+    @media (max-width: 1220px) {
+      #directionDeck.compare-mode {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .direction-body,
+      .direction[data-layout="three"] .direction-body {
+        grid-template-columns: 1fr;
+      }
+
+      .kanban,
+      .matrix {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .site-header {
+        padding: 14px;
+      }
+
+      .deck-shell {
+        padding: 14px 12px 40px;
+      }
+
+      .direction {
+        min-height: auto;
+      }
+
+      .kanban,
+      .matrix {
+        grid-template-columns: 1fr;
+      }
+
+      .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <p class="eyebrow">Desktop Web Showcase | GRC / Cyber / Financial</p>
+    <h1>UX Design Directions for Verify-Before-Run Workflows</h1>
+    <p>Eight full-page directions demonstrate what/why/how guidance, run intent verification, and explicit no-silent-error behavior using shared visual foundation tokens.</p>
+    <div class="header-controls">
+      <nav class="jump-nav" aria-label="Jump to direction">
+        <button class="jump-btn" data-target="direction-1">Direction 1</button>
+        <button class="jump-btn" data-target="direction-2">Direction 2</button>
+        <button class="jump-btn" data-target="direction-3">Direction 3</button>
+        <button class="jump-btn" data-target="direction-4">Direction 4</button>
+        <button class="jump-btn" data-target="direction-5">Direction 5</button>
+        <button class="jump-btn" data-target="direction-6">Direction 6</button>
+        <button class="jump-btn" data-target="direction-7">Direction 7</button>
+        <button class="jump-btn" data-target="direction-8">Direction 8</button>
+      </nav>
+      <label class="toggle-wrap"><input type="checkbox" id="compareToggle"> Side-by-side compare</label>
+      <label class="toggle-wrap"><input type="checkbox" id="tipsToggle"> Pin what/why/how tips</label>
+      <label class="toggle-wrap"><input type="checkbox" id="narrowToggle"> Simulate narrow width</label>
+      <button class="btn" data-open-dialog data-dialog-title="Verify-Before-Run Dialog" data-dialog-body="Validate source scope, masking rules, and destination policy mapping before launching any extraction run.">Open dialog demo</button>
+      <p class="narrow-flag" id="narrowFlag" hidden>Narrow preview enabled: desktop layouts collapse to demonstrate responsive handling.</p>
+    </div>
+  </header>
+
+  <main class="deck-shell" id="directionDeck">
+    <section class="direction" id="direction-1">
+      <header class="direction-head">
+        <p class="direction-number">Direction 1</p>
+        <h2>Control Tower Workspace</h2>
+        <p>Operations-first dashboard balancing run throughput with policy trust checks and explicit blocking alerts before execution.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <h3>Current Session: S-2026-02-15-GRC-084</h3>
+          <div class="badge-row"><span class="badge ok">Session Healthy</span><span class="badge">Config: cfg-grc-v4.2</span><span class="badge warn">2 Jobs Awaiting Review</span></div>
+          <div class="stat-grid">
+            <div class="metric"><strong>142</strong><span>Documents scoped</span></div>
+            <div class="metric"><strong>17m</strong><span>Estimated run time</span></div>
+            <div class="metric"><strong>99.2%</strong><span>Mapping confidence</span></div>
+            <div class="metric"><strong>3</strong><span>Integrity checks left</span></div>
+          </div>
+          <table class="table">
+            <thead><tr><th>Job</th><th>Status</th><th>Risk Surface</th><th>Owner</th></tr></thead>
+            <tbody>
+              <tr><td>JOB-18422</td><td><span class="badge warn">Verify scope</span></td><td>PCI DSS Access Logs</td><td>A. Singh</td></tr>
+              <tr><td>JOB-18423</td><td><span class="badge ok">Ready</span></td><td>SOX Evidence Notes</td><td>L. Chen</td></tr>
+              <tr><td>JOB-18424</td><td><span class="badge err">Blocked</span></td><td>AML Incident Batch</td><td>K. Morales</td></tr>
+            </tbody>
+          </table>
+          <div class="action-row">
+            <button class="btn-action" data-open-dialog data-dialog-title="Launch JOB-18423" data-dialog-body="What: SOX extraction using cfg-grc-v4.2. Why: Q1 control attestation deadline. How: Mask PII, include only approved sources.">Verify and Run</button>
+            <button class="btn-lite">Run Dry Validation</button>
+            <button class="btn-lite" disabled>Export Evidence</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>What/Why/How Guidance</h4>
+          <p class="muted">Embedded beside risky controls; hover or focus the icon.</p>
+          <div class="tip-wrap"><button class="tip-trigger" aria-label="Explain source lock">?</button><div class="tooltip">What: source lock freezes connector list. Why: protects audit trace continuity. How: unlock only with approver + reason code.</div></div>
+          <div class="alert err"><strong>No silent errors:</strong> JOB-18424 cannot proceed because one configured source moved to untrusted zone. Remediation and owner escalation are required.</div>
+          <ul class="list">
+            <li>Checklist gate: scope, masking, destination, approval chain.</li>
+            <li>Action labels describe impact before click.</li>
+            <li>Run intent summary persists into session history.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-2" data-layout="three">
+      <header class="direction-head">
+        <p class="direction-number">Direction 2</p>
+        <h2>Guided Run Builder</h2>
+        <p>Sequential authoring with progressive detail and inline explanations for each dependency before the final execution checkpoint.</p>
+      </header>
+      <div class="direction-body">
+        <aside class="panel">
+          <h4>Flow Steps</h4>
+          <ol class="stepper">
+            <li class="step">1. Domain profile (Cyber, GRC, Finance)</li>
+            <li class="step">2. Source and session boundaries</li>
+            <li class="step">3. Normalization and chunk policy</li>
+            <li class="step active">4. Verify intent and sign off</li>
+          </ol>
+        </aside>
+        <div class="panel">
+          <h3>Config Form: cfg-cyber-v2.9</h3>
+          <div class="badge-row"><span class="badge">Session S-CYB-1192</span><span class="badge ok">5/5 required fields</span></div>
+          <div class="pill-row">
+            <button class="chip-toggle selectable" data-selectable aria-pressed="true">Source scope: SIEM + Jira</button>
+            <button class="chip-toggle selectable" data-selectable aria-pressed="false">Include cloud snapshots</button>
+            <button class="chip-toggle selectable" data-selectable aria-pressed="false">Auto quarantine anomalies</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>Control</th><th>Selected</th><th>Comment</th></tr></thead>
+            <tbody>
+              <tr><td>PII Masking Mode</td><td>Strict</td><td>Required by finance policy FR-17</td></tr>
+              <tr><td>Evidence Retention</td><td>365 days</td><td>Matches audit schedule</td></tr>
+              <tr><td>Anomaly threshold</td><td>0.89</td><td>Raised from baseline for false-positive reduction</td></tr>
+            </tbody>
+          </table>
+          <div class="tip-wrap"><button class="tip-trigger" aria-label="Explain anomaly threshold">?</button><div class="tooltip">What: confidence score needed to flag extracted records. Why: lower values increase analyst review load. How: use dry-run to calibrate against last clean session.</div></div>
+        </div>
+        <aside class="panel">
+          <h4>Verify-Before-Run</h4>
+          <div class="alert info">What: Extract from SIEM + Jira for Incident I-4431.</div>
+          <div class="alert info">Why: Weekly control report for board risk committee.</div>
+          <div class="alert info">How: Strict masking, chunk size 500, output to controlled evidence vault.</div>
+          <div class="alert warn">Pending: approver signature not captured for source unlock request.</div>
+          <div class="action-row"><button class="btn-action">Request Signature</button><button class="btn-lite" data-open-dialog data-dialog-title="Launch Preview" data-dialog-body="This preview captures all selected controls and unresolved warnings before final run execution.">Preview Dialog</button></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-3" data-layout="timeline">
+      <header class="direction-head">
+        <p class="direction-number">Direction 3</p>
+        <h2>Session Health Timeline</h2>
+        <p>Narrative timeline emphasizing chain-of-custody, run events, and explicit recovery actions for failures and partial outputs.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <div class="badge-row"><span class="badge">Session S-FIN-7721</span><span class="badge err">Integrity Drift Detected</span><span class="badge">Owner: M. Patel</span></div>
+          <div class="timeline">
+            <article class="timeline-item"><strong>09:01</strong> Job JOB-99102 created from template `cfg-fin-recon-v8`.</article>
+            <article class="timeline-item"><strong>09:05</strong> Scope expanded with AP ledger archive (change reason logged).</article>
+            <article class="timeline-item"><strong>09:16</strong> Extraction completed, 4,822 records normalized.</article>
+            <article class="timeline-item"><strong>09:17</strong> Integrity check failed: 129 records missing required source hash.</article>
+            <article class="timeline-item"><strong>09:19</strong> Auto-pause engaged; destination write disabled pending remediation.</article>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Failure Handling</h4>
+          <div class="alert err">No silent degradation: output export blocked because source-hash continuity failed. Users are directed to remediation rather than partial success messaging.</div>
+          <ul class="list">
+            <li>Actionable links to failed transform stage and source connector logs.</li>
+            <li>Rerun requires re-verification of changed source scope.</li>
+            <li>Timeline cards are immutable after sign-off for audit reliability.</li>
+          </ul>
+          <div class="action-row"><button class="btn-action">Open Remediation Checklist</button><button class="btn-lite">Generate Incident Note</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-4">
+      <header class="direction-head">
+        <p class="direction-number">Direction 4</p>
+        <h2>Control Matrix Planner</h2>
+        <p>Comparative layout for selecting policy presets with immediate impact scoring and dependency visibility before queueing jobs.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <h3>Preset Selection</h3>
+          <div class="matrix">
+            <button class="selectable" data-selectable aria-pressed="true"><strong>SOX Quarterly</strong><br>Output: Financial control pack<br>Risk tolerance: Low</button>
+            <button class="selectable" data-selectable aria-pressed="false"><strong>NIST CSF Incident</strong><br>Output: Threat evidence map<br>Risk tolerance: Medium</button>
+            <button class="selectable" data-selectable aria-pressed="false"><strong>PCI Access Audit</strong><br>Output: Cardholder access trail<br>Risk tolerance: Very low</button>
+            <button class="selectable" data-selectable aria-pressed="false"><strong>AML Event Sweep</strong><br>Output: Transaction anomaly report</button>
+            <button class="selectable" data-selectable aria-pressed="false"><strong>Vendor Risk Pulse</strong><br>Output: Third-party findings digest</button>
+            <button class="selectable" data-selectable aria-pressed="false"><strong>Data Residency Check</strong><br>Output: Jurisdiction compliance map</button>
+          </div>
+          <div class="tip-wrap"><button class="tip-trigger" aria-label="Explain impact score">?</button><div class="tooltip">What: impact score predicts compliance exposure if this run fails. Why: helps prioritize analyst review. How: score updates from control criticality and source confidence.</div></div>
+        </div>
+        <div class="panel">
+          <h4>Policy/Config Mapping</h4>
+          <table class="table">
+            <thead><tr><th>Control family</th><th>Config binding</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Financial Reporting</td><td>cfg-fin-recon-v8</td><td><span class="badge ok">Aligned</span></td></tr>
+              <tr><td>Data Retention</td><td>cfg-core-retention-v2</td><td><span class="badge ok">Aligned</span></td></tr>
+              <tr><td>Privacy Masking</td><td>cfg-mask-strict-v5</td><td><span class="badge warn">Review needed</span></td></tr>
+              <tr><td>Export Destination</td><td>cfg-out-evidence-v3</td><td><span class="badge err">Blocked</span></td></tr>
+            </tbody>
+          </table>
+          <div class="alert err">Destination bucket for `cfg-out-evidence-v3` is not in an approved compliance zone. Run launch remains disabled.</div>
+          <div class="action-row"><button class="btn-lite">Open Mapping Details</button><button class="btn-action">Resolve and Continue</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-5">
+      <header class="direction-head">
+        <p class="direction-number">Direction 5</p>
+        <h2>Financial Reconciliation Studio</h2>
+        <p>Finance-heavy workspace balancing extracted ledger visibility, exception handling, and approval paths for regulated reporting cycles.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <h3>Run JOB-FIN-2240 Output Preview</h3>
+          <table class="table">
+            <thead><tr><th>Account</th><th>Extracted</th><th>Ledger</th><th>Delta</th></tr></thead>
+            <tbody>
+              <tr><td>Cash Operations</td><td>$14,992,332</td><td>$14,992,332</td><td><span class="badge ok">0.00%</span></td></tr>
+              <tr><td>Settlement Reserve</td><td>$3,220,875</td><td>$3,168,045</td><td><span class="badge warn">+1.67%</span></td></tr>
+              <tr><td>Suspense Queue</td><td>$92,118</td><td>$84,102</td><td><span class="badge err">+9.53%</span></td></tr>
+            </tbody>
+          </table>
+          <div class="bars">
+            <div>Source completeness<div class="bar"><span style="width: 94%"></span></div></div>
+            <div>Normalization confidence<div class="bar"><span style="width: 88%"></span></div></div>
+            <div>Policy fit score<div class="bar"><span style="width: 76%"></span></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Exception Handling</h4>
+          <div class="alert warn">129 rows breached tolerance for Suspense Queue. Finance control FC-29 requires analyst note + approver sign-off.</div>
+          <div class="tip-wrap"><button class="tip-trigger" aria-label="Explain FC-29">?</button><div class="tooltip">What: FC-29 enforces reconciliation variance controls. Why: protects official statements from unchecked deltas. How: attach remediation note and rerun only affected sources.</div></div>
+          <ul class="list"><li>Session reference: S-FIN-CLOSE-2026W07</li><li>Config lineage: cfg-fin-recon-v8 -> cfg-mask-strict-v5</li><li>Export path: vault/finance/close/2026w07 (locked)</li></ul>
+          <div class="action-row"><button class="btn-action" data-open-dialog data-dialog-title="Approve Exception Workflow" data-dialog-body="Confirm FC-29 exception workflow before unlocking export. Audit note and approver identity are required.">Start Approval</button><button class="btn-lite">Open Reconciliation History</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-6" data-layout="kanban">
+      <header class="direction-head">
+        <p class="direction-number">Direction 6</p>
+        <h2>Cyber Triage Kanban</h2>
+        <p>Queue-based incident extraction pipeline for SOC teams where each move requires explicit rationale and verification.</p>
+      </header>
+      <div class="direction-body">
+        <div class="kanban">
+          <section class="lane"><h4>Ingested</h4><div class="card">INC-4002: VPN auth spike<br>Session draft S-CY-4002</div><div class="card">INC-4004: Endpoint script anomalies</div></section>
+          <section class="lane"><h4>Needs Verification</h4><div class="card">INC-4011: Privileged access outlier<br><span class="badge warn">Awaiting scope confirmation</span></div><div class="card">INC-4013: Cloud role abuse indicators</div></section>
+          <section class="lane"><h4>Ready to Run</h4><div class="card">INC-3998: Exfiltration hypothesis<br><span class="badge ok">Checklist complete</span></div><div class="card">INC-4000: Malware lateral movement</div></section>
+          <section class="lane"><h4>Blocked</h4><div class="card">INC-3988: SIEM connector expired<br><span class="badge err">Credential rotation missing</span></div></section>
+        </div>
+        <div class="panel">
+          <div class="alert err">Blocked lane items cannot be silently requeued. The UI forces remediation reason and ownership before status changes.</div>
+          <div class="action-row"><button class="btn-action">Open Verify Queue</button><button class="btn-lite">Bulk Assign Analysts</button><button class="btn-lite" data-open-dialog data-dialog-title="Incident Run Confirmation" data-dialog-body="Verify incident scope, source trust zone, and data handling policy before execution.">Open Confirmation</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-7">
+      <header class="direction-head">
+        <p class="direction-number">Direction 7</p>
+        <h2>Audit Packet Composer</h2>
+        <p>Document-centric direction that assembles session evidence, run rationale, and integrity outcomes into reviewer-ready packages.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <h3>Packet AP-2026-Q1-118</h3>
+          <div class="badge-row"><span class="badge">Session S-GRC-Q1-901</span><span class="badge ok">7/8 artifacts attached</span><span class="badge warn">Awaiting legal memo</span></div>
+          <ul class="list">
+            <li>Run Summary: JOB-18423 execution evidence</li>
+            <li>Config Snapshot: cfg-grc-v4.2 signed hash + lineage</li>
+            <li>Integrity Report: zero silent failures; 1 acknowledged warning</li>
+            <li>Remediation Log: unresolved connector drift from JOB-18424</li>
+          </ul>
+          <div class="action-row"><button class="btn-lite">Attach Missing Memo</button><button class="btn-action">Generate Review Draft</button></div>
+        </div>
+        <div class="panel">
+          <h4>Reviewer View</h4>
+          <table class="table">
+            <thead><tr><th>Section</th><th>Status</th><th>Reviewer Note</th></tr></thead>
+            <tbody>
+              <tr><td>Run Intent</td><td><span class="badge ok">Approved</span></td><td>Why/How context is clear.</td></tr>
+              <tr><td>Source Trust</td><td><span class="badge warn">Pending</span></td><td>Need updated asset ownership proof.</td></tr>
+              <tr><td>Error Handling</td><td><span class="badge ok">Approved</span></td><td>No hidden failures observed.</td></tr>
+            </tbody>
+          </table>
+          <div class="tip-wrap"><button class="tip-trigger" aria-label="Explain reviewer gate">?</button><div class="tooltip">What: reviewer gate ensures package completeness before external audit handoff. Why: missing context invalidates evidence. How: unresolved rows must map to owner + due date.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="direction" id="direction-8">
+      <header class="direction-head">
+        <p class="direction-number">Direction 8</p>
+        <h2>Command Center + Diagnostics</h2>
+        <p>High-density operational console combining runtime diagnostics, config diffs, and run controls while preserving trust and readability.</p>
+      </header>
+      <div class="direction-body">
+        <div class="panel">
+          <h3>Live Runtime</h3>
+          <div class="stat-grid">
+            <div class="metric"><strong>8</strong><span>Active jobs</span></div>
+            <div class="metric"><strong>2</strong><span>Blocked jobs</span></div>
+            <div class="metric"><strong>41ms</strong><span>API p95 latency</span></div>
+            <div class="metric"><strong>0</strong><span>Silent failures</span></div>
+          </div>
+          <div class="log-window">
+[09:42:11] JOB-99211 start :: config=cfg-core-risk-v6 session=S-OPS-771\n
+[09:42:14] verify :: source_zone=trusted-east status=PASS\n
+[09:42:18] normalize :: chunk_size=500 tokens=112k status=PASS\n
+[09:42:19] integrity :: destination_policy mismatch -> BLOCKED\n
+[09:42:19] remediation :: owner=platform-risk due=2026-02-16T12:00Z
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Config Diff + Run Actions</h4>
+          <table class="table">
+            <thead><tr><th>Setting</th><th>Current</th><th>Proposed</th></tr></thead>
+            <tbody>
+              <tr><td>Destination policy zone</td><td>vault-finance-prod</td><td>vault-finance-staging</td></tr>
+              <tr><td>Masking profile</td><td>strict-v5</td><td>balanced-v2</td></tr>
+              <tr><td>Source connector timeout</td><td>45s</td><td>60s</td></tr>
+            </tbody>
+          </table>
+          <div class="alert err">Change set rejected: destination policy zone downgrade violates control CP-44. Run remains blocked until diff is remediated.</div>
+          <div class="action-row"><button class="btn-action">Open CP-44 Guidance</button><button class="btn-lite">Queue Safe Rerun</button><button class="btn-lite" disabled>Force Launch</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop" data-open="false" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Dialog</h3>
+      <p id="modalBody">Placeholder</p>
+      <div class="alert info">Mock state behavior: confirm button is enabled only when verification checklist is complete.</div>
+      <div class="modal-actions">
+        <button class="btn-lite" id="modalCloseBtn">Close</button>
+        <button class="btn-action">Confirm Verification</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const deck = document.getElementById("directionDeck");
+    const compareToggle = document.getElementById("compareToggle");
+    const tipsToggle = document.getElementById("tipsToggle");
+    const narrowToggle = document.getElementById("narrowToggle");
+    const narrowFlag = document.getElementById("narrowFlag");
+    const jumpButtons = [...document.querySelectorAll(".jump-btn")];
+    const sections = [...document.querySelectorAll(".direction")];
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody = document.getElementById("modalBody");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+    compareToggle.addEventListener("change", () => {
+      deck.classList.toggle("compare-mode", compareToggle.checked);
+    });
+
+    tipsToggle.addEventListener("change", () => {
+      document.body.classList.toggle("tips-pinned", tipsToggle.checked);
+    });
+
+    narrowToggle.addEventListener("change", () => {
+      document.body.classList.toggle("simulate-narrow", narrowToggle.checked);
+      narrowFlag.hidden = !narrowToggle.checked;
+    });
+
+    jumpButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = document.getElementById(button.dataset.target);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+
+    const selectables = [...document.querySelectorAll("[data-selectable]")];
+    const toggleSelectable = (el) => {
+      const current = el.getAttribute("aria-pressed") === "true";
+      el.setAttribute("aria-pressed", String(!current));
+    };
+
+    selectables.forEach((el) => {
+      if (!el.hasAttribute("tabindex")) {
+        el.setAttribute("tabindex", "0");
+      }
+      el.addEventListener("click", () => toggleSelectable(el));
+      el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          toggleSelectable(el);
+        }
+      });
+    });
+
+    const openModal = (title, body) => {
+      modalTitle.textContent = title || "Verification Dialog";
+      modalBody.textContent = body || "Review run intent and approval requirements.";
+      modalBackdrop.dataset.open = "true";
+      modalBackdrop.setAttribute("aria-hidden", "false");
+      modalCloseBtn.focus();
+    };
+
+    const closeModal = () => {
+      modalBackdrop.dataset.open = "false";
+      modalBackdrop.setAttribute("aria-hidden", "true");
+    };
+
+    document.querySelectorAll("[data-open-dialog]").forEach((button) => {
+      button.addEventListener("click", () => {
+        openModal(button.dataset.dialogTitle, button.dataset.dialogBody);
+      });
+    });
+
+    modalCloseBtn.addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", (event) => {
+      if (event.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modalBackdrop.dataset.open === "true") {
+        closeModal();
+      }
+    });
+
+    const updateActiveJump = () => {
+      let activeId = sections[0]?.id;
+      const center = window.innerHeight * 0.45;
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= center && rect.bottom >= center) {
+          activeId = section.id;
+        }
+      });
+      jumpButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.target === activeId);
+      });
+    };
+
+    updateActiveJump();
+    window.addEventListener("scroll", updateActiveJump, { passive: true });
+    window.addEventListener("resize", updateActiveJump);
+  </script>
+</body>
+</html>
