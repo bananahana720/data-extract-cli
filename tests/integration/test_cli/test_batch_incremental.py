@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("typer", reason="Typer is required for integration CLI tests")
+
 pytestmark = [pytest.mark.P1, pytest.mark.integration, pytest.mark.story_5_7, pytest.mark.cli]
 
 

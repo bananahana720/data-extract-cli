@@ -8,6 +8,8 @@ All tests are designed to FAIL initially (TDD RED phase).
 
 import pytest
 
+pytest.importorskip("typer", reason="Typer is required for unit CLI tests")
+
 # P0: CLI command routing - critical infrastructure
 pytestmark = [
     pytest.mark.P0,

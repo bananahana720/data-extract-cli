@@ -12,13 +12,23 @@ NOTE: Pipeline fixtures disabled - brownfield extractors/processors/formatters m
 
 import pytest
 from click.testing import CliRunner
-from docx import Document
 
 # Brownfield imports no longer available
 # from src.extractors import DocxExtractor
 # from src.formatters import JsonFormatter, MarkdownFormatter
 # from src.pipeline import BatchProcessor, ExtractionPipeline
 # from src.processors import ContextLinker, MetadataAggregator
+
+
+def _get_docx_document():
+    """Return a DOCX Document class or skip tests that require it."""
+
+    try:
+        from docx import Document
+    except ImportError as exc:
+        module_name = getattr(exc, "name", "docx")
+        pytest.skip("python-docx is required for DOCX fixtures: %s" % module_name)
+    return Document
 
 
 @pytest.fixture
@@ -46,7 +56,7 @@ def sample_docx_file(tmp_path):
     file_path = tmp_path / "sample.docx"
 
     # Create simple DOCX with content
-    doc = Document()
+    doc = _get_docx_document()()
     doc.add_heading("Test Document", level=1)
     doc.add_paragraph("This is a test paragraph.")
     doc.add_paragraph("This is another paragraph.")
@@ -87,7 +97,7 @@ def multiple_test_files(tmp_path):
     # Create 3 DOCX files
     for i in range(1, 4):
         file_path = tmp_path / f"doc{i}.docx"
-        doc = Document()
+        doc = _get_docx_document()()
         doc.add_heading(f"Document {i}", level=1)
         doc.add_paragraph(f"Content for document {i}")
         doc.save(file_path)

@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("typer", reason="Typer is required for unit CLI tests")
+
 # P1: Core functionality - run on PR
 pytestmark = [
     pytest.mark.P1,
