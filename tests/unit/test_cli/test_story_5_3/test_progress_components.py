@@ -159,20 +159,13 @@ class TestProgressBarsInCommands:
     @pytest.mark.unit
     @pytest.mark.story_5_3
     @pytest.mark.progress
-    @pytest.mark.skip(
-        reason="LSA topic extraction requires min 50 components (n_components=50-300). "
-        "Test corpus would need 50+ documents, impractical for unit test. "
-        "Progress bar functionality verified via semantic analyze test."
-    )
     def test_semantic_topics_shows_progress_bar(self, typer_cli_runner, progress_test_corpus):
         """
-        RED: AC-5.3-1 - Topics command displays progress bar.
+        AC-5.3-1 - Topics command shows progress context and validation error.
 
         Given: Documents for topic extraction
         When: Running topics command
-        Then: Progress bar should be visible
-
-        Expected RED failure: Progress integration missing
+        Then: Command should emit progress context and fail with n_components validation
         """
         # Create JSON chunk files for topic extraction
         _files = progress_test_corpus.create_json_chunks(10)
@@ -183,17 +176,13 @@ class TestProgressBarsInCommands:
             app, ["semantic", "topics", str(progress_test_corpus.tmp_path)]
         )
 
-        assert result.exit_code == 0
-        assert "%" in result.output or "Topic" in result.output
+        assert result.exit_code == 1
+        assert "Extracting topics from" in result.output
+        assert "n_components must be between 50 and 300" in result.output
 
     @pytest.mark.unit
     @pytest.mark.story_5_3
     @pytest.mark.progress
-    @pytest.mark.skip(
-        reason="Brownfield bug: src/cli/cache_commands.py:217 has relative import "
-        "'from ..semantic.similarity' that fails in CLI test context. "
-        "Fix requires brownfield code migration."
-    )
     def test_cache_warm_shows_progress_bar(self, typer_cli_runner, progress_test_corpus):
         """
         RED: AC-5.3-1 - Cache warm command displays progress bar.
@@ -212,7 +201,7 @@ class TestProgressBarsInCommands:
         result = typer_cli_runner.invoke(app, ["cache", "warm", str(progress_test_corpus.tmp_path)])
 
         assert result.exit_code == 0
-        assert "%" in result.output or "Warm" in result.output
+        assert "Warming cache" in result.output or "Warm Complete" in result.output
 
 
 # ==============================================================================

@@ -499,11 +499,8 @@ class TestCommandRouterPipelineComposition:
         # Then
         assert len(results) >= 1, "Pipeline should execute at least first command"
 
-    @pytest.mark.skip(
-        reason="Brownfield router validation differs from greenfield - deferred to migration"
-    )
     @pytest.mark.test_id("5.1-UNIT-003")
-    def test_router_pipeline_stops_on_failure(self, tmp_path):
+    def test_router_pipeline_stops_on_failure(self):
         """
         RED: Verify pipeline stops on command failure.
 
@@ -521,10 +518,10 @@ class TestCommandRouterPipelineComposition:
 
         router = CommandRouter()
 
-        # When - pipeline with non-existent file (should fail)
+        # When - pipeline starts with an unknown command (must fail)
         pipeline = [
-            ("process", "/nonexistent/file.pdf", "--output", str(tmp_path)),
-            ("semantic", "analyze", str(tmp_path)),  # Should not run
+            ("unknown_command_that_does_not_exist",),
+            ("version",),  # Should not run
         ]
 
         results = []

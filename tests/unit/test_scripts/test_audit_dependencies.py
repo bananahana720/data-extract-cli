@@ -384,7 +384,6 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         assert report_file.read_text() == report
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="P2 automation - test fixture doesn't declare all dependencies")
     @patch("sys.argv", ["audit_dependencies.py", "--output", "markdown"])
     def test_main_success(self, tmp_path, monkeypatch):
         """Test main function with successful execution."""
@@ -403,6 +402,25 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         monkeypatch.setattr(audit_module, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
         monkeypatch.setattr(audit_module, "CACHE_DIR", tmp_path / ".cache" / "dependency_audit")
         monkeypatch.setattr(audit_module, "DOCS_DIR", tmp_path / "docs")
+
+        original_scan = audit_module.DependencyAuditor.scan_test_files
+
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "scan_test_files",
+            lambda self, test_dir=audit_module.TEST_DIR: original_scan(
+                self, test_dir=tmp_path / "tests"
+            ),
+        )
+        def load_declared_success_case(self, pyproject_path=audit_module.PYPROJECT_PATH):
+            self.declared_deps = {"pytest"}
+            return self.declared_deps
+
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "load_declared_dependencies",
+            load_declared_success_case,
+        )
 
         # Run main
         with patch("sys.exit") as mock_exit:
@@ -429,6 +447,24 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         monkeypatch.setattr(audit_module, "CACHE_DIR", tmp_path / ".cache" / "dependency_audit")
         monkeypatch.setattr(audit_module, "DOCS_DIR", tmp_path / "docs")
 
+        original_scan = audit_module.DependencyAuditor.scan_test_files
+        original_load = audit_module.DependencyAuditor.load_declared_dependencies
+
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "scan_test_files",
+            lambda self, test_dir=audit_module.TEST_DIR: original_scan(
+                self, test_dir=tmp_path / "tests"
+            ),
+        )
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "load_declared_dependencies",
+            lambda self, pyproject_path=audit_module.PYPROJECT_PATH: original_load(
+                self, pyproject_path=tmp_path / "pyproject.toml"
+            ),
+        )
+
         # Run main - should exit with error
         with patch("sys.exit") as mock_exit:
             main()
@@ -451,6 +487,24 @@ dev = ["pytest>=7.0.0", "black>=22.0.0"]
         monkeypatch.setattr(audit_module, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
         monkeypatch.setattr(audit_module, "CACHE_DIR", tmp_path / ".cache" / "dependency_audit")
         monkeypatch.setattr(audit_module, "DOCS_DIR", tmp_path / "docs")
+
+        original_scan = audit_module.DependencyAuditor.scan_test_files
+        original_load = audit_module.DependencyAuditor.load_declared_dependencies
+
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "scan_test_files",
+            lambda self, test_dir=audit_module.TEST_DIR: original_scan(
+                self, test_dir=tmp_path / "tests"
+            ),
+        )
+        monkeypatch.setattr(
+            audit_module.DependencyAuditor,
+            "load_declared_dependencies",
+            lambda self, pyproject_path=audit_module.PYPROJECT_PATH: original_load(
+                self, pyproject_path=tmp_path / "pyproject.toml"
+            ),
+        )
 
         with patch("sys.exit") as mock_exit, patch("builtins.print") as mock_print:
             main()

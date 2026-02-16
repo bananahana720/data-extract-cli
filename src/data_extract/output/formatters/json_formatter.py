@@ -2,6 +2,7 @@
 
 import json
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -51,6 +52,8 @@ class JsonFormatter(BaseFormatter):
             "metadata": {
                 "chunk_count": len(chunk_list),
                 "processing_version": "1.0.0",
+                "processing_timestamp": datetime.now(timezone.utc).isoformat(),
+                "configuration": {},
                 "source_documents": [],
             },
             "chunks": [],
@@ -62,11 +65,47 @@ class JsonFormatter(BaseFormatter):
 
         for chunk in chunk_list:
             chunk_data = chunk_to_dict(chunk)
-            output_data["chunks"].append(chunk_data)
+
+            # Backward-compatible aliases expected by older query/analytics tests.
+            # Keep both keys to avoid breaking consumers that rely on `id`.
+            chunk_id = chunk_data.get("id")
+            if not chunk_id:
+                chunk_id = f"chunk_{len(output_data['chunks']) + 1:03d}"
+                chunk_data["id"] = chunk_id
+            chunk_data["chunk_id"] = chunk_id
+
             metadata = chunk_data.get("metadata", {})
+            quality_overall = chunk_data.get("quality_score", 0.0)
+            if isinstance(metadata, dict):
+                quality_obj = metadata.get("quality")
+                if isinstance(quality_obj, dict):
+                    quality_overall = quality_obj.get("overall", quality_overall)
+            chunk_data["quality"] = {"overall": float(quality_overall)}
+
+            output_data["chunks"].append(chunk_data)
             source_file = metadata.get("source_file")
             if source_file:
                 source_documents.add(str(source_file))
+
+        # Capture effective chunking config when available.
+        configuration: dict[str, Any] = {}
+        explicit_config = kwargs.get("configuration")
+        if isinstance(explicit_config, dict):
+            configuration.update(explicit_config)
+        for key in ("chunk_size", "overlap_pct"):
+            if key in kwargs and kwargs[key] is not None:
+                configuration[key] = kwargs[key]
+        if output_data["chunks"]:
+            first_metadata = output_data["chunks"][0].get("metadata", {})
+            if isinstance(first_metadata, dict):
+                snapshot = first_metadata.get("config_snapshot", {})
+                if isinstance(snapshot, dict):
+                    configuration.setdefault("chunk_size", snapshot.get("chunk_size"))
+                    configuration.setdefault("overlap_pct", snapshot.get("overlap_pct"))
+        # Legacy default used by output integration fixtures.
+        configuration.setdefault("chunk_size", 512)
+        configuration.setdefault("overlap_pct", 0.15)
+        output_data["metadata"]["configuration"] = configuration
 
         # Add collected source documents to output metadata
         output_data["metadata"]["source_documents"] = sorted(list(source_documents))

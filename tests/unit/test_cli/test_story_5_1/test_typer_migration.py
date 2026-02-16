@@ -334,9 +334,6 @@ class TestTypeHintCompleteness:
             + (f"\n... and {len(missing_hints) - 20} more" if len(missing_hints) > 20 else "")
         )
 
-    @pytest.mark.xfail(
-        reason="TDD RED - Type hint refactoring for Annotated pattern not yet complete"
-    )
     def test_typer_options_use_annotated_type(self):
         """
         RED: Verify Typer options use Annotated type pattern.

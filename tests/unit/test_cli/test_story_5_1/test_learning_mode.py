@@ -52,7 +52,6 @@ class TestLearnFlagExists:
             "--learn" in result.output
         ), f"--learn flag not found in process help:\n{result.output}"
 
-    @pytest.mark.xfail(reason="TDD RED - Learning mode for semantic analyze not yet implemented")
     def test_semantic_analyze_has_learn_flag(self, typer_cli_runner):
         """
         RED: Verify 'semantic analyze' command has --learn flag.

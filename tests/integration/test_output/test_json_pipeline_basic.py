@@ -118,9 +118,6 @@ class TestMetadataAccuracy:
         # THEN: chunk_count should match actual chunks
         assert json_data["metadata"]["chunk_count"] == len(json_data["chunks"])
 
-    @pytest.mark.xfail(
-        reason="JsonFormatter doesn't include 'configuration' in metadata - needs enhancement"
-    )
     def test_configuration_reflects_chunking_params(
         self, sample_processing_result, chunking_engine, json_formatter, tmp_path
     ):
@@ -144,9 +141,6 @@ class TestMetadataAccuracy:
 class TestDeterminism:
     """Test deterministic output generation (AC-3.4-2)."""
 
-    @pytest.mark.xfail(
-        reason="JsonFormatter doesn't include 'processing_timestamp' in metadata - needs enhancement"
-    )
     def test_same_input_produces_same_json(
         self, sample_processing_result, chunking_engine, json_formatter, tmp_path
     ):

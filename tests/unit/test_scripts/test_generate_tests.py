@@ -86,7 +86,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert generator.has_performance_requirements is False
 
     @pytest.mark.unit
-    @pytest.mark.skip(reason="P2 automation - complex regex parsing logic needs refactoring")
     def test_parse_story_file_success(self, generator, story_file):
         """Test successful story file parsing."""
         result = generator.parse_story_file(story_file)
@@ -139,7 +138,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert generator.story_number == "2"
 
     @pytest.mark.unit
-    @pytest.mark.skip(reason="P2 automation - complex regex parsing logic needs refactoring")
     def test_extract_acceptance_criteria(self, generator, sample_story_content):
         """Test acceptance criteria extraction."""
         generator.story_content = sample_story_content
@@ -160,7 +158,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert ac3["title"] == "Performance optimization"
 
     @pytest.mark.unit
-    @pytest.mark.skip(reason="P2 automation - complex regex parsing logic needs refactoring")
     def test_extract_tasks(self, generator, sample_story_content):
         """Test task extraction."""
         generator.story_content = sample_story_content
@@ -244,7 +241,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert len(generator._slugify(long_text)) == 50
 
     @pytest.mark.unit
-    @pytest.mark.skip(reason="P2 automation - class name generation logic needs refactoring")
     def test_generate_class_name(self, generator):
         """Test test class name generation."""
         generator.story_key = "4-1-tf-idf-vectorization"
@@ -254,7 +250,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert generator._generate_class_name() == "TestStory3_5_8DependencyTest"
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="P2 automation - depends on parse_story_file which is broken")
     def test_generate_test_file(self, generator, story_file, tmp_path):
         """Test complete test file generation."""
         generator.parse_story_file(story_file)
@@ -270,7 +265,7 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert "class TestStory4_1TfIdfVectorization:" in content
         assert "@pytest.mark" in content
         assert "def test_ac_1_import_scanning" in content
-        assert "def test_ac_2_cross_reference_validation" in content
+        assert "def test_ac_2_crossreference_validation" in content
         assert "def test_ac_3_performance_optimization" in content
         assert "def test_ac_4_integration_testing" in content
 
@@ -278,7 +273,6 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert "def test_performance_requirements" in content
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="P2 automation - depends on parse_story_file which is broken")
     def test_generate_fixture_file(self, generator, story_file, tmp_path):
         """Test fixture file generation."""
         generator.parse_story_file(story_file)
@@ -340,11 +334,17 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         assert "from data_extract.cli import app" in content
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="P2 automation - depends on parse_story_file which is broken")
     @patch("sys.argv", ["generate_tests.py", "--story", "test.md"])
     def test_main_success(self, tmp_path, monkeypatch):
         """Test main function with successful execution."""
         monkeypatch.chdir(tmp_path)
+
+        import scripts.generate_tests as generate_tests_module
+
+        monkeypatch.setattr(generate_tests_module, "PROJECT_ROOT", tmp_path)
+        monkeypatch.setattr(generate_tests_module, "TESTS_DIR", tmp_path / "tests")
+        monkeypatch.setattr(generate_tests_module, "FIXTURES_DIR", tmp_path / "tests" / "fixtures")
+        monkeypatch.setattr(generate_tests_module, "STORIES_DIR", tmp_path)
 
         # Create story file
         story_content = """
@@ -358,7 +358,7 @@ NFR-P1: Performance requirement - must handle 1000 documents.
 
 - [ ] Test task
 """
-        story_file = tmp_path / "test.md"
+        story_file = tmp_path / "1-1-test-story.md"
         story_file.write_text(story_content)
 
         # Mock sys.argv for argparse
@@ -373,11 +373,17 @@ NFR-P1: Performance requirement - must handle 1000 documents.
         ).exists()
 
     @pytest.mark.integration
-    @pytest.mark.skip(reason="P2 automation - depends on parse_story_file which is broken")
     @patch("sys.argv", ["generate_tests.py", "--story", "test.md", "--fixtures-only"])
     def test_main_fixtures_only(self, tmp_path, monkeypatch):
         """Test main function with fixtures-only mode."""
         monkeypatch.chdir(tmp_path)
+
+        import scripts.generate_tests as generate_tests_module
+
+        monkeypatch.setattr(generate_tests_module, "PROJECT_ROOT", tmp_path)
+        monkeypatch.setattr(generate_tests_module, "TESTS_DIR", tmp_path / "tests")
+        monkeypatch.setattr(generate_tests_module, "FIXTURES_DIR", tmp_path / "tests" / "fixtures")
+        monkeypatch.setattr(generate_tests_module, "STORIES_DIR", tmp_path)
 
         # Create story file
         story_content = """
@@ -387,7 +393,7 @@ NFR-P1: Performance requirement - must handle 1000 documents.
 
 1. **Test:** Test.
 """
-        story_file = tmp_path / "test.md"
+        story_file = tmp_path / "1-1-test.md"
         story_file.write_text(story_content)
 
         with patch(

@@ -1,207 +1,149 @@
-"""Integration tests for CLI organization flags (Story 3.7).
+"""Integration tests for CLI --organize/--strategy combinations."""
 
-Tests the data-extract CLI with --organization and --strategy flags,
-verifying proper routing to organization strategies.
-
-Test Coverage:
-    - --organization by_document flag
-    - --organization by_entity flag
-    - --organization flat flag (default)
-    - Invalid strategy error handling
-    - Organization with --format flag combinations
-"""
+from __future__ import annotations
 
 import json
-import subprocess
+from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
+
+from data_extract.cli.app import app
 
 pytestmark = [pytest.mark.P1, pytest.mark.integration, pytest.mark.cli, pytest.mark.organization]
 
 
-class TestCLIOrganizationFlags:
-    """Integration tests for CLI organization flags (AC-3.7-5)."""
-
-    @pytest.fixture
-    def sample_pdf(self, tmp_path):
-        """Create a minimal test PDF file."""
-        # For testing, we'll create a simple text file instead
-        # Real implementation would need actual PDF
-        pdf_path = tmp_path / "test.pdf"
-        pdf_path.write_text("Test content for CLI organization testing")
-        return pdf_path
-
-    @pytest.mark.skip(reason="Organization flag not yet implemented in CLI (Story 5.x)")
-    def test_cli_organization_by_document_flag(self, sample_pdf, tmp_path):
-        """Should organize output by document when --organization by_document passed."""
-        output_dir = tmp_path / "output"
-
-        # Run CLI with BY_DOCUMENT organization
-        result = subprocess.run(
-            [
-                "data-extract",
-                "process",
-                str(sample_pdf),
-                "--format",
-                "txt",
-                "--output",
-                str(output_dir),
-                "--organization",
-                "by_document",
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        # Verify success
-        assert result.returncode == 0
-
-        # Verify BY_DOCUMENT folder structure exists
-        manifest_path = output_dir / "manifest.json"
-        assert manifest_path.exists()
-
-        with open(manifest_path, "r") as f:
-            manifest = json.load(f)
-
-        assert manifest["organization_strategy"] == "by_document"
-
-    @pytest.mark.skip(reason="Organization flag not yet implemented in CLI (Story 5.x)")
-    def test_cli_organization_by_entity_flag(self, sample_pdf, tmp_path):
-        """Should organize output by entity when --organization by_entity passed."""
-        output_dir = tmp_path / "output"
-
-        result = subprocess.run(
-            [
-                "data-extract",
-                "process",
-                str(sample_pdf),
-                "--format",
-                "txt",
-                "--output",
-                str(output_dir),
-                "--organization",
-                "by_entity",
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        assert result.returncode == 0
-
-        manifest_path = output_dir / "manifest.json"
-        with open(manifest_path, "r") as f:
-            manifest = json.load(f)
-
-        assert manifest["organization_strategy"] == "by_entity"
-
-    @pytest.mark.skip(reason="Organization flag not yet implemented in CLI (Story 5.x)")
-    def test_cli_organization_flat_default(self, sample_pdf, tmp_path):
-        """Should use flat organization by default when no flag specified."""
-        output_dir = tmp_path / "output"
-
-        result = subprocess.run(
-            [
-                "data-extract",
-                "process",
-                str(sample_pdf),
-                "--format",
-                "txt",
-                "--output",
-                str(output_dir),
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        assert result.returncode == 0
-
-        manifest_path = output_dir / "manifest.json"
-        with open(manifest_path, "r") as f:
-            manifest = json.load(f)
-
-        # Default should be flat
-        assert manifest["organization_strategy"] == "flat"
-        assert manifest["folders"] == {
-            str(output_dir): {"chunk_count": 1, "chunk_ids": ["chunk_001"]}
-        }
-
-    @pytest.mark.skip(reason="Organization flag not yet implemented in CLI (Story 5.x)")
-    def test_cli_invalid_organization_strategy(self, sample_pdf, tmp_path):
-        """Should error on invalid organization strategy."""
-        output_dir = tmp_path / "output"
-
-        result = subprocess.run(
-            [
-                "data-extract",
-                "process",
-                str(sample_pdf),
-                "--output",
-                str(output_dir),
-                "--organization",
-                "invalid_strategy",
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        # Should fail with error
-        assert result.returncode != 0
-        assert "invalid" in result.stderr.lower() or "unknown" in result.stderr.lower()
-
-    @pytest.mark.skip(reason="Organization flag not yet implemented in CLI (Story 5.x)")
-    def test_cli_organization_with_csv_format(self, sample_pdf, tmp_path):
-        """Should combine organization strategy with CSV format."""
-        output_dir = tmp_path / "output"
-
-        result = subprocess.run(
-            [
-                "data-extract",
-                "process",
-                str(sample_pdf),
-                "--format",
-                "csv",
-                "--output",
-                str(output_dir),
-                "--organization",
-                "by_document",
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        assert result.returncode == 0
-
-        # Verify CSV exists in organized structure
-        manifest_path = output_dir / "manifest.json"
-        assert manifest_path.exists()
-
-        # Should have CSV files in document folders
-        csv_files = list(output_dir.rglob("*.csv"))
-        assert len(csv_files) > 0
+def _write_text(path: Path, content: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path
 
 
-# Placeholder for functional CLI organization tests (Unit-level CLI validation)
-class TestCLIOrganizationUnit:
-    """Unit tests for CLI argument parsing and validation."""
+@pytest.fixture
+def cli_runner() -> CliRunner:
+    return CliRunner()
 
-    def test_organization_flag_accepts_valid_strategies(self):
-        """Should accept by_document, by_entity, flat as valid strategies."""
-        valid_strategies = ["by_document", "by_entity", "flat"]
 
-        from data_extract.output.organization import OrganizationStrategy
+@pytest.fixture
+def isolated_cli_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DATA_EXTRACT_UI_HOME", str(tmp_path / "ui-home"))
+    monkeypatch.setenv("DATA_EXTRACT_WORK_DIR", str(tmp_path / "work-dir"))
 
-        for strategy in valid_strategies:
-            # Verify enum has this value
-            assert any(s.value == strategy for s in OrganizationStrategy)
 
-    def test_organization_strategy_enum_complete(self):
-        """Should have exactly 3 organization strategies defined."""
-        from data_extract.output.organization import OrganizationStrategy
+def test_cli_organize_by_document_creates_nested_output(
+    cli_runner: CliRunner,
+    tmp_path: Path,
+    isolated_cli_env: None,
+) -> None:
+    input_file = _write_text(tmp_path / "document.txt", "alpha beta gamma delta")
+    output_dir = tmp_path / "organized"
 
-        strategies = list(OrganizationStrategy)
-        assert len(strategies) == 3
+    result = cli_runner.invoke(
+        app,
+        [
+            "process",
+            str(input_file),
+            "--output",
+            str(output_dir),
+            "--format",
+            "txt",
+            "--chunk-size",
+            "2",
+            "--organize",
+            "--strategy",
+            "by_document",
+            "--quiet",
+        ],
+    )
 
-        strategy_values = [s.value for s in strategies]
-        assert "by_document" in strategy_values
-        assert "by_entity" in strategy_values
-        assert "flat" in strategy_values
+    assert result.exit_code == 0, result.output
+
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    created_files = [output_dir / rel_path for rel_path in manifest["files"]]
+
+    assert manifest["strategy"] == "by_document"
+    assert manifest["chunk_count"] >= 1
+    assert created_files
+    assert all(path.exists() for path in created_files)
+    assert any(path.parent != output_dir for path in created_files)
+
+
+def test_cli_organize_by_entity_routes_chunks_to_entities_folder(
+    cli_runner: CliRunner,
+    tmp_path: Path,
+    isolated_cli_env: None,
+) -> None:
+    input_file = _write_text(tmp_path / "entity.txt", "one two three four")
+    output_dir = tmp_path / "organized-entities"
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "process",
+            str(input_file),
+            "--output",
+            str(output_dir),
+            "--format",
+            "txt",
+            "--chunk-size",
+            "2",
+            "--organize",
+            "--strategy",
+            "by_entity",
+            "--quiet",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    created_files = [output_dir / rel_path for rel_path in manifest["files"]]
+
+    assert manifest["strategy"] == "by_entity"
+    assert (output_dir / "entities").is_dir()
+    assert created_files
+    assert all(path.parent.name == "entities" for path in created_files)
+
+
+@pytest.mark.parametrize(
+    ("args", "error_fragment"),
+    [
+        (
+            ["--organize"],
+            "requires --strategy",
+        ),
+        (
+            ["--strategy", "by_document"],
+            "requires --organize",
+        ),
+        (
+            ["--organize", "--strategy", "not_real"],
+            "invalid strategy",
+        ),
+    ],
+)
+def test_cli_organization_flag_validation_errors(
+    cli_runner: CliRunner,
+    tmp_path: Path,
+    isolated_cli_env: None,
+    args: list[str],
+    error_fragment: str,
+) -> None:
+    input_file = _write_text(tmp_path / "invalid.txt", "sample")
+    output_dir = tmp_path / "output"
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "process",
+            str(input_file),
+            "--output",
+            str(output_dir),
+            "--format",
+            "txt",
+            *args,
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert error_fragment in result.output.lower()

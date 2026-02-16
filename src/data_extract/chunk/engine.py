@@ -250,6 +250,12 @@ class ChunkingEngine:
                     "document_type": self._resolve_document_type(result, document_metadata),
                     "ocr_confidence": self._extract_ocr_confidence(result, document_metadata),
                     "completeness": self._resolve_completeness_ratio(document_metadata),
+                    "config_snapshot": {
+                        "chunk_size": self.chunk_size,
+                        "overlap_pct": self.overlap_pct,
+                        "entity_aware": self.entity_aware,
+                        "quality_enrichment": self.quality_enrichment,
+                    },
                 }
 
                 # Enrich chunk with quality metadata

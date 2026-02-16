@@ -116,8 +116,19 @@ class StoryTestGenerator:
             self.story_number = match.group(2)
             self.story_key = filename
         else:
-            # Try to extract from content
-            key_match = re.search(r"Story Key:\s*`?([^\s`]+)`?", self.story_content)
+            # Try to extract from content (supports markdown like **Story Key:** `4-1-foo`)
+            key_match = None
+            for line in self.story_content.splitlines():
+                normalized = line.replace("*", "").replace("`", "").strip()
+                normalized = normalized.lstrip("- ").strip()
+                key_match = re.search(
+                    r"Story\s+Key\s*:\s*([A-Za-z0-9._-]+)",
+                    normalized,
+                    re.IGNORECASE,
+                )
+                if key_match:
+                    break
+
             if key_match:
                 self.story_key = key_match.group(1)
                 # Parse the key
@@ -146,17 +157,37 @@ class StoryTestGenerator:
 
         ac_text = ac_section.group(1)
 
-        # Pattern for numbered ACs with optional AC- prefix
-        ac_pattern = r"(?:^|\n)\s*(?:AC-)?(\d+)\.?\s*\*?\*?([^:]+?)[:*]?\*?\*?\s*(.+?)(?=\n\s*(?:AC-)?\d+\.|\Z)"
+        # Pattern for numbered AC blocks with optional AC- prefix.
+        ac_pattern = r"^\s*(?:AC-)?(\d+)\.?\s+(.*?)(?=^\s*(?:AC-)?\d+\.?\s+|\Z)"
 
         for match in re.finditer(ac_pattern, ac_text, re.DOTALL | re.MULTILINE):
             ac_num = match.group(1)
-            ac_title = match.group(2).strip()
-            ac_description = match.group(3).strip()
+            ac_block = " ".join(
+                line.strip()
+                for line in match.group(2).splitlines()
+                if line.strip()
+            )
 
-            # Clean up the description
+            # Normalize markdown wrappers around title.
+            markdown_colon_match = re.match(r"^\*\*(.+?):\*\*\s*(.+)$", ac_block)
+            markdown_plain_match = re.match(r"^\*\*(.+?)\*\*\s*:\s*(.+)$", ac_block)
+            plain_match = re.match(r"^([^:]+):\s*(.+)$", ac_block)
+
+            if markdown_colon_match:
+                ac_title = markdown_colon_match.group(1).strip()
+                ac_description = markdown_colon_match.group(2).strip()
+            elif markdown_plain_match:
+                ac_title = markdown_plain_match.group(1).strip()
+                ac_description = markdown_plain_match.group(2).strip()
+            elif plain_match:
+                ac_title = plain_match.group(1).strip()
+                ac_description = plain_match.group(2).strip()
+            else:
+                ac_title = ac_block.strip()
+                ac_description = ac_block.strip()
+
             ac_description = re.sub(r"\s+", " ", ac_description)
-            ac_description = ac_description.split("[")[0].strip()  # Remove source references
+            ac_description = re.sub(r"\[.*?\]\(.*?\)", "", ac_description).strip()
 
             self.acceptance_criteria.append(
                 {
@@ -183,12 +214,17 @@ class StoryTestGenerator:
 
         tasks_text = tasks_section.group(1)
 
-        # Extract task descriptions
-        task_pattern = r"- \[.\]\s*\*?\*?(.+?)[:*]?\*?\*?"
-
-        for match in re.finditer(task_pattern, tasks_text):
+        # Extract top-level task descriptions only.
+        for line in tasks_text.splitlines():
+            if not line.startswith("- ["):
+                continue
+            match = re.match(r"^- \[[ xX]\]\s+(.+)$", line)
+            if not match:
+                continue
             task = match.group(1).strip()
-            self.tasks.append(task)
+            task = re.sub(r"^\*\*(.*?)\*\*$", r"\1", task).strip()
+            if task:
+                self.tasks.append(task)
 
         logger.debug("extracted_tasks", count=len(self.tasks))
 
@@ -355,18 +391,23 @@ class StoryTestGenerator:
         Returns:
             PascalCase class name
         """
-        # Convert story key to class name
+        # Convert story key to class name.
         parts = self.story_key.split("-")
+        numeric_parts: List[str] = []
+        text_parts: List[str] = []
 
-        # Handle numeric parts
-        class_parts = []
         for part in parts:
-            if part.replace(".", "").isdigit():
-                class_parts.append(f"Story{part.replace('.', '_')}")
+            if not text_parts and part.replace(".", "").isdigit():
+                numeric_parts.extend(part.split("."))
             else:
-                class_parts.append(part.title())
+                text_parts.append(part)
 
-        return "Test" + "".join(class_parts)
+        class_name = "Test"
+        if numeric_parts:
+            class_name += "Story" + "_".join(numeric_parts)
+
+        class_name += "".join(part.title() for part in text_parts if part)
+        return class_name
 
     def _generate_test_method(self, ac: Dict[str, str], marker_mode: str) -> List[str]:
         """

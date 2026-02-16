@@ -484,6 +484,7 @@ class TestLSAEdgeCases:
         When: Applying LSA
         Then: Handles gracefully
         """
+        import warnings  # noqa: E402
         from sklearn.decomposition import TruncatedSVD  # noqa: E402
         from sklearn.feature_extraction.text import TfidfVectorizer  # noqa: E402
 
@@ -497,7 +498,13 @@ class TestLSAEdgeCases:
         # LSA with 1 component (max possible for single doc)
         lsa = TruncatedSVD(n_components=1)
         try:
-            lsa_vectors = lsa.fit_transform(tfidf_vectors)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message="invalid value encountered in divide",
+                    category=RuntimeWarning,
+                )
+                lsa_vectors = lsa.fit_transform(tfidf_vectors)
 
             # Assertions
             assert lsa_vectors.shape == (1, 1), "Single doc should produce 1x1 matrix"
@@ -548,6 +555,7 @@ class TestLSAEdgeCases:
         Then: Handles zero-variance gracefully
         """
         import numpy as np  # noqa: E402
+        import warnings  # noqa: E402
         from sklearn.decomposition import TruncatedSVD  # noqa: E402
         from sklearn.feature_extraction.text import TfidfVectorizer  # noqa: E402
 
@@ -561,7 +569,13 @@ class TestLSAEdgeCases:
         # Apply LSA
         try:
             lsa = TruncatedSVD(n_components=1)
-            lsa_vectors = lsa.fit_transform(tfidf_vectors)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message="invalid value encountered in divide",
+                    category=RuntimeWarning,
+                )
+                lsa_vectors = lsa.fit_transform(tfidf_vectors)
 
             # Should handle gracefully
             assert lsa_vectors.shape == (5, 1), "Should produce output even with low variance"

@@ -99,9 +99,6 @@ class TestQueryability:
         # THEN: jq should execute successfully
         assert result.returncode == 0
 
-    @pytest.mark.xfail(
-        reason="JsonFormatter chunk structure doesn't expose nested 'quality.overall' field - needs schema enhancement"
-    )
     def test_pandas_dataframe_filtering(
         self, sample_processing_result, chunking_engine, json_formatter, tmp_path
     ):
@@ -126,9 +123,6 @@ class TestQueryability:
         # THEN: Should filter successfully
         assert len(high_quality) >= 0  # May be 0 if no high-quality chunks
 
-    @pytest.mark.xfail(
-        reason="JsonFormatter uses 'id' not 'chunk_id' in JSON output - naming mismatch"
-    )
     def test_index_based_access(
         self, sample_processing_result, chunking_engine, json_formatter, tmp_path
     ):

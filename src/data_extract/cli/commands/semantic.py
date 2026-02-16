@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Optional
 
 import typer
 from rich.console import Console
@@ -34,58 +34,103 @@ semantic_app = typer.Typer(
 
 @semantic_app.command()
 def analyze(
-    input_path: Path = typer.Argument(
-        ..., exists=True, help="Directory containing JSON chunk files or a single JSON file"
-    ),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output path for results (default: stdout for JSON)"
-    ),
-    output_format: str = typer.Option(
-        "json",
-        "--format",
-        "-f",
-        help="Output format (json, csv, or html)",
-        case_sensitive=False,
-    ),
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", exists=True, help="Path to configuration file"
-    ),
-    max_features: Optional[int] = typer.Option(
-        None, "--max-features", help="Maximum TF-IDF vocabulary size (default: 5000)"
-    ),
-    duplicate_threshold: Optional[float] = typer.Option(
-        None,
-        "--duplicate-threshold",
-        min=0.0,
-        max=1.0,
-        help="Similarity threshold for duplicates (0.0-1.0, default: 0.95)",
-    ),
-    n_components: Optional[int] = typer.Option(
-        None, "--n-components", help="Number of LSA components (default: 100)"
-    ),
-    min_quality: Optional[float] = typer.Option(
-        None,
-        "--min-quality",
-        min=0.0,
-        max=1.0,
-        help="Minimum quality score threshold (0.0-1.0, default: 0.3)",
-    ),
-    no_cache: bool = typer.Option(False, "--no-cache", help="Disable caching for this operation"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    report: bool = typer.Option(False, "--report", "-r", help="Generate full HTML report"),
-    export_graph: Optional[str] = typer.Option(
-        None,
-        "--export-graph",
-        "-g",
-        help="Export similarity graph in specified format (json, csv, or dot)",
-        case_sensitive=False,
-    ),
-    export_summary: bool = typer.Option(
-        False,
-        "--export-summary",
-        "-s",
-        help="Export analysis summary JSON to the output directory",
-    ),
+    input_path: Annotated[
+        Path,
+        typer.Argument(
+            ..., exists=True, help="Directory containing JSON chunk files or a single JSON file"
+        ),
+    ],
+    output: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output path for results (default: stdout for JSON)",
+        ),
+    ] = None,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format (json, csv, or html)",
+            case_sensitive=False,
+        ),
+    ] = "json",
+    config_path: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--config",
+            "-c",
+            exists=True,
+            help="Path to configuration file",
+        ),
+    ] = None,
+    max_features: Annotated[
+        Optional[int],
+        typer.Option(
+            "--max-features",
+            help="Maximum TF-IDF vocabulary size (default: 5000)",
+        ),
+    ] = None,
+    duplicate_threshold: Annotated[
+        Optional[float],
+        typer.Option(
+            "--duplicate-threshold",
+            min=0.0,
+            max=1.0,
+            help="Similarity threshold for duplicates (0.0-1.0, default: 0.95)",
+        ),
+    ] = None,
+    n_components: Annotated[
+        Optional[int],
+        typer.Option("--n-components", help="Number of LSA components (default: 100)"),
+    ] = None,
+    min_quality: Annotated[
+        Optional[float],
+        typer.Option(
+            "--min-quality",
+            min=0.0,
+            max=1.0,
+            help="Minimum quality score threshold (0.0-1.0, default: 0.3)",
+        ),
+    ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Disable caching for this operation"),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose output"),
+    ] = False,
+    learn: Annotated[
+        bool,
+        typer.Option(
+            "--learn",
+            help="Enable learning mode with educational explanations.",
+        ),
+    ] = False,
+    report: Annotated[
+        bool,
+        typer.Option("--report", "-r", help="Generate full HTML report"),
+    ] = False,
+    export_graph: Annotated[
+        Optional[str],
+        typer.Option(
+            "--export-graph",
+            "-g",
+            help="Export similarity graph in specified format (json, csv, or dot)",
+            case_sensitive=False,
+        ),
+    ] = None,
+    export_summary: Annotated[
+        bool,
+        typer.Option(
+            "--export-summary",
+            "-s",
+            help="Export analysis summary JSON to the output directory",
+        ),
+    ] = False,
 ) -> None:
     """Run full semantic analysis pipeline on documents.
 
@@ -280,35 +325,49 @@ def analyze(
 
 @semantic_app.command()
 def deduplicate(
-    input_path: Path = typer.Argument(
-        ..., exists=True, help="Directory containing JSON chunk files"
-    ),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output path for deduplicated chunks"
-    ),
-    output_format: str = typer.Option(
-        "json",
-        "--format",
-        "-f",
-        help="Output format placeholder (json, csv, or html)",
-        case_sensitive=False,
-    ),
-    threshold: float = typer.Option(
-        0.95,
-        "--threshold",
-        "-t",
-        min=0.0,
-        max=1.0,
-        help="Similarity threshold for duplicate detection (0.0-1.0)",
-    ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show duplicates without removing them"),
-    export_summary: bool = typer.Option(
-        False,
-        "--export-summary",
-        "-s",
-        help="Export deduplication summary JSON to the output directory",
-    ),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+    input_path: Annotated[
+        Path,
+        typer.Argument(..., exists=True, help="Directory containing JSON chunk files"),
+    ],
+    output: Annotated[
+        Optional[Path],
+        typer.Option("--output", "-o", help="Output path for deduplicated chunks"),
+    ] = None,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format placeholder (json, csv, or html)",
+            case_sensitive=False,
+        ),
+    ] = "json",
+    threshold: Annotated[
+        float,
+        typer.Option(
+            "--threshold",
+            "-t",
+            min=0.0,
+            max=1.0,
+            help="Similarity threshold for duplicate detection (0.0-1.0)",
+        ),
+    ] = 0.95,
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Show duplicates without removing them"),
+    ] = False,
+    export_summary: Annotated[
+        bool,
+        typer.Option(
+            "--export-summary",
+            "-s",
+            help="Export deduplication summary JSON to the output directory",
+        ),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose output"),
+    ] = False,
 ) -> None:
     """Remove duplicate documents based on similarity threshold.
 
@@ -446,29 +505,39 @@ def deduplicate(
 
 @semantic_app.command()
 def cluster(
-    input_path: Path = typer.Argument(
-        ..., exists=True, help="Directory containing JSON chunk files"
-    ),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output path for cluster assignments"
-    ),
-    n_clusters: Optional[int] = typer.Option(
-        None, "--n-clusters", "-k", help="Number of clusters (default: auto-detect)"
-    ),
-    output_format: str = typer.Option(
-        "json",
-        "--format",
-        "-f",
-        help="Output format (json, csv, or html)",
-        case_sensitive=False,
-    ),
-    export_summary: bool = typer.Option(
-        False,
-        "--export-summary",
-        "-s",
-        help="Export clustering summary JSON to the output directory",
-    ),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+    input_path: Annotated[
+        Path,
+        typer.Argument(..., exists=True, help="Directory containing JSON chunk files"),
+    ],
+    output: Annotated[
+        Optional[Path],
+        typer.Option("--output", "-o", help="Output path for cluster assignments"),
+    ] = None,
+    n_clusters: Annotated[
+        Optional[int],
+        typer.Option("--n-clusters", "-k", help="Number of clusters (default: auto-detect)"),
+    ] = None,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format (json, csv, or html)",
+            case_sensitive=False,
+        ),
+    ] = "json",
+    export_summary: Annotated[
+        bool,
+        typer.Option(
+            "--export-summary",
+            "-s",
+            help="Export clustering summary JSON to the output directory",
+        ),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose output"),
+    ] = False,
 ) -> None:
     """Group documents into clusters using LSA and K-means.
 
@@ -592,15 +661,26 @@ def cluster(
 
 @semantic_app.command()
 def topics(
-    input_path: Path = typer.Argument(
-        ..., exists=True, help="Directory containing JSON chunk files"
-    ),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output path for topic extraction results"
-    ),
-    n_topics: int = typer.Option(10, "--n-topics", "-n", help="Number of topics to extract"),
-    top_terms: int = typer.Option(10, "--top-terms", "-t", help="Number of top terms per topic"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+    input_path: Annotated[
+        Path,
+        typer.Argument(..., exists=True, help="Directory containing JSON chunk files"),
+    ],
+    output: Annotated[
+        Optional[Path],
+        typer.Option("--output", "-o", help="Output path for topic extraction results"),
+    ] = None,
+    n_topics: Annotated[
+        int,
+        typer.Option("--n-topics", "-n", help="Number of topics to extract"),
+    ] = 10,
+    top_terms: Annotated[
+        int,
+        typer.Option("--top-terms", "-t", help="Number of top terms per topic"),
+    ] = 10,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose output"),
+    ] = False,
 ) -> None:
     """Extract topics from documents using LSA.
 

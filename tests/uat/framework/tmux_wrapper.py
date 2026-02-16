@@ -9,9 +9,12 @@ AC-5.0-2: TmuxSession wrapper implements launch, send, capture, wait_idle, kill
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Self
 
 
@@ -44,6 +47,7 @@ class TmuxSession:
     shell: str = "zsh"
     default_idle_time: float = 2.0
     default_timeout: float = 60.0
+    tmux_cli_bin: str | None = None
     _launched: bool = field(default=False, repr=False)
 
     def __enter__(self) -> Self:
@@ -123,8 +127,9 @@ class TmuxSession:
         # Use native tmux capture-pane with scrollback history to get full output
         # -S -500: Start from 500 lines back in history (covers most CLI outputs)
         try:
+            target = self._tmux_target()
             result = subprocess.run(
-                ["tmux", "capture-pane", "-t", f"{self.pane_id}.0", "-p", "-S", "-500"],
+                ["tmux", "capture-pane", "-t", target, "-p", "-S", "-500"],
                 capture_output=True,
                 text=True,
                 timeout=self.default_timeout + 10,
@@ -238,6 +243,14 @@ class TmuxSession:
         if not self._launched or not self.pane_id:
             raise TmuxError("No pane launched. Call launch() first.")
 
+    def _tmux_target(self) -> str:
+        """Get pane target in tmux target format."""
+        self._ensure_pane()
+        pane_suffix = self.pane_id.rsplit(":", 1)[-1]
+        if "." in pane_suffix:
+            return self.pane_id
+        return f"{self.pane_id}.0"
+
     def _run_tmux_cli(self, args: list[str]) -> str:
         """Run a tmux-cli command and return output.
 
@@ -250,7 +263,15 @@ class TmuxSession:
         Raises:
             TmuxError: If command fails
         """
-        cmd = ["tmux-cli", *args]
+        if self.tmux_cli_bin is None:
+            self.tmux_cli_bin = self.resolve_tmux_cli_bin()
+        if self.tmux_cli_bin is None:
+            raise TmuxError(
+                "tmux-cli not found. Install with: uv tool install tmux-cli "
+                "or provide scripts/tmux-cli shim."
+            )
+
+        cmd = [self.tmux_cli_bin, *args]
         try:
             result = subprocess.run(
                 cmd,
@@ -295,4 +316,24 @@ class TmuxSession:
         except subprocess.TimeoutExpired as e:
             raise TmuxError(f"tmux-cli command timed out: {cmd}") from e
         except FileNotFoundError as e:
-            raise TmuxError("tmux-cli not found. Install with: uv tool install tmux-cli") from e
+            raise TmuxError(f"tmux-cli executable not found: {self.tmux_cli_bin}") from e
+
+    @staticmethod
+    def resolve_tmux_cli_bin() -> str | None:
+        """Resolve tmux-cli binary, preferring explicit and local test shim."""
+        override = os.getenv("TMUX_CLI_BIN")
+        if override:
+            override_path = Path(override).expanduser()
+            if override_path.exists():
+                return str(override_path)
+
+        system_tmux_cli = shutil.which("tmux-cli")
+        if system_tmux_cli:
+            return system_tmux_cli
+
+        repo_root = Path(__file__).resolve().parents[3]
+        local_shim = repo_root / "scripts" / "tmux-cli"
+        if local_shim.exists():
+            return str(local_shim)
+
+        return None

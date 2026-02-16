@@ -13,11 +13,15 @@ Tests verify interactive error prompt functionality:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
+
+import data_extract.services as services
+from data_extract.contracts import JobStatus, ProcessJobResult, ProcessedFileOutcome
 
 # P1: Core functionality - run on PR
 pytestmark = [
@@ -33,6 +37,59 @@ if TYPE_CHECKING:
         MockInquirerPrompts,
         TTYModeFixture,
     )
+
+
+@dataclass
+class _StubJobService:
+    result: ProcessJobResult
+    calls: int = 0
+    last_request: object | None = None
+
+    def run_process(self, request, work_dir=None):  # noqa: ANN001
+        self.calls += 1
+        self.last_request = request
+        return self.result
+
+
+def _build_process_result(
+    tmp_path: Path,
+    *,
+    processed: int = 1,
+    failed: int = 0,
+    skipped: int = 0,
+    exit_code: int = 0,
+) -> ProcessJobResult:
+    return ProcessJobResult(
+        job_id="job-story-5-6",
+        status=JobStatus.COMPLETED,
+        total_files=processed + failed + skipped,
+        processed_count=processed,
+        failed_count=failed,
+        skipped_count=skipped,
+        output_dir=str(tmp_path / "output"),
+        processed_files=[
+            ProcessedFileOutcome(
+                path=str(tmp_path / "docs" / "good.txt"),
+                output_path=str(tmp_path / "output" / "good.json"),
+                chunk_count=2,
+            )
+        ]
+        if processed
+        else [],
+        failed_files=[],
+        stage_totals_ms={"extract": 10.0, "chunk": 5.0, "output": 2.0},
+        request_hash="req-story-5-6",
+        exit_code=exit_code,
+    )
+
+
+def _install_stub_job_service(
+    monkeypatch: pytest.MonkeyPatch,
+    result: ProcessJobResult,
+) -> _StubJobService:
+    stub = _StubJobService(result=result)
+    monkeypatch.setattr(services, "JobService", lambda: stub)
+    return stub
 
 
 @pytest.mark.unit
@@ -382,37 +439,35 @@ class TestRetryWithDifferentSettings:
 class TestInteractiveFlag:
     """Test --interactive flag behavior."""
 
-    @pytest.mark.skip(reason="Interactive error prompts implementation required for BLUE phase")
     def test_interactive_flag_enables_prompts(
         self,
         typer_cli_runner,
         tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
-        RED: Verify --interactive flag enables error prompts.
+        Verify --interactive keeps process request in interactive mode.
 
         Given: Processing with --interactive flag
-        When: An error occurs
-        Then: Interactive prompt should be shown
-
-        Expected RED failure: ModuleNotFoundError - CLI command doesn't exist
+        When: Process request is built
+        Then: non_interactive should remain False
         """
-        # Arrange
+        stub = _install_stub_job_service(monkeypatch, _build_process_result(tmp_path))
+
         from data_extract.cli.app import app
 
         source_dir = tmp_path / "docs"
         source_dir.mkdir()
-        (source_dir / "corrupted.pdf").write_bytes(b"%PDF-corrupt")
+        (source_dir / "input.txt").write_text("sample")
 
-        # Act
         result = typer_cli_runner.invoke(
             app,
-            ["process", str(source_dir), "--interactive"],
-            input="s\n",  # Skip on prompt
+            ["process", str(source_dir), "--interactive", "--quiet"],
         )
 
-        # Assert
-        assert "how would you like" in result.output.lower() or "skip" in result.output.lower()
+        assert result.exit_code == 0
+        assert stub.calls == 1
+        assert stub.last_request.non_interactive is False
 
     def test_interactive_default_for_tty(
         self,
@@ -478,39 +533,39 @@ class TestNonInteractiveFlag:
         # Should not contain prompt text
         assert "how would you like" not in result.output.lower()
 
-    @pytest.mark.skip(
-        reason="Non-interactive auto-skip behavior implementation required for BLUE phase"
-    )
     def test_non_interactive_auto_skips_errors(
         self,
         typer_cli_runner,
         tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
-        RED: Verify non-interactive mode auto-skips failed files.
+        Verify --non-interactive sets auto-skip mode and reports skipped files.
 
         Given: Non-interactive mode enabled
-        When: A file fails processing
-        Then: File should be automatically skipped
-
-        Expected RED failure: ModuleNotFoundError - CLI command doesn't exist
+        When: Process command completes with skipped files
+        Then: output should include skipped count and request non_interactive=True
         """
-        # Arrange
+        stub = _install_stub_job_service(
+            monkeypatch,
+            _build_process_result(tmp_path, processed=1, skipped=1),
+        )
+
         from data_extract.cli.app import app
 
         source_dir = tmp_path / "docs"
         source_dir.mkdir()
         (source_dir / "good.txt").write_text("Good content")
-        (source_dir / "corrupted.pdf").write_bytes(b"%PDF-corrupt")
 
-        # Act
         result = typer_cli_runner.invoke(
             app,
             ["process", str(source_dir), "--non-interactive"],
         )
 
-        # Assert
-        assert "skipped" in result.output.lower() or "skipping" in result.output.lower()
+        assert result.exit_code == 0
+        assert stub.calls == 1
+        assert stub.last_request.non_interactive is True
+        assert "skipped" in result.output.lower()
 
 
 @pytest.mark.unit

@@ -8,6 +8,7 @@ Story 5-0: UAT Testing Framework
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Generator
@@ -38,6 +39,11 @@ def pytest_configure(config: pytest.Config) -> None:
 # -----------------------------------------------------------------------------
 
 
+def _local_tmux_cli_shim() -> Path:
+    """Return path to local tmux-cli compatibility shim."""
+    return Path(__file__).resolve().parents[2] / "scripts" / "tmux-cli"
+
+
 @pytest.fixture(scope="session")
 def tmux_available() -> bool:
     """Check if tmux is available on the system."""
@@ -46,8 +52,11 @@ def tmux_available() -> bool:
 
 @pytest.fixture(scope="session")
 def tmux_cli_available() -> bool:
-    """Check if tmux-cli is available on the system."""
-    return shutil.which("tmux-cli") is not None
+    """Check if tmux-cli or local shim is available on the system."""
+    if shutil.which("tmux-cli") is not None:
+        return True
+    local_shim = _local_tmux_cli_shim()
+    return local_shim.is_file() and os.access(local_shim, os.X_OK)
 
 
 # -----------------------------------------------------------------------------
@@ -72,12 +81,21 @@ def tmux_session(
     if not tmux_available:
         pytest.skip("tmux not available on this system")
     if not tmux_cli_available:
-        pytest.skip("tmux-cli not available (install with: uv tool install tmux-cli)")
+        pytest.skip(
+            "tmux-cli not available and local shim missing "
+            "(expected executable at scripts/tmux-cli)"
+        )
 
     # Import here to avoid import errors when tmux not available
     from tests.uat.framework.tmux_wrapper import TmuxSession
 
-    session = TmuxSession()
+    tmux_cli_bin = shutil.which("tmux-cli")
+    if tmux_cli_bin is None:
+        local_shim = _local_tmux_cli_shim()
+        if local_shim.is_file():
+            tmux_cli_bin = str(local_shim)
+
+    session = TmuxSession(tmux_cli_bin=tmux_cli_bin)
     try:
         session.launch("bash")
         yield session

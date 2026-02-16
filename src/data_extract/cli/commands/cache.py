@@ -8,7 +8,7 @@ Migrated from brownfield Click implementation to Typer.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import typer
 from rich.console import Console
@@ -24,12 +24,14 @@ console = Console()
 
 @cache_app.command()
 def status(
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Show detailed cache information",
-    ),
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Show detailed cache information",
+        ),
+    ] = False,
 ) -> None:
     """Show cache status and statistics.
 
@@ -102,12 +104,14 @@ def clear(
         "-p",
         help="Only clear entries matching pattern (e.g., 'tfidf_*')",
     ),
-    force: bool = typer.Option(
-        False,
-        "--force",
-        "-f",
-        help="Skip confirmation prompt",
-    ),
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            "-f",
+            help="Skip confirmation prompt",
+        ),
+    ] = False,
 ) -> None:
     """Clear cached entries.
 
@@ -181,12 +185,14 @@ def warm(
         exists=True,
         help="Directory containing JSON chunk files",
     ),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Show detailed progress",
-    ),
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Show detailed progress",
+        ),
+    ] = False,
 ) -> None:
     """Pre-compute and cache results for a corpus.
 
@@ -250,13 +256,15 @@ def warm(
 
 @cache_app.command()
 def metrics(
-    output_format: str = typer.Option(
-        "text",
-        "--format",
-        "-f",
-        help="Output format (json or text)",
-        case_sensitive=False,
-    ),
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format (json or text)",
+            case_sensitive=False,
+        ),
+    ] = "text",
 ) -> None:
     """Show cache performance metrics.
 

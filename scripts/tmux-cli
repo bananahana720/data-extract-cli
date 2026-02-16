@@ -1,0 +1,287 @@
+#!/usr/bin/env python3
+"""Lightweight tmux-cli compatibility shim for UAT tests.
+
+Supported commands:
+- launch <command>
+- send <text> --pane=<pane> [--enter=False] [--delay-enter=<seconds>]
+- wait_idle --pane=<pane> [--idle-time=<seconds>] [--timeout=<seconds>]
+- kill --pane=<pane>
+- interrupt --pane=<pane>
+- escape --pane=<pane>
+"""
+
+from __future__ import annotations
+
+import shlex
+import subprocess
+import sys
+import time
+import uuid
+
+
+def _run_tmux(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["tmux", *args],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _stderr(result: subprocess.CompletedProcess[str]) -> str:
+    return (result.stderr or result.stdout or "tmux command failed").strip()
+
+
+def _get_option(args: list[str], name: str) -> str | None:
+    prefix = f"--{name}="
+    for arg in args:
+        if arg.startswith(prefix):
+            return arg[len(prefix) :]
+    return None
+
+
+def _parse_pane(args: list[str]) -> str:
+    pane = _get_option(args, "pane")
+    if not pane:
+        raise ValueError("missing required --pane option")
+    return pane
+
+
+def _pane_target(pane: str) -> str:
+    pane_suffix = pane.rsplit(":", 1)[-1]
+    if "." in pane_suffix:
+        return pane
+    return f"{pane}.0"
+
+
+def _capture_output(target: str) -> str:
+    result = _run_tmux(["capture-pane", "-t", target, "-p", "-S", "-500"])
+    if result.returncode != 0:
+        raise RuntimeError(_stderr(result))
+    return result.stdout
+
+
+def _cmd_launch(args: list[str]) -> int:
+    if not args:
+        print("launch requires a command", file=sys.stderr)
+        return 2
+
+    command = args[0]
+    if not shlex.split(command):
+        print("launch command is empty", file=sys.stderr)
+        return 2
+
+    session_name = f"tmuxcli_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+    result = _run_tmux(["new-session", "-d", "-s", session_name])
+    if result.returncode != 0:
+        print(_stderr(result), file=sys.stderr)
+        return 1
+
+    # Keep a persistent shell session; only pre-send when launch command is not a shell.
+    shell_commands = {"bash", "zsh", "sh"}
+    command_parts = shlex.split(command)
+    pane_lookup = _run_tmux(["list-panes", "-t", session_name, "-F", "#S:#I.#P"])
+    if pane_lookup.returncode != 0:
+        _run_tmux(["kill-session", "-t", session_name])
+        print(_stderr(pane_lookup), file=sys.stderr)
+        return 1
+
+    pane_id = next((line.strip() for line in pane_lookup.stdout.splitlines() if line.strip()), "")
+    if not pane_id:
+        _run_tmux(["kill-session", "-t", session_name])
+        print("failed to resolve pane id", file=sys.stderr)
+        return 1
+
+    if command_parts and command_parts[0] not in shell_commands:
+        target = _pane_target(pane_id)
+        send_result = _run_tmux(["send-keys", "-t", target, "-l", command])
+        if send_result.returncode != 0:
+            _run_tmux(["kill-session", "-t", session_name])
+            print(_stderr(send_result), file=sys.stderr)
+            return 1
+        enter_result = _run_tmux(["send-keys", "-t", target, "Enter"])
+        if enter_result.returncode != 0:
+            _run_tmux(["kill-session", "-t", session_name])
+            print(_stderr(enter_result), file=sys.stderr)
+            return 1
+
+    print(pane_id)
+    return 0
+
+
+def _cmd_send(args: list[str]) -> int:
+    text = next((arg for arg in args if not arg.startswith("--")), None)
+    if text is None:
+        print("send requires text argument", file=sys.stderr)
+        return 2
+
+    try:
+        pane = _parse_pane(args)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    enter_raw = _get_option(args, "enter")
+    enter = True
+    if enter_raw is not None:
+        enter = enter_raw.lower() not in {"false", "0", "no"}
+
+    delay_enter = _get_option(args, "delay-enter")
+    delay_seconds = 0.0
+    if delay_enter is not None:
+        try:
+            delay_seconds = float(delay_enter)
+        except ValueError:
+            print(f"invalid --delay-enter value: {delay_enter}", file=sys.stderr)
+            return 2
+
+    target = _pane_target(pane)
+    send_result = _run_tmux(["send-keys", "-t", target, "-l", text])
+    if send_result.returncode != 0:
+        print(_stderr(send_result), file=sys.stderr)
+        return 1
+
+    if enter:
+        if delay_seconds > 0:
+            time.sleep(delay_seconds)
+        enter_result = _run_tmux(["send-keys", "-t", target, "Enter"])
+        if enter_result.returncode != 0:
+            print(_stderr(enter_result), file=sys.stderr)
+            return 1
+
+    return 0
+
+
+def _cmd_wait_idle(args: list[str]) -> int:
+    try:
+        pane = _parse_pane(args)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    idle_raw = _get_option(args, "idle-time") or "2.0"
+    timeout_raw = _get_option(args, "timeout") or "60.0"
+
+    try:
+        idle_time = float(idle_raw)
+        timeout = float(timeout_raw)
+    except ValueError:
+        print("idle-time and timeout must be numeric", file=sys.stderr)
+        return 2
+
+    if idle_time < 0 or timeout <= 0:
+        print("idle-time must be >= 0 and timeout must be > 0", file=sys.stderr)
+        return 2
+
+    target = _pane_target(pane)
+
+    try:
+        last_output = _capture_output(target)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    start = time.monotonic()
+    last_change = start
+    poll_interval = 0.1
+
+    while True:
+        now = time.monotonic()
+        if now - start > timeout:
+            print(f"wait_idle timed out after {timeout:.1f}s", file=sys.stderr)
+            return 1
+
+        try:
+            current_output = _capture_output(target)
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        if current_output != last_output:
+            last_output = current_output
+            last_change = now
+        elif now - last_change >= idle_time:
+            return 0
+
+        time.sleep(poll_interval)
+
+
+def _cmd_kill(args: list[str]) -> int:
+    try:
+        pane = _parse_pane(args)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    session = pane.split(":", 1)[0]
+    result = _run_tmux(["kill-session", "-t", session])
+    if result.returncode != 0 and "can't find session" not in _stderr(result).lower():
+        print(_stderr(result), file=sys.stderr)
+        return 1
+
+    return 0
+
+
+def _cmd_interrupt(args: list[str]) -> int:
+    try:
+        pane = _parse_pane(args)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    target = _pane_target(pane)
+    result = _run_tmux(["send-keys", "-t", target, "C-c"])
+    if result.returncode != 0:
+        print(_stderr(result), file=sys.stderr)
+        return 1
+
+    return 0
+
+
+def _cmd_escape(args: list[str]) -> int:
+    try:
+        pane = _parse_pane(args)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    target = _pane_target(pane)
+    result = _run_tmux(["send-keys", "-t", target, "Escape"])
+    if result.returncode != 0:
+        print(_stderr(result), file=sys.stderr)
+        return 1
+
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if not argv:
+        print("usage: tmux-cli <launch|send|wait_idle|kill|interrupt|escape> ...", file=sys.stderr)
+        return 2
+
+    command = argv[0]
+    args = argv[1:]
+
+    handlers = {
+        "launch": _cmd_launch,
+        "send": _cmd_send,
+        "wait_idle": _cmd_wait_idle,
+        "kill": _cmd_kill,
+        "interrupt": _cmd_interrupt,
+        "escape": _cmd_escape,
+    }
+
+    handler = handlers.get(command)
+    if handler is None:
+        print(f"unsupported command: {command}", file=sys.stderr)
+        return 2
+
+    try:
+        return handler(args)
+    except Exception as exc:  # pragma: no cover - defensive error reporting
+        print(str(exc), file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

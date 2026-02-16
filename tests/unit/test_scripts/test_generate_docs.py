@@ -237,7 +237,6 @@ async def async_function(items: List[str]) -> str:
                 # Check HTML report generation was called
                 mock_cov.html_report.assert_called_once()
 
-    @pytest.mark.skip(reason="P2 automation - README update logic needs debugging")
     def test_update_readme_sections(self, temp_dirs, sample_python_file):
         """Test README section updates (AC-5)."""
         src_dir, output_dir = temp_dirs
@@ -266,7 +265,7 @@ This should not change.
         }
 
         # Update README
-        generator.update_readme_sections(["API", "Coverage"])
+        generator.update_readme_sections(["API", "Coverage"], readme_path=readme_path)
 
         updated_content = readme_path.read_text()
 

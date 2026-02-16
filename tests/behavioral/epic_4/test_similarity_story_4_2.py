@@ -119,7 +119,6 @@ def test_story_4_2_duplicate_detection_precision():
     assert stats["n_samples"] == len(corpus)
 
     print(f"\n=== Test PASSED: Precision {precision:.2%} >= 85% ===")
-    return True
 
 
 def test_story_4_2_performance_requirements():
@@ -174,7 +173,6 @@ def test_story_4_2_performance_requirements():
     assert matrix.shape == (100, 100), f"Matrix shape {matrix.shape} != (100, 100)"
 
     print(f"=== Test PASSED: {elapsed_ms:.1f}ms < 200ms ===")
-    return True
 
 
 if __name__ == "__main__":
