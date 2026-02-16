@@ -425,30 +425,101 @@ class SessionManager:
             content = session_file.read_text()
             state_dict = json.loads(content)
 
+            if not isinstance(state_dict, dict):
+                raise SessionCorruptedError(
+                    f"Session file corrupted: expected JSON object in {session_file}"
+                )
+
+            required_keys = {"session_id", "status", "source_directory", "started_at", "updated_at"}
+            missing = sorted(required_keys - set(state_dict.keys()))
+            if missing:
+                raise SessionCorruptedError(
+                    "Session file corrupted: missing required keys "
+                    f"{', '.join(missing)} in {session_file}"
+                )
+
+            statistics_dict = self._require_dict_field(
+                state_dict,
+                field_name="statistics",
+                default={},
+                session_file=session_file,
+            )
+            processed_files = self._require_list_field(
+                state_dict,
+                field_name="processed_files",
+                default=[],
+                session_file=session_file,
+            )
+            failed_files = self._require_list_field(
+                state_dict,
+                field_name="failed_files",
+                default=[],
+                session_file=session_file,
+            )
+            configuration = self._require_dict_field(
+                state_dict,
+                field_name="configuration",
+                default={},
+                session_file=session_file,
+            )
+            started_at = self._parse_datetime_field(
+                state_dict,
+                field_name="started_at",
+                session_file=session_file,
+            )
+            updated_at = self._parse_datetime_field(
+                state_dict,
+                field_name="updated_at",
+                session_file=session_file,
+            )
+            status = self._parse_status_field(
+                state_dict,
+                field_name="status",
+                session_file=session_file,
+            )
+            total_files = self._parse_non_negative_int(
+                statistics_dict.get("total_files", state_dict.get("total_files", 0)),
+                field_name="statistics.total_files",
+                session_file=session_file,
+            )
+            processed_count = self._parse_non_negative_int(
+                statistics_dict.get("processed_count", 0),
+                field_name="statistics.processed_count",
+                session_file=session_file,
+            )
+            failed_count = self._parse_non_negative_int(
+                statistics_dict.get("failed_count", 0),
+                field_name="statistics.failed_count",
+                session_file=session_file,
+            )
+            skipped_count = self._parse_non_negative_int(
+                statistics_dict.get("skipped_count", 0),
+                field_name="statistics.skipped_count",
+                session_file=session_file,
+            )
+
             # Reconstruct session state
             self._current_session = SessionState(
-                session_id=state_dict["session_id"],
-                status=state_dict["status"],
-                source_directory=Path(state_dict["source_directory"]),
+                session_id=str(state_dict["session_id"]),
+                status=status,
+                source_directory=Path(str(state_dict["source_directory"])),
                 output_directory=(
-                    Path(state_dict["output_directory"])
+                    Path(str(state_dict["output_directory"]))
                     if state_dict.get("output_directory")
                     else None
                 ),
-                total_files=state_dict.get("statistics", {}).get(
-                    "total_files", state_dict.get("total_files", 0)
-                ),
-                processed_files=state_dict.get("processed_files", []),
-                failed_files=state_dict.get("failed_files", []),
-                started_at=datetime.fromisoformat(state_dict["started_at"]),
-                updated_at=datetime.fromisoformat(state_dict["updated_at"]),
-                configuration=state_dict.get("configuration", {}),
-                schema_version=state_dict.get("schema_version", "1.0"),
+                total_files=total_files,
+                processed_files=processed_files,
+                failed_files=failed_files,
+                started_at=started_at,
+                updated_at=updated_at,
+                configuration=configuration,
+                schema_version=str(state_dict.get("schema_version", "1.0")),
                 statistics=SessionStatistics(
-                    total_files=state_dict.get("statistics", {}).get("total_files", 0),
-                    processed_count=state_dict.get("statistics", {}).get("processed_count", 0),
-                    failed_count=state_dict.get("statistics", {}).get("failed_count", 0),
-                    skipped_count=state_dict.get("statistics", {}).get("skipped_count", 0),
+                    total_files=total_files,
+                    processed_count=processed_count,
+                    failed_count=failed_count,
+                    skipped_count=skipped_count,
                 ),
             )
 
@@ -456,6 +527,103 @@ class SessionManager:
 
         except json.JSONDecodeError as e:
             raise SessionCorruptedError(f"Session file corrupted: {e}") from e
+        except SessionCorruptedError:
+            raise
+        except Exception as e:
+            raise SessionCorruptedError(f"Session file corrupted: {e}") from e
+
+    @staticmethod
+    def _require_dict_field(
+        payload: dict[str, Any],
+        field_name: str,
+        default: dict[str, Any],
+        session_file: Path,
+    ) -> dict[str, Any]:
+        """Return dict field or raise corruption error for invalid structures."""
+        value = payload.get(field_name, default)
+        if value is None:
+            return default
+        if not isinstance(value, dict):
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be an object in {session_file}"
+            )
+        return value
+
+    @staticmethod
+    def _require_list_field(
+        payload: dict[str, Any],
+        field_name: str,
+        default: list[dict[str, Any]],
+        session_file: Path,
+    ) -> list[dict[str, Any]]:
+        """Return list field or raise corruption error for invalid structures."""
+        value = payload.get(field_name, default)
+        if value is None:
+            return default
+        if not isinstance(value, list):
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be a list in {session_file}"
+            )
+        return value
+
+    @staticmethod
+    def _parse_datetime_field(
+        payload: dict[str, Any], field_name: str, session_file: Path
+    ) -> datetime:
+        """Parse ISO datetime field from payload with corruption errors."""
+        raw_value = payload.get(field_name)
+        if not isinstance(raw_value, str):
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be an ISO datetime string "
+                f"in {session_file}"
+            )
+        try:
+            return datetime.fromisoformat(raw_value)
+        except ValueError as e:
+            raise SessionCorruptedError(
+                f"Session file corrupted: invalid ISO datetime in field '{field_name}' "
+                f"for {session_file}: {raw_value}"
+            ) from e
+
+    @staticmethod
+    def _parse_status_field(
+        payload: dict[str, Any],
+        field_name: str,
+        session_file: Path,
+    ) -> Literal["in_progress", "completed", "failed", "interrupted"]:
+        """Parse and validate session status literal value."""
+        raw_value = payload.get(field_name)
+        if not isinstance(raw_value, str):
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be a string in {session_file}"
+            )
+        normalized = raw_value.strip()
+        if normalized == "in_progress":
+            return "in_progress"
+        if normalized == "completed":
+            return "completed"
+        if normalized == "failed":
+            return "failed"
+        if normalized == "interrupted":
+            return "interrupted"
+        raise SessionCorruptedError(
+            f"Session file corrupted: invalid status '{raw_value}' in {session_file}"
+        )
+
+    @staticmethod
+    def _parse_non_negative_int(value: Any, field_name: str, session_file: Path) -> int:
+        """Parse a non-negative integer field from session payload."""
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError) as exc:
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be an integer in {session_file}"
+            ) from exc
+        if parsed < 0:
+            raise SessionCorruptedError(
+                f"Session file corrupted: field '{field_name}' must be non-negative in {session_file}"
+            )
+        return parsed
 
     def record_processed_file(
         self,

@@ -354,6 +354,66 @@ class TestConfigShowCommand:
             "[env]" in result.output.lower()
         ), f"Env override should show [env] source: {result.output}"
 
+    def test_config_show_reports_invalid_project_config_without_traceback(
+        self, typer_cli_runner, mock_home_directory
+    ):
+        """
+        RED: Verify invalid project YAML is surfaced as a clear config error.
+
+        Given: .data-extract.yaml contains malformed YAML
+        When: 'config show' is executed
+        Then: Command should fail with a clear message and no traceback dump
+
+        Expected RED failure: Silent fallback or raw exception
+        """
+        config_file = mock_home_directory.work_dir / ".data-extract.yaml"
+        config_file.write_text(
+            """
+semantic
+  tfidf:
+    max_features: 5000
+""",
+            encoding="utf-8",
+        )
+
+        try:
+            from data_extract.app import app
+
+            result = typer_cli_runner.invoke(app, ["config", "show"])
+        except ImportError as e:
+            pytest.fail(f"Cannot import: {e}")
+
+        assert result.exit_code != 0
+        assert "invalid yaml" in result.output.lower()
+        assert "config file" in result.output.lower()
+        assert "traceback" not in result.output.lower()
+
+    def test_config_show_reports_invalid_numeric_env_var_without_traceback(
+        self, typer_cli_runner, env_vars_fixture
+    ):
+        """
+        RED: Verify malformed numeric env vars fail cleanly in config commands.
+
+        Given: DATA_EXTRACT_TFIDF_MAX_FEATURES has non-numeric value
+        When: 'config show' is executed
+        Then: Command should show clear env-var error without traceback
+
+        Expected RED failure: Raw uncaught ValueError
+        """
+        env_vars_fixture.set("TFIDF_MAX_FEATURES", "not_a_number")
+
+        try:
+            from data_extract.app import app
+
+            result = typer_cli_runner.invoke(app, ["config", "show"])
+        except ImportError as e:
+            pytest.fail(f"Cannot import: {e}")
+
+        assert result.exit_code != 0
+        assert "DATA_EXTRACT_TFIDF_MAX_FEATURES" in result.output
+        assert "integer or float" in result.output.lower()
+        assert "traceback" not in result.output.lower()
+
     def test_config_show_formats_output_nicely(self, typer_cli_runner):
         """
         RED: Verify 'config show' has well-formatted output.

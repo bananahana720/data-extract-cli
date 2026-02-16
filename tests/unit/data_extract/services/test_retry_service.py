@@ -112,3 +112,57 @@ def test_retry_service_uses_canonical_session_payload_when_legacy_missing(tmp_pa
     assert result.processed_count == 1
     assert result.failed_count == 0
     assert (output_dir / "canonical_retry.json").exists()
+
+
+def test_retry_service_file_filter_matches_relative_to_session_source_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "source-relative"
+    output_dir = tmp_path / "output-relative"
+    (source_dir / "a").mkdir(parents=True)
+    (source_dir / "b").mkdir(parents=True)
+    output_dir.mkdir(parents=True)
+
+    file_a = source_dir / "a" / "dup.txt"
+    file_b = source_dir / "b" / "dup.txt"
+    file_a.write_text("retry a", encoding="utf-8")
+    file_b.write_text("retry b", encoding="utf-8")
+
+    manager = SessionManager(work_dir=tmp_path)
+    manager.start_session(
+        source_dir=source_dir,
+        total_files=2,
+        configuration={
+            "output_path": str(output_dir),
+            "format": "json",
+        },
+    )
+    assert manager.session_id is not None
+    session_id = manager.session_id
+
+    manager.record_failed_file(
+        file_path=file_a,
+        error_type="RuntimeError",
+        error_message="Simulated failure A",
+    )
+    manager.record_failed_file(
+        file_path=file_b,
+        error_type="RuntimeError",
+        error_message="Simulated failure B",
+    )
+    manager.save_session()
+    manager.complete_session()
+
+    unrelated_cwd = tmp_path / "unrelated-cwd"
+    unrelated_cwd.mkdir()
+    monkeypatch.chdir(unrelated_cwd)
+
+    result = RetryService().run_retry(
+        RetryRequest(session=session_id, file="b/dup.txt", non_interactive=True),
+        work_dir=tmp_path,
+    )
+
+    assert result.processed_count == 1
+    assert result.failed_count == 0
+    assert len(result.processed_files) == 1
+    assert Path(result.processed_files[0].path).resolve() == file_b.resolve()

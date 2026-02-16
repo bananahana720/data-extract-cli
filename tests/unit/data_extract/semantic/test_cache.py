@@ -69,6 +69,8 @@ class TestCacheManager:
         key2 = manager.generate_cache_key("test content", config)
         assert key1 == key2
         assert key1.startswith("tfidf_v1_")
+        assert len(key1) == len("tfidf_v1_") + 64
+        assert all(char in "0123456789abcdef" for char in key1.removeprefix("tfidf_v1_"))
 
         # Different content should generate different keys
         key3 = manager.generate_cache_key("different content", config)
@@ -295,6 +297,7 @@ class TestCacheManager:
         key2 = manager.generate_cache_key("test content", simple_config)
         assert key1 == key2
         assert key1.startswith("tfidf_v1_")
+        assert len(key1) == len("tfidf_v1_") + 64
 
     def test_warm_cache(self):
         """Test cache warming (placeholder functionality)."""

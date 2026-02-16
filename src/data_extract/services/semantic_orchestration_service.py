@@ -196,7 +196,7 @@ class SemanticOrchestrationService:
         chunks: List[Chunk] = []
         seen_ids: set[str] = set()
         for output_path in sorted(output_paths, key=lambda path: str(path)):
-            for chunk in load_chunks(output_path):
+            for chunk in load_chunks(output_path, strict=True):
                 chunk_id = str(chunk.id)
                 if chunk_id in seen_ids:
                     continue

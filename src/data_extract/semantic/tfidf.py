@@ -1,5 +1,6 @@
 """TF-IDF vectorization stage for semantic analysis."""
 
+import json
 import logging
 import time
 from typing import Any, List, Optional
@@ -76,8 +77,8 @@ class TfidfVectorizationStage(PipelineStage[List[Chunk], SemanticResult]):
         cached_result = None
 
         if self.cache_manager:
-            # Create deterministic content hash
-            content = "\n".join(sorted(texts))  # Sort for determinism
+            # Preserve input order so cached rows always align with chunk_ids mapping.
+            content = self._build_ordered_cache_content(texts)
             cache_key = self.cache_manager.generate_cache_key(content, self.config)
 
             # Try to retrieve from cache
@@ -189,15 +190,19 @@ class TfidfVectorizationStage(PipelineStage[List[Chunk], SemanticResult]):
         # Get vectorizer parameters from config
         params = self.config.to_dict()
 
-        # Add random state for determinism
-        # Note: TfidfVectorizer doesn't have random_state, but we set it for consistency
-        # The determinism comes from sorted input and fixed configuration
+        # Add random state for determinism.
+        # Note: TfidfVectorizer doesn't expose random_state; determinism here comes from
+        # stable input ordering and fixed configuration.
 
         # Create vectorizer
         vectorizer = TfidfVectorizer(**params)
 
         logger.debug(f"Created TfidfVectorizer with config: {params}")
         return vectorizer
+
+    def _build_ordered_cache_content(self, texts: List[str]) -> str:
+        """Build deterministic cache input while preserving document order."""
+        return json.dumps(texts, separators=(",", ":"), ensure_ascii=False)
 
     def transform(self, chunks: List[Chunk]) -> Optional[csr_matrix]:
         """Transform new chunks using fitted vectorizer.

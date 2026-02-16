@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import glob
 from pathlib import Path
 from typing import Iterable, List, Tuple
 
@@ -28,7 +29,7 @@ class FileDiscoveryService:
         input_str = str(input_path)
         if self.is_glob_pattern(input_str):
             files = self._discover_from_glob(input_str, excludes)
-            return files, Path.cwd()
+            return files, self._glob_source_dir(input_str)
 
         resolved = Path(input_str)
         if not resolved.exists():
@@ -43,13 +44,27 @@ class FileDiscoveryService:
 
     def _discover_from_glob(self, pattern: str, excludes: Iterable[Path]) -> List[Path]:
         """Expand glob pattern and filter to supported source files."""
-        if "**" in pattern:
-            sub_pattern = pattern.replace("**/", "")
-            matches = list(Path.cwd().rglob(sub_pattern))
-        else:
-            matches = list(Path.cwd().glob(pattern))
-        files = [p for p in matches if p.is_file()]
+        expanded_pattern = str(Path(pattern).expanduser())
+        matches = glob.glob(expanded_pattern, recursive=True)
+        files = [Path(match) for match in matches if Path(match).is_file()]
         return self._filter_supported(files, excludes)
+
+    def _glob_source_dir(self, pattern: str) -> Path:
+        """Return deterministic source root for a glob pattern."""
+        expanded = Path(pattern).expanduser()
+        static_parts: list[str] = []
+        for part in expanded.parts:
+            if self.is_glob_pattern(part):
+                break
+            static_parts.append(part)
+
+        if not static_parts:
+            return Path.cwd().resolve()
+
+        source_dir = Path(*static_parts)
+        if not source_dir.is_absolute():
+            source_dir = Path.cwd() / source_dir
+        return source_dir.resolve()
 
     @staticmethod
     def _filter_supported(

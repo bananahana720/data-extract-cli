@@ -83,7 +83,7 @@ class CacheManager:
             config: Configuration object with get_cache_key_components method
 
         Returns:
-            Cache key string (format: tfidf_v1_[sha256[:8]])
+            Cache key string (format: tfidf_v1_[sha256])
         """
         # Combine content with config components for unique key
         hasher = hashlib.sha256()
@@ -94,8 +94,7 @@ class CacheManager:
             for component in config.get_cache_key_components():
                 hasher.update(str(component).encode("utf-8"))
 
-        hash_hex = hasher.hexdigest()[:8]
-        return f"tfidf_v1_{hash_hex}"
+        return f"tfidf_v1_{hasher.hexdigest()}"
 
     def get(self, key: str) -> Optional[Any]:
         """Retrieve cached object by key.

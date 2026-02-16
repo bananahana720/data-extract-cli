@@ -5,13 +5,14 @@ It reduces TF-IDF vectors using TruncatedSVD, extracts topics, and performs
 document clustering with K-means.
 """
 
+import hashlib
 import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, vstack
 from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics import silhouette_score
@@ -142,7 +143,10 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
 
         if self.cache_manager and input_data.tfidf_matrix is not None:
             # Generate cache key from matrix content
-            cache_key = self._generate_cache_key(input_data.tfidf_matrix)
+            cache_key = self._generate_cache_key(
+                input_data.tfidf_matrix,
+                input_data.feature_names,
+            )
             cached_result = self.cache_manager.get(cache_key)
 
             if cached_result is not None:
@@ -393,11 +397,14 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
 
         return cast(np.ndarray, distributions)
 
-    def _generate_cache_key(self, matrix: csr_matrix) -> str:
+    def _generate_cache_key(
+        self, matrix: csr_matrix, feature_names: Optional[np.ndarray] = None
+    ) -> str:
         """Generate cache key from TF-IDF matrix.
 
         Args:
             matrix: Sparse TF-IDF matrix
+            feature_names: Optional feature name array
 
         Returns:
             Deterministic cache key
@@ -405,13 +412,31 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
         if not self.cache_manager:
             return ""
 
-        # Use matrix shape, nnz, and data sample for key
-        matrix_hash = f"{matrix.shape}_{matrix.nnz}_{np.sum(matrix.data):.6f}"
-        config_hash = str(self.config.get_cache_key_components())
+        matrix_hash = self._hash_sparse_matrix(matrix)
+        feature_hash = "none"
+        if feature_names is not None:
+            feature_hasher = hashlib.sha256()
+            feature_blob = "\x1f".join(str(name) for name in feature_names.tolist())
+            feature_hasher.update(feature_blob.encode("utf-8"))
+            feature_hash = feature_hasher.hexdigest()
+
         return self.cache_manager.generate_cache_key(
-            matrix_hash + config_hash,
+            f"{matrix_hash}|features={feature_hash}",
             self.config,
         )
+
+    def _hash_sparse_matrix(self, matrix: csr_matrix) -> str:
+        """Hash sparse matrix structure and values for cache identity."""
+        matrix_csr = matrix.tocsr(copy=True)
+        matrix_csr.sort_indices()
+
+        hasher = hashlib.sha256()
+        hasher.update(str(matrix_csr.shape).encode("utf-8"))
+        hasher.update(str(matrix_csr.dtype).encode("utf-8"))
+        hasher.update(matrix_csr.indptr.tobytes())
+        hasher.update(matrix_csr.indices.tobytes())
+        hasher.update(matrix_csr.data.tobytes())
+        return hasher.hexdigest()
 
     def _create_error_result(self, error_msg: str, start_time: float) -> SemanticResult:
         """Create error result.
@@ -571,17 +596,55 @@ class LsaReductionStage(PipelineStage[SemanticResult, SemanticResult]):
         if not batches:
             return SemanticResult(success=False, error="No batches provided")
 
-        # Process first batch to establish components
-        first_result = self.process(batches[0], context)
-        if not first_result.success:
-            return first_result
+        if len(batches) == 1:
+            return self.process(batches[0], context)
 
-        # For additional batches, transform using existing SVD
-        if len(batches) > 1 and self._svd is not None:
-            logger.info(f"Processing {len(batches) - 1} additional batches")
+        valid_batches: List[SemanticResult] = []
+        for index, batch in enumerate(batches):
+            if not batch.success:
+                return SemanticResult(
+                    success=False,
+                    error=f"Batch {index} failed before LSA: {batch.error or 'unknown error'}",
+                )
+            if batch.tfidf_matrix is None:
+                return SemanticResult(
+                    success=False,
+                    error=f"Batch {index} has no TF-IDF matrix",
+                )
+            valid_batches.append(batch)
 
-            # Note: This is a simplified batch processing approach
-            # True incremental LSA would require online SVD algorithms
-            # which are not available in scikit-learn
+        first_batch = valid_batches[0]
+        expected_features = cast(csr_matrix, first_batch.tfidf_matrix).shape[1]
 
-        return first_result
+        for index, batch in enumerate(valid_batches[1:], start=1):
+            batch_features = cast(csr_matrix, batch.tfidf_matrix).shape[1]
+            if batch_features != expected_features:
+                return SemanticResult(
+                    success=False,
+                    error=(
+                        "Inconsistent TF-IDF feature dimensions across batches: "
+                        f"batch 0 has {expected_features}, batch {index} has {batch_features}"
+                    ),
+                )
+
+        combined_matrix = cast(
+            csr_matrix,
+            vstack(
+                [cast(csr_matrix, batch.tfidf_matrix) for batch in valid_batches],
+                format="csr",
+            ),
+        )
+        combined_chunk_ids = [
+            chunk_id for batch in valid_batches for chunk_id in (batch.chunk_ids or [])
+        ]
+
+        combined_input = SemanticResult(
+            tfidf_matrix=combined_matrix,
+            vectorizer=first_batch.vectorizer,
+            vocabulary=first_batch.vocabulary,
+            feature_names=first_batch.feature_names,
+            chunk_ids=combined_chunk_ids or None,
+            success=True,
+        )
+
+        return self.process(combined_input, context)
