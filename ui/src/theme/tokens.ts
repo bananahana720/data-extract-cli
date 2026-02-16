@@ -115,6 +115,70 @@ export const elevationTokens = {
   md: "0 14px 30px rgba(11, 31, 43, 0.12)",
 } as const;
 
+const px = (value: number): string => `${value}px`;
+
+export const cssCustomPropertyTokens = {
+  typography: {
+    fontSans: typographyTokens.fontFamily.sans,
+    fontSize100: typographyTokens.fontSize.xs,
+    fontSize200: typographyTokens.fontSize.sm,
+    fontSize300: typographyTokens.fontSize.md,
+    fontSize400: typographyTokens.fontSize.lg,
+    fontSize500: typographyTokens.fontSize.xl,
+    fontSize600: `clamp(${typographyTokens.fontSize.xl}, 2.4vw, ${typographyTokens.fontSize["2xl"]})`,
+    lineHeightNormal: `${typographyTokens.lineHeight.normal}`,
+    letterSpacingWide: typographyTokens.letterSpacing.wide,
+    letterSpacingCaps: typographyTokens.letterSpacing.caps,
+    fontWeightRegular: `${typographyTokens.fontWeight.regular}`,
+    fontWeightMedium: `${typographyTokens.fontWeight.medium}`,
+    fontWeightSemibold: `${typographyTokens.fontWeight.semibold}`,
+    fontWeightBold: `${typographyTokens.fontWeight.bold}`,
+  },
+  spacing: {
+    xxs: px(spacingTokens.xxs),
+    xs: px(spacingTokens.xs),
+    sm: px(spacingTokens.sm),
+    md: px(spacingTokens.md),
+    lg: px(spacingTokens.lg),
+    xl: px(spacingTokens.xl),
+    "2xl": px(spacingTokens["2xl"]),
+  },
+  radius: {
+    sm: px(shapeTokens.radius.sm),
+    md: px(shapeTokens.radius.md),
+    lg: px(shapeTokens.radius.lg),
+    pill: px(shapeTokens.radius.pill),
+  },
+  color: {
+    surfaceCanvas: colorTokens.surface.canvas,
+    surfaceElevated: colorTokens.surface.elevated,
+    surfaceMuted: colorTokens.surface.muted,
+    textPrimary: colorTokens.text.primary,
+    textSecondary: colorTokens.text.secondary,
+    textMuted: colorTokens.text.muted,
+    borderSubtle: colorTokens.border.subtle,
+    accent: colorTokens.brand.accent,
+    accentStrong: colorTokens.brand.accentStrong,
+    accentSoft: colorTokens.brand.accentSoft,
+    infoBg: colorTokens.status.info.background,
+    infoFg: colorTokens.status.info.foreground,
+    infoBorder: colorTokens.status.info.border,
+    successBg: colorTokens.status.success.background,
+    successFg: colorTokens.status.success.foreground,
+    successBorder: colorTokens.status.success.border,
+    warnBg: colorTokens.status.warning.background,
+    warnFg: colorTokens.status.warning.foreground,
+    warnBorder: colorTokens.status.warning.border,
+    errorBg: colorTokens.status.error.background,
+    errorFg: colorTokens.status.error.foreground,
+    errorBorder: colorTokens.status.error.border,
+  },
+  elevation: {
+    sm: elevationTokens.sm,
+    md: elevationTokens.md,
+  },
+} as const;
+
 export type SemanticStatus = keyof typeof statusTokens;
 export type ColorTokens = typeof colorTokens;
 export type TypographyTokens = typeof typographyTokens;

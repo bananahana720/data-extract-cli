@@ -1,6 +1,7 @@
 import { Box, Paper, Stack, Typography, type PaperProps } from "@mui/material";
 import { useId, type ReactNode } from "react";
 
+import { shapeTokens, spacingTokens } from "../../theme/tokens";
 import { mergeSx } from "./sx";
 
 export interface SectionCardProps extends Omit<PaperProps, "title"> {
@@ -34,8 +35,8 @@ export function SectionCard(props: SectionCardProps) {
       aria-labelledby={title ? headingId : undefined}
       sx={mergeSx(
         {
-          borderRadius: 3,
-          p: noPadding ? 0 : 3,
+          borderRadius: `${shapeTokens.radius.lg}px`,
+          p: noPadding ? 0 : `${spacingTokens.lg}px`,
         },
         sx
       )}
@@ -43,14 +44,19 @@ export function SectionCard(props: SectionCardProps) {
       {hasHeader ? (
         <Stack
           direction={{ xs: "column", md: "row" }}
-          spacing={2}
+          spacing={`${spacingTokens.md}px`}
           alignItems={{ xs: "flex-start", md: "center" }}
           justifyContent="space-between"
-          sx={{ mb: 2.5 }}
+          sx={{ mb: `${spacingTokens.md}px` }}
         >
           <Box>
             {title ? (
-              <Typography id={headingId} component="h2" variant="h6" sx={{ mb: subtitle ? 0.5 : 0 }}>
+              <Typography
+                id={headingId}
+                component="h2"
+                variant="h6"
+                sx={{ mb: subtitle ? `${spacingTokens.xxs}px` : 0 }}
+              >
                 {title}
               </Typography>
             ) : null}
